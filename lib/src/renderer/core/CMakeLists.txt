@@ -1,4 +1,4 @@
-target_sources(VoxelEngine
+target_sources(vkx
 	PRIVATE
 		"${CMAKE_CURRENT_SOURCE_DIR}/commands.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/context.cpp"
