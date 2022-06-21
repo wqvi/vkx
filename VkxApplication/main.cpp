@@ -130,8 +130,9 @@ public:
     }
 };
 
-int main()
+int main(int argc, char** argv)
 {
+    vkx::App app{{}};
 	try
 	{
 		vkx::Window window{"Vulkan", WIDTH, HEIGHT};

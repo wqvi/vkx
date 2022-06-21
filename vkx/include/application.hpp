@@ -16,8 +16,8 @@ namespace vkx {
 
         App(const AppConfig &configuration);
 
-        virtual ~App() = default;
+        ~App() = default;
 
-        virtual void run();
+        void run();
     };
 }
