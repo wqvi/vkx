@@ -6,7 +6,7 @@ project(VoxelEngine
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(${PROJECT_NAME}
+add_library(${PROJECT_NAME}
 	"src/main.cpp"
 )
 
@@ -33,8 +33,9 @@ endif()
 find_package(Vulkan REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
 
-if (MSVC)
+if (WIN32)
 	target_link_libraries(${PROJECT_NAME}
 		PRIVATE
 			Vulkan::Vulkan
@@ -47,6 +48,7 @@ else()
 				Vulkan::Vulkan
 				glfw
 				glm
+				SDL2
 			)
 endif()
 
