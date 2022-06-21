@@ -38,3 +38,9 @@ clion-log.*
 cmake-build-debug/
 cmake-build-release/
 .idea/
+
+# Laziness
+stb_image.h
+
+# spv files
+*.spv
