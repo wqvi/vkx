@@ -5,4 +5,4 @@ project(Game
 )
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lib")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/vkx_app")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/VkxApplication")
