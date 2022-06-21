@@ -87,11 +87,10 @@ public:
 		while (window.isOpen())
 		{
 			auto currentTime = std::chrono::high_resolution_clock::now();
-			auto deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastTime).count();
+			auto deltaTime = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - lastTime).count();
 
-			// FIX ME!!!
-			camera.velocity += (camera.direction / 10000.0f) * deltaTime;
-			camera.velocity *= 0.95f;
+			camera.velocity += camera.direction * deltaTime;
+			camera.velocity *= 0.1f;
 			camera.position += camera.velocity * deltaTime;
 
 			auto &mvpBuffer = mvpBuffers[currentFrame];
@@ -105,6 +104,8 @@ public:
 
 			drawFrame(mvpBuffer, lightBuffer, materialBuffer, vertexBuffer, indexBuffer, static_cast<std::uint32_t>(chunk.indices.size()), currentFrame);
 			vkx::Window::pollEvents();
+
+            lastTime = currentTime;
 		}
 
 		device->waitIdle();
