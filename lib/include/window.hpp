@@ -2,42 +2,32 @@
 
 #include <util/observer.hpp>
 
-namespace vkx
-{
-	class Window : public MouseSubject, public KeyboardSubject, public FramebufferResizedSubject
-	{
-	public:
-		Window(char const *title, std::uint32_t width, std::uint32_t height);
+namespace vkx {
+    class Window : public MouseSubject, public KeyboardSubject, public FramebufferResizedSubject {
+    public:
+        Window(const char *title, std::uint32_t width, std::uint32_t height);
 
-		~Window() override;
+        ~Window() override;
 
-		[[nodiscard]] bool isOpen() const;
+        [[nodiscard]] bool isOpen() const;
 
-		void show() const;
+        void show() const;
 
-		void hide() const;
+        void hide() const;
 
-		void setUserPtr(void *user) const;
+        [[nodiscard]] vk::UniqueSurfaceKHR createSurface(vk::UniqueInstance const &instance) const;
 
-		void setFramebufferSizeCallback(GLFWframebuffersizefun fun) const;
+        [[nodiscard]] std::pair<std::uint32_t, std::uint32_t> getSize() const;
 
-		void setKeyboardCallback(GLFWkeyfun fun) const;
+        static void pollEvents();
 
-		void setCursorPosCallback(GLFWcursorposfun fun) const;
+    private:
+        GLFWwindow *internalHandle;
 
-		[[nodiscard]] vk::UniqueSurfaceKHR createSurface(vk::UniqueInstance const &instance) const;
+        static void cursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 
-		[[nodiscard]] std::pair<std::uint32_t, std::uint32_t> getSize() const;
+        static void keyboardCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
-		static void pollEvents();
-
-	private:
-		GLFWwindow *internalHandle;
-
-		static void cursorPosCallback(GLFWwindow *window, double xpos, double ypos);
-
-		static void keyboardCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
-		
-		static void framebufferResizeCallback(GLFWwindow *window, int width, int height);
-	};
+        static void framebufferResizeCallback(GLFWwindow *window, int width, int height);
+    };
 }
