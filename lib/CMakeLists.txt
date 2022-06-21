@@ -34,12 +34,21 @@ find_package(Vulkan REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 
-target_link_libraries(${PROJECT_NAME} 
-	PRIVATE
-		Vulkan::Vulkan
-		glfw
-		glm::glm
-)
+if (MSVC)
+	target_link_libraries(${PROJECT_NAME}
+		PRIVATE
+			Vulkan::Vulkan
+			glfw
+			glm::glm
+		)
+else()
+	target_link_libraries(${PROJECT_NAME}
+			PRIVATE
+				Vulkan::Vulkan
+				glfw
+				glm
+			)
+endif()
 
 # This is temporary
 target_include_directories(${PROJECT_NAME}
