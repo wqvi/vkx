@@ -130,22 +130,23 @@ public:
     }
 };
 
-int main()
+int main(int argc, char** argv)
 {
-	try
-	{
-		vkx::Window window{"Vulkan", WIDTH, HEIGHT};
-		VoxelRenderer app{window};
-		window.vkx::MouseSubject::attach(&app);
-		window.vkx::KeyboardSubject::attach(&app);
-		window.vkx::FramebufferResizedSubject::attach(&app);
-		app.run();
-	}
-	catch (std::exception const &e)
-	{
-		std::cerr << e.what() << std::endl;
-		return EXIT_FAILURE;
-	}
+    vkx::App app{{}};
+//	try
+//	{
+//		vkx::Window window{"Vulkan", WIDTH, HEIGHT};
+//		VoxelRenderer app{window};
+//		window.vkx::MouseSubject::attach(&app);
+//		window.vkx::KeyboardSubject::attach(&app);
+//		window.vkx::FramebufferResizedSubject::attach(&app);
+//		app.run();
+//	}
+//	catch (std::exception const &e)
+//	{
+//		std::cerr << e.what() << std::endl;
+//		return EXIT_FAILURE;
+//	}
 
 	return EXIT_SUCCESS;
 }
