@@ -29,16 +29,16 @@ namespace vkx
 
         void detach(T *observer)
         {
-            observers.erase(std::ranges::remove(observers, observer), observers.begin);
+            observers.erase(std::remove(observers.begin(), observers.end(), observer), observers.begin);
         }
 
     protected:
         void notify(K const &event)
         {
-            std::ranges::for_each(observers, [&event](auto const &observer)
+            for (const auto &observer : observers)
             {
                 observer->update(event);
-            });
+            }
         }
 
     private:
