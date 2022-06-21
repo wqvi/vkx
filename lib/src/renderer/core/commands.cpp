@@ -55,6 +55,9 @@ namespace vkx
   DrawCommand::DrawCommand(vk::UniqueDevice const &device, vk::CommandBuffer const &commandBuffer)
       : device(*device), commandBuffer(commandBuffer) {}
 
+  DrawCommand::DrawCommand(Device const &device, vk::CommandBuffer const &commandBuffer)
+      : device(static_cast<vk::Device>(device)), commandBuffer(commandBuffer) {}
+
   DrawCommand::operator vk::CommandBuffer const &() const
   {
     return commandBuffer;

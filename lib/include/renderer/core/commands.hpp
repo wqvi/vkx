@@ -26,7 +26,7 @@ namespace vkx
   class DrawCommand
   {
   public:
-    DrawCommand();
+    DrawCommand() = default;
 
     DrawCommand(vk::UniqueDevice const &device,
                 vk::CommandBuffer const &commandBuffer);
