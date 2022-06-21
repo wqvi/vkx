@@ -4,5 +4,6 @@ target_sources(VoxelEngine
 		"${CMAKE_CURRENT_SOURCE_DIR}/window.cpp"
 )
 
-add_subdirectory("renderer")
-add_subdirectory("voxels")
+message(STATUS "Including vkx source directory!")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/renderer")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/voxels")
