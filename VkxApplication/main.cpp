@@ -132,7 +132,11 @@ public:
 
 int main(int argc, char** argv)
 {
-    vkx::App app{{640, 360}};
+    try {
+        vkx::App app{{640, 360}};
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << '\n';
+    }
 //	try
 //	{
 //		vkx::Window window{"Vulkan", WIDTH, HEIGHT};
