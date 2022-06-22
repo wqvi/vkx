@@ -134,6 +134,7 @@ int main(int argc, char** argv)
 {
     try {
         vkx::App app{{640, 360}};
+        app.run();
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
     }
