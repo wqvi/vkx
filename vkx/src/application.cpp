@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 #include <debug.hpp>
+#include <iostream>
 
 vkx::App::App(const vkx::AppConfig &config) {
     auto initFlags = SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO;
@@ -93,11 +94,36 @@ vkx::App::App(const vkx::AppConfig &config) {
     if (!SDL_Vulkan_CreateSurface(window, instance, &surface)) {
         throw std::runtime_error("Failure to create SDL surface.");
     }
+
+    std::uint32_t physicalDeviceCount;
+    if (vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr) != VK_SUCCESS) {
+        throw std::runtime_error("Failure to count physical devices.");
+    }
+
+    std::vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount);
+
+    if (vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices.data()) != VK_SUCCESS) {
+        throw std::runtime_error("Failure to enumerate physical devices.");
+    }
+
+    std::uint32_t bestRating = 0;
+    VkPhysicalDevice bestPhysicalDevice = nullptr;
+    for (const auto pDevice : physicalDevices) {
+        auto newRating = rate(pDevice);
+        if (newRating > bestRating) {
+            bestRating = newRating;
+            bestPhysicalDevice = pDevice;
+        }
+    }
+
+    if (bestPhysicalDevice == nullptr) {
+        throw std::runtime_error("Failure to find suitable device.");
+    }
 }
 
 vkx::App::~App() {
     // Vulkan clean up
-    // vkDestroySurfaceKHR(instance, surface, nullptr);
+    vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyInstance(instance, nullptr);
 
     // SDL clean up
@@ -118,4 +144,13 @@ void vkx::App::run() {
 //            }
 //        }
 //    }
+}
+
+std::uint32_t vkx::App::rate(VkPhysicalDevice physicalDevice) {
+    std::uint32_t rating = 0;
+
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
+
+    return rating;
 }

@@ -24,6 +24,8 @@ namespace vkx {
         void run();
 
     private:
+        static std::uint32_t rate(VkPhysicalDevice physicalDevice);
+
         SDL_Window* window = nullptr;
         VkInstance instance = nullptr;
         VkSurfaceKHR surface = nullptr;
