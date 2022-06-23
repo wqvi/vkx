@@ -1,5 +1,6 @@
 #include <window.hpp>
 
+#include <SDL2/SDL_vulkan.h>
 #include <iostream>
 
 namespace vkx {
@@ -23,55 +24,64 @@ namespace vkx {
     } initialized;
 
     Window::Window(const char *title, std::uint32_t width, std::uint32_t height) {
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); /* No OpenGL API flag. */
-        glfwWindowHint(GLFW_VISIBLE, false);
+//        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); /* No OpenGL API flag. */
+//        glfwWindowHint(GLFW_VISIBLE, false);
+//
+//        internalHandle = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
+//        if (!internalHandle)
+//            throw std::runtime_error("Failed to create window.");
+//
+//        glfwSetInputMode(internalHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+//
+//        glfwSetWindowUserPointer(internalHandle, this);
+//        glfwSetCursorPosCallback(internalHandle, cursorPosCallback);
+//        glfwSetKeyCallback(internalHandle, keyboardCallback);
+//        glfwSetFramebufferSizeCallback(internalHandle, framebufferResizeCallback);
 
-        internalHandle = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
-        if (!internalHandle)
-            throw std::runtime_error("Failed to create window.");
+        SDL_Init(SDL_INIT_EVERYTHING);
+        internalHandle = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, static_cast<int>(width), static_cast<int>(height), SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
 
-        glfwSetInputMode(internalHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-        glfwSetWindowUserPointer(internalHandle, this);
-        glfwSetCursorPosCallback(internalHandle, cursorPosCallback);
-        glfwSetKeyCallback(internalHandle, keyboardCallback);
-        glfwSetFramebufferSizeCallback(internalHandle, framebufferResizeCallback);
     }
 
     Window::~Window() {
-        glfwDestroyWindow(internalHandle);
+//        glfwDestroyWindow(internalHandle);
+        SDL_DestroyWindow(internalHandle);
+        SDL_Quit();
     }
 
     bool Window::isOpen() const {
-        return !glfwWindowShouldClose(internalHandle);
+//        return !glfwWindowShouldClose(internalHandle);
     }
 
     void Window::show() const {
-        glfwShowWindow(internalHandle);
-        glfwSetWindowShouldClose(internalHandle, false);
+//        glfwShowWindow(internalHandle);
+//        glfwSetWindowShouldClose(internalHandle, false);
     }
 
     void Window::hide() const {
-        glfwHideWindow(internalHandle);
-        glfwSetWindowShouldClose(internalHandle, true);
+//        glfwHideWindow(internalHandle);
+//        glfwSetWindowShouldClose(internalHandle, true);
     }
 
     vk::UniqueSurfaceKHR Window::createSurface(vk::UniqueInstance const &instance) const {
         VkSurfaceKHR cSurface = nullptr;
-        if (glfwCreateWindowSurface(*instance, internalHandle, nullptr, &cSurface) != VK_SUCCESS)
-            throw std::runtime_error("Failed to create window surface.");
+//        if (glfwCreateWindowSurface(*instance, internalHandle, nullptr, &cSurface) != VK_SUCCESS)
+//            throw std::runtime_error("Failed to create window surface.");
+        SDL_Vulkan_CreateSurface(internalHandle, *instance, &cSurface);
+
         return vk::UniqueSurfaceKHR(cSurface, *instance);
     }
 
     std::pair<std::uint32_t, std::uint32_t> Window::getSize() const {
         int width = 0;
         int height = 0;
-        glfwGetFramebufferSize(internalHandle, &width, &height);
+//        glfwGetFramebufferSize(internalHandle, &width, &height);
+        SDL_Vulkan_GetDrawableSize(internalHandle, &width, &height);
         return {static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height)};
     }
 
     void Window::pollEvents() {
-        glfwPollEvents();
+//        glfwPollEvents();
     }
 
     void Window::cursorPosCallback(GLFWwindow *window, double xpos, double ypos) {

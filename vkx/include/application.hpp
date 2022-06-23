@@ -13,6 +13,29 @@ namespace vkx {
         int windowHeight;
     };
 
+    class SwapChain {
+    public:
+        SwapChain() = default;
+
+        SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, std::uint32_t windowWidth, std::uint32_t windowHeight, const SwapChain &oldSwapChain);
+
+        SwapChain(const SwapChain &) = delete;
+
+        SwapChain(SwapChain &&) = default;
+
+        ~SwapChain();
+
+        SwapChain & operator=(const SwapChain&) = delete;
+
+        SwapChain & operator=(SwapChain&&) = default;
+
+    private:
+        // Keep this for deleting the swapChain
+        VkDevice logicalDevice = nullptr;
+
+        VkSwapchainKHR swapchain = nullptr;
+    };
+
     class App {
     public:
         App() = default;
@@ -42,7 +65,13 @@ namespace vkx {
         std::optional<std::uint32_t> graphicsQueueIndex;
         std::optional<std::uint32_t> presentQueueIndex;
 
+        [[nodiscard]] std::vector<std::uint32_t> getContiguousIndices() const;
+
         [[nodiscard]] std::vector<VkDeviceQueueCreateInfo> createQueueInfos(const float *queuePriority) const;
+
+        [[nodiscard]] bool isUniversal() const;
+
+        [[nodiscard]] VkSharingMode getImageSharingMode() const;
 
         [[nodiscard]] bool isComplete() const;
     };

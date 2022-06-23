@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/observer.hpp>
+#include <SDL2/SDL.h>
 
 namespace vkx {
     class Window : public MouseSubject, public KeyboardSubject, public FramebufferResizedSubject {
@@ -21,8 +22,7 @@ namespace vkx {
 
         static void pollEvents();
 
-    private:
-        GLFWwindow *internalHandle;
+        SDL_Window *internalHandle;
 
         static void cursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 

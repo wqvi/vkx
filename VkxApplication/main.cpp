@@ -77,9 +77,10 @@ public:
     void mainLoop()
     {
         window.show();
+        bool running = true;
+        SDL_Event event;
         auto lastTime = std::chrono::high_resolution_clock::now();
-        while (window.isOpen())
-        {
+        while (running) {
             auto currentTime = std::chrono::high_resolution_clock::now();
             auto deltaTime = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - lastTime).count();
 
@@ -97,10 +98,40 @@ public:
             auto const &materialBuffer = materialBuffers[currentFrame];
 
             drawFrame(mvpBuffer, lightBuffer, materialBuffer, vertexBuffer, indexBuffer, static_cast<std::uint32_t>(chunk.indices.size()), currentFrame);
-            vkx::Window::pollEvents();
 
-            lastTime = currentTime;
+            while (SDL_PollEvent(&event)) {
+                switch (event.type) {
+                    case SDL_QUIT:
+                        running = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
+//        while (window.isOpen())
+//        {
+//            auto currentTime = std::chrono::high_resolution_clock::now();
+//            auto deltaTime = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - lastTime).count();
+//
+//            camera.velocity += camera.direction * deltaTime;
+//            camera.velocity *= 0.1f;
+//            camera.position += camera.velocity * deltaTime;
+//
+//            auto &mvpBuffer = mvpBuffers[currentFrame];
+//            mvpBuffer->view = camera.viewMatrix();
+//            mvpBuffer->proj = projection;
+//
+//            auto &lightBuffer = lightBuffers[currentFrame];
+//            lightBuffer->eyePosition = camera.position;
+//
+//            auto const &materialBuffer = materialBuffers[currentFrame];
+//
+//            drawFrame(mvpBuffer, lightBuffer, materialBuffer, vertexBuffer, indexBuffer, static_cast<std::uint32_t>(chunk.indices.size()), currentFrame);
+//            vkx::Window::pollEvents();
+//
+//            lastTime = currentTime;
+//        }
 
         device->waitIdle();
     }

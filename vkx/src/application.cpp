@@ -8,6 +8,47 @@
 #include <debug.hpp>
 #include <iostream>
 
+vkx::SwapChain::SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, std::uint32_t windowWidth, std::uint32_t windowHeight, const SwapChain &oldSwapChain)
+    : logicalDevice(logicalDevice) {
+    vkx::DeviceQueueConfig queueConfig = {physicalDevice, surface};
+    vkx::SwapchainSurfaceConfig swapchainSurfaceConfig = {physicalDevice, surface};
+
+    auto surfaceFormat = swapchainSurfaceConfig.chooseSurfaceFormat();
+    auto presentMode = swapchainSurfaceConfig.choosePresentMode();
+    auto actualExtent = swapchainSurfaceConfig.chooseExtent(windowWidth, windowHeight);
+    auto imageCount = swapchainSurfaceConfig.getImageCount();
+    auto imageSharingMode = queueConfig.getImageSharingMode();
+    auto indices = queueConfig.getContiguousIndices();
+
+    VkSwapchainCreateInfoKHR swapChainCreateInfo{};
+    swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swapChainCreateInfo.pNext = nullptr;
+    swapChainCreateInfo.flags = {};
+    swapChainCreateInfo.surface = surface;
+    swapChainCreateInfo.minImageCount = imageCount;
+    swapChainCreateInfo.imageFormat = surfaceFormat.format;
+    swapChainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
+    swapChainCreateInfo.imageExtent = actualExtent;
+    swapChainCreateInfo.imageArrayLayers = 1;
+    swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swapChainCreateInfo.imageSharingMode = imageSharingMode;
+    swapChainCreateInfo.queueFamilyIndexCount = static_cast<std::uint32_t>(indices.size());
+    swapChainCreateInfo.pQueueFamilyIndices = indices.data();
+    swapChainCreateInfo.preTransform = swapchainSurfaceConfig.capabilities.currentTransform;
+    swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swapChainCreateInfo.presentMode = presentMode;
+    swapChainCreateInfo.clipped = true;
+    swapChainCreateInfo.oldSwapchain = nullptr;
+
+    if (vkCreateSwapchainKHR(logicalDevice, &swapChainCreateInfo, nullptr, &swapchain) != VK_SUCCESS) {
+        throw std::runtime_error("Failure to create swapchain");
+    }
+}
+
+vkx::SwapChain::~SwapChain() {
+    vkDestroySwapchainKHR(logicalDevice, swapchain, nullptr);
+}
+
 vkx::App::App(const vkx::AppConfig &config) {
     auto sdlInitCode = SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -15,8 +56,9 @@ vkx::App::App(const vkx::AppConfig &config) {
         throw std::system_error(std::error_code(sdlInitCode, std::generic_category()), SDL_GetError());
     }
 
+    auto windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
     window = SDL_CreateWindow("Hello World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config.windowWidth,
-                              config.windowHeight, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+                              config.windowHeight, windowFlags);
 
     if (window == nullptr) {
         throw std::runtime_error(SDL_GetError());
@@ -208,8 +250,6 @@ void vkx::App::run() {
                 case SDL_QUIT:
                     running = false;
                     break;
-                case SDL_WINDOWEVENT:
-                    break;
                 default:
                     break;
             }
@@ -316,9 +356,15 @@ vkx::DeviceQueueConfig::DeviceQueueConfig(VkPhysicalDevice physicalDevice, VkSur
     }
 }
 
+std::vector<std::uint32_t> vkx::DeviceQueueConfig::getContiguousIndices() const {
+    std::set<std::uint32_t> indices = {*computeQueueIndex, *graphicsQueueIndex, *presentQueueIndex};
+    std::vector<std::uint32_t> uniqueIndices(indices.begin(), indices.end());
+    return uniqueIndices;
+}
+
 std::vector<VkDeviceQueueCreateInfo> vkx::DeviceQueueConfig::createQueueInfos(const float *queuePriority) const {
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos{};
-    std::set<std::uint32_t> indices = {*computeQueueIndex, *graphicsQueueIndex, *presentQueueIndex};
+    auto indices = getContiguousIndices();
     for (std::uint32_t index : indices) {
         VkDeviceQueueCreateInfo queueCreateInfo{};
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -330,6 +376,18 @@ std::vector<VkDeviceQueueCreateInfo> vkx::DeviceQueueConfig::createQueueInfos(co
         queueCreateInfos.push_back(queueCreateInfo);
     }
     return queueCreateInfos;
+}
+
+[[nodiscard]] bool vkx::DeviceQueueConfig::isUniversal() const {
+    return *computeQueueIndex == *graphicsQueueIndex && *graphicsQueueIndex == *presentQueueIndex;
+}
+
+[[nodiscard]] VkSharingMode vkx::DeviceQueueConfig::getImageSharingMode() const
+{
+    if (isUniversal()) {
+        return VK_SHARING_MODE_EXCLUSIVE;
+    }
+    return VK_SHARING_MODE_CONCURRENT;
 }
 
 bool vkx::DeviceQueueConfig::isComplete() const {

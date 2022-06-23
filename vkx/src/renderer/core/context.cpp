@@ -3,6 +3,7 @@
 #include <renderer/core/queue_config.hpp>
 #include <renderer/core/swapchain_info.hpp>
 #include "debug.hpp"
+#include <SDL2/SDL_vulkan.h>
 
 namespace vkx {
     RendererContext::RendererContext(const Profile &profile)
@@ -41,8 +42,14 @@ namespace vkx {
 
     std::vector<char const *> RendererContext::getWindowExtensions() {
         std::uint32_t glfwExtensionCount = 0;
-        const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-        std::vector<const char *> instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+//        const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+//        std::vector<const char *> instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+        SDL_Vulkan_GetInstanceExtensions(nullptr, &glfwExtensionCount, nullptr);
+
+        std::vector<const char *> instanceExtensions(glfwExtensionCount);
+
+        SDL_Vulkan_GetInstanceExtensions(nullptr, &glfwExtensionCount, instanceExtensions.data());
 
 #ifdef DEBUG
         instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
