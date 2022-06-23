@@ -13,6 +13,18 @@ namespace vkx {
         int windowHeight;
     };
 
+    static VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+
+    static VkFormat findDepthFormat(VkPhysicalDevice physicalDevice);
+
+    static std::uint32_t findMemoryType(VkPhysicalDevice physicalDevice, std::uint32_t typeFilter, VkMemoryPropertyFlags flags);
+
+    static VkImage createImage(VkDevice logicalDevice, std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage);
+
+    static VkDeviceMemory allocateMemory(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags flags);
+
+    static VkImageView createImageView(VkDevice logicalDevice, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+
     class SwapChain {
     public:
         SwapChain() = default;
@@ -29,11 +41,23 @@ namespace vkx {
 
         SwapChain & operator=(SwapChain&&) = default;
 
+        void createFramebuffers(VkRenderPass renderPass);
+
     private:
         // Keep this for deleting the swapChain
         VkDevice logicalDevice = nullptr;
 
         VkSwapchainKHR swapchain = nullptr;
+        VkFormat imageFormat;
+        VkExtent2D extent;
+        std::vector<VkImage> images;
+        std::vector<VkImageView> imageViews;
+
+        VkImage depthImage = nullptr;
+        VkDeviceMemory depthImageMemory = nullptr;
+        VkImageView depthImageView = nullptr;
+
+        std::vector<VkFramebuffer> framebuffers;
     };
 
     class App {
