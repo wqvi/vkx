@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
         VoxelRenderer app{window};
         app.run();
     }
-    catch (std::exception const &e) {
+    catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }

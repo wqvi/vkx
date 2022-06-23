@@ -4,22 +4,27 @@
 
 namespace vkx {
     Window::Window(const char *title, int width, int height) {
-        if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-            throw std::runtime_error(SDL_GetError());
+        int sdlErrorCode = SDL_Init(SDL_INIT_EVERYTHING);
+        if (sdlErrorCode < 0) {
+            throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
         }
 
-        auto flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
+        Uint32 flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
 
-        internalHandle = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                          static_cast<int>(width), static_cast<int>(height),
-                                          flags);
-
-        SDL_ShowCursor(SDL_DISABLE);
-
-        SDL_SetRelativeMouseMode(SDL_TRUE);
+        internalHandle = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
 
         if (internalHandle == nullptr) {
             throw std::runtime_error(SDL_GetError());
+        }
+
+        sdlErrorCode = SDL_ShowCursor(SDL_DISABLE);
+        if (sdlErrorCode < 0) {
+            throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
+        }
+
+        sdlErrorCode = SDL_SetRelativeMouseMode(SDL_TRUE);
+        if (sdlErrorCode < 0) {
+            throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
         }
     }
 
