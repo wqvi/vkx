@@ -29,7 +29,9 @@ namespace vkx {
     public:
         SwapChain() = default;
 
-        SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, std::uint32_t windowWidth, std::uint32_t windowHeight, const SwapChain &oldSwapChain);
+        SwapChain(std::nullptr_t);
+
+        explicit SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, int windowWidth, int windowHeight, const SwapChain &oldSwapChain);
 
         SwapChain(const SwapChain &) = delete;
 
@@ -42,6 +44,8 @@ namespace vkx {
         SwapChain & operator=(SwapChain&&) = default;
 
         void createFramebuffers(VkRenderPass renderPass);
+
+        VkResult acquireNextImage(VkDevice logicalDevice, VkSemaphore imageAvailableSemaphore, std::uint32_t &imageIndex) const;
 
     private:
         // Keep this for deleting the swapChain
@@ -80,6 +84,8 @@ namespace vkx {
         VkSurfaceKHR surface = nullptr;
         VkPhysicalDevice physicalDevice = nullptr;
         VkDevice logicalDevice = nullptr;
+
+        SwapChain swapchain = nullptr;
     };
 
     struct DeviceQueueConfig {

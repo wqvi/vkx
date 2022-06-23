@@ -116,7 +116,10 @@ VkImageView vkx::createImageView(VkDevice logicalDevice, VkImage image, VkFormat
     return imageView;
 }
 
-vkx::SwapChain::SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, std::uint32_t windowWidth, std::uint32_t windowHeight, const SwapChain &oldSwapChain)
+vkx::SwapChain::SwapChain(std::nullptr_t)
+    : imageFormat(VK_FORMAT_UNDEFINED), extent({0, 0}), images({}), imageViews({}), framebuffers({}) {}
+
+vkx::SwapChain::SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, int windowWidth, int windowHeight, const SwapChain &oldSwapChain)
     : logicalDevice(logicalDevice) {
     vkx::DeviceQueueConfig queueConfig = {physicalDevice, surface};
     vkx::SwapchainSurfaceConfig swapchainSurfaceConfig = {physicalDevice, surface};
@@ -191,6 +194,18 @@ vkx::SwapChain::SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevic
 vkx::SwapChain::~SwapChain() {
     if (swapchain != nullptr) {
         vkDestroySwapchainKHR(logicalDevice, swapchain, nullptr);
+
+        vkDestroyImage(logicalDevice, depthImage, nullptr);
+        vkFreeMemory(logicalDevice, depthImageMemory, nullptr);
+        vkDestroyImageView(logicalDevice, depthImageView, nullptr);
+
+        for (VkImageView imageView : imageViews) {
+            vkDestroyImageView(logicalDevice, imageView, nullptr);
+        }
+
+        for (VkFramebuffer framebuffer : framebuffers) {
+            vkDestroyFramebuffer(logicalDevice, framebuffer, nullptr);
+        }
     }
 }
 
@@ -203,8 +218,24 @@ void vkx::SwapChain::createFramebuffers(VkRenderPass renderPass) {
             depthImageView};
 
         VkFramebufferCreateInfo framebufferCreateInfo{};
+        framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferCreateInfo.pNext = nullptr;
+        framebufferCreateInfo.flags = {};
+        framebufferCreateInfo.renderPass = renderPass;
+        framebufferCreateInfo.attachmentCount = static_cast<std::uint32_t>(framebufferAttachments.size());
+        framebufferCreateInfo.pAttachments = framebufferAttachments.data();
+        framebufferCreateInfo.width = extent.width;
+        framebufferCreateInfo.height = extent.height;
+        framebufferCreateInfo.layers = 1;
 
+        if (vkCreateFramebuffer(logicalDevice, &framebufferCreateInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
+            throw std::runtime_error("Failure to create swapchain framebuffer");
+        }
     }
+}
+
+VkResult vkx::SwapChain::acquireNextImage(VkDevice logicalDevice, VkSemaphore imageAvailableSemaphore, std::uint32_t &imageIndex) const {
+    return vkAcquireNextImageKHR(logicalDevice, swapchain, UINT64_MAX, imageAvailableSemaphore, nullptr, &imageIndex);
 }
 
 vkx::App::App(const vkx::AppConfig &config) {
@@ -385,6 +416,8 @@ vkx::App::App(const vkx::AppConfig &config) {
     if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &logicalDevice) != VK_SUCCESS) {
         throw std::runtime_error("Failure to create logical device.");
     }
+
+    swapchain = vkx::SwapChain{physicalDevice, logicalDevice, surface, config.windowWidth, config.windowHeight, swapchain};
 }
 
 vkx::App::~App() {
