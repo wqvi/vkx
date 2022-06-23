@@ -117,7 +117,7 @@ VkImageView vkx::createImageView(VkDevice logicalDevice, VkImage image, VkFormat
 }
 
 vkx::SwapChain::SwapChain(std::nullptr_t)
-    : imageFormat(VK_FORMAT_UNDEFINED), extent({0, 0}), images({}), imageViews({}), framebuffers({}) {}
+    : imageFormat(VK_FORMAT_UNDEFINED), extent({}), images({}), imageViews({}), framebuffers({}) {}
 
 vkx::SwapChain::SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, int windowWidth, int windowHeight, const SwapChain &oldSwapChain)
     : logicalDevice(logicalDevice) {
@@ -173,10 +173,14 @@ vkx::SwapChain::SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevic
     imageFormat = surfaceFormat.format;
     extent = actualExtent;
 
+    // Image view resource creation
+
     for (VkImage image : images) {
         auto imageView = vkx::createImageView(logicalDevice, image, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
         imageViews.push_back(imageView);
     }
+
+    // Depth resource creation for the swapchain framebuffers
 
     auto depthFormat = vkx::findDepthFormat(physicalDevice);
     depthImage = createImage(logicalDevice, extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -192,20 +196,8 @@ vkx::SwapChain::SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevic
 }
 
 vkx::SwapChain::~SwapChain() {
-    if (swapchain != nullptr) {
-        vkDestroySwapchainKHR(logicalDevice, swapchain, nullptr);
-
-        vkDestroyImage(logicalDevice, depthImage, nullptr);
-        vkFreeMemory(logicalDevice, depthImageMemory, nullptr);
-        vkDestroyImageView(logicalDevice, depthImageView, nullptr);
-
-        for (VkImageView imageView : imageViews) {
-            vkDestroyImageView(logicalDevice, imageView, nullptr);
-        }
-
-        for (VkFramebuffer framebuffer : framebuffers) {
-            vkDestroyFramebuffer(logicalDevice, framebuffer, nullptr);
-        }
+    if (swapchain) {
+        destroy();
     }
 }
 
@@ -236,6 +228,22 @@ void vkx::SwapChain::createFramebuffers(VkRenderPass renderPass) {
 
 VkResult vkx::SwapChain::acquireNextImage(VkDevice logicalDevice, VkSemaphore imageAvailableSemaphore, std::uint32_t &imageIndex) const {
     return vkAcquireNextImageKHR(logicalDevice, swapchain, UINT64_MAX, imageAvailableSemaphore, nullptr, &imageIndex);
+}
+
+void vkx::SwapChain::destroy() {
+    vkDestroySwapchainKHR(logicalDevice, swapchain, nullptr);
+
+    vkDestroyImage(logicalDevice, depthImage, nullptr);
+    vkFreeMemory(logicalDevice, depthImageMemory, nullptr);
+    vkDestroyImageView(logicalDevice, depthImageView, nullptr);
+
+    for (VkImageView imageView : imageViews) {
+        vkDestroyImageView(logicalDevice, imageView, nullptr);
+    }
+
+    for (VkFramebuffer framebuffer : framebuffers) {
+        vkDestroyFramebuffer(logicalDevice, framebuffer, nullptr);
+    }
 }
 
 vkx::App::App(const vkx::AppConfig &config) {

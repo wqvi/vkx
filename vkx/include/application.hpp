@@ -13,17 +13,24 @@ namespace vkx {
         int windowHeight;
     };
 
-    static VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+    static VkFormat
+    findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat> &candidates, VkImageTiling tiling,
+                        VkFormatFeatureFlags features);
 
     static VkFormat findDepthFormat(VkPhysicalDevice physicalDevice);
 
-    static std::uint32_t findMemoryType(VkPhysicalDevice physicalDevice, std::uint32_t typeFilter, VkMemoryPropertyFlags flags);
+    static std::uint32_t
+    findMemoryType(VkPhysicalDevice physicalDevice, std::uint32_t typeFilter, VkMemoryPropertyFlags flags);
 
-    static VkImage createImage(VkDevice logicalDevice, std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage);
+    static VkImage createImage(VkDevice logicalDevice, std::uint32_t width, std::uint32_t height, VkFormat format,
+                               VkImageTiling tiling, VkImageUsageFlags usage);
 
-    static VkDeviceMemory allocateMemory(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkMemoryRequirements memoryRequirements, VkMemoryPropertyFlags flags);
+    static VkDeviceMemory
+    allocateMemory(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkMemoryRequirements memoryRequirements,
+                   VkMemoryPropertyFlags flags);
 
-    static VkImageView createImageView(VkDevice logicalDevice, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+    static VkImageView
+    createImageView(VkDevice logicalDevice, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
     class SwapChain {
     public:
@@ -31,7 +38,8 @@ namespace vkx {
 
         SwapChain(std::nullptr_t);
 
-        explicit SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, int windowWidth, int windowHeight, const SwapChain &oldSwapChain);
+        explicit SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface,
+                           int windowWidth, int windowHeight, const SwapChain &oldSwapChain);
 
         SwapChain(const SwapChain &) = delete;
 
@@ -39,15 +47,24 @@ namespace vkx {
 
         ~SwapChain();
 
-        SwapChain & operator=(const SwapChain&) = delete;
+        SwapChain &operator=(const SwapChain &) = delete;
 
-        SwapChain & operator=(SwapChain&&) = default;
+        SwapChain &operator=(SwapChain &&) = default;
 
         void createFramebuffers(VkRenderPass renderPass);
 
-        VkResult acquireNextImage(VkDevice logicalDevice, VkSemaphore imageAvailableSemaphore, std::uint32_t &imageIndex) const;
+        VkResult
+        acquireNextImage(VkDevice logicalDevice, VkSemaphore imageAvailableSemaphore, std::uint32_t &imageIndex) const;
 
     private:
+        void destroy();
+
+        void release(VkSwapchainKHR &swapchain, VkFormat &format, VkExtent2D &extent, std::vector<VkImage> &images,
+                     std::vector<VkImageView> &imageViews, VkImage &depthImage, VkDeviceMemory &depthImageMemory,
+                     VkImageView &depthImageView, std::vector<VkFramebuffer> &framebuffers);
+
+        void reset();
+
         // Keep this for deleting the swapChain
         VkDevice logicalDevice = nullptr;
 
@@ -75,11 +92,12 @@ namespace vkx {
         void run();
 
     private:
-        static std::uint32_t rate(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<const char *> &extensions);
+        static std::uint32_t
+        rate(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<const char *> &extensions);
 
-        static bool isSubset(const std::vector<const char*> &arr, const std::vector<const char *> &subset);
+        static bool isSubset(const std::vector<const char *> &arr, const std::vector<const char *> &subset);
 
-        SDL_Window* window = nullptr;
+        SDL_Window *window = nullptr;
         VkInstance instance = nullptr;
         VkSurfaceKHR surface = nullptr;
         VkPhysicalDevice physicalDevice = nullptr;
@@ -91,10 +109,6 @@ namespace vkx {
     struct DeviceQueueConfig {
         DeviceQueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 
-        std::optional<std::uint32_t> computeQueueIndex;
-        std::optional<std::uint32_t> graphicsQueueIndex;
-        std::optional<std::uint32_t> presentQueueIndex;
-
         [[nodiscard]] std::vector<std::uint32_t> getContiguousIndices() const;
 
         [[nodiscard]] std::vector<VkDeviceQueueCreateInfo> createQueueInfos(const float *queuePriority) const;
@@ -104,14 +118,14 @@ namespace vkx {
         [[nodiscard]] VkSharingMode getImageSharingMode() const;
 
         [[nodiscard]] bool isComplete() const;
+
+        std::optional<std::uint32_t> computeQueueIndex;
+        std::optional<std::uint32_t> graphicsQueueIndex;
+        std::optional<std::uint32_t> presentQueueIndex;
     };
 
     struct SwapchainSurfaceConfig {
         SwapchainSurfaceConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
-
-        VkSurfaceCapabilitiesKHR capabilities;
-        std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR> presentModes;
 
         [[nodiscard]] VkSurfaceFormatKHR chooseSurfaceFormat() const;
 
@@ -122,5 +136,9 @@ namespace vkx {
         [[nodiscard]] std::uint32_t getImageCount() const;
 
         [[nodiscard]] bool isComplete() const;
+
+        VkSurfaceCapabilitiesKHR capabilities;
+        std::vector<VkSurfaceFormatKHR> formats;
+        std::vector<VkPresentModeKHR> presentModes;
     };
 }

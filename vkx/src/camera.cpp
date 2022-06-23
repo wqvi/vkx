@@ -1,6 +1,6 @@
 #include "camera.hpp"
 
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL_keycode.h>
 
 Camera::Camera(glm::vec3 const &position)
 		: position(position) {}
@@ -26,20 +26,20 @@ void Camera::updateKey(int key)
 	glm::vec3 front(quatFront.x, quatFront.y, quatFront.z);
 	glm::vec3 right = glm::normalize(glm::cross(front, UP));
 
-	if (key == GLFW_KEY_W)
+	if (key == SDLK_w)
 	{
 		direction = front;
 	}
-	if (key == GLFW_KEY_S)
+	if (key == SDLK_s)
 	{
 		direction = -front;
 	}
 
-	if (key == GLFW_KEY_A)
+	if (key == SDLK_a)
 	{
 		direction = -right;
 	}
-	if (key == GLFW_KEY_D)
+	if (key == SDLK_d)
 	{
 		direction = right;
 	}

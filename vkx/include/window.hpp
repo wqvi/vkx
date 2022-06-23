@@ -4,13 +4,11 @@
 #include <SDL2/SDL.h>
 
 namespace vkx {
-    class Window : public MouseSubject, public KeyboardSubject, public FramebufferResizedSubject {
+    class Window {
     public:
-        Window(const char *title, std::uint32_t width, std::uint32_t height);
+        Window(const char *title, int width, int height);
 
-        ~Window() override;
-
-        [[nodiscard]] bool isOpen() const;
+        ~Window();
 
         void show() const;
 
@@ -23,11 +21,5 @@ namespace vkx {
         static void pollEvents();
 
         SDL_Window *internalHandle;
-
-        static void cursorPosCallback(GLFWwindow *window, double xpos, double ypos);
-
-        static void keyboardCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
-
-        static void framebufferResizeCallback(GLFWwindow *window, int width, int height);
     };
 }

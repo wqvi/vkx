@@ -5,18 +5,17 @@
 #include <vkx.hpp>
 #include <iostream>
 #include <chrono>
+#include <SDL2/SDL_vulkan.h>
 
 const std::uint32_t WIDTH = 800;
 const std::uint32_t HEIGHT = 600;
 
-class VoxelRenderer : private vkx::RendererBase, public vkx::MouseObserver, public vkx::KeyboardObserver, public vkx::FramebufferResizedObserver
-{
+class VoxelRenderer : private vkx::RendererBase {
 public:
     explicit VoxelRenderer(vkx::Window const &window)
             : vkx::RendererBase(window, vkx::Profile::createDefault()) {}
 
-    void run()
-    {
+    void run() {
         initVulkan();
         mainLoop();
     }
@@ -36,8 +35,7 @@ public:
 
     glm::mat4 projection = glm::mat4(1.0f);
 
-    void initVulkan()
-    {
+    void initVulkan() {
         chunk.greedy();
 
         texture = vkx::Texture{"a.jpg", device};
@@ -45,7 +43,8 @@ public:
         vertexBuffer = {chunk.vertices, device};
         indexBuffer = {chunk.indices, device};
 
-        projection = glm::perspective(glm::radians(75.0f), static_cast<float>(swapchain.extent.width) / static_cast<float>(swapchain.extent.height), 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(75.0f), static_cast<float>(swapchain.extent.width) /
+                                                           static_cast<float>(swapchain.extent.height), 0.1f, 100.0f);
         projection[1][1] *= -1.0f;
 
         vkx::MVP mvp{};
@@ -74,15 +73,64 @@ public:
         createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, texture);
     }
 
-    void mainLoop()
-    {
+    bool running = true;
+
+    void windowEventHandler(const SDL_WindowEvent &event) {
+        switch (event.event) {
+            case SDL_WINDOWEVENT_RESIZED:
+                framebufferResized = true;
+                int width;
+                int height;
+                SDL_Vulkan_GetDrawableSize(window.internalHandle, &width, &height);
+                projection = glm::perspective(glm::radians(75.0f),
+                                              static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
+                projection[1][1] *= -1.0f;
+                break;
+        }
+    }
+
+    void mouseMovedEventHandler(const SDL_MouseMotionEvent &event) {
+        camera.updateMouse({event.xrel, -event.yrel});
+    }
+
+    void keyPressedEventHandler(const SDL_KeyboardEvent &event) {
+        camera.updateKey(event.keysym.sym);
+    }
+
+    void keyReleasedEventHandler(const SDL_KeyboardEvent &event) {
+        camera.direction = glm::vec3(0.0f);
+    }
+
+    void eventHandler(const SDL_Event &event) {
+        switch (event.type) {
+            case SDL_QUIT:
+                running = false;
+                return;
+            case SDL_WINDOWEVENT:
+                windowEventHandler(event.window);
+                break;
+            case SDL_KEYDOWN:
+                keyPressedEventHandler(event.key);
+                break;
+            case SDL_KEYUP:
+                keyReleasedEventHandler(event.key);
+                break;
+            case SDL_MOUSEMOTION:
+                mouseMovedEventHandler(event.motion);
+                break;
+            default:
+                break;
+        }
+    }
+
+    void mainLoop() {
         window.show();
-        bool running = true;
         SDL_Event event;
         auto lastTime = std::chrono::high_resolution_clock::now();
         while (running) {
             auto currentTime = std::chrono::high_resolution_clock::now();
-            auto deltaTime = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - lastTime).count();
+            auto deltaTime = std::chrono::duration<float, std::chrono::milliseconds::period>(
+                    currentTime - lastTime).count();
 
             camera.velocity += camera.direction * deltaTime;
             camera.velocity *= 0.1f;
@@ -97,92 +145,30 @@ public:
 
             auto const &materialBuffer = materialBuffers[currentFrame];
 
-            drawFrame(mvpBuffer, lightBuffer, materialBuffer, vertexBuffer, indexBuffer, static_cast<std::uint32_t>(chunk.indices.size()), currentFrame);
+            drawFrame(mvpBuffer, lightBuffer, materialBuffer, vertexBuffer, indexBuffer,
+                      static_cast<std::uint32_t>(chunk.indices.size()), currentFrame);
 
             while (SDL_PollEvent(&event)) {
-                switch (event.type) {
-                    case SDL_QUIT:
-                        running = false;
-                        break;
-                    default:
-                        break;
-                }
+                eventHandler(event);
             }
+
+            lastTime = currentTime;
         }
-//        while (window.isOpen())
-//        {
-//            auto currentTime = std::chrono::high_resolution_clock::now();
-//            auto deltaTime = std::chrono::duration<float, std::chrono::milliseconds::period>(currentTime - lastTime).count();
-//
-//            camera.velocity += camera.direction * deltaTime;
-//            camera.velocity *= 0.1f;
-//            camera.position += camera.velocity * deltaTime;
-//
-//            auto &mvpBuffer = mvpBuffers[currentFrame];
-//            mvpBuffer->view = camera.viewMatrix();
-//            mvpBuffer->proj = projection;
-//
-//            auto &lightBuffer = lightBuffers[currentFrame];
-//            lightBuffer->eyePosition = camera.position;
-//
-//            auto const &materialBuffer = materialBuffers[currentFrame];
-//
-//            drawFrame(mvpBuffer, lightBuffer, materialBuffer, vertexBuffer, indexBuffer, static_cast<std::uint32_t>(chunk.indices.size()), currentFrame);
-//            vkx::Window::pollEvents();
-//
-//            lastTime = currentTime;
-//        }
 
         device->waitIdle();
     }
-
-    void update(vkx::MouseEvent const &event) override
-    {
-        camera.updateMouse(event.relative);
-    }
-
-    void update(vkx::KeyboardEvent const &event) override
-    {
-        // Works for now
-        if (event.action)
-        {
-            camera.updateKey(event.key);
-        } else
-        {
-            camera.direction = glm::vec3(0.0f);
-        }
-    }
-
-    void update(vkx::FramebufferResizedEvent const &event) override
-    {
-        framebufferResized = true;
-        projection = glm::perspective(glm::radians(75.0f), static_cast<float>(event.width) / static_cast<float>(event.height), 0.1f, 100.0f);
-        projection[1][1] *= -1.0f;
-    }
 };
 
-int main(int argc, char** argv)
-{
+int main(int argc, char **argv) {
     try {
-        vkx::App app{{640, 360}};
+        vkx::Window window{"Vulkan", WIDTH, HEIGHT};
+        VoxelRenderer app{window};
         app.run();
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << '\n';
     }
-//	try
-//	{
-//		vkx::Window window{"Vulkan", WIDTH, HEIGHT};
-//		VoxelRenderer app{window};
-//		window.vkx::MouseSubject::attach(&app);
-//		window.vkx::KeyboardSubject::attach(&app);
-//		window.vkx::FramebufferResizedSubject::attach(&app);
-//		app.run();
-//	}
-//	catch (std::exception const &e)
-//	{
-//		std::cerr << e.what() << std::endl;
-//		return EXIT_FAILURE;
-//	}
+    catch (std::exception const &e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
