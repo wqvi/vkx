@@ -17,17 +17,7 @@ namespace vkx
         }
         surface = vk::UniqueSurfaceKHR(cSurface, *instance);
 
-        auto physicalDevices = RendererBase::getPhysicalDevices(surface, profile);
-
-        auto location = std::max_element(physicalDevices.begin(), physicalDevices.end(), [](auto const &lhs, auto const &rhs)
-                                         { return lhs.first < rhs.first; });
-        if (location == physicalDevices.end())
-        {
-            throw std::runtime_error("Failed to find physical device.");
-        }
-        auto bestPhysicalDevice = (*location).second;
-
-        device = {bestPhysicalDevice, surface, profile};
+        device = {RendererBase::getBestPhysicalDevice(surface, profile), surface, profile};
 
         QueueConfig queueFamilyIndices{bestPhysicalDevice, surface};
 

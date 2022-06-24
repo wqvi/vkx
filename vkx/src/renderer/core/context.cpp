@@ -66,6 +66,19 @@ namespace vkx {
         return ratedPhysicalDevices;
     }
 
+    vk::PhysicalDevice
+    RendererContext::getBestPhysicalDevice(const vk::UniqueSurfaceKHR &surface, const Profile &profile) const {
+        auto physicalDevices = getPhysicalDevices(surface, profile);
+
+        auto location = std::max_element(physicalDevices.begin(), physicalDevices.end(), [](auto const &lhs, auto const &rhs)
+        { return lhs.first < rhs.first; });
+        if (location == physicalDevices.end())
+        {
+            throw std::runtime_error("Failed to find physical device.");
+        }
+        return (*location).second;
+    }
+
     std::vector<const char *> RendererContext::getWindowExtensions(SDL_Window *window) {
         std::uint32_t sdlExtensionCount = 0;
 

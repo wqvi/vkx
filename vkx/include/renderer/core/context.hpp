@@ -8,7 +8,7 @@ namespace vkx {
     public:
         RendererContext();
 
-        RendererContext(SDL_Window *window);
+        explicit RendererContext(SDL_Window *window);
 
         explicit RendererContext(SDL_Window *window, const Profile &profile);
 
@@ -16,6 +16,10 @@ namespace vkx {
         std::unordered_map<std::uint32_t, vk::PhysicalDevice>
         getPhysicalDevices(const vk::UniqueSurfaceKHR &surface,
                            const vkx::Profile &profile) const;
+
+        [[nodiscard]]
+        vk::PhysicalDevice
+        getBestPhysicalDevice(const vk::UniqueSurfaceKHR &surface, const vkx::Profile &profile) const;
 
     protected:
         vk::UniqueInstance instance;
