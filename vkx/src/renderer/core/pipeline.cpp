@@ -1,5 +1,36 @@
 #include <renderer/core/pipeline.hpp>
 
+vkx::PipelineShader::PipelineShader(const Device &device, const std::string &file) {
+    auto code = readFile(file);
+
+    vk::ShaderModuleCreateInfo shaderCreateInfo{
+            {},                                                  // flags
+            static_cast<std::uint32_t>(code.size()),             // codeSize
+            code.data() // pCode
+    };
+
+    auto module = device->createShaderModuleUnique(shaderCreateInfo);
+}
+
+std::vector<std::uint32_t> vkx::PipelineShader::readFile(const std::string &filename) {
+    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open file.");
+    }
+
+    auto fileSize = file.tellg();
+    std::vector<std::uint32_t> buffer(fileSize);
+
+    file.seekg(std::ios::beg);
+    file.read(std::bit_cast<char*>(buffer.data()), fileSize);
+
+    file.close();
+
+    return buffer;
+}
+
 namespace vkx
 {
     Pipeline::Pipeline(Device const &device, vk::UniqueDescriptorSetLayout const &descriptorSetLayout)
@@ -30,6 +61,35 @@ namespace vkx
         file.close();
 
         return buffer;
+    }
+
+    static std::vector<std::uint32_t> foobar(const std::string &filename) {
+        std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+        if (!file.is_open())
+        {
+            throw std::runtime_error("Failed to open file.");
+        }
+
+        auto fileSize = file.tellg();
+        std::vector<std::uint32_t> buffer(fileSize);
+
+        file.seekg(std::ios::beg);
+        file.read(std::bit_cast<char*>(buffer.data()), fileSize);
+
+        file.close();
+
+        return buffer;
+    }
+
+    static vk::UniqueShaderModule barfoo(const vk::UniqueDevice &device, const std::vector<std::uint32_t> &data) {
+        vk::ShaderModuleCreateInfo shaderCreateInfo{
+                {},                                                  // flags
+                static_cast<std::uint32_t>(data.size()),             // codeSize
+                data.data() // pCode
+        };
+
+        return device->createShaderModuleUnique(shaderCreateInfo);
     }
 
     vk::UniqueShaderModule Pipeline::createShaderModule(vk::UniqueDevice const &device, std::vector<char> const &code)
@@ -78,11 +138,11 @@ namespace vkx
     GraphicsPipeline::GraphicsPipeline(Device const &device, vk::Extent2D const &extent, vk::UniqueRenderPass const &renderPass, vk::UniqueDescriptorSetLayout const &descriptorSetLayout)
         : Pipeline(device, descriptorSetLayout)
     {
-        auto vertShaderCode = Pipeline::readFile("shader.vert.spv");
-        auto fragShaderCode = Pipeline::readFile("shader.frag.spv");
+        auto vertShaderCode = foobar("shader.vert.spv");
+        auto fragShaderCode = foobar("shader.frag.spv");
 
-        auto vertShaderModule = Pipeline::createShaderModule(device, vertShaderCode);
-        auto fragShaderModule = Pipeline::createShaderModule(device, fragShaderCode);
+        auto vertShaderModule = barfoo(device, vertShaderCode);
+        auto fragShaderModule = barfoo(device, fragShaderCode);
 
         vk::PipelineShaderStageCreateInfo vertShaderStageInfo{
             {},                               // flags

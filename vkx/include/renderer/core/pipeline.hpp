@@ -4,6 +4,16 @@
 
 namespace vkx
 {
+    class PipelineShader {
+    public:
+        explicit PipelineShader(const Device &device, const std::string &file);
+
+    private:
+        static std::vector<std::uint32_t> readFile(const std::string &filename);
+
+        vk::UniqueDescriptorSetLayout descriptorSetLayout;
+    };
+
   class Pipeline
   {
   public:
