@@ -19,7 +19,7 @@ namespace vkx
 
         device = {RendererBase::getBestPhysicalDevice(surface, profile), surface, profile};
 
-        QueueConfig queueFamilyIndices{bestPhysicalDevice, surface};
+        QueueConfig queueFamilyIndices{device, surface};
 
         createSwapchain();
 
