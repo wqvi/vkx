@@ -16,7 +16,7 @@ namespace vkx
 
         [[nodiscard]] vk::PresentModeKHR choosePresentMode() const;
 
-        [[nodiscard]] vk::Extent2D chooseExtent(std::pair<std::uint32_t, std::uint32_t> const &windowSize) const;
+        [[nodiscard]] vk::Extent2D chooseExtent(int width, int height) const;
 
         [[nodiscard]] std::uint32_t getImageCount() const;
         [[nodiscard]] bool isComplete() const;

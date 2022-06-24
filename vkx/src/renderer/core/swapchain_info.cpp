@@ -33,7 +33,7 @@ namespace vkx
 		return vk::PresentModeKHR::eFifo;
 	}
 
-	vk::Extent2D SwapchainInfo::chooseExtent(std::pair<std::uint32_t, std::uint32_t> const &windowSize) const
+	vk::Extent2D SwapchainInfo::chooseExtent(int width, int height) const
 	{
 		if (capabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max())
 		{
@@ -41,8 +41,8 @@ namespace vkx
 		}
 
 		vk::Extent2D extent{
-				windowSize.first, // width
-				windowSize.second // height
+				static_cast<std::uint32_t>(width), // width
+				static_cast<std::uint32_t>(height) // height
 		};
 
 		extent.width = std::clamp(extent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);

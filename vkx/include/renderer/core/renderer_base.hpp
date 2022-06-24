@@ -15,7 +15,7 @@ namespace vkx
 	class RendererBase : public RendererContext
 	{
 	public:
-		RendererBase(Window const &window, Profile const &profile);
+		RendererBase(SDL_Window *window, Profile const &profile);
 
 		void recreateSwapchain();
 
@@ -33,14 +33,10 @@ namespace vkx
 					   Buffer const &indexBuffer,
 					   std::uint32_t indexCount,
 					   std::uint32_t &currentIndexFrame);
-					   
-		void createFrameData(MVP const &mvp, DirectionalLight const &directionalLight, Material const &material);
 
-		std::uint32_t getCurrentFrameIndex(std::uint32_t frameIndex) const;
+		[[nodiscard]] std::uint32_t getCurrentFrameIndex(std::uint32_t frameIndex) const;
 
-		std::uint32_t frameIndex() const;
-
-		template <class T>
+        template <class T>
 		auto createBuffers(T const &value = {})
 		{
 			std::vector<vkx::UniformBuffer<T>> buffers;
@@ -53,7 +49,7 @@ namespace vkx
 		}
 
 	protected:
-		Window const &window;
+		SDL_Window *window;
 		vk::UniqueSurfaceKHR surface;
 		Device device;
 
@@ -81,7 +77,7 @@ namespace vkx
 	private:
 		void createSwapchain();
 
-		vk::UniqueRenderPass createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
+		[[nodiscard]] vk::UniqueRenderPass createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
 		
 		void createGraphicsPipeline();
 	};

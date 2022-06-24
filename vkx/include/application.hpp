@@ -4,141 +4,42 @@
 
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <vulkan/vulkan.h>
-
 namespace vkx {
-    struct AppConfig {
+    struct ApplicationConfig {
+        const char *title;
         int windowWidth;
         int windowHeight;
     };
 
-    static VkFormat
-    findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat> &candidates, VkImageTiling tiling,
-                        VkFormatFeatureFlags features);
-
-    static VkFormat findDepthFormat(VkPhysicalDevice physicalDevice);
-
-    static std::uint32_t
-    findMemoryType(VkPhysicalDevice physicalDevice, std::uint32_t typeFilter, VkMemoryPropertyFlags flags);
-
-    static VkImage createImage(VkDevice logicalDevice, std::uint32_t width, std::uint32_t height, VkFormat format,
-                               VkImageTiling tiling, VkImageUsageFlags usage);
-
-    static VkDeviceMemory
-    allocateMemory(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkMemoryRequirements memoryRequirements,
-                   VkMemoryPropertyFlags flags);
-
-    static VkImageView
-    createImageView(VkDevice logicalDevice, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-
-    class SwapChain {
+    class Application {
     public:
-        SwapChain() = default;
+        Application() = delete;
 
-        SwapChain(std::nullptr_t);
+        explicit Application(const ApplicationConfig &config);
 
-        explicit SwapChain(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface,
-                           int windowWidth, int windowHeight, const SwapChain &oldSwapChain);
-
-        SwapChain(const SwapChain &) = delete;
-
-        SwapChain(SwapChain &&) = default;
-
-        ~SwapChain();
-
-        SwapChain &operator=(const SwapChain &) = delete;
-
-        SwapChain &operator=(SwapChain &&) = default;
-
-        void createFramebuffers(VkRenderPass renderPass);
-
-        VkResult
-        acquireNextImage(VkDevice logicalDevice, VkSemaphore imageAvailableSemaphore, std::uint32_t &imageIndex) const;
-
-    private:
-        void destroy();
-
-        void release(VkSwapchainKHR &swapchain, VkFormat &format, VkExtent2D &extent, std::vector<VkImage> &images,
-                     std::vector<VkImageView> &imageViews, VkImage &depthImage, VkDeviceMemory &depthImageMemory,
-                     VkImageView &depthImageView, std::vector<VkFramebuffer> &framebuffers);
-
-        void reset();
-
-        // Keep this for deleting the swapChain
-        VkDevice logicalDevice = nullptr;
-
-        VkSwapchainKHR swapchain = nullptr;
-        VkFormat imageFormat;
-        VkExtent2D extent;
-        std::vector<VkImage> images;
-        std::vector<VkImageView> imageViews;
-
-        VkImage depthImage = nullptr;
-        VkDeviceMemory depthImageMemory = nullptr;
-        VkImageView depthImageView = nullptr;
-
-        std::vector<VkFramebuffer> framebuffers;
-    };
-
-    class App {
-    public:
-        App() = default;
-
-        explicit App(const AppConfig &config);
-
-        ~App();
+        ~Application();
 
         void run();
 
     private:
-        static std::uint32_t
-        rate(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<const char *> &extensions);
+        void pollEvents(SDL_Event *event);
 
-        static bool isSubset(const std::vector<const char *> &arr, const std::vector<const char *> &subset);
+        void pollWindowEvent(const SDL_WindowEvent &event);
+
+        void handleResizeEvent(Sint32 width, Sint32 height);
+
+        void handleKeyPressedEvent(const SDL_KeyboardEvent &event);
+
+        void handleKeyReleasedEvent(const SDL_KeyboardEvent &event);
+
+        void handleMouseMovedEvent(const SDL_MouseMotionEvent &event);
 
         SDL_Window *window = nullptr;
-        VkInstance instance = nullptr;
-        VkSurfaceKHR surface = nullptr;
-        VkPhysicalDevice physicalDevice = nullptr;
-        VkDevice logicalDevice = nullptr;
 
-        SwapChain swapchain = nullptr;
-    };
+        bool isRunning = false;
 
-    struct DeviceQueueConfig {
-        DeviceQueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
-
-        [[nodiscard]] std::vector<std::uint32_t> getContiguousIndices() const;
-
-        [[nodiscard]] std::vector<VkDeviceQueueCreateInfo> createQueueInfos(const float *queuePriority) const;
-
-        [[nodiscard]] bool isUniversal() const;
-
-        [[nodiscard]] VkSharingMode getImageSharingMode() const;
-
-        [[nodiscard]] bool isComplete() const;
-
-        std::optional<std::uint32_t> computeQueueIndex;
-        std::optional<std::uint32_t> graphicsQueueIndex;
-        std::optional<std::uint32_t> presentQueueIndex;
-    };
-
-    struct SwapchainSurfaceConfig {
-        SwapchainSurfaceConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
-
-        [[nodiscard]] VkSurfaceFormatKHR chooseSurfaceFormat() const;
-
-        [[nodiscard]] VkPresentModeKHR choosePresentMode() const;
-
-        [[nodiscard]] VkExtent2D chooseExtent(std::uint32_t width, std::uint32_t height) const;
-
-        [[nodiscard]] std::uint32_t getImageCount() const;
-
-        [[nodiscard]] bool isComplete() const;
-
-        VkSurfaceCapabilitiesKHR capabilities;
-        std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR> presentModes;
+        glm::mat4 windowProjection = glm::mat4(1.0f);
+        const float nearZ = 0.1f;
+        const float farZ = 100.0f;
     };
 }

@@ -86,7 +86,7 @@ namespace vkx {
     RendererContext::ratePhysicalDevice(const vk::PhysicalDevice &physicalDevice, const vk::UniqueSurfaceKHR &surface,
                                         const Profile &profile) {
         std::uint32_t rating = 0;
-        if (profile.validateExts(physicalDevice)) {
+        if (profile.validateExtensions(physicalDevice)) {
             rating++;
         }
 

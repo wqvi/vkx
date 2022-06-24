@@ -10,15 +10,19 @@ namespace vkx
 	Swapchain::Swapchain(
 			Device const &device,
 			vk::UniqueSurfaceKHR const &surface,
-			Window const &window,
+			SDL_Window *window,
 			Swapchain const &oldSwapchain)
 	{
 		SwapchainInfo info{static_cast<vk::PhysicalDevice>(device), surface};
 		QueueConfig config{static_cast<vk::PhysicalDevice>(device), surface};
 
+        int width;
+        int height;
+        SDL_GetWindowSize(window, &width, &height);
+
 		auto surfaceFormat = info.chooseSurfaceFormat();
 		auto presentMode = info.choosePresentMode();
-		auto actualExtent = info.chooseExtent(window.getSize());
+		auto actualExtent = info.chooseExtent(width, height);
 
 		auto imageCount = info.getImageCount();
 		auto imageSharingMode = config.getImageSharingMode();

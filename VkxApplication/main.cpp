@@ -12,8 +12,8 @@ const std::uint32_t HEIGHT = 600;
 
 class VoxelRenderer : private vkx::RendererBase {
 public:
-    explicit VoxelRenderer(vkx::Window const &window)
-            : vkx::RendererBase(window, vkx::Profile::createDefault()) {}
+    explicit VoxelRenderer(SDL_Window *window)
+            : vkx::RendererBase(window, vkx::Profile{}) {}
 
     void run() {
         initVulkan();
@@ -79,11 +79,8 @@ public:
         switch (event.event) {
             case SDL_WINDOWEVENT_RESIZED:
                 framebufferResized = true;
-                int width;
-                int height;
-                SDL_Vulkan_GetDrawableSize(window.internalHandle, &width, &height);
                 projection = glm::perspective(glm::radians(75.0f),
-                                              static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
+                                              static_cast<float>(event.data1) / static_cast<float>(event.data2), 0.1f, 100.0f);
                 projection[1][1] *= -1.0f;
                 break;
         }
@@ -124,7 +121,7 @@ public:
     }
 
     void mainLoop() {
-        window.show();
+        SDL_ShowWindow(window);
         SDL_Event event;
         auto lastTime = std::chrono::high_resolution_clock::now();
         while (running) {
@@ -161,8 +158,9 @@ public:
 
 int main(int argc, char **argv) {
     try {
+        vkx::ApplicationConfig appConfig = {"VKX App", WIDTH, HEIGHT};
         vkx::Window window{"Vulkan", WIDTH, HEIGHT};
-        VoxelRenderer app{window};
+        VoxelRenderer app{window.internalHandle};
         app.run();
     }
     catch (const std::exception &e) {

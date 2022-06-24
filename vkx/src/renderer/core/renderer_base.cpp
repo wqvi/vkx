@@ -7,11 +7,16 @@
 
 namespace vkx
 {
-    RendererBase::RendererBase(Window const &window, Profile const &profile)
+    RendererBase::RendererBase(SDL_Window *window, Profile const &profile)
         : RendererContext(profile),
           window(window)
     {
-        surface = window.createSurface(instance);
+
+        VkSurfaceKHR cSurface = nullptr;
+        if (SDL_Vulkan_CreateSurface(window, *instance, &cSurface) != SDL_TRUE) {
+            throw std::runtime_error("Failure to create C API via SDL2 Vulkan surface.");
+        }
+        surface = vk::UniqueSurfaceKHR(cSurface, *instance);
 
         auto physicalDevices = RendererBase::getPhysicalDevices(surface);
 
@@ -98,11 +103,13 @@ namespace vkx
 
     void RendererBase::recreateSwapchain()
     {
-        auto [width, height] = window.getSize();
+        int width;
+        int height;
+        SDL_GetWindowSize(window, &width, &height);
         while (width == 0 || height == 0)
         {
-            std::tie(width, height) = window.getSize();
-            glfwWaitEvents();
+            SDL_GetWindowSize(window, &width, &height);
+            SDL_WaitEvent(nullptr);
         }
 
         device->waitIdle();
@@ -211,14 +218,6 @@ namespace vkx
     std::uint32_t RendererBase::getCurrentFrameIndex(std::uint32_t frameIndex) const
     {
         return (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
-    }
-
-    std::uint32_t RendererBase::frameIndex() const
-    {
-        // Not so brilliant way of keeping track of current frame index
-        // Probably not thread safe, but pretty simple!
-        static std::uint32_t index = 1;
-        return (index++) % MAX_FRAMES_IN_FLIGHT;
     }
 
     void RendererBase::createSwapchain()

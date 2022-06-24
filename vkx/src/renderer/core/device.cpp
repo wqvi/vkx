@@ -439,7 +439,7 @@ namespace vkx
 
     bool Device::validatePhysicalDevice(vk::PhysicalDevice const &physicalDevice, vk::UniqueSurfaceKHR const &surface, Profile const &profile)
     {
-        if (!profile.validateExts(physicalDevice))
+        if (!profile.validateExtensions(physicalDevice))
         {
             return false;
         }
