@@ -15,6 +15,8 @@ namespace vkx
 	class RendererBase : public RendererContext
 	{
 	public:
+        RendererBase() = default;
+
 		RendererBase(SDL_Window *window, Profile const &profile);
 
 		void recreateSwapchain();
@@ -49,7 +51,7 @@ namespace vkx
 		}
 
 	protected:
-		SDL_Window *window;
+		SDL_Window *window = nullptr;
 		vk::UniqueSurfaceKHR surface;
 		Device device;
 

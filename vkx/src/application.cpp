@@ -27,7 +27,11 @@ vkx::Application::Application(const vkx::ApplicationConfig &config) {
         throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
     }
 
-    isRunning = true;
+    float aspectRatio = static_cast<float>(config.windowWidth) / static_cast<float>(config.windowHeight);
+    windowProjection = glm::perspective(glm::radians(75.0f), aspectRatio, nearZ, farZ);
+    windowProjection[1][1] *= -1.0f;
+
+    renderer = vkx::RendererBase{window, vkx::Profile{}};
 }
 
 vkx::Application::~Application() {
@@ -36,6 +40,7 @@ vkx::Application::~Application() {
 }
 
 void vkx::Application::run() {
+    isRunning = true;
     SDL_ShowWindow(window);
 
     SDL_Event event{};

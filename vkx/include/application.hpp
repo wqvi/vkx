@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <renderer/core/renderer_base.hpp>
+
 namespace vkx {
     struct ApplicationConfig {
         const char *title;
@@ -20,6 +22,9 @@ namespace vkx {
         ~Application();
 
         void run();
+
+    protected:
+        glm::mat4 windowProjection = glm::mat4(1.0f);
 
     private:
         void pollEvents(SDL_Event *event);
@@ -38,8 +43,9 @@ namespace vkx {
 
         bool isRunning = false;
 
-        glm::mat4 windowProjection = glm::mat4(1.0f);
         const float nearZ = 0.1f;
         const float farZ = 100.0f;
+
+        RendererBase renderer;
     };
 }

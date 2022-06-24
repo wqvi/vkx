@@ -10,6 +10,47 @@
 const std::uint32_t WIDTH = 800;
 const std::uint32_t HEIGHT = 600;
 
+class MyApplication : public vkx::Application {
+public:
+    explicit MyApplication(const vkx::ApplicationConfig &config)
+        : vkx::Application(config) {
+        vkx::MVP mvp = {glm::mat4(1.0f), camera.viewMatrix(), windowProjection};
+
+        vkx::DirectionalLight light = {
+                glm::vec3(1.0f, 3.0f, 1.0f),
+                camera.position,
+                glm::vec4(1.0f, 1.0f, 1.0f, 0.2f),
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                1.0f,
+                0.09f,
+                0.032f
+        };
+
+        vkx::Material material = {
+                glm::vec3(0.2f, 0.2f, 0.2f),
+                100.0f
+        };
+
+//        mvpBuffers = createBuffers(mvp);
+//        lightBuffers = createBuffers(light);
+//        materialBuffers = createBuffers(material);
+
+//        createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, texture);
+    }
+
+    Camera camera = {};
+    vkx::Texture texture = {};
+    vkx::Buffer vertexBuffer = {};
+    vkx::Buffer indexBuffer = {};
+
+    std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers;
+    std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
+    std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers;
+
+    vkx::VoxelChunk chunk{16, 15, 14};
+};
+
 class VoxelRenderer : private vkx::RendererBase {
 public:
     explicit VoxelRenderer(SDL_Window *window)
@@ -158,7 +199,8 @@ public:
 
 int main(int argc, char **argv) {
     try {
-        vkx::ApplicationConfig appConfig = {"VKX App", WIDTH, HEIGHT};
+//        vkx::ApplicationConfig appConfig = {"VKX App", WIDTH, HEIGHT};
+//        MyApplication myApplication = MyApplication{appConfig};
         vkx::Window window{"Vulkan", WIDTH, HEIGHT};
         VoxelRenderer app{window.internalHandle};
         app.run();

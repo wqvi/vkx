@@ -5,9 +5,35 @@
 #include "debug.hpp"
 #include <SDL2/SDL_vulkan.h>
 
+vkx::RendererContext::RendererContext() {
+
+}
+
+vkx::RendererContext::RendererContext(SDL_Window *window) {
+    const vkx::Profile profile = vkx::Profile{};
+
+    constexpr static const vk::ApplicationInfo applicationInfo{
+            "Voxel Game",             // pApplicationName
+            VK_MAKE_VERSION(1, 0, 0), // applicationVersion
+            "vkx",                    // engineVersion
+            VK_MAKE_VERSION(1, 0, 0), // engineVersion
+            VK_API_VERSION_1_0        // apiVersion
+    };
+
+    auto instanceExtensions = getWindowExtensions(window);
+
+    const vk::InstanceCreateInfo instanceCreateInfo{
+            {},                // flags
+            &applicationInfo,  // applicationInfo
+            profile.layers,    // pEnabledLayerNames
+            instanceExtensions // pEnabledExtensionNames
+    };
+
+    instance = createInstance(instanceCreateInfo);
+}
+
 namespace vkx {
-    RendererContext::RendererContext(const Profile &profile)
-            : profile(profile) {
+    RendererContext::RendererContext(SDL_Window *window, const Profile &profile) {
         constexpr static const vk::ApplicationInfo applicationInfo{
                 "Voxel Game",             // pApplicationName
                 VK_MAKE_VERSION(1, 0, 0), // applicationVersion
@@ -16,7 +42,7 @@ namespace vkx {
                 VK_API_VERSION_1_0        // apiVersion
         };
 
-        auto instanceExtensions = getWindowExtensions();
+        auto instanceExtensions = getWindowExtensions(window);
 
         const vk::InstanceCreateInfo instanceCreateInfo{
                 {},                // flags
@@ -29,27 +55,29 @@ namespace vkx {
     }
 
     std::unordered_map<std::uint32_t, vk::PhysicalDevice>
-    RendererContext::getPhysicalDevices(const vk::UniqueSurfaceKHR &surface) const {
+    RendererContext::getPhysicalDevices(const vk::UniqueSurfaceKHR &surface, const vkx::Profile &profile) const {
         auto physicalDevices = instance->enumeratePhysicalDevices();
         std::unordered_map<std::uint32_t, vk::PhysicalDevice> ratedPhysicalDevices;
         std::ranges::transform(physicalDevices, std::inserter(ratedPhysicalDevices, ratedPhysicalDevices.begin()),
-                               [&surface, &profile = this->profile](const auto &physicalDevice) {
+                               [&surface, &profile](const auto &physicalDevice) {
                                    return std::make_pair(ratePhysicalDevice(physicalDevice, surface, profile),
                                                          physicalDevice);
                                });
         return ratedPhysicalDevices;
     }
 
-    std::vector<char const *> RendererContext::getWindowExtensions() {
-        std::uint32_t glfwExtensionCount = 0;
-//        const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-//        std::vector<const char *> instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    std::vector<const char *> RendererContext::getWindowExtensions(SDL_Window *window) {
+        std::uint32_t sdlExtensionCount = 0;
 
-        SDL_Vulkan_GetInstanceExtensions(nullptr, &glfwExtensionCount, nullptr);
+        if (SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionCount, nullptr) != SDL_TRUE) {
+            throw std::runtime_error("Failure to get SDL extension count.");
+        }
 
-        std::vector<const char *> instanceExtensions(glfwExtensionCount);
+        std::vector<const char *> instanceExtensions(sdlExtensionCount);
 
-        SDL_Vulkan_GetInstanceExtensions(nullptr, &glfwExtensionCount, instanceExtensions.data());
+        if (SDL_Vulkan_GetInstanceExtensions(window, &sdlExtensionCount, instanceExtensions.data()) != SDL_TRUE) {
+            throw std::runtime_error("Failure to enumerate SDL extensions.");
+        }
 
 #ifdef DEBUG
         instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);

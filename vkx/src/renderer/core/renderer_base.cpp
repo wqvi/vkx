@@ -8,17 +8,16 @@
 namespace vkx
 {
     RendererBase::RendererBase(SDL_Window *window, Profile const &profile)
-        : RendererContext(profile),
+        : RendererContext(window, profile),
           window(window)
     {
-
         VkSurfaceKHR cSurface = nullptr;
         if (SDL_Vulkan_CreateSurface(window, *instance, &cSurface) != SDL_TRUE) {
             throw std::runtime_error("Failure to create C API via SDL2 Vulkan surface.");
         }
         surface = vk::UniqueSurfaceKHR(cSurface, *instance);
 
-        auto physicalDevices = RendererBase::getPhysicalDevices(surface);
+        auto physicalDevices = RendererBase::getPhysicalDevices(surface, profile);
 
         auto location = std::max_element(physicalDevices.begin(), physicalDevices.end(), [](auto const &lhs, auto const &rhs)
                                          { return lhs.first < rhs.first; });
