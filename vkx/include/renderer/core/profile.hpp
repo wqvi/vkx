@@ -1,23 +1,33 @@
 #pragma once
 
-namespace vkx
-{
-  struct Profile
-  {
-    Profile(std::vector<char const *> const &requestedLayers, std::vector<char const *> const &requestedExtensions);
+namespace vkx {
+    struct Profile {
+        Profile() = default;
 
-    std::vector<char const *> layers;
-    std::vector<char const *> extensions;
+        [[maybe_unused]]
+        Profile(const std::vector<char const *> &requestedLayers, const std::vector<char const *> &requestedExtensions);
 
-    [[nodiscard]] bool validateExts(vk::PhysicalDevice const &physicalDevice) const;
+        [[nodiscard]]
+        bool validateExtensions(const vk::PhysicalDevice &physicalDevice) const;
 
-    static bool validateLayers(std::vector<char const *> const &layers);
+        static bool validateLayers(const std::vector<char const *> &layers);
 
-    static Profile createDefault();
+        std::vector<char const *> layers = {
+#ifdef DEBUG
+                // Necessary only for debugging
+                "VK_LAYER_KHRONOS_validation"
+#endif
+        };
 
-  private:
-    static bool isSubset(std::vector<std::string> const &array, std::vector<char const *> const &subset);
+        std::vector<char const *> extensions = {
+                // Necessary for displaying graphics to the framebuffer
+                VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        };
 
-    static bool compareStrings(char const *lhs, char const *rhs);
-  };
+    private:
+        static bool isSubset(const std::vector<std::string_view> &array, const std::vector<const char *> &subset);
+
+        // Reusable function for std::algorithms simply compares two strings in a specific manner
+        static bool compareStrings(const char *lhs, const char *rhs);
+    };
 }
