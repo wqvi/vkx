@@ -10,6 +10,7 @@ constexpr static const glm::vec3 DOWN(0.0f, -1.0f, 0.0f);
 /* TO BE FIXED BUT DON'T TOUCH FOR NOW! */
 class Camera {
 public:
+	Camera() = default;
 	explicit Camera(glm::vec3 const &position);
 	void updateMouse(glm::vec2 const &relative);
 	void updateKey(int key);
