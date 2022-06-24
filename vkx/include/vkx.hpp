@@ -15,3 +15,4 @@
 #include <renderer/buffer.hpp>
 #include <util/observer.hpp>
 #include "application.hpp"
+#include "ecs.hpp"
