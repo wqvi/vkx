@@ -70,25 +70,15 @@ namespace vkx {
         }
     }
 
-    static void printVec(const glm::vec3 &vec) {
-        std::cout << '(' << vec.x << ',' << vec.y << ',' << vec.z << ")\n";
-    }
-
-    static void printVec(const glm::i32vec3 &vec) {
-        std::cout << '(' << vec.x << ',' << vec.y << ',' << vec.z << ")\n";
-    }
-
     void VoxelChunk::test(const glm::vec3 &position) {
-        auto lower = glm::greaterThan(position, worldPosition - voxels.getSize());
-        auto upper = glm::lessThan(position, worldPosition);
-        if (lower.x && lower.y && upper.x && upper.y) {
-            std::cout << static_cast<int>(voxels.at(glm::i32vec3(worldPosition - position)).type) << '\n';
-
-            std::cout << "Normalized position = ";
-            printVec(position);
-
-            std::cout << "Calculated position = ";
-            printVec(glm::i32vec3(position - worldPosition));
+        const bool a = position.x > worldPosition.x - static_cast<float>(voxels.getWidth()) &&
+                       position.y > worldPosition.y - static_cast<float>(voxels.getHeight()) &&
+                       position.z > worldPosition.z - static_cast<float>(voxels.getDepth());
+        const bool b = position.x < worldPosition.x &&
+                       position.y < worldPosition.y &&
+                       position.z < worldPosition.z;
+        if (a && b) {
+            const auto &voxel = voxels.at(glm::i32vec3(worldPosition - position));
         }
     }
 
