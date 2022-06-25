@@ -4,8 +4,6 @@
 
 #include <vkx.hpp>
 #include <iostream>
-#include <chrono>
-#include <SDL2/SDL_vulkan.h>
 
 const std::uint32_t WIDTH = 800;
 const std::uint32_t HEIGHT = 600;
@@ -68,6 +66,8 @@ public:
     vkx::Buffer vertexBuffer;
     vkx::Buffer indexBuffer;
 
+    vkx::Mesh mesh;
+
     std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers;
     std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
     std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers;
@@ -81,8 +81,8 @@ public:
 
         texture = vkx::Texture{"a.jpg", device};
 
-        vertexBuffer = {chunk.vertices, device};
-        indexBuffer = {chunk.indices, device};
+        vertexBuffer = vkx::Buffer{chunk.vertices, device};
+        indexBuffer = vkx::Buffer{chunk.indices, device};
 
         projection = glm::perspective(glm::radians(75.0f), static_cast<float>(swapchain.extent.width) /
                                                            static_cast<float>(swapchain.extent.height), 0.1f, 100.0f);
