@@ -10,11 +10,11 @@ namespace vkx
   public:
     Buffer() = default;
 
-    Buffer(std::vector<Vertex> const &vertices, Device const &device);
+    explicit Buffer(std::vector<Vertex> const &vertices, Device const &device);
 
-    Buffer(std::vector<std::uint32_t> const &indices, Device const &device);
+    explicit Buffer(std::vector<std::uint32_t> const &indices, Device const &device);
 
-    Buffer(std::size_t size, vk::BufferUsageFlags const &usage, Device const &device);
+    explicit Buffer(std::size_t size, vk::BufferUsageFlags const &usage, Device const &device);
 
   private:
     template <class T>
