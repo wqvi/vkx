@@ -8,6 +8,7 @@ namespace vkx
   {
     VoxelType type = VoxelType::Air;
     bool visible = false;
+    bool collision = false;
 
     constexpr Voxel() = default;
 
@@ -18,12 +19,14 @@ namespace vkx
       {
       case VoxelType::None:
         visible = false;
+        collision = true;
         break;
       case VoxelType::Air:
         visible = false;
         break;
       default:
         visible = true;
+        collision = true;
         break;
       }
     }
