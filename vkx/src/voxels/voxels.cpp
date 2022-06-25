@@ -5,31 +5,33 @@
 namespace vkx {
     VoxelChunk::VoxelChunk(const glm::vec3 &worldPosition, std::int32_t width, std::int32_t height, std::int32_t depth)
             : voxels(width, height, depth), worldPosition(worldPosition) {
-        for (std::int32_t i = 0; i < width; i++) {
-            voxels.set(i, 0, 0, Voxel{VoxelType::Air, false});
+        for (std::int32_t x = 0; x < width; x++) {
+            for (std::int32_t y = 0; y < height; y++) {
+                for (std::int32_t z = 0; z < depth / 2; z++) {
+                    voxels.set(x, y, z, Voxel{VoxelType::Stone});
+                }
+            }
         }
 
         for (std::int32_t i = 0; i < width; i++) {
-            voxels.set(i, 2, 2, Voxel{VoxelType::Air, false});
+            voxels.set(i, 2, 2, Voxel{VoxelType::Stone});
         }
 
         for (std::int32_t i = 0; i < depth; i++) {
-            voxels.set(0, 0, i, Voxel{VoxelType::Air, false});
+            voxels.set(0, 0, i, Voxel{VoxelType::Stone});
         }
 
         for (std::int32_t i = 0; i < depth; i++) {
             for (std::int32_t j = height - height / 2; j < height; j++) {
-                voxels.set(0, j, i, Voxel{VoxelType::Air, false});
+                voxels.set(0, j, i, Voxel{VoxelType::Stone});
             }
         }
 
-        for (std::int32_t x = 0; x < width; x++) {
-            for (std::int32_t y = 0; y < height; y++) {
-                for (std::int32_t z = 0; z < depth / 2; z++) {
-                    voxels.set(x, y, z, Voxel{VoxelType::Air, false});
-                }
-            }
+        for (std::int32_t i = 0; i < width; i++) {
+            voxels.set(i, 0, 0, Voxel{VoxelType::Air, false});
         }
+
+        voxels.set(1, 1, 1, Voxel(VoxelType::Stone));
     }
 
     VoxelChunk::VoxelChunk(const glm::vec3 &worldPosition, std::int32_t size)
@@ -66,15 +68,27 @@ namespace vkx {
                 generateMesh(Mask, Axis1, Axis2, AxisMask, ChunkItr);
             }
         }
-        std::cout << std::boolalpha;
+    }
+
+    static void printVec(const glm::vec3 &vec) {
+        std::cout << '(' << vec.x << ',' << vec.y << ',' << vec.z << ")\n";
+    }
+
+    static void printVec(const glm::i32vec3 &vec) {
+        std::cout << '(' << vec.x << ',' << vec.y << ',' << vec.z << ")\n";
     }
 
     void VoxelChunk::test(const glm::vec3 &position) {
         auto lower = glm::greaterThan(position, worldPosition - voxels.getSize());
         auto upper = glm::lessThan(position, worldPosition);
         if (lower.x && lower.y && upper.x && upper.y) {
-            auto normalizedPosition = glm::normalize(position);
-            std::cout << static_cast<int>(voxels.at(glm::i32vec3(normalizedPosition - worldPosition)).type) << '\n';
+            std::cout << static_cast<int>(voxels.at(glm::i32vec3(worldPosition - position)).type) << '\n';
+
+            std::cout << "Normalized position = ";
+            printVec(position);
+
+            std::cout << "Calculated position = ";
+            printVec(glm::i32vec3(position - worldPosition));
         }
     }
 
