@@ -10,77 +10,88 @@
 
 constexpr static const std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
-namespace vkx
-{
-	class RendererBase : public RendererContext
-	{
-	public:
+namespace vkx {
+    struct SyncObjects {
+        SyncObjects() = default;
+
+        explicit SyncObjects(const Device &device);
+
+        static std::vector<SyncObjects> createSyncObjects(const Device &device);
+
+        vk::UniqueSemaphore imageAvailableSemaphore;
+        vk::UniqueSemaphore renderFinishedSemaphore;
+        vk::UniqueFence inFlightFence;
+    };
+
+    class RendererBase : public RendererContext {
+    public:
         RendererBase() = default;
 
-		RendererBase(SDL_Window *window, Profile const &profile);
+        RendererBase(SDL_Window *window, Profile const &profile);
 
-		void recreateSwapchain();
+        void recreateSwapchain();
 
-		void createDescriptorPool();
+        void createDescriptorPool();
 
-		void createDescriptorSets(std::vector<UniformBuffer<MVP>> const &mvpBuffers,
-								  std::vector<UniformBuffer<DirectionalLight>> const &lightBuffers,
-								  std::vector<UniformBuffer<Material>> const &materialBuffers,
-								  Texture const &texture);
+        void createDescriptorSets(std::vector<UniformBuffer<MVP>> const &mvpBuffers,
+                                  std::vector<UniformBuffer<DirectionalLight>> const &lightBuffers,
+                                  std::vector<UniformBuffer<Material>> const &materialBuffers,
+                                  Texture const &texture);
 
-		void drawFrame(UniformBuffer<MVP> const &mvpBuffer,
-					   UniformBuffer<DirectionalLight> const &lightBuffer,
-					   UniformBuffer<Material> const &materialBuffer,
-					   Buffer const &vertexBuffer,
-					   Buffer const &indexBuffer,
-					   std::uint32_t indexCount,
-					   std::uint32_t &currentIndexFrame);
+        void drawFrame(UniformBuffer<MVP> const &mvpBuffer,
+                       UniformBuffer<DirectionalLight> const &lightBuffer,
+                       UniformBuffer<Material> const &materialBuffer,
+                       Buffer const &vertexBuffer,
+                       Buffer const &indexBuffer,
+                       std::uint32_t indexCount,
+                       std::uint32_t &currentIndexFrame);
 
-		[[nodiscard]] std::uint32_t getCurrentFrameIndex(std::uint32_t frameIndex) const;
+        [[nodiscard]] std::uint32_t getCurrentFrameIndex(std::uint32_t frameIndex) const;
 
-        template <class T>
-		auto createBuffers(T const &value = {})
-		{
-			std::vector<vkx::UniformBuffer<T>> buffers;
-			buffers.reserve(MAX_FRAMES_IN_FLIGHT);
-			for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-			{
-				buffers.emplace_back(value, device);
-			}
-			return buffers;
-		}
+        template<class T>
+        auto createBuffers(T const &value = {}) {
+            std::vector<vkx::UniformBuffer<T>> buffers;
+            buffers.reserve(MAX_FRAMES_IN_FLIGHT);
+            for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+                buffers.emplace_back(value, device);
+            }
+            return buffers;
+        }
 
-	protected:
-		SDL_Window *window = nullptr;
-		vk::UniqueSurfaceKHR surface;
-		Device device;
+    protected:
+        SDL_Window *window = nullptr;
+        vk::UniqueSurfaceKHR surface;
+        Device device;
 
-		Swapchain swapchain;
+        Swapchain swapchain;
 
-		vk::UniqueRenderPass renderPass;
-		vk::UniqueDescriptorSetLayout descriptorSetLayout;
+        vk::UniqueRenderPass renderPass;
+        vk::UniqueDescriptorSetLayout descriptorSetLayout;
 
-		GraphicsPipeline pipeline;
-		ComputePipeline computePipeline;
+        GraphicsPipeline pipeline;
+        ComputePipeline computePipeline;
 
-		vk::UniqueDescriptorPool descriptorPool;
-		std::vector<vk::DescriptorSet> descriptorSets;
+        vk::UniqueDescriptorPool descriptorPool;
+        std::vector<vk::DescriptorSet> descriptorSets;
 
-		std::vector<DrawCommand> drawCommands;
+        std::vector<DrawCommand> drawCommands;
 
-		std::vector<vk::UniqueSemaphore> imageAvailableSemaphores;
-		std::vector<vk::UniqueSemaphore> renderFinishedSemaphores;
-		std::vector<vk::UniqueFence> inFlightFences;
+        std::vector<vk::UniqueSemaphore> imageAvailableSemaphores;
+        std::vector<vk::UniqueSemaphore> renderFinishedSemaphores;
+        std::vector<vk::UniqueFence> inFlightFences;
 
-		std::uint32_t currentFrame = 0;
+        std::vector<SyncObjects> syncObjects;
 
-		bool framebufferResized = false;
+        std::uint32_t currentFrame = 0;
 
-	private:
-		void createSwapchain();
+        bool framebufferResized = false;
 
-		[[nodiscard]] vk::UniqueRenderPass createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
-		
-		void createGraphicsPipeline();
-	};
+    private:
+        void createSwapchain();
+
+        [[nodiscard]] vk::UniqueRenderPass
+        createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
+
+        void createGraphicsPipeline();
+    };
 }
