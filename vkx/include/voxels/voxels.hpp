@@ -9,14 +9,16 @@ namespace vkx
 	class VoxelChunk
 	{
 	public:
-		explicit VoxelChunk(std::int32_t width, std::int32_t height, std::int32_t depth);
+		explicit VoxelChunk(const glm::vec3 &worldPosition, std::int32_t width, std::int32_t height, std::int32_t depth);
 
-		explicit VoxelChunk(std::int32_t size);
+		explicit VoxelChunk(const glm::vec3 &worldPosition, std::int32_t size);
 
 		void greedy();
 
 		std::vector<vkx::Vertex> vertices;
 		std::vector<std::uint32_t> indices;
+
+        void test(const glm::vec3 &position);
 
 	private:
 		void generateMesh(GreedyMask &Mask, std::int32_t Axis1, std::int32_t Axis2, glm::i32vec3 const &AxisMask, glm::i32vec3 &ChunkItr);
@@ -33,5 +35,6 @@ namespace vkx
 
 		VoxelMatrix voxels;
 		std::uint32_t vertexCount = 0;
+        glm::vec3 worldPosition = glm::vec3(0);
 	};
 }

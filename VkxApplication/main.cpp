@@ -46,7 +46,7 @@ public:
     std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
     std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers;
 
-    vkx::VoxelChunk chunk{16, 15, 14};
+    vkx::VoxelChunk chunk{glm::vec3(0), 16, 15, 14};
 };
 
 class VoxelRenderer : private vkx::RendererBase {
@@ -72,7 +72,7 @@ public:
     std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
     std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers;
 
-    vkx::VoxelChunk chunk{16, 15, 14};
+    vkx::VoxelChunk chunk{glm::vec3(0), 16, 15, 14};
 
     glm::mat4 projection = glm::mat4(1.0f);
 
@@ -133,6 +133,7 @@ public:
 
     void keyPressedEventHandler(const SDL_KeyboardEvent &event) {
         camera.updateKey(event.keysym.sym);
+        chunk.test(camera.position);
     }
 
     void keyReleasedEventHandler(const SDL_KeyboardEvent &event) {

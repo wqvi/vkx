@@ -1,143 +1,142 @@
 #include "voxels/voxels.hpp"
 
-namespace vkx
-{
-	VoxelChunk::VoxelChunk(std::int32_t width, std::int32_t height, std::int32_t depth)
-			: voxels(width, height, depth)
-	{
-		for (std::int32_t i = 0; i < width; i++)
-		{
-			voxels.set(i, 0, 0, Voxel{VoxelType::Air, false});
-		}
+#include <iostream>
 
-		for (std::int32_t i = 0; i < width; i++)
-		{
-			voxels.set(i, 2, 2, Voxel{VoxelType::Air, false});
-		}
+namespace vkx {
+    VoxelChunk::VoxelChunk(const glm::vec3 &worldPosition, std::int32_t width, std::int32_t height, std::int32_t depth)
+            : voxels(width, height, depth), worldPosition(worldPosition) {
+        for (std::int32_t i = 0; i < width; i++) {
+            voxels.set(i, 0, 0, Voxel{VoxelType::Air, false});
+        }
 
-		for (std::int32_t i = 0; i < depth; i++)
-		{
-			voxels.set(0, 0, i, Voxel{VoxelType::Air, false});
-		}
+        for (std::int32_t i = 0; i < width; i++) {
+            voxels.set(i, 2, 2, Voxel{VoxelType::Air, false});
+        }
 
-		for (std::int32_t i = 0; i < depth; i++)
-		{
-			for (std::int32_t j = height - height / 2; j < height; j++)
-			{
-				voxels.set(0, j, i, Voxel{VoxelType::Air, false});
-			}
-		}
-	}
+        for (std::int32_t i = 0; i < depth; i++) {
+            voxels.set(0, 0, i, Voxel{VoxelType::Air, false});
+        }
 
-	VoxelChunk::VoxelChunk(std::int32_t size)
-			: VoxelChunk(size, size, size) {}
+        for (std::int32_t i = 0; i < depth; i++) {
+            for (std::int32_t j = height - height / 2; j < height; j++) {
+                voxels.set(0, j, i, Voxel{VoxelType::Air, false});
+            }
+        }
+    }
 
-	void VoxelChunk::greedy()
-	{
-		for (std::int32_t Axis = 0; Axis < 3; ++Axis)
-		{
-			auto const Axis1 = (Axis + 1) % 3;
-			auto const Axis2 = (Axis + 2) % 3;
+    VoxelChunk::VoxelChunk(const glm::vec3 &worldPosition, std::int32_t size)
+            : VoxelChunk(worldPosition, size, size, size) {}
 
-			auto const MainAxisLimit = voxels.getDimensionSize(Axis);
-			auto const Axis1Limit = voxels.getDimensionSize(Axis1);
-			auto const Axis2Limit = voxels.getDimensionSize(Axis2);
+    void VoxelChunk::greedy() {
+        for (std::int32_t Axis = 0; Axis < 3; ++Axis) {
+            auto const Axis1 = (Axis + 1) % 3;
+            auto const Axis2 = (Axis + 2) % 3;
 
-			
+            auto const MainAxisLimit = voxels.getDimensionSize(Axis);
+            auto const Axis1Limit = voxels.getDimensionSize(Axis1);
+            auto const Axis2Limit = voxels.getDimensionSize(Axis2);
 
-			glm::i32vec3 ChunkItr{0};
-			glm::i32vec3 AxisMask{0};
-			// glm::i32vec3 testTmp{0};
 
-			AxisMask[Axis] = 1;
+            glm::i32vec3 ChunkItr{0};
+            glm::i32vec3 AxisMask{0};
+            // glm::i32vec3 testTmp{0};
 
-			GreedyMask Mask{Axis1Limit, Axis2Limit};
+            AxisMask[Axis] = 1;
 
-			// Check each slice of the chunk
-			// testTmp[Axis] = -1;
-			for (ChunkItr[Axis] = -1; ChunkItr[Axis] < MainAxisLimit;)
-			{
-				// Compute Mask
-				Mask.calculate(voxels, ChunkItr, Axis1, Axis2, AxisMask);
+            GreedyMask Mask{Axis1Limit, Axis2Limit};
 
-				// testTmp[Axis]++;
-				ChunkItr[Axis]++;
+            // Check each slice of the chunk
+            // testTmp[Axis] = -1;
+            for (ChunkItr[Axis] = -1; ChunkItr[Axis] < MainAxisLimit;) {
+                // Compute Mask
+                Mask.calculate(voxels, ChunkItr, Axis1, Axis2, AxisMask);
 
-				// Generate Mesh From Mask
-				generateMesh(Mask, Axis1, Axis2, AxisMask, ChunkItr);
-			}
-		}
-	}
+                // testTmp[Axis]++;
+                ChunkItr[Axis]++;
 
-	void VoxelChunk::generateMesh(GreedyMask &Mask, std::int32_t Axis1, std::int32_t Axis2, glm::i32vec3 const &AxisMask, glm::i32vec3 &ChunkItr)
-	{
-		
-		for (int j = 0; j < Mask.getHeight(); ++j)
-		{
-			for (int i = 0; i < Mask.getWidth();)
-			{
-				auto const &CurrentMask = Mask.at(i, j);
-				if (CurrentMask.normal != 0)
-				{
-					ChunkItr[Axis1] = i;
-					ChunkItr[Axis2] = j;
+                // Generate Mesh From Mask
+                generateMesh(Mask, Axis1, Axis2, AxisMask, ChunkItr);
+            }
+        }
+        std::cout << std::boolalpha;
+    }
 
-					auto Width = Mask.calculateQuadWidth(CurrentMask, i, j);
-					auto Height = Mask.calculateQuadHeight(CurrentMask, Width, i, j);
+    void VoxelChunk::test(const glm::vec3 &position) {
+        auto lower = glm::greaterThan(position, worldPosition - voxels.getSize());
+        auto upper = glm::lessThan(position, worldPosition);
+        if (lower.x && lower.y && upper.x && upper.y) {
+            std::cout << "Hello World!\n";
+            auto normalizedPosition = glm::normalize(position);
+            std::cout << voxels.at(glm::i32vec3(normalizedPosition)).visible;
+        } else {
+            std::cout << "Out of bounds\n";
+        }
+    }
 
-					glm::i32vec3 DeltaAxis1{0};
-					glm::i32vec3 DeltaAxis2{0};
-					DeltaAxis1[Axis1] = Width;
-					DeltaAxis2[Axis2] = Height;
+    void
+    VoxelChunk::generateMesh(GreedyMask &Mask, std::int32_t Axis1, std::int32_t Axis2, glm::i32vec3 const &AxisMask,
+                             glm::i32vec3 &ChunkItr) {
 
-					CreateQuad(
-							CurrentMask, AxisMask, Width, Height,
-							ChunkItr,
-							ChunkItr + DeltaAxis1,
-							ChunkItr + DeltaAxis2,
-							ChunkItr + DeltaAxis1 + DeltaAxis2);
+        for (int j = 0; j < Mask.getHeight(); ++j) {
+            for (int i = 0; i < Mask.getWidth();) {
+                auto const &CurrentMask = Mask.at(i, j);
+                if (CurrentMask.normal != 0) {
+                    ChunkItr[Axis1] = i;
+                    ChunkItr[Axis2] = j;
 
-					Mask.clear(i, j, Width, Height);
+                    auto Width = Mask.calculateQuadWidth(CurrentMask, i, j);
+                    auto Height = Mask.calculateQuadHeight(CurrentMask, Width, i, j);
 
-					i += Width;
-				}
-				else
-				{
-					i++;
-				}
-			}
-		}
-	}
+                    glm::i32vec3 DeltaAxis1{0};
+                    glm::i32vec3 DeltaAxis2{0};
+                    DeltaAxis1[Axis1] = Width;
+                    DeltaAxis2[Axis2] = Height;
 
-	void VoxelChunk::CreateQuad(
-			VoxelMask mask,
-			const glm::ivec3 &axisMask,
-			const int width,
-			const int height,
-			const glm::ivec3 &V1,
-			const glm::ivec3 &V2,
-			const glm::ivec3 &V3,
-			const glm::ivec3 &V4)
-	{
-		auto normal = axisMask * mask.normal;
+                    CreateQuad(
+                            CurrentMask, AxisMask, Width, Height,
+                            ChunkItr,
+                            ChunkItr + DeltaAxis1,
+                            ChunkItr + DeltaAxis2,
+                            ChunkItr + DeltaAxis1 + DeltaAxis2);
 
-		auto v1 = vkx::Vertex{-V1, glm::vec2(0.0f, 0.0f), -normal};
-		auto v2 = vkx::Vertex{-V2, glm::vec2(width, 0.0f), -normal};
-		auto v3 = vkx::Vertex{-V3, glm::vec2(0.0f, height), -normal};
-		auto v4 = vkx::Vertex{-V4, glm::vec2(width, height), -normal};
+                    Mask.clear(i, j, Width, Height);
 
-		vertices.push_back(v1);
-		vertices.push_back(v2);
-		vertices.push_back(v3);
-		vertices.push_back(v4);
+                    i += Width;
+                } else {
+                    i++;
+                }
+            }
+        }
+    }
 
-		indices.push_back(vertexCount);
-		indices.push_back(vertexCount + 2 + mask.normal);
-		indices.push_back(vertexCount + 2 - mask.normal);
-		indices.push_back(vertexCount + 3);
-		indices.push_back(vertexCount + 1 - mask.normal);
-		indices.push_back(vertexCount + 1 + mask.normal);
+    void VoxelChunk::CreateQuad(
+            VoxelMask mask,
+            const glm::ivec3 &axisMask,
+            const int width,
+            const int height,
+            const glm::ivec3 &V1,
+            const glm::ivec3 &V2,
+            const glm::ivec3 &V3,
+            const glm::ivec3 &V4) {
+        auto normal = axisMask * mask.normal;
 
-		vertexCount += 4;
-	}
+        auto v1 = vkx::Vertex{-V1, glm::vec2(0.0f, 0.0f), -normal};
+        auto v2 = vkx::Vertex{-V2, glm::vec2(width, 0.0f), -normal};
+        auto v3 = vkx::Vertex{-V3, glm::vec2(0.0f, height), -normal};
+        auto v4 = vkx::Vertex{-V4, glm::vec2(width, height), -normal};
+
+        vertices.push_back(v1);
+        vertices.push_back(v2);
+        vertices.push_back(v3);
+        vertices.push_back(v4);
+
+        indices.push_back(vertexCount);
+        indices.push_back(vertexCount + 2 + mask.normal);
+        indices.push_back(vertexCount + 2 - mask.normal);
+        indices.push_back(vertexCount + 3);
+        indices.push_back(vertexCount + 1 - mask.normal);
+        indices.push_back(vertexCount + 1 + mask.normal);
+
+        vertexCount += 4;
+    }
 }

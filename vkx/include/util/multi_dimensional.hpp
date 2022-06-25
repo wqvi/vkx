@@ -140,10 +140,15 @@ namespace vkx
       return depth;
     }
 
+
+    [[nodiscard]] auto getSize() const {
+        return glm::vec3(width, height, depth);
+    }
+
   protected:
-    std::int32_t const width;
-    std::int32_t const height;
-    std::int32_t const depth;
+    const std::int32_t width;
+    const std::int32_t height;
+    const std::int32_t depth;
 
     constexpr auto validLocation(std::int32_t x, std::int32_t y, std::int32_t z) const
     {
