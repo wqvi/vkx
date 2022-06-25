@@ -71,13 +71,15 @@ namespace vkx {
     }
 
     void VoxelChunk::test(const glm::vec3 &position) {
-        const bool a = position.x > worldPosition.x - static_cast<float>(voxels.getWidth()) &&
+        // Due to how the mesh is rendered the world position is going to be subtracted from
+        const bool upperBound = position.x > worldPosition.x - static_cast<float>(voxels.getWidth()) &&
                        position.y > worldPosition.y - static_cast<float>(voxels.getHeight()) &&
                        position.z > worldPosition.z - static_cast<float>(voxels.getDepth());
-        const bool b = position.x < worldPosition.x &&
-                       position.y < worldPosition.y &&
-                       position.z < worldPosition.z;
-        if (a && b) {
+        // Continued here the position must be less than the world position due to the end of the mesh is far lower.
+        const bool lowerBound = position.x < worldPosition.x &&
+                                position.y < worldPosition.y &&
+                                position.z < worldPosition.z;
+        if (upperBound && lowerBound) {
             const auto &voxel = voxels.at(glm::i32vec3(worldPosition - position));
         }
     }
