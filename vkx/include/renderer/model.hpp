@@ -26,6 +26,7 @@ namespace vkx
 
         Texture(std::string const &file, Device const &device);
 
+        [[nodiscard]] vk::WriteDescriptorSet createWriteDescriptorSet(vk::DescriptorSet const &descriptorSet, std::uint32_t dstBinding) const;
     private:
         Image image;
         vk::UniqueImageView view;
