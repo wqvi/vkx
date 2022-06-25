@@ -14,14 +14,14 @@ namespace vkx
     {
       for (ChunkItr[Axis1] = 0; ChunkItr[Axis1] < width; ++ChunkItr[Axis1])
       {
-        Voxel const CurrentBlock = voxels.at(ChunkItr);
+        const Voxel CurrentBlock = voxels.at(ChunkItr);
         // Checks the next block
         // Has potential to check out of bounds
         // Maybe add a feature to check into the next chunk?
-        Voxel const CompareBlock = voxels.at(ChunkItr + AxisMask);
+        const Voxel CompareBlock = voxels.at(ChunkItr + AxisMask);
 
-        bool const CurrentBlockOpaque = CurrentBlock.type != VoxelType::Air;
-        bool const CompareBlockOpaque = CompareBlock.type != VoxelType::Air;
+        const bool CurrentBlockOpaque = CurrentBlock.visible;
+        const bool CompareBlockOpaque = CompareBlock.visible;
 
         if (CurrentBlockOpaque == CompareBlockOpaque)
           Matrix2D<VoxelMask>::set(ChunkItr[Axis1], ChunkItr[Axis2], VoxelMask{Voxel{VoxelType::None}, 0});

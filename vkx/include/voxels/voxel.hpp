@@ -6,12 +6,13 @@ namespace vkx
 {
   struct Voxel
   {
-    VoxelType type = VoxelType::None;
+    VoxelType type = VoxelType::Air;
     bool visible = false;
 
     constexpr Voxel() = default;
 
     constexpr explicit(false) Voxel(VoxelType type)
+        : type(type)
     {
       switch (type)
       {
