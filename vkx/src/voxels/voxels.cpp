@@ -22,6 +22,14 @@ namespace vkx {
                 voxels.set(0, j, i, Voxel{VoxelType::Air, false});
             }
         }
+
+        for (std::int32_t x = 0; x < width; x++) {
+            for (std::int32_t y = 0; y < height; y++) {
+                for (std::int32_t z = 0; z < depth / 2; z++) {
+                    voxels.set(x, y, z, Voxel{VoxelType::Air, false});
+                }
+            }
+        }
     }
 
     VoxelChunk::VoxelChunk(const glm::vec3 &worldPosition, std::int32_t size)
@@ -65,11 +73,8 @@ namespace vkx {
         auto lower = glm::greaterThan(position, worldPosition - voxels.getSize());
         auto upper = glm::lessThan(position, worldPosition);
         if (lower.x && lower.y && upper.x && upper.y) {
-            std::cout << "Hello World!\n";
             auto normalizedPosition = glm::normalize(position);
-            std::cout << voxels.at(glm::i32vec3(normalizedPosition)).visible;
-        } else {
-            std::cout << "Out of bounds\n";
+            std::cout << static_cast<int>(voxels.at(glm::i32vec3(normalizedPosition - worldPosition)).type) << '\n';
         }
     }
 
