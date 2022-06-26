@@ -44,3 +44,6 @@ stb_image.h
 
 # spv files
 *.spv
+
+# SHADERed workspace file
+.sprj
