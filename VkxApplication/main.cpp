@@ -133,7 +133,6 @@ public:
 
     void keyPressedEventHandler(const SDL_KeyboardEvent &event) {
         camera.updateKey(event.keysym.sym);
-        chunk.test(camera.position);
     }
 
     void keyReleasedEventHandler(const SDL_KeyboardEvent &event) {
@@ -186,6 +185,8 @@ public:
 
             drawFrame(mvpBuffer, lightBuffer, materialBuffer, vertexBuffer, indexBuffer,
                       static_cast<std::uint32_t>(chunk.indices.size()), currentFrame);
+
+            camera.position = chunk.test(camera.position);
 
             while (SDL_PollEvent(&event)) {
                 eventHandler(event);

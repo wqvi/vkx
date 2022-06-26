@@ -78,17 +78,12 @@ namespace vkx {
         const bool upperBound = position.x < voxelPosition.x - 1.0f &&
                                 position.y < voxelPosition.y - 1.0f &&
                                 position.z < voxelPosition.z - 1.0f;
-        const bool lowerBound = position.x > voxelPosition.x + 1.0f &&
-                                position.y > voxelPosition.y + 1.0f &&
-                                position.z > voxelPosition.z + 1.0f;
+        const bool lowerBound = position.x < voxelPosition.x + 1.0f &&
+                                position.y < voxelPosition.y + 1.0f &&
+                                position.z < voxelPosition.z + 1.0f;
         if (upperBound && lowerBound) {
             return voxelPosition - 1.0f;
         }
-        printVec(position);
-        printVec(voxelPosition + glm::vec3(1));
-        printVec(voxelPosition - glm::vec3(1));
-        std::cout << "Upper bound " << upperBound << "\t lower bound " << lowerBound << '\n';
-
         return position;
     }
 
