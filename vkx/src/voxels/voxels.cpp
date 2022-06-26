@@ -70,18 +70,47 @@ namespace vkx {
         }
     }
 
-    void VoxelChunk::test(const glm::vec3 &position) {
+    static void printVec(const glm::vec3 &vec) {
+        std::cout << '(' << vec.x << ',' << vec.y << ',' << vec.z << ")\n";
+    }
+
+    static glm::vec3 test2(const glm::vec3 &position, const glm::vec3 &voxelPosition) {
+        const bool upperBound = position.x < voxelPosition.x - 1.0f &&
+                                position.y < voxelPosition.y - 1.0f &&
+                                position.z < voxelPosition.z - 1.0f;
+        const bool lowerBound = position.x > voxelPosition.x + 1.0f &&
+                                position.y > voxelPosition.y + 1.0f &&
+                                position.z > voxelPosition.z + 1.0f;
+        if (upperBound && lowerBound) {
+            return voxelPosition - 1.0f;
+        }
+        printVec(position);
+        printVec(voxelPosition + glm::vec3(1));
+        printVec(voxelPosition - glm::vec3(1));
+        std::cout << "Upper bound " << upperBound << "\t lower bound " << lowerBound << '\n';
+
+        return position;
+    }
+
+    glm::vec3 VoxelChunk::test(const glm::vec3 &position) {
         // Due to how the mesh is rendered the world position is going to be subtracted from
         const bool upperBound = position.x > worldPosition.x - static_cast<float>(voxels.getWidth()) &&
-                       position.y > worldPosition.y - static_cast<float>(voxels.getHeight()) &&
-                       position.z > worldPosition.z - static_cast<float>(voxels.getDepth());
+                                position.y > worldPosition.y - static_cast<float>(voxels.getHeight()) &&
+                                position.z > worldPosition.z - static_cast<float>(voxels.getDepth());
         // Continued here the position must be less than the world position due to the end of the mesh is far lower.
         const bool lowerBound = position.x < worldPosition.x &&
                                 position.y < worldPosition.y &&
                                 position.z < worldPosition.z;
+
         if (upperBound && lowerBound) {
-            const auto &voxel = voxels.at(glm::i32vec3(worldPosition - position));
+            const auto voxelPosition = worldPosition - position;
+            const auto &voxel = voxels.at(voxelPosition);
+            if (voxel.collision) {
+                return test2(position, voxelPosition);
+            }
         }
+
+        return position;
     }
 
     void

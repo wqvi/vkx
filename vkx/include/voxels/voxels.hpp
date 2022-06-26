@@ -18,7 +18,7 @@ namespace vkx
 		std::vector<vkx::Vertex> vertices;
 		std::vector<std::uint32_t> indices;
 
-        void test(const glm::vec3 &position);
+        glm::vec3 test(const glm::vec3 &position);
 
 	private:
 		void generateMesh(GreedyMask &Mask, std::int32_t Axis1, std::int32_t Axis2, glm::i32vec3 const &AxisMask, glm::i32vec3 &ChunkItr);
