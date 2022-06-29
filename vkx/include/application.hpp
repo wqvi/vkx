@@ -26,15 +26,23 @@ namespace vkx {
         };
 
     public:
+        TestWindow() = default;
+
         // Creates a window with the information from the config
         // After the creation of the window, the projection matrix is created with the same config data
         explicit TestWindow(const ApplicationConfig &config);
+
+        void show() const noexcept;
+
+        void hide() const noexcept;
 
         [[nodiscard]] std::pair<int, int> getSize() const noexcept;
 
         [[nodiscard]] int getWidth() const noexcept;
 
         [[nodiscard]] int getHeight() const noexcept;
+
+        [[nodiscard]] vk::UniqueSurfaceKHR createSurface(const vk::UniqueInstance &instance) const;
 
     private:
         constexpr static const glm::f32 nearZ = 0.05f;
@@ -71,12 +79,9 @@ namespace vkx {
 
         void handleMouseMovedEvent(const SDL_MouseMotionEvent &event);
 
-        SDL_Window *window = nullptr;
+        TestWindow window;
 
         bool isRunning = false;
-
-        const float nearZ = 0.1f;
-        const float farZ = 100.0f;
 
         RendererBase renderer;
     };

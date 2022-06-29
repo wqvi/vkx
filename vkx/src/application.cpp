@@ -5,8 +5,12 @@
 #include <application.hpp>
 
 vkx::TestWindow::TestWindow(const ApplicationConfig &config) {
-    SDL_Window* sdlWindow = SDL_CreateWindow(config.title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config.windowWidth,
-                                             config.windowHeight, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+    SDL_Window *sdlWindow = SDL_CreateWindow(config.title,
+                                             SDL_WINDOWPOS_UNDEFINED,
+                                             SDL_WINDOWPOS_UNDEFINED,
+                                             config.windowWidth,
+                                             config.windowHeight,
+                                             SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
     if (sdlWindow == nullptr) {
         throw std::runtime_error(SDL_GetError());
     }
@@ -16,6 +20,14 @@ vkx::TestWindow::TestWindow(const ApplicationConfig &config) {
     float aspectRatio = static_cast<float>(config.windowWidth) / static_cast<float>(config.windowHeight);
     projection = glm::perspective(glm::radians(75.0f), aspectRatio, nearZ, farZ);
     projection[1][1] *= -1.0f; // Multiply by -1f to make it work with Vulkan
+}
+
+void vkx::TestWindow::show() const noexcept {
+    SDL_ShowWindow(window.get());
+}
+
+void vkx::TestWindow::hide() const noexcept {
+    SDL_HideWindow(window.get());
 }
 
 std::pair<int, int> vkx::TestWindow::getSize() const noexcept {
@@ -43,18 +55,21 @@ int vkx::TestWindow::getHeight() const noexcept {
     return height;
 }
 
+vk::UniqueSurfaceKHR vkx::TestWindow::createSurface(const vk::UniqueInstance &instance) const {
+    VkSurfaceKHR surface = nullptr;
+    if (SDL_Vulkan_CreateSurface(window.get(), *instance, &surface) != SDL_TRUE) {
+        throw std::runtime_error("Failure to create C API VkSurfaceKHR via the SDL2 API.");
+    }
+    return vk::UniqueSurfaceKHR(surface, *instance);
+}
+
 vkx::Application::Application(const vkx::ApplicationConfig &config) {
     int sdlErrorCode = SDL_Init(SDL_INIT_EVERYTHING);
     if (sdlErrorCode < 0) {
         throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
     }
 
-    Uint32 flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
-    window = SDL_CreateWindow(config.title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config.windowWidth,
-                              config.windowHeight, flags);
-    if (window == nullptr) {
-        throw std::runtime_error(SDL_GetError());
-    }
+    window = TestWindow(config);
 
     sdlErrorCode = SDL_ShowCursor(SDL_DISABLE);
     if (sdlErrorCode < 0) {
@@ -66,21 +81,17 @@ vkx::Application::Application(const vkx::ApplicationConfig &config) {
         throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
     }
 
-    float aspectRatio = static_cast<float>(config.windowWidth) / static_cast<float>(config.windowHeight);
-    windowProjection = glm::perspective(glm::radians(75.0f), aspectRatio, nearZ, farZ);
-    windowProjection[1][1] *= -1.0f;
-
-    renderer = vkx::RendererBase{window, vkx::Profile{}};
+//    renderer = vkx::RendererBase{window, vkx::Profile{}};
 }
 
 vkx::Application::~Application() {
-    SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
 void vkx::Application::run() {
     isRunning = true;
-    SDL_ShowWindow(window);
+
+    window.show();
 
     SDL_Event event{};
 
