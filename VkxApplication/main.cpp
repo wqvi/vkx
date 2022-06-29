@@ -8,40 +8,10 @@
 const std::uint32_t WIDTH = 800;
 const std::uint32_t HEIGHT = 600;
 
-class MyScene : public vkx::Scene {
-public:
-    ~MyScene() override = default;
-
-    void init() override {
-
-    }
-
-    void run() override {
-
-    }
-
-    void destroy() noexcept override {
-
-    }
-
-private:
-    Camera camera{{2.0f, 2.0f, 2.0f}};
-
-    vkx::Texture texture = {};
-    vkx::Buffer vertexBuffer = {};
-    vkx::Buffer indexBuffer = {};
-
-    std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers;
-    std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
-    std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers;
-
-    vkx::VoxelChunk chunk{glm::vec3(0), 16, 15, 14};
-};
-
 class MyApplication : public vkx::Application {
 public:
     explicit MyApplication(const vkx::ApplicationConfig &config)
-        : vkx::Application(config) {
+            : vkx::Application(config) {
         vkx::MVP mvp = {glm::mat4(1.0f), camera.viewMatrix(), windowProjection};
 
         vkx::DirectionalLight light = {
@@ -68,6 +38,56 @@ public:
     }
 
     Camera camera = {};
+    vkx::Texture texture = {};
+    vkx::Buffer vertexBuffer = {};
+    vkx::Buffer indexBuffer = {};
+
+    std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers;
+    std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
+    std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers;
+
+    vkx::VoxelChunk chunk{glm::vec3(0), 16, 15, 14};
+};
+
+class MyScene : public vkx::Scene<MyApplication> {
+public:
+    ~MyScene() override = default;
+
+    void init(const MyApplication &data) override {
+//        vkx::MVP mvp = {glm::mat4(1.0f), camera.viewMatrix(), windowProjection};
+
+        vkx::DirectionalLight light = {
+                glm::vec3(1.0f, 3.0f, 1.0f),
+                camera.position,
+                glm::vec4(1.0f, 1.0f, 1.0f, 0.2f),
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                1.0f,
+                0.09f,
+                0.032f
+        };
+
+        vkx::Material material = {
+                glm::vec3(0.2f, 0.2f, 0.2f),
+                100.0f
+        };
+    }
+
+    void update() override {
+
+    }
+
+    void physics(float deltaTime) override {
+
+    }
+
+    void destroy() noexcept override {
+
+    }
+
+private:
+    Camera camera{{2.0f, 2.0f, 2.0f}};
+
     vkx::Texture texture = {};
     vkx::Buffer vertexBuffer = {};
     vkx::Buffer indexBuffer = {};
@@ -215,8 +235,6 @@ public:
 
             drawFrame(mvpBuffer, lightBuffer, materialBuffer, vertexBuffer, indexBuffer,
                       static_cast<std::uint32_t>(chunk.indices.size()), currentFrame);
-
-            chunk.test(camera.position);
 
             while (SDL_PollEvent(&event)) {
                 eventHandler(event);
