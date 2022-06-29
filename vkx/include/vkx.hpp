@@ -16,3 +16,4 @@
 #include <util/observer.hpp>
 #include <application.hpp>
 #include <renderer/model.hpp>
+#include <scene.hpp>
