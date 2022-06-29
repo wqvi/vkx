@@ -100,9 +100,6 @@ namespace vkx {
         if (upperBound && lowerBound) {
             const auto voxelPosition = worldPosition - position;
             const auto &voxel = voxels.at(voxelPosition);
-            if (voxel.collision) {
-                return test2(position, voxelPosition);
-            }
         }
 
         return position;
