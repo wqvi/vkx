@@ -8,6 +8,36 @@
 const std::uint32_t WIDTH = 800;
 const std::uint32_t HEIGHT = 600;
 
+class MyScene : public vkx::Scene {
+public:
+    ~MyScene() override = default;
+
+    void init() override {
+
+    }
+
+    void run() override {
+
+    }
+
+    void destroy() noexcept override {
+
+    }
+
+private:
+    Camera camera{{2.0f, 2.0f, 2.0f}};
+
+    vkx::Texture texture = {};
+    vkx::Buffer vertexBuffer = {};
+    vkx::Buffer indexBuffer = {};
+
+    std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers;
+    std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
+    std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers;
+
+    vkx::VoxelChunk chunk{glm::vec3(0), 16, 15, 14};
+};
+
 class MyApplication : public vkx::Application {
 public:
     explicit MyApplication(const vkx::ApplicationConfig &config)
@@ -186,7 +216,7 @@ public:
             drawFrame(mvpBuffer, lightBuffer, materialBuffer, vertexBuffer, indexBuffer,
                       static_cast<std::uint32_t>(chunk.indices.size()), currentFrame);
 
-            camera.position = chunk.test(camera.position);
+            chunk.test(camera.position);
 
             while (SDL_PollEvent(&event)) {
                 eventHandler(event);
