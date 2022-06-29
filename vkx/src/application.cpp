@@ -4,6 +4,45 @@
 
 #include <application.hpp>
 
+vkx::TestWindow::TestWindow(const ApplicationConfig &config) {
+    SDL_Window* sdlWindow = SDL_CreateWindow(config.title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config.windowWidth,
+                                             config.windowHeight, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+    if (sdlWindow == nullptr) {
+        throw std::runtime_error(SDL_GetError());
+    }
+
+    window = std::unique_ptr<SDL_Window, SDL_Deleter>(sdlWindow);
+
+    float aspectRatio = static_cast<float>(config.windowWidth) / static_cast<float>(config.windowHeight);
+    projection = glm::perspective(glm::radians(75.0f), aspectRatio, nearZ, farZ);
+    projection[1][1] *= -1.0f; // Multiply by -1f to make it work with Vulkan
+}
+
+std::pair<int, int> vkx::TestWindow::getSize() const noexcept {
+    int width;
+    int height;
+
+    SDL_GetWindowSize(window.get(), &width, &height);
+
+    return std::make_pair(width, height);
+}
+
+int vkx::TestWindow::getWidth() const noexcept {
+    int width;
+
+    SDL_GetWindowSize(window.get(), &width, nullptr);
+
+    return width;
+}
+
+int vkx::TestWindow::getHeight() const noexcept {
+    int height;
+
+    SDL_GetWindowSize(window.get(), nullptr, &height);
+
+    return height;
+}
+
 vkx::Application::Application(const vkx::ApplicationConfig &config) {
     int sdlErrorCode = SDL_Init(SDL_INIT_EVERYTHING);
     if (sdlErrorCode < 0) {
