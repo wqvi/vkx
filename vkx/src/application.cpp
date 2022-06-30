@@ -16,10 +16,6 @@ vkx::TestWindow::TestWindow(const ApplicationConfig &config) {
     }
 
     window = std::unique_ptr<SDL_Window, SDL_Deleter>(sdlWindow);
-
-    float aspectRatio = static_cast<float>(config.windowWidth) / static_cast<float>(config.windowHeight);
-    projection = glm::perspective(glm::radians(75.0f), aspectRatio, nearZ, farZ);
-    projection[1][1] *= -1.0f; // Multiply by -1f to make it work with Vulkan
 }
 
 void vkx::TestWindow::show() const noexcept {
@@ -55,10 +51,26 @@ int vkx::TestWindow::getHeight() const noexcept {
     return height;
 }
 
+void vkx::TestWindow::pollWindowEvent(const SDL_WindowEvent &event) {
+    switch (event.type) {
+        case SDL_WINDOWEVENT_RESIZED:
+            handleResizeEvent(event);
+            break;
+    }
+}
+
+void vkx::TestWindow::handleResizeEvent(const SDL_WindowEvent &event) {
+    framebufferResized = true;
+}
+
+bool vkx::TestWindow::isResized() const noexcept {
+    return framebufferResized;
+}
+
 vk::UniqueSurfaceKHR vkx::TestWindow::createSurface(const vk::UniqueInstance &instance) const {
     VkSurfaceKHR surface = nullptr;
     if (SDL_Vulkan_CreateSurface(window.get(), *instance, &surface) != SDL_TRUE) {
-        throw std::runtime_error("Failure to create C API VkSurfaceKHR via the SDL2 API.");
+        throw std::runtime_error("Failure to create VkSurfaceKHR via the SDL2 API.");
     }
     return vk::UniqueSurfaceKHR(surface, *instance);
 }
@@ -93,6 +105,7 @@ void vkx::Application::run() {
 
     window.show();
 
+    // Declared outside the loop, so it is only initialized once on our side
     SDL_Event event{};
 
     std::chrono::system_clock::time_point lastTime = std::chrono::system_clock::now();
@@ -125,7 +138,7 @@ void vkx::Application::pollEvents(SDL_Event *event) {
                 isRunning = false;
                 break;
             case SDL_WINDOWEVENT:
-                pollWindowEvent(event->window);
+                window.pollWindowEvent(event->window);
                 break;
             case SDL_KEYDOWN:
                 handleKeyPressedEvent(event->key);

@@ -29,7 +29,6 @@ namespace vkx {
         TestWindow() = default;
 
         // Creates a window with the information from the config
-        // After the creation of the window, the projection matrix is created with the same config data
         explicit TestWindow(const ApplicationConfig &config);
 
         void show() const noexcept;
@@ -42,15 +41,20 @@ namespace vkx {
 
         [[nodiscard]] int getHeight() const noexcept;
 
+        void pollWindowEvent(const SDL_WindowEvent &event);
+
+        void handleResizeEvent(const SDL_WindowEvent &event);
+
+        [[nodiscard]] bool isResized() const noexcept;
+
         [[nodiscard]] vk::UniqueSurfaceKHR createSurface(const vk::UniqueInstance &instance) const;
 
     private:
-        constexpr static const glm::f32 nearZ = 0.05f;
-        constexpr static const glm::f32 farZ = 100.0f;
+        bool framebufferResized = false;
 
         std::unique_ptr<SDL_Window, SDL_Deleter> window;
 
-        glm::mat4 projection = glm::mat4(1); // Initialize to identity matrix
+        typedef void (*SDLEventFunction)(SDL_WindowEvent *);
     };
 
     class Application {
@@ -62,9 +66,6 @@ namespace vkx {
         ~Application();
 
         void run();
-
-    protected:
-        glm::mat4 windowProjection = glm::mat4(1.0f);
 
     private:
         void pollEvents(SDL_Event *event);
