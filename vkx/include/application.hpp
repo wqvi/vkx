@@ -20,7 +20,7 @@ namespace vkx {
 
     class VulkanError : public std::exception {
     public:
-        explicit VulkanError(const std::string &message);
+        explicit VulkanError(const char *message);
 
         explicit VulkanError(vk::Result result);
 
