@@ -5,8 +5,11 @@
 #pragma once
 
 #include <renderer/core/renderer_base.hpp>
+#include <scene.hpp>
 
 namespace vkx {
+    class Scene;
+
     struct ApplicationConfig {
         const char *title = "VKX Application";
         int windowWidth = 640;
@@ -96,8 +99,31 @@ namespace vkx {
 
         SDLWindow window;
 
+        Scene *scene = nullptr;
+
         bool isRunning = false;
 
         RendererBase renderer;
+    };
+
+    class Scene {
+    public:
+        Scene() = default;
+
+        virtual ~Scene() = default;
+
+        virtual void init(const vkx::ApplicationConfig &config, const vkx::Application *data) = 0;
+
+        virtual void update() = 0;
+
+        virtual void physics(float deltaTime) = 0;
+
+        virtual void destroy() noexcept = 0;
+
+        virtual void onKeyPress() = 0;
+
+        virtual void onKeyRelease() = 0;
+
+        virtual void onMouseMove() = 0;
     };
 }
