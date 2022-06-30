@@ -13,6 +13,23 @@ namespace vkx {
         int windowHeight;
     };
 
+    class SDLError : public std::exception {
+    public:
+        [[nodiscard]] const char *what() const noexcept override;
+    };
+
+    class VulkanError : public std::exception {
+    public:
+        explicit VulkanError(const std::string &message);
+
+        explicit VulkanError(vk::Result result);
+
+        [[nodiscard]] const char *what() const noexcept override;
+
+    private:
+        std::string message;
+    };
+
     // A SDL window wrapper class
     // It has unique ownership over the pointer
     class SDLWindow {

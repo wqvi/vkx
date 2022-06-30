@@ -4,6 +4,20 @@
 
 #include <application.hpp>
 
+const char *vkx::SDLError::what() const noexcept {
+    return SDL_GetError();
+}
+
+vkx::VulkanError::VulkanError(const std::string &message)
+    : message(message) {}
+
+vkx::VulkanError::VulkanError(vk::Result result)
+    : message(vk::to_string(result)) {}
+
+const char *vkx::VulkanError::what() const noexcept {
+    return message.c_str();
+}
+
 vkx::SDLWindow::SDLWindow(const ApplicationConfig &config) {
     SDL_Window *sdlWindow = SDL_CreateWindow(config.title,
                                              SDL_WINDOWPOS_UNDEFINED,
@@ -12,7 +26,7 @@ vkx::SDLWindow::SDLWindow(const ApplicationConfig &config) {
                                              config.windowHeight,
                                              SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
     if (sdlWindow == nullptr) {
-        throw std::runtime_error(SDL_GetError());
+        throw vkx::SDLError();
     }
 
     window = std::unique_ptr<SDL_Window, SDL_Deleter>(sdlWindow);
@@ -72,7 +86,7 @@ bool vkx::SDLWindow::isResized() const noexcept {
 vk::UniqueSurfaceKHR vkx::SDLWindow::createSurface(const vk::UniqueInstance &instance) const {
     VkSurfaceKHR surface = nullptr;
     if (SDL_Vulkan_CreateSurface(window.get(), *instance, &surface) != SDL_TRUE) {
-        throw std::runtime_error("Failure to create VkSurfaceKHR via the SDL2 API.");
+        throw vkx::VulkanError("Failure to create VkSurfaceKHR via the SDL2 API.");
     }
     return vk::UniqueSurfaceKHR(surface, *instance);
 }
@@ -168,5 +182,3 @@ void vkx::Application::handleKeyReleasedEvent(const SDL_KeyboardEvent &event) {
 void vkx::Application::handleMouseMovedEvent(const SDL_MouseMotionEvent &event) {
 
 }
-
-
