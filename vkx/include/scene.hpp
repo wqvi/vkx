@@ -7,8 +7,7 @@
 #include <vkx_types.hpp>
 
 namespace vkx {
-    class Scene {
-    public:
+    struct Scene {
         Scene() = default;
 
         virtual ~Scene() = default;

@@ -11,7 +11,7 @@ namespace vkx {
 
     class SDLWindow;
 
-    class Scene;
+    struct Scene;
 
     class SDLError;
 }
