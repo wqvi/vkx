@@ -64,6 +64,10 @@ public:
 
     }
 
+    void onWindowResize() override {
+
+    }
+
 private:
     Camera camera{{2.0f, 2.0f, 2.0f}};
 

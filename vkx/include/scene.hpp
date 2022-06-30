@@ -25,5 +25,7 @@ namespace vkx {
         virtual void onKeyRelease() = 0;
 
         virtual void onMouseMove() = 0;
+
+        virtual void onWindowResize() = 0;
     };
 }
