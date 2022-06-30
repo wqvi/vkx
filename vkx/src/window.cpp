@@ -69,7 +69,7 @@ vkx::SDLWindow::SDLWindow(const char *title, int width, int height) {
                                              height,
                                              SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
     if (sdlWindow == nullptr) {
-//        throw vkx::SDLError();
+        throw vkx::SDLError();
     }
 
     window = std::unique_ptr<SDL_Window, SDL_Deleter>(sdlWindow);
@@ -129,7 +129,7 @@ bool vkx::SDLWindow::isResized() const noexcept {
 vk::UniqueSurfaceKHR vkx::SDLWindow::createSurface(const vk::UniqueInstance &instance) const {
     VkSurfaceKHR surface = nullptr;
     if (SDL_Vulkan_CreateSurface(window.get(), *instance, &surface) != SDL_TRUE) {
-//        throw vkx::VulkanError("Failure to create VkSurfaceKHR via the SDL2 API.");
+        throw vkx::VulkanError("Failure to create VkSurfaceKHR via the SDL2 API.");
     }
     return vk::UniqueSurfaceKHR(surface, *instance);
 }
