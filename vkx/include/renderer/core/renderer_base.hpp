@@ -68,7 +68,7 @@ namespace vkx {
         vk::UniqueRenderPass renderPass;
         vk::UniqueDescriptorSetLayout descriptorSetLayout;
 
-        GraphicsPipeline pipeline;
+        GraphicsPipeline graphicsPipeline;
         ComputePipeline computePipeline;
 
         vk::UniqueDescriptorPool descriptorPool;

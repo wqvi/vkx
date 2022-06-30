@@ -186,7 +186,7 @@ namespace vkx {
         device->resetFences(*inFlightFences[currentIndexFrame]);
 
         drawCommands[currentIndexFrame].record(*renderPass, *swapchain.framebuffers[imageIndex], swapchain.extent,
-                                               *pipeline.pipeline, *pipeline.layout, descriptorSets[currentIndexFrame],
+                                               *graphicsPipeline.pipeline, *graphicsPipeline.layout, descriptorSets[currentIndexFrame],
                                                vertexBuffer, indexBuffer, indexCount);
 
         std::vector<vk::CommandBuffer> commandBuffers{
@@ -293,6 +293,6 @@ namespace vkx {
     }
 
     void RendererBase::createGraphicsPipeline() {
-        pipeline = {device, swapchain.extent, renderPass, descriptorSetLayout};
+        graphicsPipeline = {device, swapchain.extent, renderPass, descriptorSetLayout};
     }
 }
