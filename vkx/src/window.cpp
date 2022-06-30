@@ -108,18 +108,19 @@ int vkx::SDLWindow::getHeight() const noexcept {
     return height;
 }
 
-void vkx::SDLWindow::pollWindowEvent(const SDL_WindowEvent &event) {
+void vkx::SDLWindow::pollWindowEvent(const SDL_WindowEvent &event, vkx::Scene *scene) {
     switch (event.type) {
         case SDL_WINDOWEVENT_RESIZED:
-            handleResizeEvent(event);
+            handleResizeEvent(event, scene);
             break;
         default:
             return;
     }
 }
 
-void vkx::SDLWindow::handleResizeEvent(const SDL_WindowEvent &event) {
+void vkx::SDLWindow::handleResizeEvent(const SDL_WindowEvent &event, vkx::Scene *scene) {
     framebufferResized = true;
+    scene->onWindowResize();
 }
 
 bool vkx::SDLWindow::isResized() const noexcept {

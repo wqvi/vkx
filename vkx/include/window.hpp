@@ -2,6 +2,7 @@
 
 #include <util/observer.hpp>
 #include <SDL2/SDL.h>
+#include <scene.hpp>
 
 namespace vkx {
     class Window {
@@ -55,9 +56,9 @@ namespace vkx {
 
         [[nodiscard]] int getHeight() const noexcept;
 
-        void pollWindowEvent(const SDL_WindowEvent &event);
+        void pollWindowEvent(const SDL_WindowEvent &event, Scene *scene);
 
-        void handleResizeEvent(const SDL_WindowEvent &event);
+        void handleResizeEvent(const SDL_WindowEvent &event, Scene *scene);
 
         [[nodiscard]] bool isResized() const noexcept;
 
