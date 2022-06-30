@@ -166,6 +166,8 @@ public:
                                               100.0f);
                 projection[1][1] *= -1.0f;
                 break;
+            default:
+                return;
         }
     }
 
