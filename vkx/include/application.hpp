@@ -25,6 +25,8 @@ namespace vkx {
 
         void run();
 
+        void setScene(Scene *newScene);
+
     private:
         void pollEvents(SDL_Event *event);
 
@@ -34,9 +36,11 @@ namespace vkx {
 
         void handleMouseMovedEvent(const SDL_MouseMotionEvent &event);
 
+        ApplicationConfig config;
+
         SDLWindow window;
 
-        Scene *scene = nullptr;
+        std::unique_ptr<Scene> scene = nullptr;
 
         bool isRunning = false;
 

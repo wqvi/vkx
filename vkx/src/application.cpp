@@ -4,13 +4,14 @@
 
 #include <application.hpp>
 
-vkx::Application::Application(const vkx::ApplicationConfig &config) {
+vkx::Application::Application(const vkx::ApplicationConfig &config)
+    : config(config) {
     int sdlErrorCode = SDL_Init(SDL_INIT_EVERYTHING);
     if (sdlErrorCode < 0) {
         throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
     }
 
-//    window = vkx::SDLWindow(config);
+    window = vkx::SDLWindow(config.title, config.windowWidth, config.windowHeight);
 
     sdlErrorCode = SDL_ShowCursor(SDL_DISABLE);
     if (sdlErrorCode < 0) {
@@ -27,6 +28,7 @@ vkx::Application::Application(const vkx::ApplicationConfig &config) {
 
 vkx::Application::~Application() {
     SDL_Quit();
+    if (scene != nullptr) scene->destroy();
 }
 
 void vkx::Application::run() {
@@ -45,6 +47,8 @@ void vkx::Application::run() {
                 currentTime - lastTime).count();
 
         // Populate uniforms
+        scene->update();
+        scene->physics(deltaTime);
 
         // Query next image
 
@@ -58,6 +62,13 @@ void vkx::Application::run() {
         // Update last time
         lastTime = currentTime;
     }
+}
+
+void vkx::Application::setScene(vkx::Scene *newScene) {
+    if (newScene == nullptr) throw std::invalid_argument("New scene can't be a nullptr.");
+    if (scene != nullptr) scene->destroy();
+    scene.reset(newScene);
+    scene->init(&config, this);
 }
 
 void vkx::Application::pollEvents(SDL_Event *event) {
@@ -85,13 +96,13 @@ void vkx::Application::pollEvents(SDL_Event *event) {
 }
 
 void vkx::Application::handleKeyPressedEvent(const SDL_KeyboardEvent &event) {
-
+    scene->onKeyPress();
 }
 
 void vkx::Application::handleKeyReleasedEvent(const SDL_KeyboardEvent &event) {
-
+    scene->onKeyRelease();
 }
 
 void vkx::Application::handleMouseMovedEvent(const SDL_MouseMotionEvent &event) {
-
+    scene->onMouseMove();
 }
