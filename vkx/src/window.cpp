@@ -120,7 +120,8 @@ void vkx::SDLWindow::pollWindowEvent(const SDL_WindowEvent &event, vkx::Scene *s
 
 void vkx::SDLWindow::handleResizeEvent(const SDL_WindowEvent &event, vkx::Scene *scene) {
     framebufferResized = true;
-    scene->onWindowResize();
+    // data1 x data2 is width x height
+    scene->onWindowResize(event.data1, event.data2);
 }
 
 bool vkx::SDLWindow::isResized() const noexcept {

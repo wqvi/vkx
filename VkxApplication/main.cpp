@@ -64,7 +64,7 @@ public:
 
     }
 
-    void onWindowResize() override {
+    void onWindowResize(Sint32 width, Sint32 height) override {
 
     }
 

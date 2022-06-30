@@ -26,6 +26,6 @@ namespace vkx {
 
         virtual void onMouseMove() = 0;
 
-        virtual void onWindowResize() = 0;
+        virtual void onWindowResize(Sint32 width, Sint32 height) = 0;
     };
 }
