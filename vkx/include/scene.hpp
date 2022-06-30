@@ -5,19 +5,4 @@
 #pragma once
 
 namespace vkx {
-    template <class T>
-    class Scene {
-    public:
-        Scene() = default;
-
-        virtual ~Scene() = default;
-
-        virtual void init(const vkx::ApplicationConfig &config, const T &data) = 0;
-
-        virtual void update() = 0;
-
-        virtual void physics(float deltaTime) = 0;
-
-        virtual void destroy() noexcept = 0;
-    };
 }
