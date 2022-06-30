@@ -15,21 +15,23 @@ namespace vkx {
 
     // A SDL window wrapper class
     // It has unique ownership over the pointer
-    class TestWindow {
+    class SDLWindow {
         // Helper class that default initializes thus making the construction of the
         // managed pointer much simpler looking
         // This is honestly syntactic constructor sugar in the source files
         struct SDL_Deleter {
-            void operator()(SDL_Window *ptr) {
+            void operator()(SDL_Window *ptr) const {
                 SDL_DestroyWindow(ptr);
             }
         };
 
     public:
-        TestWindow() = default;
+        using EventFun = void (*)(SDL_WindowEvent *);
+
+        SDLWindow() = default;
 
         // Creates a window with the information from the config
-        explicit TestWindow(const ApplicationConfig &config);
+        explicit SDLWindow(const ApplicationConfig &config);
 
         void show() const noexcept;
 
@@ -53,8 +55,6 @@ namespace vkx {
         bool framebufferResized = false;
 
         std::unique_ptr<SDL_Window, SDL_Deleter> window;
-
-        typedef void (*SDLEventFunction)(SDL_WindowEvent *);
     };
 
     class Application {
@@ -80,7 +80,7 @@ namespace vkx {
 
         void handleMouseMovedEvent(const SDL_MouseMotionEvent &event);
 
-        TestWindow window;
+        SDLWindow window;
 
         bool isRunning = false;
 

@@ -4,7 +4,7 @@
 
 #include <application.hpp>
 
-vkx::TestWindow::TestWindow(const ApplicationConfig &config) {
+vkx::SDLWindow::SDLWindow(const ApplicationConfig &config) {
     SDL_Window *sdlWindow = SDL_CreateWindow(config.title,
                                              SDL_WINDOWPOS_UNDEFINED,
                                              SDL_WINDOWPOS_UNDEFINED,
@@ -18,15 +18,15 @@ vkx::TestWindow::TestWindow(const ApplicationConfig &config) {
     window = std::unique_ptr<SDL_Window, SDL_Deleter>(sdlWindow);
 }
 
-void vkx::TestWindow::show() const noexcept {
+void vkx::SDLWindow::show() const noexcept {
     SDL_ShowWindow(window.get());
 }
 
-void vkx::TestWindow::hide() const noexcept {
+void vkx::SDLWindow::hide() const noexcept {
     SDL_HideWindow(window.get());
 }
 
-std::pair<int, int> vkx::TestWindow::getSize() const noexcept {
+std::pair<int, int> vkx::SDLWindow::getSize() const noexcept {
     int width;
     int height;
 
@@ -35,7 +35,7 @@ std::pair<int, int> vkx::TestWindow::getSize() const noexcept {
     return std::make_pair(width, height);
 }
 
-int vkx::TestWindow::getWidth() const noexcept {
+int vkx::SDLWindow::getWidth() const noexcept {
     int width;
 
     SDL_GetWindowSize(window.get(), &width, nullptr);
@@ -43,7 +43,7 @@ int vkx::TestWindow::getWidth() const noexcept {
     return width;
 }
 
-int vkx::TestWindow::getHeight() const noexcept {
+int vkx::SDLWindow::getHeight() const noexcept {
     int height;
 
     SDL_GetWindowSize(window.get(), nullptr, &height);
@@ -51,7 +51,7 @@ int vkx::TestWindow::getHeight() const noexcept {
     return height;
 }
 
-void vkx::TestWindow::pollWindowEvent(const SDL_WindowEvent &event) {
+void vkx::SDLWindow::pollWindowEvent(const SDL_WindowEvent &event) {
     switch (event.type) {
         case SDL_WINDOWEVENT_RESIZED:
             handleResizeEvent(event);
@@ -59,15 +59,15 @@ void vkx::TestWindow::pollWindowEvent(const SDL_WindowEvent &event) {
     }
 }
 
-void vkx::TestWindow::handleResizeEvent(const SDL_WindowEvent &event) {
+void vkx::SDLWindow::handleResizeEvent(const SDL_WindowEvent &event) {
     framebufferResized = true;
 }
 
-bool vkx::TestWindow::isResized() const noexcept {
+bool vkx::SDLWindow::isResized() const noexcept {
     return framebufferResized;
 }
 
-vk::UniqueSurfaceKHR vkx::TestWindow::createSurface(const vk::UniqueInstance &instance) const {
+vk::UniqueSurfaceKHR vkx::SDLWindow::createSurface(const vk::UniqueInstance &instance) const {
     VkSurfaceKHR surface = nullptr;
     if (SDL_Vulkan_CreateSurface(window.get(), *instance, &surface) != SDL_TRUE) {
         throw std::runtime_error("Failure to create VkSurfaceKHR via the SDL2 API.");
@@ -81,7 +81,7 @@ vkx::Application::Application(const vkx::ApplicationConfig &config) {
         throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
     }
 
-    window = TestWindow(config);
+    window = SDLWindow(config);
 
     sdlErrorCode = SDL_ShowCursor(SDL_DISABLE);
     if (sdlErrorCode < 0) {
