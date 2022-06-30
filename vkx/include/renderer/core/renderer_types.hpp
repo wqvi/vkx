@@ -1,42 +1,43 @@
 #pragma once
 
-namespace vkx
-{
-  struct Profile;
+namespace vkx {
+    class VulkanError;
 
-  class RendererBase;
+    struct Profile;
 
-  struct Vertex;
+    class RendererBase;
 
-  template <class T>
-  class Allocable;
+    struct Vertex;
 
-  class Buffer;
+    template<class T>
+    class Allocable;
 
-  class Image;
+    class Buffer;
 
-  template <class T>
-  class UniformBuffer;
+    class Image;
 
-  class Device;
+    template<class T>
+    class UniformBuffer;
 
-  class SingleTimeCommand;
+    class Device;
 
-  class DrawCommand;
+    class SingleTimeCommand;
 
-  class Swapchain;
+    class DrawCommand;
 
-  class GraphicsPipeline;
+    class Swapchain;
 
-  struct MVP;
+    class GraphicsPipeline;
 
-  struct DirectionalLight;
+    struct MVP;
 
-  struct Material;
+    struct DirectionalLight;
 
-  class Mesh;
+    struct Material;
 
-  class Texture;
+    class Mesh;
 
-  class Model;
+    class Texture;
+
+    class Model;
 }
