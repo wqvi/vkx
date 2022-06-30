@@ -56,6 +56,8 @@ void vkx::SDLWindow::pollWindowEvent(const SDL_WindowEvent &event) {
         case SDL_WINDOWEVENT_RESIZED:
             handleResizeEvent(event);
             break;
+        default:
+            return;
     }
 }
 
@@ -149,23 +151,10 @@ void vkx::Application::pollEvents(SDL_Event *event) {
             case SDL_MOUSEMOTION:
                 handleMouseMovedEvent(event->motion);
                 break;
+            default:
+                return;
         }
     }
-}
-
-void vkx::Application::pollWindowEvent(const SDL_WindowEvent &event) {
-    switch (event.type) {
-        case SDL_WINDOWEVENT_RESIZED:
-            handleResizeEvent(event.data1, event.data2);
-            break;
-    }
-}
-
-void vkx::Application::handleResizeEvent(Sint32 width, Sint32 height) {
-    // framebufferResized = true;
-    float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-    windowProjection = glm::perspective(glm::radians(75.0f), aspectRatio, nearZ, farZ);
-    windowProjection[1][1] *= -1.0f;
 }
 
 void vkx::Application::handleKeyPressedEvent(const SDL_KeyboardEvent &event) {

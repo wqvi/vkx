@@ -70,10 +70,6 @@ namespace vkx {
     private:
         void pollEvents(SDL_Event *event);
 
-        void pollWindowEvent(const SDL_WindowEvent &event);
-
-        void handleResizeEvent(Sint32 width, Sint32 height);
-
         void handleKeyPressedEvent(const SDL_KeyboardEvent &event);
 
         void handleKeyReleasedEvent(const SDL_KeyboardEvent &event);
