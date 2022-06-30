@@ -14,11 +14,11 @@ public:
             : vkx::Application(config) {}
 };
 
-class MyScene : public vkx::Scene<MyApplication> {
+class MyScene : public vkx::Scene {
 public:
     ~MyScene() override = default;
 
-    void init(const vkx::ApplicationConfig &config, const MyApplication &data) override {
+    void init(const vkx::ApplicationConfig &config, const vkx::Application *data) override {
 //        vkx::MVP mvp = {glm::mat4(1.0f), camera.viewMatrix(), windowProjection};
 
         vkx::DirectionalLight light = {
@@ -36,6 +36,8 @@ public:
                 glm::vec3(0.2f, 0.2f, 0.2f),
                 100.0f
         };
+
+
     }
 
     void update() override {
@@ -47,6 +49,18 @@ public:
     }
 
     void destroy() noexcept override {
+
+    }
+
+    void onKeyPress() override {
+
+    }
+
+    void onKeyRelease() override {
+
+    }
+
+    void onMouseMove() override {
 
     }
 
