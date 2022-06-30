@@ -78,7 +78,7 @@ void vkx::Application::pollEvents(SDL_Event *event) {
                 isRunning = false;
                 break;
             case SDL_WINDOWEVENT:
-                window.pollWindowEvent(event->window);
+                window.pollWindowEvent(event->window, scene.get());
                 break;
             case SDL_KEYDOWN:
                 handleKeyPressedEvent(event->key);
