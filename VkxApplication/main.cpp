@@ -18,7 +18,7 @@ class MyScene : public vkx::Scene<MyApplication> {
 public:
     ~MyScene() override = default;
 
-    void init(const MyApplication &data) override {
+    void init(const vkx::ApplicationConfig &config, const MyApplication &data) override {
 //        vkx::MVP mvp = {glm::mat4(1.0f), camera.viewMatrix(), windowProjection};
 
         vkx::DirectionalLight light = {

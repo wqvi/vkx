@@ -12,7 +12,7 @@ namespace vkx {
 
         virtual ~Scene() = default;
 
-        virtual void init(const T &data) = 0;
+        virtual void init(const vkx::ApplicationConfig &config, const T &data) = 0;
 
         virtual void update() = 0;
 

@@ -8,9 +8,10 @@
 
 namespace vkx {
     struct ApplicationConfig {
-        const char *title;
-        int windowWidth;
-        int windowHeight;
+        const char *title = "VKX Application";
+        int windowWidth = 640;
+        int windowHeight = 360;
+        glm::f32 fov = 70.0f;
     };
 
     class SDLError : public std::exception {
