@@ -19,7 +19,12 @@ public:
     ~MyScene() override = default;
 
     void init(const vkx::ApplicationConfig *config, const vkx::Application *data) override {
-//        vkx::MVP mvp = {glm::mat4(1.0f), camera.viewMatrix(), windowProjection};
+        windowProjection = glm::perspective(glm::radians(75.0f), static_cast<float>(config->windowWidth) /
+                                                                 static_cast<float>(config->windowHeight), 0.1f,
+                                            100.0f);
+        windowProjection[1][1] *= -1.0f;
+
+        vkx::MVP mvp = {glm::mat4(1.0f), camera.viewMatrix(), windowProjection};
 
         vkx::DirectionalLight light = {
                 glm::vec3(1.0f, 3.0f, 1.0f),
@@ -37,38 +42,41 @@ public:
                 100.0f
         };
 
-
+        chunk.greedy();
     }
 
     void update() override {
-
+        // Temporarily empty
     }
 
-    void physics(float deltaTime) override {
 
+    void physics(float deltaTime) override {
+        // Temporarily empty
     }
 
     void destroy() noexcept override {
-
+        // Temporarily empty
     }
 
     void onKeyPress() override {
-
+        // Temporarily empty
     }
 
     void onKeyRelease() override {
-
+        // Temporarily empty
     }
 
     void onMouseMove() override {
-
+        // Temporarily empty
     }
 
     void onWindowResize(Sint32 width, Sint32 height) override {
-
+        // Temporarily empty
     }
 
 private:
+    glm::mat4 windowProjection = glm::mat4(1);
+
     Camera camera{{2.0f, 2.0f, 2.0f}};
 
     vkx::Texture texture = {};
@@ -154,7 +162,8 @@ public:
             case SDL_WINDOWEVENT_RESIZED:
                 framebufferResized = true;
                 projection = glm::perspective(glm::radians(75.0f),
-                                              static_cast<float>(event.data1) / static_cast<float>(event.data2), 0.1f, 100.0f);
+                                              static_cast<float>(event.data1) / static_cast<float>(event.data2), 0.1f,
+                                              100.0f);
                 projection[1][1] *= -1.0f;
                 break;
         }
