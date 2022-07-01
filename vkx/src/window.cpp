@@ -113,6 +113,12 @@ void vkx::SDLWindow::pollWindowEvent(const SDL_WindowEvent &event, vkx::Scene *s
         case SDL_WINDOWEVENT_RESIZED:
             handleResizeEvent(event, scene);
             break;
+        case SDL_WINDOWEVENT_ENTER:
+            // TODO Stop performance mode
+            break;
+        case SDL_WINDOWEVENT_LEAVE:
+            // TODO Start performance mode
+            break;
         default:
             return;
     }
