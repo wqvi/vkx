@@ -34,7 +34,6 @@ else ()
             -Wall
             -Wextra
             -Wpedantic
-            -Waggregate-return
             -Wbad-function-cast
             -Wcast-align
             -Wcast-qual
