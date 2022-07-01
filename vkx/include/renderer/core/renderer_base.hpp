@@ -29,6 +29,8 @@ namespace vkx {
 
         RendererBase(SDL_Window *window, Profile const &profile);
 
+        RendererBase(const SDLWindow &window, const Profile &profile);
+
         void recreateSwapchain();
 
         void createDescriptorPool();
@@ -89,9 +91,10 @@ namespace vkx {
     private:
         void createSwapchain();
 
-        [[nodiscard]] vk::UniqueRenderPass
-        createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
+        [[nodiscard]]
+        vk::UniqueRenderPass createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
 
+        [[deprecated("Use vkx::GraphicsPipeline constructor instead")]]
         void createGraphicsPipeline();
     };
 }

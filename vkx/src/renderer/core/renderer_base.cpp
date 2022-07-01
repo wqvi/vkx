@@ -7,9 +7,9 @@
 #include <renderer/model.hpp>
 
 vkx::SyncObjects::SyncObjects(const Device &device)
-    : imageAvailableSemaphore(device->createSemaphoreUnique({})),
-    renderFinishedSemaphore(device->createSemaphoreUnique({})),
-    inFlightFence(device->createFenceUnique({vk::FenceCreateFlagBits::eSignaled})) {}
+        : imageAvailableSemaphore(device->createSemaphoreUnique({})),
+          renderFinishedSemaphore(device->createSemaphoreUnique({})),
+          inFlightFence(device->createFenceUnique({vk::FenceCreateFlagBits::eSignaled})) {}
 
 std::vector<vkx::SyncObjects> vkx::SyncObjects::createSyncObjects(const Device &device) {
     std::vector<vkx::SyncObjects> objs;
@@ -78,7 +78,84 @@ vkx::RendererBase::RendererBase(SDL_Window *window, Profile const &profile)
 
     descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutInfo);
 
-    createGraphicsPipeline();
+    //  Making createGraphicsPipeline() obsolete
+    graphicsPipeline = GraphicsPipeline{device, swapchain.extent, renderPass, descriptorSetLayout};
+
+    drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
+
+    imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
+    vk::FenceCreateInfo fenceInfo{
+            vk::FenceCreateFlagBits::eSignaled // flags
+    };
+
+    for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        imageAvailableSemaphores[i] = device->createSemaphoreUnique({});
+        renderFinishedSemaphores[i] = device->createSemaphoreUnique({});
+        inFlightFences[i] = device->createFenceUnique(fenceInfo);
+    }
+
+    syncObjects = SyncObjects::createSyncObjects(device);
+
+    createDescriptorPool();
+}
+
+vkx::RendererBase::RendererBase(const SDLWindow &window, const Profile &profile) {
+    surface = window.createSurface(instance);
+
+    device = vkx::Device{RendererBase::getBestPhysicalDevice(surface, profile), surface, profile};
+
+    createSwapchain();
+
+    vk::DescriptorSetLayoutBinding uboLayoutBinding{
+            0,                                  // binding
+            vk::DescriptorType::eUniformBuffer, // descriptorType
+            1,                                  // descriptorCount
+            vk::ShaderStageFlagBits::eVertex,   // stageFlags
+            nullptr                             // pImmutableSamplers
+    };
+
+    vk::DescriptorSetLayoutBinding samplerLayoutBinding{
+            1,                                         // binding
+            vk::DescriptorType::eCombinedImageSampler, // descriptorType
+            1,                                         // descriptorCount
+            vk::ShaderStageFlagBits::eFragment,        // stageFlags
+            nullptr                                    // pImmutableSamplers
+    };
+
+    vk::DescriptorSetLayoutBinding lightLayoutBinding{
+            2,                                  // binding
+            vk::DescriptorType::eUniformBuffer, // descriptorType
+            1,                                  // descriptorCount
+            vk::ShaderStageFlagBits::eFragment, // stageFlags
+            nullptr                             // pImmutableSamplers
+    };
+
+    vk::DescriptorSetLayoutBinding materialLayoutBinding{
+            3,                                  // binding
+            vk::DescriptorType::eUniformBuffer, // descriptorType
+            1,                                  // descriptorCount
+            vk::ShaderStageFlagBits::eFragment, // stageFlags
+            nullptr                             // pImmutableSamplers
+    };
+
+    std::vector<vk::DescriptorSetLayoutBinding> bindings{
+            uboLayoutBinding,
+            samplerLayoutBinding,
+            lightLayoutBinding,
+            materialLayoutBinding};
+
+    vk::DescriptorSetLayoutCreateInfo layoutInfo{
+            {},      // flags
+            bindings // binding
+    };
+
+    descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutInfo);
+
+    // Making createGraphicsPipeline() obsolete
+    graphicsPipeline = GraphicsPipeline{device, swapchain.extent, renderPass, descriptorSetLayout};
 
     drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
 
@@ -114,7 +191,8 @@ namespace vkx {
         device->waitIdle();
 
         createSwapchain();
-        createGraphicsPipeline();
+        // Making createGraphicsPipeline() obsolete
+        graphicsPipeline = GraphicsPipeline{device, swapchain.extent, renderPass, descriptorSetLayout};
     }
 
     void RendererBase::createDescriptorPool() {
@@ -186,7 +264,8 @@ namespace vkx {
         device->resetFences(*inFlightFences[currentIndexFrame]);
 
         drawCommands[currentIndexFrame].record(*renderPass, *swapchain.framebuffers[imageIndex], swapchain.extent,
-                                               *graphicsPipeline.pipeline, *graphicsPipeline.layout, descriptorSets[currentIndexFrame],
+                                               *graphicsPipeline.pipeline, *graphicsPipeline.layout,
+                                               descriptorSets[currentIndexFrame],
                                                vertexBuffer, indexBuffer, indexCount);
 
         std::vector<vk::CommandBuffer> commandBuffers{
