@@ -23,6 +23,28 @@ namespace vkx {
         vk::UniqueFence inFlightFence;
     };
 
+    template<class T>
+    struct ShaderUniformVariable {
+        explicit ShaderUniformVariable(T &&variable);
+
+        [[nodiscard]]
+        vk::DescriptorSetLayoutBinding
+        createDescriptorSetLayoutBinding(std::uint32_t binding, vk::ShaderStageFlagBits flags) const;
+
+        T variable;
+    };
+
+    template<class T>
+    ShaderUniformVariable<T>::ShaderUniformVariable(T &&variable)
+            : variable(std::move(variable)) {}
+
+    template<class T>
+    vk::DescriptorSetLayoutBinding
+    ShaderUniformVariable<T>::createDescriptorSetLayoutBinding(std::uint32_t binding,
+                                                               vk::ShaderStageFlagBits flags) const {
+        return vk::DescriptorSetLayoutBinding{binding, vk::DescriptorType::eUniformBuffer, 1, flags};
+    }
+
     class RendererBase : public RendererContext {
     public:
         RendererBase() = default;

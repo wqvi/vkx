@@ -15,9 +15,20 @@ std::vector<vkx::SyncObjects> vkx::SyncObjects::createSyncObjects(const Device &
     std::vector<vkx::SyncObjects> objs;
     objs.resize(MAX_FRAMES_IN_FLIGHT);
 
-    std::generate(objs.begin(), objs.end(), [&device]() { return SyncObjects{device}; });
+    std::ranges::generate(objs, [&device]() { return SyncObjects{device}; });
 
     return objs;
+}
+
+template<>
+vkx::ShaderUniformVariable<vk::UniqueSampler>::ShaderUniformVariable(vk::UniqueSampler &&variable)
+        : variable(std::move(variable)) {}
+
+template<>
+vk::DescriptorSetLayoutBinding
+vkx::ShaderUniformVariable<vk::UniqueSampler>::createDescriptorSetLayoutBinding(std::uint32_t binding,
+                                                                                vk::ShaderStageFlagBits flags) const {
+    return vk::DescriptorSetLayoutBinding{ binding, vk::DescriptorType::eCombinedImageSampler, 1, flags };
 }
 
 vkx::RendererBase::RendererBase(SDL_Window *window, Profile const &profile)
@@ -101,10 +112,11 @@ vkx::RendererBase::RendererBase(SDL_Window *window, Profile const &profile)
     createDescriptorPool();
 }
 
-vkx::RendererBase::RendererBase(const SDLWindow &window, const Profile &profile) {
+vkx::RendererBase::RendererBase(const SDLWindow &window, const Profile &profile)
+    : vkx::RendererContext(window, profile) {
     surface = window.createSurface(instance);
 
-    device = vkx::Device{RendererBase::getBestPhysicalDevice(surface, profile), surface, profile};
+    device = vkx::Device{getBestPhysicalDevice(surface, profile), surface, profile};
 
     createSwapchain();
 
@@ -199,7 +211,7 @@ namespace vkx {
         };
 
         std::array<vk::DescriptorPoolSize, 4> poolSizes{};
-        std::fill(poolSizes.begin(), poolSizes.end(), uniformBufferDescriptor);
+        std::ranges::fill(poolSizes, uniformBufferDescriptor);
 
         poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
 
