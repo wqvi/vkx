@@ -10,8 +10,7 @@ const std::uint32_t HEIGHT = 600;
 
 class MyApplication : public vkx::Application {
 public:
-    explicit MyApplication(const vkx::ApplicationConfig &config)
-            : vkx::Application(config) {}
+    using Application::Application;
 };
 
 class MyScene : public vkx::Scene {
@@ -75,8 +74,10 @@ public:
     }
 
 private:
+    // TODO Move me to the application instead and have the mvp buffer uploaded another way
     glm::mat4 windowProjection = glm::mat4(1);
 
+    // TODO Move my matrix uploading else where similar to the window projection the scene does NOT need to manually upload it
     Camera camera{{2.0f, 2.0f, 2.0f}};
 
     vkx::Texture texture = {};
