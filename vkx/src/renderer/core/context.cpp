@@ -32,6 +32,28 @@ vkx::RendererContext::RendererContext(SDL_Window *window) {
     instance = createInstance(instanceCreateInfo);
 }
 
+vkx::RendererContext::RendererContext(const vkx::SDLWindow &window, const Profile &profile) {
+    // Everything that inherits just has one instance of application info as it is the same for everything
+    constexpr static const vk::ApplicationInfo applicationInfo{
+            "Voxel Game",             // pApplicationName
+            VK_MAKE_VERSION(0, 0, 0), // applicationVersion
+            "Voxel Engine",           // engineVersion
+            VK_MAKE_VERSION(0, 0, 0), // engineVersion
+            VK_API_VERSION_1_0        // apiVersion
+    };
+
+    auto instanceExtensions = window.getExtensions();
+
+    const vk::InstanceCreateInfo instanceCreateInfo{
+            {},                // flags
+            &applicationInfo,  // applicationInfo
+            profile.layers,    // pEnabledLayerNames
+            instanceExtensions // pEnabledExtensionNames
+    };
+
+    instance = createInstance(instanceCreateInfo);
+}
+
 namespace vkx {
     RendererContext::RendererContext(SDL_Window *window, const Profile &profile) {
         constexpr static const vk::ApplicationInfo applicationInfo{

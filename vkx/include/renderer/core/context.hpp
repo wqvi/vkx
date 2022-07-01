@@ -2,6 +2,7 @@
 
 #include <renderer/core/renderer_types.hpp>
 #include <renderer/core/profile.hpp>
+#include <window.hpp>
 
 namespace vkx {
     class RendererContext {
@@ -11,6 +12,8 @@ namespace vkx {
         explicit RendererContext(SDL_Window *window);
 
         explicit RendererContext(SDL_Window *window, const Profile &profile);
+
+        explicit RendererContext(const SDLWindow &window, const Profile &profile);
 
         [[nodiscard]]
         std::unordered_map<std::uint32_t, vk::PhysicalDevice>
