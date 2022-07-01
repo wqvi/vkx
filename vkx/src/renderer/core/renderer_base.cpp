@@ -78,7 +78,6 @@ vkx::RendererBase::RendererBase(SDL_Window *window, Profile const &profile)
 
     descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutInfo);
 
-    //  Making createGraphicsPipeline() obsolete
     graphicsPipeline = GraphicsPipeline{device, swapchain.extent, renderPass, descriptorSetLayout};
 
     drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
@@ -154,7 +153,6 @@ vkx::RendererBase::RendererBase(const SDLWindow &window, const Profile &profile)
 
     descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutInfo);
 
-    // Making createGraphicsPipeline() obsolete
     graphicsPipeline = GraphicsPipeline{device, swapchain.extent, renderPass, descriptorSetLayout};
 
     drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
@@ -191,7 +189,6 @@ namespace vkx {
         device->waitIdle();
 
         createSwapchain();
-        // Making createGraphicsPipeline() obsolete
         graphicsPipeline = GraphicsPipeline{device, swapchain.extent, renderPass, descriptorSetLayout};
     }
 
@@ -371,7 +368,4 @@ namespace vkx {
         return device->createRenderPassUnique(renderPassInfo);
     }
 
-    void RendererBase::createGraphicsPipeline() {
-        graphicsPipeline = {device, swapchain.extent, renderPass, descriptorSetLayout};
-    }
 }

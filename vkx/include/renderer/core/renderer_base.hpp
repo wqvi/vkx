@@ -94,7 +94,5 @@ namespace vkx {
         [[nodiscard]]
         vk::UniqueRenderPass createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
 
-        [[deprecated("Use vkx::GraphicsPipeline constructor instead")]]
-        void createGraphicsPipeline();
     };
 }
