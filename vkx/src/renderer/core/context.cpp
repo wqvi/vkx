@@ -5,10 +5,6 @@
 #include "debug.hpp"
 #include <SDL2/SDL_vulkan.h>
 
-vkx::RendererContext::RendererContext() {
-
-}
-
 vkx::RendererContext::RendererContext(SDL_Window *window) {
     const vkx::Profile profile = vkx::Profile{};
 

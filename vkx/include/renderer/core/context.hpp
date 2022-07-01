@@ -7,7 +7,7 @@
 namespace vkx {
     class RendererContext {
     public:
-        RendererContext();
+        RendererContext() = default;
 
         explicit RendererContext(SDL_Window *window);
 
