@@ -141,3 +141,23 @@ vk::UniqueSurfaceKHR vkx::SDLWindow::createSurface(const vk::UniqueInstance &ins
     }
     return vk::UniqueSurfaceKHR(surface, *instance);
 }
+
+std::vector<const char *> vkx::SDLWindow::getExtensions() const {
+    std::uint32_t count = 0;
+
+    if (SDL_Vulkan_GetInstanceExtensions(window.get(), &count, nullptr) != SDL_TRUE) {
+        throw vkx::SDLError();
+    }
+
+    std::vector<const char *> extensions(count);
+
+    if (SDL_Vulkan_GetInstanceExtensions(window.get(), &count, extensions.data()) != SDL_TRUE) {
+        throw vkx::SDLError();
+    }
+
+#ifdef DEBUG
+    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+    return extensions;
+}

@@ -50,19 +50,27 @@ namespace vkx {
 
         void hide() const noexcept;
 
-        [[nodiscard]] std::pair<int, int> getSize() const noexcept;
+        [[nodiscard]]
+        std::pair<int, int> getSize() const noexcept;
 
-        [[nodiscard]] int getWidth() const noexcept;
+        [[nodiscard]]
+        int getWidth() const noexcept;
 
-        [[nodiscard]] int getHeight() const noexcept;
+        [[nodiscard]]
+        int getHeight() const noexcept;
 
         void pollWindowEvent(const SDL_WindowEvent &event, Scene *scene);
 
         void handleResizeEvent(const SDL_WindowEvent &event, Scene *scene);
 
-        [[nodiscard]] bool isResized() const noexcept;
+        [[nodiscard]]
+        bool isResized() const noexcept;
 
-        [[nodiscard]] vk::UniqueSurfaceKHR createSurface(const vk::UniqueInstance &instance) const;
+        [[nodiscard]]
+        vk::UniqueSurfaceKHR createSurface(const vk::UniqueInstance &instance) const;
+
+        [[nodiscard]]
+        std::vector<const char *> getExtensions() const;
 
     private:
         bool framebufferResized = false;
