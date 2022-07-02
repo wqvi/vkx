@@ -54,7 +54,6 @@ else ()
 endif ()
 
 find_package(Vulkan REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 
@@ -63,14 +62,12 @@ if (WIN32)
     target_link_libraries(vkx
             PRIVATE
             Vulkan::Vulkan
-            glfw
             glm::glm
             )
 else ()
     target_link_libraries(vkx
             PUBLIC
             Vulkan::Vulkan
-            glfw
             glm
             SDL2
             )
