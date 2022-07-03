@@ -105,10 +105,6 @@ namespace vkx {
 
         std::vector<DrawCommand> drawCommands;
 
-        std::vector<vk::UniqueSemaphore> imageAvailableSemaphores;
-        std::vector<vk::UniqueSemaphore> renderFinishedSemaphores;
-        std::vector<vk::UniqueFence> inFlightFences;
-
         std::vector<SyncObjects> syncObjects;
 
         std::uint32_t currentFrame = 0;

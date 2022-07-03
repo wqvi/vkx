@@ -5,6 +5,7 @@
 #include <renderer/core/commands.hpp>
 #include <renderer/uniform_buffer.hpp>
 #include <renderer/model.hpp>
+#include <vkx_exceptions.hpp>
 
 vkx::SyncObjects::SyncObjects(const Device &device)
         : imageAvailableSemaphore(device->createSemaphoreUnique({})),
@@ -93,20 +94,6 @@ vkx::RendererBase::RendererBase(SDL_Window *window, Profile const &profile)
 
     drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
 
-    imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-    vk::FenceCreateInfo fenceInfo{
-            vk::FenceCreateFlagBits::eSignaled // flags
-    };
-
-    for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        imageAvailableSemaphores[i] = device->createSemaphoreUnique({});
-        renderFinishedSemaphores[i] = device->createSemaphoreUnique({});
-        inFlightFences[i] = device->createFenceUnique(fenceInfo);
-    }
-
     syncObjects = SyncObjects::createSyncObjects(device);
 
     createDescriptorPool();
@@ -168,20 +155,6 @@ vkx::RendererBase::RendererBase(const SDLWindow &window, const Profile &profile)
     graphicsPipeline = GraphicsPipeline{device, swapchain.extent, renderPass, descriptorSetLayout};
 
     drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
-
-    imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-    vk::FenceCreateInfo fenceInfo{
-            vk::FenceCreateFlagBits::eSignaled // flags
-    };
-
-    for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        imageAvailableSemaphores[i] = device->createSemaphoreUnique({});
-        renderFinishedSemaphores[i] = device->createSemaphoreUnique({});
-        inFlightFences[i] = device->createFenceUnique(fenceInfo);
-    }
 
     syncObjects = SyncObjects::createSyncObjects(device);
 
@@ -256,21 +229,21 @@ namespace vkx {
                                  Buffer const &indexBuffer,
                                  std::uint32_t indexCount,
                                  std::uint32_t &currentIndexFrame) {
-        static_cast<void>(device->waitForFences(*inFlightFences[currentIndexFrame], true, UINT64_MAX));
-        auto [result, imageIndex] = swapchain.acquireNextImage(device, imageAvailableSemaphores[currentIndexFrame]);
+        static_cast<void>(device->waitForFences(*syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));
+        auto [result, imageIndex] = swapchain.acquireNextImage(device, syncObjects[currentIndexFrame].imageAvailableSemaphore);
 
         if (result == vk::Result::eErrorOutOfDateKHR) {
             recreateSwapchain();
             return;
         } else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
-            throw std::runtime_error("Failed to acquire swap chain image.");
+            throw vkx::VulkanError(result);
         }
 
         mvpBuffer.mapMemory();
         lightBuffer.mapMemory();
         materialBuffer.mapMemory();
 
-        device->resetFences(*inFlightFences[currentIndexFrame]);
+        device->resetFences(*syncObjects[currentIndexFrame].inFlightFence);
 
         drawCommands[currentIndexFrame].record(*renderPass, *swapchain.framebuffers[imageIndex], swapchain.extent,
                                                *graphicsPipeline.pipeline, *graphicsPipeline.layout,
@@ -280,16 +253,18 @@ namespace vkx {
         std::vector<vk::CommandBuffer> commandBuffers{
                 static_cast<vk::CommandBuffer>(drawCommands[currentIndexFrame])
         };
-        device.submit(commandBuffers, *imageAvailableSemaphores[currentIndexFrame],
-                      *renderFinishedSemaphores[currentIndexFrame], *inFlightFences[currentIndexFrame]);
+        device.submit(commandBuffers,
+                      *syncObjects[currentIndexFrame].imageAvailableSemaphore,
+                      *syncObjects[currentIndexFrame].renderFinishedSemaphore,
+                      *syncObjects[currentIndexFrame].inFlightFence);
 
-        result = device.present(swapchain, imageIndex, *renderFinishedSemaphores[currentIndexFrame]);
+        result = device.present(swapchain, imageIndex, *syncObjects[currentIndexFrame].renderFinishedSemaphore);
 
         if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
             framebufferResized = false;
             recreateSwapchain();
         } else if (result != vk::Result::eSuccess) {
-            throw std::runtime_error("Failed to present swapchain image.");
+            throw vkx::VulkanError(result);
         }
 
         currentIndexFrame = getCurrentFrameIndex(currentIndexFrame);
