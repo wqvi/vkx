@@ -46,6 +46,8 @@ namespace vkx {
 
         explicit SDLWindow(const char *title, int width, int height);
 
+        explicit operator const SDL_Window *() const noexcept;
+
         void show() const noexcept;
 
         void hide() const noexcept;
@@ -71,6 +73,8 @@ namespace vkx {
 
         [[nodiscard]]
         std::vector<const char *> getExtensions() const;
+
+        void waitForEvents() const;
 
     private:
         bool framebufferResized = false;

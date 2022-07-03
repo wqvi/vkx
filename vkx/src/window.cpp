@@ -73,6 +73,20 @@ vkx::SDLWindow::SDLWindow(const char *title, int width, int height) {
     }
 
     window = std::unique_ptr<SDL_Window, SDL_Deleter>(sdlWindow);
+
+    int sdlErrorCode = SDL_ShowCursor(SDL_DISABLE);
+    if (sdlErrorCode < 0) {
+        throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
+    }
+
+    sdlErrorCode = SDL_SetRelativeMouseMode(SDL_TRUE);
+    if (sdlErrorCode < 0) {
+        throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
+    }
+}
+
+vkx::SDLWindow::operator const SDL_Window *() const noexcept {
+    return window.get();
 }
 
 void vkx::SDLWindow::show() const noexcept {
@@ -160,4 +174,12 @@ std::vector<const char *> vkx::SDLWindow::getExtensions() const {
 #endif
 
     return extensions;
+}
+
+void vkx::SDLWindow::waitForEvents() const {
+    auto [width, height] = getSize();
+    while (width == 0 || height == 0) {
+        std::tie(width, height) = getSize();
+        SDL_WaitEvent(nullptr);
+    }
 }

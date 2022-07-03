@@ -32,75 +32,9 @@ vkx::ShaderUniformVariable<vk::UniqueSampler>::createDescriptorSetLayoutBinding(
     return vk::DescriptorSetLayoutBinding{binding, vk::DescriptorType::eCombinedImageSampler, 1, flags};
 }
 
-vkx::RendererBase::RendererBase(SDL_Window *window, Profile const &profile)
-        : RendererContext(window, profile),
-          window(window) {
-    VkSurfaceKHR cSurface = nullptr;
-    if (SDL_Vulkan_CreateSurface(window, *instance, &cSurface) != SDL_TRUE) {
-        throw std::runtime_error("Failure to create C API via SDL2 Vulkan surface.");
-    }
-    surface = vk::UniqueSurfaceKHR(cSurface, *instance);
-
-    device = vkx::Device{RendererBase::getBestPhysicalDevice(surface, profile), surface, profile};
-
-    createSwapchain();
-
-    vk::DescriptorSetLayoutBinding uboLayoutBinding{
-            0,                                  // binding
-            vk::DescriptorType::eUniformBuffer, // descriptorType
-            1,                                  // descriptorCount
-            vk::ShaderStageFlagBits::eVertex,   // stageFlags
-            nullptr                             // pImmutableSamplers
-    };
-
-    vk::DescriptorSetLayoutBinding samplerLayoutBinding{
-            1,                                         // binding
-            vk::DescriptorType::eCombinedImageSampler, // descriptorType
-            1,                                         // descriptorCount
-            vk::ShaderStageFlagBits::eFragment,        // stageFlags
-            nullptr                                    // pImmutableSamplers
-    };
-
-    vk::DescriptorSetLayoutBinding lightLayoutBinding{
-            2,                                  // binding
-            vk::DescriptorType::eUniformBuffer, // descriptorType
-            1,                                  // descriptorCount
-            vk::ShaderStageFlagBits::eFragment, // stageFlags
-            nullptr                             // pImmutableSamplers
-    };
-
-    vk::DescriptorSetLayoutBinding materialLayoutBinding{
-            3,                                  // binding
-            vk::DescriptorType::eUniformBuffer, // descriptorType
-            1,                                  // descriptorCount
-            vk::ShaderStageFlagBits::eFragment, // stageFlags
-            nullptr                             // pImmutableSamplers
-    };
-
-    std::vector<vk::DescriptorSetLayoutBinding> bindings{
-            uboLayoutBinding,
-            samplerLayoutBinding,
-            lightLayoutBinding,
-            materialLayoutBinding};
-
-    vk::DescriptorSetLayoutCreateInfo layoutInfo{
-            {},      // flags
-            bindings // binding
-    };
-
-    descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutInfo);
-
-    graphicsPipeline = GraphicsPipeline{device, swapchain.extent, renderPass, descriptorSetLayout};
-
-    drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
-
-    syncObjects = SyncObjects::createSyncObjects(device);
-
-    createDescriptorPool();
-}
-
-vkx::RendererBase::RendererBase(const SDLWindow &window, const Profile &profile)
-        : vkx::RendererContext(window, profile) {
+vkx::RendererBase::RendererBase(SDLWindow &window, const Profile &profile)
+        : vkx::RendererContext(window, profile),
+            window(&window) {
     surface = window.createSurface(instance);
 
     device = vkx::Device{getBestPhysicalDevice(surface, profile), surface, profile};
@@ -163,13 +97,7 @@ vkx::RendererBase::RendererBase(const SDLWindow &window, const Profile &profile)
 
 namespace vkx {
     void RendererBase::recreateSwapchain() {
-        int width;
-        int height;
-        SDL_GetWindowSize(window, &width, &height);
-        while (width == 0 || height == 0) {
-            SDL_GetWindowSize(window, &width, &height);
-            SDL_WaitEvent(nullptr);
-        }
+        window->waitForEvents();
 
         device->waitIdle();
 
@@ -275,7 +203,7 @@ namespace vkx {
     }
 
     void RendererBase::createSwapchain() {
-        swapchain = {device, surface, window, swapchain};
+        swapchain = vkx::Swapchain{device, surface, *window, swapchain};
 
         renderPass = createRenderPass();
 

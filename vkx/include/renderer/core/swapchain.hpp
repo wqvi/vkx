@@ -16,6 +16,11 @@ namespace vkx
             SDL_Window *window,
             Swapchain const &oldSwapchain);
 
+        Swapchain(const Device &device,
+                  const vk::UniqueSurfaceKHR &surface,
+                  const SDLWindow &window,
+                  const Swapchain &oldSwapchain);
+
         operator vk::SwapchainKHR const &() const;
 
         operator vk::UniqueSwapchainKHR const &() const;

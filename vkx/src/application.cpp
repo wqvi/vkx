@@ -23,7 +23,7 @@ vkx::Application::Application(const vkx::ApplicationConfig &config)
         throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
     }
 
-//    renderer = vkx::RendererBase{window, vkx::Profile{}};
+    renderer = vkx::RendererBase{window, vkx::Profile{}};
 }
 
 vkx::Application::~Application() {

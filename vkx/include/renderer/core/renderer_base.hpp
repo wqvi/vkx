@@ -49,9 +49,7 @@ namespace vkx {
     public:
         RendererBase() = default;
 
-        RendererBase(SDL_Window *window, Profile const &profile);
-
-        RendererBase(const SDLWindow &window, const Profile &profile);
+        RendererBase(SDLWindow &window, const Profile &profile);
 
         void recreateSwapchain();
 
@@ -88,7 +86,7 @@ namespace vkx {
         Texture allocateTexture(const std::string &textureFile) const;
 
     protected:
-        SDL_Window *window = nullptr;
+        SDLWindow *window;
         vk::UniqueSurfaceKHR surface;
         Device device;
 

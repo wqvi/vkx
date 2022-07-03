@@ -103,7 +103,7 @@ private:
 
 class VoxelRenderer : private vkx::RendererBase {
 public:
-    explicit VoxelRenderer(SDL_Window *window)
+    explicit VoxelRenderer(vkx::SDLWindow &window)
             : vkx::RendererBase(window, vkx::Profile{}) {}
 
     void run() {
@@ -217,7 +217,7 @@ public:
     }
 
     void mainLoop() {
-        SDL_ShowWindow(window);
+        window->show();
         SDL_Event event;
         auto lastTime = std::chrono::high_resolution_clock::now();
         while (running) {
@@ -256,8 +256,8 @@ int main(int argc, char **argv) {
     try {
 //        vkx::ApplicationConfig appConfig = {"VKX App", WIDTH, HEIGHT};
 //        MyApplication myApplication = MyApplication{appConfig};
-        vkx::Window window{"Vulkan", WIDTH, HEIGHT};
-        VoxelRenderer app{window.internalHandle};
+        vkx::SDLWindow window{"Vulkan", WIDTH, HEIGHT};
+        VoxelRenderer app{window};
         app.run();
     }
     catch (const std::exception &e) {
