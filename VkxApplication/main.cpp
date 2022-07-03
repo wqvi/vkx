@@ -88,10 +88,6 @@ private:
     // TODO Move my matrix uploading else where similar to the window projection the scene does NOT need to manually upload it
     Camera camera{{2.0f, 2.0f, 2.0f}};
 
-    vkx::Texture texture = {};
-    vkx::Buffer vertexBuffer = {};
-    vkx::Buffer indexBuffer = {};
-
     vkx::MVP mvp;
     vkx::DirectionalLight directionalLight;
     vkx::Material material;
