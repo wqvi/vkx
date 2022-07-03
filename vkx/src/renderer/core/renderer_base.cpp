@@ -188,8 +188,8 @@ namespace vkx {
 
         result = device.present(swapchain, imageIndex, *syncObjects[currentIndexFrame].renderFinishedSemaphore);
 
-        if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
-            framebufferResized = false;
+        if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || window->framebufferResized) {
+            window->framebufferResized = false;
             recreateSwapchain();
         } else if (result != vk::Result::eSuccess) {
             throw vkx::VulkanError(result);

@@ -107,7 +107,7 @@ namespace vkx {
 
         std::uint32_t currentFrame = 0;
 
-        bool framebufferResized = false;
+//        bool framebufferResized = false;
 
     private:
         void createSwapchain();
