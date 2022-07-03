@@ -82,7 +82,6 @@ namespace vkx
     alignas(16) glm::mat4 proj;
   };
 
-  DISABLE_WARNING(PADDING_WARNING)
   struct DirectionalLight
   {
     glm::vec3 position;                 // Position of the light in the world space
@@ -94,7 +93,6 @@ namespace vkx
     float linear;
     float quadratic;
   };
-  RENABLE_WARNING
 
   struct Material
   {
