@@ -17,15 +17,17 @@ class MyScene : public vkx::Scene {
 public:
     ~MyScene() override = default;
 
-    void init(const vkx::ApplicationConfig *config, const vkx::Application *data) override {
+    void init(const vkx::ApplicationConfig *config,
+              const vkx::Application *data,
+              const vkx::RendererBase &rendererState) override {
         windowProjection = glm::perspective(glm::radians(75.0f), static_cast<float>(config->windowWidth) /
                                                                  static_cast<float>(config->windowHeight), 0.1f,
                                             100.0f);
         windowProjection[1][1] *= -1.0f;
 
-        vkx::MVP mvp = {glm::mat4(1.0f), camera.viewMatrix(), windowProjection};
+        mvp = {glm::mat4(1.0f), camera.viewMatrix(), windowProjection};
 
-        vkx::DirectionalLight light = {
+        directionalLight = {
                 glm::vec3(1.0f, 3.0f, 1.0f),
                 camera.position,
                 glm::vec4(1.0f, 1.0f, 1.0f, 0.2f),
@@ -36,12 +38,18 @@ public:
                 0.032f
         };
 
-        vkx::Material material = {
+        material = {
                 glm::vec3(0.2f, 0.2f, 0.2f),
                 100.0f
         };
 
         chunk.greedy();
+
+        model = vkx::Model{
+                rendererState.allocateMesh(chunk.vertices, chunk.indices),
+                rendererState.allocateTexture("a.png"),
+                {glm::vec3(0.2f), 100.0f}
+        };
     }
 
     void update() override {
@@ -83,6 +91,12 @@ private:
     vkx::Texture texture = {};
     vkx::Buffer vertexBuffer = {};
     vkx::Buffer indexBuffer = {};
+
+    vkx::MVP mvp;
+    vkx::DirectionalLight directionalLight;
+    vkx::Material material;
+
+    vkx::Model model;
 
     std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers;
     std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
