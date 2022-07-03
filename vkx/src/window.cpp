@@ -1,13 +1,6 @@
 #include <window.hpp>
 
-#include <SDL2/SDL_vulkan.h>
-
 #include <vkx_exceptions.hpp>
-
-namespace vkx {
-
-
-}
 
 vkx::SDLWindow::SDLWindow(const char *title, int width, int height) {
     SDL_Window *sdlWindow = SDL_CreateWindow(title,
@@ -126,4 +119,12 @@ void vkx::SDLWindow::waitForEvents() const {
         std::tie(width, height) = getSize();
         SDL_WaitEvent(nullptr);
     }
+}
+
+bool vkx::SDLWindow::isFramebufferResized() const noexcept {
+    return framebufferResized;
+}
+
+void vkx::SDLWindow::setFramebufferResized(bool flag) noexcept {
+    framebufferResized = flag;
 }

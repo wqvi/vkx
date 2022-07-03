@@ -171,7 +171,7 @@ public:
     void windowEventHandler(const SDL_WindowEvent &event) {
         switch (event.event) {
             case SDL_WINDOWEVENT_RESIZED:
-                window->framebufferResized = true;
+                window->setFramebufferResized(true);
                 projection = glm::perspective(glm::radians(75.0f),
                                               static_cast<float>(event.data1) / static_cast<float>(event.data2), 0.1f,
                                               100.0f);

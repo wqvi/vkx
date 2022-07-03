@@ -50,9 +50,13 @@ namespace vkx {
 
         void waitForEvents() const;
 
-        bool framebufferResized = false;
+        [[nodiscard]]
+        bool isFramebufferResized() const noexcept;
+
+        void setFramebufferResized(bool flag) noexcept;
 
     private:
+        bool framebufferResized = false;
         std::unique_ptr<SDL_Window, SDL_Deleter> window;
     };
 
