@@ -4,10 +4,8 @@
 #include <renderer/image.hpp>
 #include <renderer/uniform_buffer.hpp>
 
-namespace vkx
-{
-    class Mesh
-    {
+namespace vkx {
+    class Mesh {
     public:
         Mesh() = default;
 
@@ -20,26 +18,31 @@ namespace vkx
         Buffer indexBuffer;
     };
 
-    class Texture
-    {
+    class Texture {
     public:
         Texture() = default;
 
         Texture(std::string const &file, Device const &device);
 
-        [[nodiscard]] vk::WriteDescriptorSet createWriteDescriptorSet(vk::DescriptorSet const &descriptorSet, std::uint32_t dstBinding) const;
+        [[nodiscard]]
+        vk::WriteDescriptorSet createWriteDescriptorSet(vk::DescriptorSet const &descriptorSet,
+                                                        std::uint32_t dstBinding) const;
+
     private:
         Image image;
         vk::UniqueImageView view;
         vk::UniqueSampler sampler;
     };
 
-    struct Model
-    {
+    struct Model {
         explicit Model(Mesh &&mesh, Texture &&texture, const Material &material);
+
+        [[nodiscard]]
+        glm::mat4 getModelMatrix() const noexcept;
 
         Mesh mesh;
         Texture texture;
         Material material;
+        glm::vec3 position;
     };
 }
