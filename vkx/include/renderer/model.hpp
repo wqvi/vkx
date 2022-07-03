@@ -43,6 +43,6 @@ namespace vkx {
         Mesh mesh;
         Texture texture;
         Material material;
-        glm::vec3 position;
+        glm::vec3 position = glm::vec3(0);
     };
 }
