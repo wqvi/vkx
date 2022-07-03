@@ -39,3 +39,6 @@ namespace vkx
         return set;
     }
 }
+
+vkx::Model::Model(Mesh &&mesh, Texture &&texture, const Material &material)
+    : mesh(std::move(mesh)), texture(std::move(texture)), material(material) {}

@@ -2,6 +2,7 @@
 
 #include <renderer/buffer.hpp>
 #include <renderer/image.hpp>
+#include <renderer/uniform_buffer.hpp>
 
 namespace vkx
 {
@@ -10,7 +11,7 @@ namespace vkx
     public:
         Mesh() = default;
 
-        explicit Mesh(std::vector<Vertex> const &vertices, std::vector<std::uint32_t> const &indices, Device const &device);
+        Mesh(std::vector<Vertex> const &vertices, std::vector<std::uint32_t> const &indices, Device const &device);
 
         explicit Mesh(std::size_t vertexCount, std::size_t indexCount, Device const &device);
 
@@ -33,8 +34,12 @@ namespace vkx
         vk::UniqueSampler sampler;
     };
 
-    class Model
+    struct Model
     {
+        explicit Model(Mesh &&mesh, Texture &&texture, const Material &material);
 
+        Mesh mesh;
+        Texture texture;
+        Material material;
     };
 }
