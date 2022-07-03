@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vkx_types.hpp>
+#include <renderer/core/renderer_types.hpp>
 
 namespace vkx {
     struct Scene {
@@ -12,7 +13,9 @@ namespace vkx {
 
         virtual ~Scene() = default;
 
-        virtual void init(const vkx::ApplicationConfig *config, const vkx::Application *data) = 0;
+        virtual void init(const vkx::ApplicationConfig *config,
+                          const vkx::Application *data,
+                          const vkx::RendererBase &rendererState) = 0;
 
         virtual void update() = 0;
 
