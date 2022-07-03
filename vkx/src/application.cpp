@@ -68,7 +68,7 @@ void vkx::Application::setScene(vkx::Scene *newScene) {
     if (newScene == nullptr) throw std::invalid_argument("New scene can't be a nullptr.");
     if (scene != nullptr) scene->destroy();
     scene.reset(newScene);
-    scene->init(&config, this);
+    scene->init(&config, this, renderer);
 }
 
 void vkx::Application::pollEvents(SDL_Event *event) {
