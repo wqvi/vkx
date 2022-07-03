@@ -92,10 +92,6 @@ void vkx::SDLWindow::handleResizeEvent(const SDL_WindowEvent &event, vkx::Scene 
     scene->onWindowResize(event.data1, event.data2);
 }
 
-bool vkx::SDLWindow::isResized() const noexcept {
-    return framebufferResized;
-}
-
 vk::UniqueSurfaceKHR vkx::SDLWindow::createSurface(const vk::UniqueInstance &instance) const {
     VkSurfaceKHR surface = nullptr;
     if (SDL_Vulkan_CreateSurface(window.get(), *instance, &surface) != SDL_TRUE) {

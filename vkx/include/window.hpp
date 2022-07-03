@@ -43,9 +43,6 @@ namespace vkx {
         void handleResizeEvent(const SDL_WindowEvent &event, Scene *scene);
 
         [[nodiscard]]
-        bool isResized() const noexcept;
-
-        [[nodiscard]]
         vk::UniqueSurfaceKHR createSurface(const vk::UniqueInstance &instance) const;
 
         [[nodiscard]]
@@ -53,9 +50,9 @@ namespace vkx {
 
         void waitForEvents() const;
 
-    private:
         bool framebufferResized = false;
 
+    private:
         std::unique_ptr<SDL_Window, SDL_Deleter> window;
     };
 
