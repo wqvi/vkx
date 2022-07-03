@@ -82,6 +82,11 @@ namespace vkx {
             return buffers;
         }
 
+        Mesh allocateMesh(const std::vector<Vertex> &vertices,
+                          const std::vector<std::uint32_t> &indices) const;
+
+        Texture allocateTexture(const std::string &textureFile) const;
+
     protected:
         SDL_Window *window = nullptr;
         vk::UniqueSurfaceKHR surface;

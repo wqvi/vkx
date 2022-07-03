@@ -28,7 +28,7 @@ template<>
 vk::DescriptorSetLayoutBinding
 vkx::ShaderUniformVariable<vk::UniqueSampler>::createDescriptorSetLayoutBinding(std::uint32_t binding,
                                                                                 vk::ShaderStageFlagBits flags) const {
-    return vk::DescriptorSetLayoutBinding{ binding, vk::DescriptorType::eCombinedImageSampler, 1, flags };
+    return vk::DescriptorSetLayoutBinding{binding, vk::DescriptorType::eCombinedImageSampler, 1, flags};
 }
 
 vkx::RendererBase::RendererBase(SDL_Window *window, Profile const &profile)
@@ -113,7 +113,7 @@ vkx::RendererBase::RendererBase(SDL_Window *window, Profile const &profile)
 }
 
 vkx::RendererBase::RendererBase(const SDLWindow &window, const Profile &profile)
-    : vkx::RendererContext(window, profile) {
+        : vkx::RendererContext(window, profile) {
     surface = window.createSurface(instance);
 
     device = vkx::Device{getBestPhysicalDevice(surface, profile), surface, profile};
@@ -379,5 +379,13 @@ namespace vkx {
 
         return device->createRenderPassUnique(renderPassInfo);
     }
+}
 
+vkx::Mesh vkx::RendererBase::allocateMesh(const std::vector<Vertex> &vertices,
+                                          const std::vector<std::uint32_t> &indices) const {
+    return vkx::Mesh{vertices, indices, device};
+}
+
+vkx::Texture vkx::RendererBase::allocateTexture(const std::string &textureFile) const {
+    return vkx::Texture{textureFile, device};
 }
