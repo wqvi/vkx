@@ -49,7 +49,7 @@ public:
 
         model = vkx::Model{
                 rendererState.allocateMesh(chunk.vertices, chunk.indices),
-                rendererState.allocateTexture("a.png"),
+                rendererState.allocateTexture("a.jpg"),
                 {glm::vec3(0.2f), 100.0f}
         };
     }
@@ -261,8 +261,7 @@ int main(int argc, char **argv) {
     try {
         vkx::ApplicationConfig appConfig = {"VKX App", WIDTH, HEIGHT};
         auto myApplication = MyApplication{appConfig};
-        auto myScene = MyScene{};
-        myApplication.setScene(&myScene);
+        myApplication.setScene(new MyScene{});
 //        vkx::SDLWindow window{"Vulkan", WIDTH, HEIGHT};
 //        VoxelRenderer app{window};
 //        app.run();
