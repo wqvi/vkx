@@ -90,7 +90,7 @@ namespace vkx {
 
         void waitIdle() const;
 
-    protected:
+    private:
         SDLWindow *window;
         vk::UniqueSurfaceKHR surface;
         Device device;
@@ -114,7 +114,6 @@ namespace vkx {
 
 //        bool framebufferResized = false;
 
-    private:
         void createSwapchain();
 
         [[nodiscard]]
