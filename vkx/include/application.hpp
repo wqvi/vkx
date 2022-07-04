@@ -40,10 +40,10 @@ namespace vkx {
 
         SDLWindow window;
 
-        std::unique_ptr<Scene> scene = nullptr;
-
         bool isRunning = false;
 
         RendererBase renderer;
+
+        std::unique_ptr<Scene> scene = nullptr;
     };
 }
