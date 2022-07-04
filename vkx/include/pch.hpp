@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <chrono>
 #include <bitset>
+#include <list>
 
 #ifdef NDEBUG
 #define RELEASE
