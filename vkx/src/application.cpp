@@ -41,6 +41,8 @@ void vkx::Application::run() {
     // Declared outside the loop, so it is only initialized once on our side
     SDL_Event event{};
 
+    auto currentFrame = renderer.getCurrentFrameIndex();
+
     std::chrono::system_clock::time_point lastTime = std::chrono::system_clock::now();
     while (isRunning) {
         // Prep delta time
@@ -58,19 +60,54 @@ void vkx::Application::run() {
 
         // Present queues
 
+        // TODO this hurts my soul
+        auto &mvpBuffer = mvpBuffers[currentFrame];
+        mvpBuffer->model = model->getModelMatrix();
+        mvpBuffer->view = camera->viewMatrix();
+        mvpBuffer->proj = *windowProjection;
+
+        auto &lightBuffer = lightBuffers[currentFrame];
+        lightBuffer->position = glm::vec3(1.0f, 3.0f, 1.0f);
+        lightBuffer->eyePosition = camera->position;
+        lightBuffer->ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.2f);
+        lightBuffer->diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
+        lightBuffer->specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
+        lightBuffer->constant = 1.0f;
+        lightBuffer->linear = 0.09f;
+        lightBuffer->quadratic = 0.032f;
+
+        auto &materialBuffer = materialBuffers[currentFrame];
+        materialBuffer->specularColor = model->material.specularColor;
+        materialBuffer->shininess = model->material.shininess;
+
+        // TODO whatever this is lol
+        renderer.drawFrame(mvpBuffer,
+                           lightBuffer,
+                           materialBuffer,
+                           model->mesh.vertexBuffer,
+                           model->mesh.indexBuffer,
+                           static_cast<std::uint32_t>(model->mesh.indexCount),
+                           currentFrame);
+
         // Poll Events
         pollEvents(&event);
 
         // Update last time
         lastTime = currentTime;
     }
+    renderer.waitIdle();
+    setScene(nullptr);
 }
 
 void vkx::Application::setScene(vkx::Scene *newScene) {
-    std::cout << "Hello World!\n";
     scene.reset(newScene);
-    scene->init(&config, this, renderer);
-    std::cout << "Good bye world!\n";
+    if (newScene != nullptr) {
+        scene->init(&config, this, renderer);
+        mvpBuffers = renderer.createBuffers(vkx::MVP{});
+        lightBuffers = renderer.createBuffers(vkx::DirectionalLight{});
+        materialBuffers = renderer.createBuffers(vkx::Material{});
+        renderer.createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, model->texture);
+    }
 }
 
 void vkx::Application::pollEvents(SDL_Event *event) {

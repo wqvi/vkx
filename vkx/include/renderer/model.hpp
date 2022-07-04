@@ -13,9 +13,9 @@ namespace vkx {
 
         explicit Mesh(std::size_t vertexCount, std::size_t indexCount, Device const &device);
 
-    private:
         Buffer vertexBuffer;
         Buffer indexBuffer;
+        std::size_t indexCount;
     };
 
     class Texture {

@@ -20,7 +20,7 @@ public:
     ~MyScene() override = default;
 
     void init(const vkx::ApplicationConfig *config,
-              const vkx::Application *data,
+              vkx::Application *data,
               const vkx::RendererBase &rendererState) override {
         windowProjection = glm::perspective(glm::radians(75.0f), static_cast<float>(config->windowWidth) /
                                                                  static_cast<float>(config->windowHeight), 0.1f,
@@ -52,6 +52,10 @@ public:
                 rendererState.allocateTexture("a.jpg"),
                 {glm::vec3(0.2f), 100.0f}
         };
+
+        data->windowProjection = &windowProjection;
+        data->camera = &camera;
+        data->model = &model;
     }
 
     void update() override {
@@ -81,6 +85,9 @@ public:
 
     void onWindowResize(Sint32 width, Sint32 height) override {
         // Temporarily empty
+        windowProjection = glm::perspective(glm::radians(75.0f), static_cast<float>(width) / static_cast<float>(height),
+                                            0.1f, 100.0f);
+        windowProjection[1][1] *= -1.0f;
     }
 
 private:
@@ -95,10 +102,6 @@ private:
     vkx::Material material = {};
 
     vkx::Model model;
-
-    std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers;
-    std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
-    std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers;
 
     vkx::VoxelChunk chunk{glm::vec3(0), 16, 15, 14};
 };
@@ -265,6 +268,7 @@ int main(int argc, char **argv) {
 //        vkx::SDLWindow window{"Vulkan", WIDTH, HEIGHT};
 //        VoxelRenderer app{window};
 //        app.run();
+        myApplication.run();
     }
     catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;

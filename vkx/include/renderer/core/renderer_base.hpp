@@ -68,10 +68,11 @@ namespace vkx {
                        std::uint32_t indexCount,
                        std::uint32_t &currentIndexFrame);
 
-        [[nodiscard]] std::uint32_t getCurrentFrameIndex(std::uint32_t frameIndex) const;
+        [[nodiscard]]
+        std::uint32_t getCurrentFrameIndex() const;
 
         template<class T>
-        auto createBuffers(T const &value = {}) {
+        auto createBuffers(T const &value = {}) const {
             std::vector<vkx::UniformBuffer<T>> buffers;
             buffers.reserve(MAX_FRAMES_IN_FLIGHT);
             for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -80,10 +81,14 @@ namespace vkx {
             return buffers;
         }
 
+        [[nodiscard]]
         Mesh allocateMesh(const std::vector<Vertex> &vertices,
                           const std::vector<std::uint32_t> &indices) const;
 
+        [[nodiscard]]
         Texture allocateTexture(const std::string &textureFile) const;
+
+        void waitIdle() const;
 
     protected:
         SDLWindow *window;

@@ -6,6 +6,8 @@
 
 #include <renderer/core/renderer_base.hpp>
 #include <scene.hpp>
+#include <renderer/uniform_buffer.hpp>
+#include <renderer/model.hpp>
 
 namespace vkx {
     struct ApplicationConfig {
@@ -44,6 +46,19 @@ namespace vkx {
 
         RendererBase renderer;
 
+        // Scene must be after renderer base due to it having its resources needing to be cleaned up prior to
+        // the renderer cleaning up its own resources
         std::unique_ptr<Scene> scene = nullptr;
+
+    public:
+        // TODO Clear violation right here but only to try to get a working application for the time being
+        // TODO it is just temporary as there will be a way to attach assets to be rendered
+        glm::mat4 *windowProjection;
+        Camera *camera;
+        Model *model;
+
+        std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers;
+        std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
+        std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers;
     };
 }

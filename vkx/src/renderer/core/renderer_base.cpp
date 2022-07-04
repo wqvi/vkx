@@ -195,11 +195,11 @@ namespace vkx {
             throw vkx::VulkanError(result);
         }
 
-        currentIndexFrame = getCurrentFrameIndex(currentIndexFrame);
+        currentIndexFrame = (currentIndexFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
-    std::uint32_t RendererBase::getCurrentFrameIndex(std::uint32_t frameIndex) const {
-        return (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+    std::uint32_t RendererBase::getCurrentFrameIndex() const {
+        return currentFrame;
     }
 
     void RendererBase::createSwapchain() {
@@ -291,4 +291,8 @@ vkx::Mesh vkx::RendererBase::allocateMesh(const std::vector<Vertex> &vertices,
 
 vkx::Texture vkx::RendererBase::allocateTexture(const std::string &textureFile) const {
     return vkx::Texture{textureFile, device};
+}
+
+void vkx::RendererBase::waitIdle() const {
+    device->waitIdle();
 }
