@@ -14,4 +14,6 @@ namespace vkx {
     struct Scene;
 
     class SDLError;
+
+    struct Node;
 }
