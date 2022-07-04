@@ -15,6 +15,8 @@ public:
 
 class MyScene : public vkx::Scene {
 public:
+    MyScene() = default;
+
     ~MyScene() override = default;
 
     void init(const vkx::ApplicationConfig *config,
@@ -88,9 +90,9 @@ private:
     // TODO Move my matrix uploading else where similar to the window projection the scene does NOT need to manually upload it
     Camera camera{{2.0f, 2.0f, 2.0f}};
 
-    vkx::MVP mvp;
-    vkx::DirectionalLight directionalLight;
-    vkx::Material material;
+    vkx::MVP mvp = {};
+    vkx::DirectionalLight directionalLight = {};
+    vkx::Material material = {};
 
     vkx::Model model;
 
@@ -211,6 +213,9 @@ public:
             case SDL_MOUSEMOTION:
                 mouseMovedEventHandler(event.motion);
                 break;
+            case SDL_CONTROLLERAXISMOTION:
+                std::cout << "Hello World!\n";
+                break;
             default:
                 break;
         }
@@ -254,11 +259,13 @@ public:
 
 int main(int argc, char **argv) {
     try {
-//        vkx::ApplicationConfig appConfig = {"VKX App", WIDTH, HEIGHT};
-//        MyApplication myApplication = MyApplication{appConfig};
-        vkx::SDLWindow window{"Vulkan", WIDTH, HEIGHT};
-        VoxelRenderer app{window};
-        app.run();
+        vkx::ApplicationConfig appConfig = {"VKX App", WIDTH, HEIGHT};
+        auto myApplication = MyApplication{appConfig};
+        auto myScene = MyScene{};
+        myApplication.setScene(&myScene);
+//        vkx::SDLWindow window{"Vulkan", WIDTH, HEIGHT};
+//        VoxelRenderer app{window};
+//        app.run();
     }
     catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;

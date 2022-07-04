@@ -35,6 +35,8 @@ namespace vkx {
     };
 
     struct Model {
+        Model() = default;
+
         explicit Model(Mesh &&mesh, Texture &&texture, const Material &material);
 
         [[nodiscard]]

@@ -4,6 +4,8 @@
 
 #include <application.hpp>
 
+#include <iostream>
+
 vkx::Application::Application(const vkx::ApplicationConfig &config)
     : config(config) {
     int sdlErrorCode = SDL_Init(SDL_INIT_EVERYTHING);
@@ -65,10 +67,10 @@ void vkx::Application::run() {
 }
 
 void vkx::Application::setScene(vkx::Scene *newScene) {
-    if (newScene == nullptr) throw std::invalid_argument("New scene can't be a nullptr.");
-    if (scene != nullptr) scene->destroy();
+    std::cout << "Hello World!\n";
     scene.reset(newScene);
     scene->init(&config, this, renderer);
+    std::cout << "Good bye world!\n";
 }
 
 void vkx::Application::pollEvents(SDL_Event *event) {
