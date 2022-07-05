@@ -22,22 +22,6 @@ public:
     void init(const vkx::ApplicationConfig *config,
               vkx::Application *data,
               const vkx::RendererBase &rendererState) override {
-        directionalLight = {
-                glm::vec3(1.0f, 3.0f, 1.0f),
-                getCamera().position,
-                glm::vec4(1.0f, 1.0f, 1.0f, 0.2f),
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                1.0f,
-                0.09f,
-                0.032f
-        };
-
-        material = {
-                glm::vec3(0.2f, 0.2f, 0.2f),
-                100.0f
-        };
-
         chunk.greedy();
 
         model = vkx::Model{
@@ -55,12 +39,9 @@ public:
 
 
     void physics(float deltaTime) override {
-        // Temporarily empty
         getCamera().velocity += getCamera().direction * deltaTime;
         getCamera().velocity *= 0.1f;
         getCamera().position += getCamera().velocity * deltaTime;
-
-        directionalLight.eyePosition = getCamera().position;
     }
 
     void destroy() noexcept override {
@@ -68,17 +49,14 @@ public:
     }
 
     void onKeyPress(const SDL_KeyboardEvent &event) override {
-        // Temporarily empty
         getCamera().updateKey(event.keysym.sym);
     }
 
     void onKeyRelease(const SDL_KeyboardEvent &event) override {
-        // Temporarily empty
         getCamera().updateKey(0);
     }
 
     void onMouseMove(const SDL_MouseMotionEvent &event) override {
-        // Temporarily empty
         getCamera().updateMouse(glm::vec2{event.xrel, -event.yrel});
     }
 
@@ -87,9 +65,6 @@ public:
     }
 
 private:
-    vkx::DirectionalLight directionalLight = {};
-    vkx::Material material = {};
-
     vkx::Model model;
 
     vkx::VoxelChunk chunk{glm::vec3(0), 16, 15, 14};
