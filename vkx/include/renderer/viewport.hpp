@@ -11,21 +11,23 @@ namespace vkx {
     public:
         Viewport() = default;
 
-        explicit Viewport(std::uint32_t fov, Sint32 width, Sint32 height);
-
         explicit operator const glm::mat4 &() const;
 
+        [[maybe_unused]]
         [[nodiscard]]
         std::uint32_t getFOV() const noexcept;
 
-        void setFOV(std::uint32_t newFOV) noexcept;
+        [[maybe_unused]]
+        void setFOV(std::uint32_t _fov) noexcept;
 
-        void setSize(Sint32 newWidth, Sint32 newHeight);
+        [[maybe_unused]]
+        void setSize(Sint32 _width, Sint32 _height);
 
     private:
         std::uint32_t fov = 70;
         glm::mat4 projection = glm::mat4{1};
-        Sint32 width = 640;
-        Sint32 height = 360;
+        // In the application the width and height values will be overridden with the appropriate values
+        Sint32 width = SDL_MAX_SINT32;
+        Sint32 height = SDL_MAX_SINT32;
     };
 }
