@@ -64,7 +64,7 @@ int vkx::SDLWindow::getHeight() const noexcept {
 }
 
 void vkx::SDLWindow::pollWindowEvent(const SDL_WindowEvent &event, vkx::Scene *scene) {
-    switch (event.type) {
+    switch (event.event) {
         case SDL_WINDOWEVENT_RESIZED:
             handleResizeEvent(event, scene);
             break;
