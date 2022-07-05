@@ -62,7 +62,7 @@ void vkx::Application::run() {
         auto &mvpBuffer = mvpBuffers[currentFrame];
         mvpBuffer->model = model->getModelMatrix();
         mvpBuffer->view = camera->viewMatrix();
-        mvpBuffer->proj = *windowProjection;
+        mvpBuffer->proj = static_cast<glm::mat4>(scene->getViewport());
 
         auto &lightBuffer = lightBuffers[currentFrame];
         lightBuffer->position = glm::vec3(1.0f, 3.0f, 1.0f);
@@ -100,15 +100,19 @@ void vkx::Application::run() {
 void vkx::Application::setScene(vkx::Scene *newScene) {
     scene.reset(newScene);
     if (newScene != nullptr) {
+        // TODO this is a mess!
         scene->init(&config, this, renderer);
         mvpBuffers = renderer.createBuffers(vkx::MVP{});
         lightBuffers = renderer.createBuffers(vkx::DirectionalLight{});
         materialBuffers = renderer.createBuffers(vkx::Material{});
         renderer.createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, model->texture);
+        scene->getViewport().setSize(config.windowWidth, config.windowHeight);
     }
 }
 
 void vkx::Application::pollEvents(SDL_Event *event) {
+    // Poll events and compare them to event flags
+    // Send them to appropriate functions that handle the events.
     while (SDL_PollEvent(event)) {
         switch (event->type) {
             case SDL_QUIT:

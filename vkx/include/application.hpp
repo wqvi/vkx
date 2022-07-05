@@ -53,7 +53,7 @@ namespace vkx {
     public:
         // TODO Clear violation right here but only to try to get a working application for the time being
         // TODO it is just temporary as there will be a way to attach assets to be rendered
-        glm::mat4 *windowProjection;
+        glm::mat4 *windowProjection; // TODO delete window projection
         Camera *camera;
         Model *model;
 
