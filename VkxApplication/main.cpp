@@ -65,22 +65,31 @@ public:
 
     void physics(float deltaTime) override {
         // Temporarily empty
+        camera.velocity += camera.direction * deltaTime;
+        camera.velocity *= 0.1f;
+        camera.position += camera.velocity * deltaTime;
+
+        mvp.view = camera.viewMatrix();
+        directionalLight.eyePosition = camera.position;
     }
 
     void destroy() noexcept override {
         // Temporarily empty
     }
 
-    void onKeyPress() override {
+    void onKeyPress(const SDL_KeyboardEvent &event) override {
         // Temporarily empty
+        camera.updateKey(event.keysym.sym);
     }
 
-    void onKeyRelease() override {
+    void onKeyRelease(const SDL_KeyboardEvent &event) override {
         // Temporarily empty
+        camera.updateKey(0);
     }
 
-    void onMouseMove() override {
+    void onMouseMove(const SDL_MouseMotionEvent &event) override {
         // Temporarily empty
+        camera.updateMouse(glm::vec2{event.xrel, -event.yrel});
     }
 
     void onWindowResize(Sint32 width, Sint32 height) override {
@@ -95,7 +104,7 @@ private:
     glm::mat4 windowProjection = glm::mat4(1);
 
     // TODO Move my matrix uploading else where similar to the window projection the scene does NOT need to manually upload it
-    Camera camera{{2.0f, 2.0f, 2.0f}};
+    vkx::Camera camera{{2.0f, 2.0f, 2.0f}};
 
     vkx::MVP mvp = {};
     vkx::DirectionalLight directionalLight = {};
