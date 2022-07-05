@@ -22,16 +22,9 @@ public:
     void init(const vkx::ApplicationConfig *config,
               vkx::Application *data,
               const vkx::RendererBase &rendererState) override {
-        windowProjection = glm::perspective(glm::radians(75.0f), static_cast<float>(config->windowWidth) /
-                                                                 static_cast<float>(config->windowHeight), 0.1f,
-                                            100.0f);
-        windowProjection[1][1] *= -1.0f;
-
-        mvp = {glm::mat4(1.0f), camera.viewMatrix(), windowProjection};
-
         directionalLight = {
                 glm::vec3(1.0f, 3.0f, 1.0f),
-                camera.position,
+                getCamera().position,
                 glm::vec4(1.0f, 1.0f, 1.0f, 0.2f),
                 glm::vec3(1.0f, 1.0f, 1.0f),
                 glm::vec3(1.0f, 1.0f, 1.0f),
@@ -53,8 +46,6 @@ public:
                 {glm::vec3(0.2f), 100.0f}
         };
 
-        data->windowProjection = &windowProjection;
-        data->camera = &camera;
         data->model = &model;
     }
 
@@ -65,12 +56,11 @@ public:
 
     void physics(float deltaTime) override {
         // Temporarily empty
-        camera.velocity += camera.direction * deltaTime;
-        camera.velocity *= 0.1f;
-        camera.position += camera.velocity * deltaTime;
+        getCamera().velocity += getCamera().direction * deltaTime;
+        getCamera().velocity *= 0.1f;
+        getCamera().position += getCamera().velocity * deltaTime;
 
-        mvp.view = camera.viewMatrix();
-        directionalLight.eyePosition = camera.position;
+        directionalLight.eyePosition = getCamera().position;
     }
 
     void destroy() noexcept override {
@@ -79,34 +69,24 @@ public:
 
     void onKeyPress(const SDL_KeyboardEvent &event) override {
         // Temporarily empty
-        camera.updateKey(event.keysym.sym);
+        getCamera().updateKey(event.keysym.sym);
     }
 
     void onKeyRelease(const SDL_KeyboardEvent &event) override {
         // Temporarily empty
-        camera.updateKey(0);
+        getCamera().updateKey(0);
     }
 
     void onMouseMove(const SDL_MouseMotionEvent &event) override {
         // Temporarily empty
-        camera.updateMouse(glm::vec2{event.xrel, -event.yrel});
+        getCamera().updateMouse(glm::vec2{event.xrel, -event.yrel});
     }
 
     void onWindowResize(Sint32 width, Sint32 height) override {
         // Temporarily empty
-        windowProjection = glm::perspective(glm::radians(75.0f), static_cast<float>(width) / static_cast<float>(height),
-                                            0.1f, 100.0f);
-        windowProjection[1][1] *= -1.0f;
     }
 
 private:
-    // TODO Move me to the application instead and have the mvp buffer uploaded another way
-    glm::mat4 windowProjection = glm::mat4(1);
-
-    // TODO Move my matrix uploading else where similar to the window projection the scene does NOT need to manually upload it
-    vkx::Camera camera{{2.0f, 2.0f, 2.0f}};
-
-    vkx::MVP mvp = {};
     vkx::DirectionalLight directionalLight = {};
     vkx::Material material = {};
 
