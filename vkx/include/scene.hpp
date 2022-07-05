@@ -6,6 +6,7 @@
 
 #include <vkx_types.hpp>
 #include <renderer/core/renderer_types.hpp>
+#include <renderer/viewport.hpp>
 
 namespace vkx {
     struct Scene {
@@ -30,5 +31,10 @@ namespace vkx {
         virtual void onMouseMove(const SDL_MouseMotionEvent &event) = 0;
 
         virtual void onWindowResize(Sint32 width, Sint32 height) = 0;
+
+        Viewport &getViewport();
+
+    private:
+        Viewport viewport;
     };
 }
