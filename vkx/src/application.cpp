@@ -4,8 +4,6 @@
 
 #include <application.hpp>
 
-#include <iostream>
-
 vkx::Application::Application(const vkx::ApplicationConfig &config)
     : config(config) {
     int sdlErrorCode = SDL_Init(SDL_INIT_EVERYTHING);
@@ -135,13 +133,13 @@ void vkx::Application::pollEvents(SDL_Event *event) {
 }
 
 void vkx::Application::handleKeyPressedEvent(const SDL_KeyboardEvent &event) {
-    scene->onKeyPress();
+    scene->onKeyPress(event);
 }
 
 void vkx::Application::handleKeyReleasedEvent(const SDL_KeyboardEvent &event) {
-    scene->onKeyRelease();
+    scene->onKeyRelease(event);
 }
 
 void vkx::Application::handleMouseMovedEvent(const SDL_MouseMotionEvent &event) {
-    scene->onMouseMove();
+    scene->onMouseMove(event);
 }
