@@ -61,12 +61,12 @@ void vkx::Application::run() {
         // TODO this hurts my soul
         auto &mvpBuffer = mvpBuffers[currentFrame];
         mvpBuffer->model = model->getModelMatrix();
-        mvpBuffer->view = camera->viewMatrix();
+        mvpBuffer->view = scene->getCamera().viewMatrix();
         mvpBuffer->proj = static_cast<glm::mat4>(scene->getViewport());
 
         auto &lightBuffer = lightBuffers[currentFrame];
         lightBuffer->position = glm::vec3(1.0f, 3.0f, 1.0f);
-        lightBuffer->eyePosition = camera->position;
+        lightBuffer->eyePosition = scene->getCamera().position;
         lightBuffer->ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.2f);
         lightBuffer->diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
         lightBuffer->specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
