@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <node.hpp>
+
 namespace vkx {
-    class Viewport {
+    class Viewport : public Node {
     public:
         Viewport() = default;
 
@@ -23,7 +25,7 @@ namespace vkx {
     private:
         std::uint32_t fov = 70;
         glm::mat4 projection = glm::mat4{1};
-        Sint32 width;
-        Sint32 height;
+        Sint32 width = 640;
+        Sint32 height = 360;
     };
 }
