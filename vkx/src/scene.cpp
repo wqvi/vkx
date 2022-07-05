@@ -7,3 +7,7 @@
 vkx::Viewport &vkx::Scene::getViewport() {
     return viewport;
 }
+
+vkx::Camera &vkx::Scene::getCamera() {
+    return camera;
+}

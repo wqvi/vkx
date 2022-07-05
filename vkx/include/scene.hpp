@@ -7,6 +7,7 @@
 #include <vkx_types.hpp>
 #include <renderer/core/renderer_types.hpp>
 #include <renderer/viewport.hpp>
+#include <camera.hpp>
 
 namespace vkx {
     struct Scene {
@@ -34,7 +35,10 @@ namespace vkx {
 
         Viewport &getViewport();
 
+        Camera &getCamera();
+
     private:
         Viewport viewport;
+        Camera camera;
     };
 }
