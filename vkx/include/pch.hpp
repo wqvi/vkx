@@ -23,6 +23,7 @@
 #include <chrono>
 #include <bitset>
 #include <list>
+#include <forward_list>
 
 #ifdef NDEBUG
 #define RELEASE
