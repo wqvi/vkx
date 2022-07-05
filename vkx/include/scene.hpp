@@ -33,8 +33,10 @@ namespace vkx {
 
         virtual void onWindowResize(Sint32 width, Sint32 height) = 0;
 
+        [[nodiscard("This function is meant to retrieve and use, are you sure you want to not use it?")]]
         Viewport &getViewport();
 
+        [[nodiscard("This function is meant to retrieve and use, are you sure you want to not use it?")]]
         Camera &getCamera();
 
     private:
