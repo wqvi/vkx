@@ -17,18 +17,18 @@ namespace vkx {
                           vkx::Application *data,
                           const vkx::RendererBase &rendererState) = 0;
 
-        virtual void update() {};
+        virtual void update() = 0;
 
-        virtual void physics(float deltaTime) {};
+        virtual void physics(float deltaTime) = 0;
 
-        virtual void destroy() noexcept {};
+        virtual void destroy() noexcept = 0;
 
-        virtual void onKeyPress() {};
+        virtual void onKeyPress(const SDL_KeyboardEvent &event) = 0;
 
-        virtual void onKeyRelease() {};
+        virtual void onKeyRelease(const SDL_KeyboardEvent &event) = 0;
 
-        virtual void onMouseMove() {};
+        virtual void onMouseMove(const SDL_MouseMotionEvent &event) = 0;
 
-        virtual void onWindowResize(Sint32 width, Sint32 height) {};
+        virtual void onWindowResize(Sint32 width, Sint32 height) = 0;
     };
 }
