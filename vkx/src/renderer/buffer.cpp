@@ -33,7 +33,15 @@ namespace vkx {
     }
 }
 
-vk::UniqueDeviceMemory const &vkx::BufferBase::getMemory() const {
+vkx::BufferBase::operator vk::Buffer const &() const noexcept {
+    return buffer.get();
+}
+
+vkx::BufferBase::operator vk::UniqueBuffer const &() const noexcept {
+    return buffer;
+}
+
+vk::UniqueDeviceMemory const &vkx::BufferBase::getMemory() const noexcept {
     return memory;
 }
 

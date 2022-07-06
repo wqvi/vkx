@@ -21,8 +21,12 @@ namespace vkx {
 
     class BufferBase {
     public:
-        [[nodiscard("You most likely are causing an error if you discard this vertex buffer memory")]]
-        vk::UniqueDeviceMemory const &getMemory() const;
+        explicit operator vk::Buffer const &() const noexcept;
+
+        explicit operator vk::UniqueBuffer const &() const noexcept;
+
+        [[nodiscard("You most likely are causing an error if you discard this buffer memory")]]
+        vk::UniqueDeviceMemory const &getMemory() const noexcept;
 
     protected:
         BufferBase() = default;
@@ -39,11 +43,15 @@ namespace vkx {
 
     class VertexBuffer : public BufferBase {
     public:
+        VertexBuffer() = default;
+
         explicit VertexBuffer(std::vector<Vertex> const &vertices, Device const &device);
     };
 
     class IndexBuffer : public BufferBase {
     public:
+        IndexBuffer() = default;
+
         explicit IndexBuffer(std::vector<std::uint32_t> const &indices, Device const &device);
     };
 }

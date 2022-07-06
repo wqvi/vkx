@@ -153,8 +153,8 @@ namespace vkx {
     void RendererBase::drawFrame(UniformBuffer<MVP> const &mvpBuffer,
                                  UniformBuffer<DirectionalLight> const &lightBuffer,
                                  UniformBuffer<Material> const &materialBuffer,
-                                 Buffer const &vertexBuffer,
-                                 Buffer const &indexBuffer,
+                                 VertexBuffer const &vertexBuffer,
+                                 IndexBuffer const &indexBuffer,
                                  std::uint32_t indexCount,
                                  std::uint32_t &currentIndexFrame) {
         static_cast<void>(device->waitForFences(*syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));

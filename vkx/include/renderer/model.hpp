@@ -10,13 +10,11 @@ namespace vkx {
     public:
         Mesh() = default;
 
-        Mesh(std::vector<Vertex> const &vertices, std::vector<std::uint32_t> const &indices, Device const &device);
+        explicit Mesh(std::vector<Vertex> const &vertices, std::vector<std::uint32_t> const &indices, Device const &device);
 
-        explicit Mesh(std::size_t vertexCount, std::size_t indexCount, Device const &device);
-
-        Buffer vertexBuffer;
-        Buffer indexBuffer;
-        std::size_t indexCount;
+        VertexBuffer vertexBuffer;
+        IndexBuffer indexBuffer;
+        std::size_t indexCount = 0;
     };
 
     class Texture {
@@ -45,7 +43,7 @@ namespace vkx {
 
         Mesh mesh;
         Texture texture;
-        Material material;
+        Material material = {};
         glm::vec3 position = glm::vec3(0);
     };
 }

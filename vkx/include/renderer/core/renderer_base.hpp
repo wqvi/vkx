@@ -63,8 +63,8 @@ namespace vkx {
         void drawFrame(UniformBuffer<MVP> const &mvpBuffer,
                        UniformBuffer<DirectionalLight> const &lightBuffer,
                        UniformBuffer<Material> const &materialBuffer,
-                       Buffer const &vertexBuffer,
-                       Buffer const &indexBuffer,
+                       VertexBuffer const &vertexBuffer,
+                       IndexBuffer const &indexBuffer,
                        std::uint32_t indexCount,
                        std::uint32_t &currentIndexFrame);
 

@@ -14,6 +14,12 @@ namespace vkx {
 
     class Buffer;
 
+    class BufferBase;
+
+    class VertexBuffer;
+
+    class IndexBuffer;
+
     class Image;
 
     template<class T>

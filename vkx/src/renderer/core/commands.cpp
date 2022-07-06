@@ -74,8 +74,8 @@ namespace vkx
                            vk::Pipeline const &graphicsPipeline,
                            vk::PipelineLayout const &graphicsPipelineLayout,
                            vk::DescriptorSet const &descriptorSet,
-                           Buffer const &vertexBuffer,
-                           Buffer const &indexBuffer,
+                           VertexBuffer const &vertexBuffer,
+                           IndexBuffer const &indexBuffer,
                            std::uint32_t indicesCount) const
   {
     commandBuffer.reset({});
