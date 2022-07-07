@@ -3,6 +3,7 @@
 #include <renderer/core/swapchain_info.hpp>
 #include <renderer/core/commands.hpp>
 #include <renderer/core/swapchain_info.hpp>
+#include <renderer/core/sync_objects.hpp>
 
 namespace vkx
 {
@@ -456,4 +457,22 @@ namespace vkx
 
         return physicalDevice.getFeatures().samplerAnisotropy;
     }
+}
+
+void vkx::Device::submit(
+        std::vector<DrawCommand> const &drawCommands,
+        SyncObjects const &syncObjects) const {
+    std::array<vk::PipelineStageFlags, 1> waitStage{
+            vk::PipelineStageFlagBits::eColorAttachmentOutput};
+    vk::SubmitInfo submitInfo{
+            1,                                                 // waitSemaphoreCount
+            &*syncObjects.imageAvailableSemaphore,                                    // pWaitSemaphores
+            waitStage.data(),                                  // pWaitDstStageMask
+            static_cast<std::uint32_t>(drawCommands.size()), // commandBufferCount
+            nullptr,                             // pCommandBuffers
+            1,                                                 // signalSemaphoreCount
+            &*syncObjects.renderFinishedSemaphore                                   // pSignalSemaphores
+    };
+
+    queues.graphics.submit(submitInfo, *syncObjects.inFlightFence);
 }
