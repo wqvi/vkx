@@ -1,5 +1,7 @@
 #pragma once
 
+constexpr static const std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+
 namespace vkx {
     class VulkanError;
 
@@ -46,4 +48,6 @@ namespace vkx {
     class Texture;
 
     class Model;
+
+    struct SyncObjects;
 }

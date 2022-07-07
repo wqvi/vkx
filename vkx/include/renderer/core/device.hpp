@@ -64,7 +64,15 @@ namespace vkx
             vk::ImageLayout const &oldLayout,
             vk::ImageLayout const &newLayout) const;
 
-        void submit(std::vector<vk::CommandBuffer> const &commandBuffers, vk::Semaphore const &waitSemaphore, vk::Semaphore const &signalSemaphore, vk::Fence const &flightFence) const;
+        void submit(
+                std::vector<vk::CommandBuffer> const &commandBuffers,
+                vk::Semaphore const &waitSemaphore,
+                vk::Semaphore const &signalSemaphore,
+                vk::Fence const &flightFence) const;
+
+        void submit(
+                std::vector<DrawCommand> const &drawCommands,
+                SyncObjects const &syncObjects) const;
 
         [[nodiscard]] vk::Result present(vk::SwapchainKHR const &swapchain, std::uint32_t imageIndex, vk::Semaphore const &signalSemaphores) const;
 

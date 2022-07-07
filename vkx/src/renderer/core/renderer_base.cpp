@@ -7,20 +7,6 @@
 #include <renderer/model.hpp>
 #include <vkx_exceptions.hpp>
 
-vkx::SyncObjects::SyncObjects(const Device &device)
-        : imageAvailableSemaphore(device->createSemaphoreUnique({})),
-          renderFinishedSemaphore(device->createSemaphoreUnique({})),
-          inFlightFence(device->createFenceUnique({vk::FenceCreateFlagBits::eSignaled})) {}
-
-std::vector<vkx::SyncObjects> vkx::SyncObjects::createSyncObjects(const Device &device) {
-    std::vector<vkx::SyncObjects> objs;
-    objs.resize(MAX_FRAMES_IN_FLIGHT);
-
-    std::ranges::generate(objs, [&device]() { return SyncObjects{device}; });
-
-    return objs;
-}
-
 template<>
 vkx::ShaderUniformVariable<vk::UniqueSampler>::ShaderUniformVariable(vk::UniqueSampler &&variable)
         : variable(std::move(variable)) {}

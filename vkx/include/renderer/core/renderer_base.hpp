@@ -7,22 +7,9 @@
 #include <renderer/core/commands.hpp>
 #include <renderer/core/context.hpp>
 #include <renderer/texture.hpp>
-
-constexpr static const std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+#include <renderer/core/sync_objects.hpp>
 
 namespace vkx {
-    struct SyncObjects {
-        SyncObjects() = default;
-
-        explicit SyncObjects(const Device &device);
-
-        static std::vector<SyncObjects> createSyncObjects(const Device &device);
-
-        vk::UniqueSemaphore imageAvailableSemaphore;
-        vk::UniqueSemaphore renderFinishedSemaphore;
-        vk::UniqueFence inFlightFence;
-    };
-
     template<class T>
     struct ShaderUniformVariable {
         explicit ShaderUniformVariable(T &&variable);
