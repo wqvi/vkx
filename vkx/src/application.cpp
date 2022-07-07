@@ -4,14 +4,14 @@
 
 #include <application.hpp>
 
-vkx::Application::Application(const vkx::ApplicationConfig &config)
+vkx::Application::Application(const vkx::GlobalConfiguration &config)
     : config(config) {
     int sdlErrorCode = SDL_Init(SDL_INIT_EVERYTHING);
     if (sdlErrorCode < 0) {
         throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
     }
 
-    window = std::shared_ptr<SDLWindow>(new SDLWindow{config.title, config.windowWidth, config.windowHeight});
+    window = std::make_shared<SDLWindow>(config.title, config.windowWidth, config.windowHeight);
 
     sdlErrorCode = SDL_ShowCursor(SDL_DISABLE);
     if (sdlErrorCode < 0) {
@@ -27,8 +27,8 @@ vkx::Application::Application(const vkx::ApplicationConfig &config)
 }
 
 vkx::Application::~Application() {
-    SDL_Quit();
     if (scene != nullptr) scene->destroy();
+    SDL_Quit();
 }
 
 void vkx::Application::run() {

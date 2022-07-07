@@ -15,7 +15,7 @@ namespace vkx {
 
         virtual ~Scene() = default;
 
-        virtual void init(const vkx::ApplicationConfig *config,
+        virtual void init(const vkx::GlobalConfiguration *config,
                           vkx::Application *data,
                           const vkx::RendererBase &rendererState) = 0;
 

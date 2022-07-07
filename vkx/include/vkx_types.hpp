@@ -5,7 +5,7 @@
 #pragma once
 
 namespace vkx {
-    struct ApplicationConfig;
+    struct GlobalConfiguration;
 
     class Application;
 

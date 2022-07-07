@@ -19,7 +19,7 @@ public:
 
     ~MyScene() override = default;
 
-    void init(const vkx::ApplicationConfig *config,
+    void init(const vkx::GlobalConfiguration *config,
               vkx::Application *data,
               const vkx::RendererBase &rendererState) override {
         chunk.greedy();
@@ -72,7 +72,7 @@ private:
 
 int main(int argc, char **argv) {
     try {
-        vkx::ApplicationConfig appConfig = {"VKX App", WIDTH, HEIGHT};
+        vkx::GlobalConfiguration appConfig = {"VKX App", WIDTH, HEIGHT};
         auto myApplication = MyApplication{appConfig};
         myApplication.setScene(new MyScene{});
         myApplication.run();

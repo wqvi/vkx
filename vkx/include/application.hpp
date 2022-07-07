@@ -10,18 +10,20 @@
 #include <renderer/model.hpp>
 
 namespace vkx {
-    struct ApplicationConfig {
+    struct GlobalConfiguration {
+        // All values are defaulted
+
         char const *title = "VKX Application";
         int windowWidth = 640;
         int windowHeight = 360;
-        glm::f32 fov = 70.0f;
+        glm::f32 fieldOfVision = 70.0f;
     };
 
     class Application {
     public:
         Application() = delete;
 
-        explicit Application(const ApplicationConfig &config);
+        explicit Application(const GlobalConfiguration &config);
 
         ~Application();
 
@@ -38,7 +40,7 @@ namespace vkx {
 
         void handleMouseMovedEvent(SDL_MouseMotionEvent const &event);
 
-        ApplicationConfig config;
+        GlobalConfiguration config;
 
         std::shared_ptr<SDLWindow> window;
 
@@ -53,7 +55,7 @@ namespace vkx {
     public:
         // TODO Clear violation right here but only to try to get a working application for the time being
         // TODO it is just temporary as there will be a way to attach assets to be rendered
-        Model *model;
+        Model *model = nullptr;
 
         std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers;
         std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers;
