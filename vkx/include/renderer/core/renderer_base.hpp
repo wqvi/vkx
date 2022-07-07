@@ -49,7 +49,7 @@ namespace vkx {
     public:
         RendererBase() = default;
 
-        RendererBase(SDLWindow &window, const Profile &profile);
+        RendererBase(std::shared_ptr<SDLWindow> const &window, Profile const &profile);
 
         void recreateSwapchain();
 
@@ -91,7 +91,7 @@ namespace vkx {
         void waitIdle() const;
 
     private:
-        SDLWindow *window;
+        std::weak_ptr<SDLWindow> window;
         vk::UniqueSurfaceKHR surface;
         Device device;
 
@@ -111,8 +111,6 @@ namespace vkx {
         std::vector<SyncObjects> syncObjects;
 
         std::uint32_t currentFrame = 0;
-
-//        bool framebufferResized = false;
 
         void createSwapchain();
 

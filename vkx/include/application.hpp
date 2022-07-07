@@ -11,7 +11,7 @@
 
 namespace vkx {
     struct ApplicationConfig {
-        const char *title = "VKX Application";
+        char const *title = "VKX Application";
         int windowWidth = 640;
         int windowHeight = 360;
         glm::f32 fov = 70.0f;
@@ -32,15 +32,15 @@ namespace vkx {
     private:
         void pollEvents(SDL_Event *event);
 
-        void handleKeyPressedEvent(const SDL_KeyboardEvent &event);
+        void handleKeyPressedEvent(SDL_KeyboardEvent const &event);
 
-        void handleKeyReleasedEvent(const SDL_KeyboardEvent &event);
+        void handleKeyReleasedEvent(SDL_KeyboardEvent const &event);
 
-        void handleMouseMovedEvent(const SDL_MouseMotionEvent &event);
+        void handleMouseMovedEvent(SDL_MouseMotionEvent const &event);
 
         ApplicationConfig config;
 
-        SDLWindow window;
+        std::shared_ptr<SDLWindow> window;
 
         bool isRunning = false;
 

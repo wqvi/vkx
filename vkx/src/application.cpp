@@ -11,7 +11,7 @@ vkx::Application::Application(const vkx::ApplicationConfig &config)
         throw std::system_error(std::error_code(sdlErrorCode, std::generic_category()), SDL_GetError());
     }
 
-    window = vkx::SDLWindow(config.title, config.windowWidth, config.windowHeight);
+    window = std::shared_ptr<SDLWindow>(new SDLWindow{config.title, config.windowWidth, config.windowHeight});
 
     sdlErrorCode = SDL_ShowCursor(SDL_DISABLE);
     if (sdlErrorCode < 0) {
@@ -34,7 +34,7 @@ vkx::Application::~Application() {
 void vkx::Application::run() {
     isRunning = true;
 
-    window.show();
+    window->show();
 
     // Declared outside the loop, so it is only initialized once on our side
     SDL_Event event{};
@@ -119,7 +119,7 @@ void vkx::Application::pollEvents(SDL_Event *event) {
                 isRunning = false;
                 break;
             case SDL_WINDOWEVENT:
-                window.pollWindowEvent(event->window, scene.get());
+                window->pollWindowEvent(event->window, scene.get());
                 break;
             case SDL_KEYDOWN:
                 handleKeyPressedEvent(event->key);

@@ -13,7 +13,7 @@ namespace vkx {
 
         explicit RendererContext(SDL_Window *window, const Profile &profile);
 
-        explicit RendererContext(const SDLWindow &window, const Profile &profile);
+        explicit RendererContext(std::shared_ptr<SDLWindow> const &window, const Profile &profile);
 
         [[nodiscard]]
         std::unordered_map<std::uint32_t, vk::PhysicalDevice>

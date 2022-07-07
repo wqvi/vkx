@@ -32,10 +32,10 @@ vkx::ShaderUniformVariable<vk::UniqueSampler>::createDescriptorSetLayoutBinding(
     return vk::DescriptorSetLayoutBinding{binding, vk::DescriptorType::eCombinedImageSampler, 1, flags};
 }
 
-vkx::RendererBase::RendererBase(SDLWindow &window, const Profile &profile)
+vkx::RendererBase::RendererBase(std::shared_ptr<SDLWindow> const &window, Profile const &profile)
         : vkx::RendererContext(window, profile),
-            window(&window) {
-    surface = window.createSurface(instance);
+          window(window) {
+    surface = window->createSurface(instance);
 
     device = vkx::Device{getBestPhysicalDevice(surface, profile), surface, profile};
 
@@ -97,7 +97,7 @@ vkx::RendererBase::RendererBase(SDLWindow &window, const Profile &profile)
 
 namespace vkx {
     void RendererBase::recreateSwapchain() {
-        window->waitForEvents();
+        window.lock()->waitForEvents();
 
         device->waitIdle();
 
@@ -158,7 +158,8 @@ namespace vkx {
                                  std::uint32_t indexCount,
                                  std::uint32_t &currentIndexFrame) {
         static_cast<void>(device->waitForFences(*syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));
-        auto [result, imageIndex] = swapchain.acquireNextImage(device, syncObjects[currentIndexFrame].imageAvailableSemaphore);
+        auto [result, imageIndex] = swapchain.acquireNextImage(device,
+                                                               syncObjects[currentIndexFrame].imageAvailableSemaphore);
 
         if (result == vk::Result::eErrorOutOfDateKHR) {
             recreateSwapchain();
@@ -188,8 +189,11 @@ namespace vkx {
 
         result = device.present(swapchain, imageIndex, *syncObjects[currentIndexFrame].renderFinishedSemaphore);
 
-        if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || window->isFramebufferResized()) {
-            window->setFramebufferResized(false);
+        if (auto ptr = window.lock();
+                result == vk::Result::eErrorOutOfDateKHR ||
+                result == vk::Result::eSuboptimalKHR ||
+                ptr->isFramebufferResized()) {
+            ptr->setFramebufferResized(false);
             recreateSwapchain();
         } else if (result != vk::Result::eSuccess) {
             throw vkx::VulkanError(result);
@@ -203,7 +207,7 @@ namespace vkx {
     }
 
     void RendererBase::createSwapchain() {
-        swapchain = vkx::Swapchain{device, surface, *window, swapchain};
+        swapchain = vkx::Swapchain{device, surface, window.lock(), swapchain};
 
         renderPass = createRenderPass();
 

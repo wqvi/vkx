@@ -69,15 +69,15 @@ namespace vkx
 		depthImageView = device.createImageViewUnique(*depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
 	}
 
-    Swapchain::Swapchain(const Device &device,
-              const vk::UniqueSurfaceKHR &surface,
-              const SDLWindow &window,
-              const Swapchain &oldSwapchain)
+    Swapchain::Swapchain(Device const &device,
+              vk::UniqueSurfaceKHR const &surface,
+              std::weak_ptr<SDLWindow> const &window,
+              Swapchain const &oldSwapchain)
     {
         SwapchainInfo info{static_cast<vk::PhysicalDevice>(device), surface};
         QueueConfig config{static_cast<vk::PhysicalDevice>(device), surface};
 
-        const auto [width, height] = window.getSize();
+        auto const [width, height] = window.lock()->getSize();
 
         auto surfaceFormat = info.chooseSurfaceFormat();
         auto presentMode = info.choosePresentMode();
