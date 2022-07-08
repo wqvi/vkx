@@ -21,7 +21,7 @@ vkx::ShaderUniformVariable<vk::UniqueSampler>::createDescriptorSetLayoutBinding(
 vkx::RendererBase::RendererBase(std::shared_ptr<SDLWindow> const &window, Profile const &profile)
         : vkx::RendererContext(window, profile),
           window(window) {
-    surface = window->createSurface(instance);
+    surface = vkx::RendererContext::createSurface(window);
 
     device = vkx::Device{getBestPhysicalDevice(surface, profile), surface, profile};
 
