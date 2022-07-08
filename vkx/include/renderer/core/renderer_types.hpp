@@ -7,6 +7,8 @@ namespace vkx {
 
     struct Profile;
 
+    class RendererContext;
+
     class RendererBase;
 
     struct Vertex;
