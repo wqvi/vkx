@@ -27,6 +27,8 @@ namespace vkx {
     template<class T>
     class UniformBuffer;
 
+    class PhysicalDevice;
+
     class Device;
 
     class SingleTimeCommand;
