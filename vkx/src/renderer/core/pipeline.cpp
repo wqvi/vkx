@@ -82,7 +82,7 @@ namespace vkx
         return buffer;
     }
 
-    static vk::UniqueShaderModule barfoo(const vk::UniqueDevice &device, const std::vector<std::uint32_t> &data) {
+    static vk::UniqueShaderModule barfoo(Device const &device, const std::vector<std::uint32_t> &data) {
         vk::ShaderModuleCreateInfo shaderCreateInfo{
                 {},                                                  // flags
                 static_cast<std::uint32_t>(data.size()),             // codeSize
@@ -92,7 +92,7 @@ namespace vkx
         return device->createShaderModuleUnique(shaderCreateInfo);
     }
 
-    vk::UniqueShaderModule Pipeline::createShaderModule(vk::UniqueDevice const &device, std::vector<char> const &code)
+    vk::UniqueShaderModule Pipeline::createShaderModule(Device const &device, std::vector<char> const &code)
     {
         vk::ShaderModuleCreateInfo shaderCreateInfo{
             {},                                                  // flags

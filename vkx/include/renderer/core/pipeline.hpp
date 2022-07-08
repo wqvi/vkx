@@ -27,7 +27,7 @@ namespace vkx
   protected:
     static std::vector<char> readFile(std::string const &filename);
 
-    static vk::UniqueShaderModule createShaderModule(vk::UniqueDevice const &device, std::vector<char> const &code);
+    static vk::UniqueShaderModule createShaderModule(Device const &device, std::vector<char> const &code);
   };
 
   class ComputePipeline : public Pipeline
