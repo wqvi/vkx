@@ -1,6 +1,11 @@
 #include <window.hpp>
 
 #include <vkx_exceptions.hpp>
+#include <renderer/core/context.hpp>
+
+void vkx::SDLWindow::SDL_Deleter::operator()(SDL_Window *ptr) const noexcept {
+    if (ptr != nullptr) SDL_DestroyWindow(ptr);
+}
 
 vkx::SDLWindow::SDLWindow(const char *title, int width, int height) {
     SDL_Window *sdlWindow = SDL_CreateWindow(title,
@@ -13,7 +18,7 @@ vkx::SDLWindow::SDLWindow(const char *title, int width, int height) {
         throw vkx::SDLError();
     }
 
-    window = std::unique_ptr<SDL_Window, SDL_Deleter>(sdlWindow);
+    cWindow = std::unique_ptr<SDL_Window, SDL_Deleter>(sdlWindow);
 
     int sdlErrorCode = SDL_ShowCursor(SDL_DISABLE);
     if (sdlErrorCode < 0) {
@@ -27,22 +32,22 @@ vkx::SDLWindow::SDLWindow(const char *title, int width, int height) {
 }
 
 vkx::SDLWindow::operator const SDL_Window *() const noexcept {
-    return window.get();
+    return cWindow.get();
 }
 
 void vkx::SDLWindow::show() const noexcept {
-    SDL_ShowWindow(window.get());
+    SDL_ShowWindow(cWindow.get());
 }
 
 void vkx::SDLWindow::hide() const noexcept {
-    SDL_HideWindow(window.get());
+    SDL_HideWindow(cWindow.get());
 }
 
 std::pair<int, int> vkx::SDLWindow::getSize() const noexcept {
     int width;
     int height;
 
-    SDL_GetWindowSize(window.get(), &width, &height);
+    SDL_Vulkan_GetDrawableSize(cWindow.get(), &width, &height);
 
     return std::make_pair(width, height);
 }
@@ -50,7 +55,7 @@ std::pair<int, int> vkx::SDLWindow::getSize() const noexcept {
 int vkx::SDLWindow::getWidth() const noexcept {
     int width;
 
-    SDL_GetWindowSize(window.get(), &width, nullptr);
+    SDL_Vulkan_GetDrawableSize(cWindow.get(), &width, nullptr);
 
     return width;
 }
@@ -58,7 +63,7 @@ int vkx::SDLWindow::getWidth() const noexcept {
 int vkx::SDLWindow::getHeight() const noexcept {
     int height;
 
-    SDL_GetWindowSize(window.get(), nullptr, &height);
+    SDL_Vulkan_GetDrawableSize(cWindow.get(), nullptr, &height);
 
     return height;
 }
@@ -86,24 +91,16 @@ void vkx::SDLWindow::handleResizeEvent(const SDL_WindowEvent &event, vkx::Scene 
     scene->onWindowResize(event.data1, event.data2);
 }
 
-vk::UniqueSurfaceKHR vkx::SDLWindow::createSurface(const vk::UniqueInstance &instance) const {
-    VkSurfaceKHR surface = nullptr;
-    if (SDL_Vulkan_CreateSurface(window.get(), *instance, &surface) != SDL_TRUE) {
-        throw vkx::VulkanError("Failure to create VkSurfaceKHR via the SDL2 API.");
-    }
-    return vk::UniqueSurfaceKHR(surface, *instance);
-}
-
 std::vector<const char *> vkx::SDLWindow::getExtensions() const {
     std::uint32_t count = 0;
 
-    if (SDL_Vulkan_GetInstanceExtensions(window.get(), &count, nullptr) != SDL_TRUE) {
+    if (SDL_Vulkan_GetInstanceExtensions(cWindow.get(), &count, nullptr) != SDL_TRUE) {
         throw vkx::SDLError();
     }
 
     std::vector<const char *> extensions(count);
 
-    if (SDL_Vulkan_GetInstanceExtensions(window.get(), &count, extensions.data()) != SDL_TRUE) {
+    if (SDL_Vulkan_GetInstanceExtensions(cWindow.get(), &count, extensions.data()) != SDL_TRUE) {
         throw vkx::SDLError();
     }
 

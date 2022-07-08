@@ -1,23 +1,23 @@
 #pragma once
 
-#include <util/observer.hpp>
-#include <SDL2/SDL.h>
+#include <vkx_types.hpp>
 #include <scene.hpp>
+#include <renderer/core/context.hpp>
 
 namespace vkx {
-    // A SDL window wrapper class
+    // A SDL cWindow wrapper class
     // It has unique ownership over the pointer
     class SDLWindow {
         // Helper class that default initializes thus making the construction of the
         // managed pointer much simpler looking
         struct SDL_Deleter {
-            void operator()(SDL_Window *ptr) const {
-                SDL_DestroyWindow(ptr);
-            }
+            void operator()(SDL_Window *ptr) const noexcept;
         };
 
+        friend vk::UniqueSurfaceKHR
+        RendererContext::createSurface(std::shared_ptr<SDLWindow> const &window) const;
     public:
-        using EventFun = void (*)(SDL_WindowEvent *);
+        using EventFun [[maybe_unused]] = void (*)(SDL_WindowEvent *);
 
         SDLWindow() = default;
 
@@ -25,39 +25,51 @@ namespace vkx {
 
         explicit operator const SDL_Window *() const noexcept;
 
-        void show() const noexcept;
+        void
+        show() const noexcept;
 
-        void hide() const noexcept;
-
-        [[nodiscard]]
-        std::pair<int, int> getSize() const noexcept;
-
-        [[nodiscard]]
-        int getWidth() const noexcept;
+        void
+        hide() const noexcept;
 
         [[nodiscard]]
-        int getHeight() const noexcept;
+        std::pair<int, int>
+        getSize() const noexcept;
 
-        void pollWindowEvent(const SDL_WindowEvent &event, Scene *scene);
+        [[maybe_unused]]
+        [[nodiscard]]
+        int
+        getWidth() const noexcept;
 
-        void handleResizeEvent(const SDL_WindowEvent &event, Scene *scene);
+        [[maybe_unused]]
+        [[nodiscard]]
+        int
+        getHeight() const noexcept;
+
+        void
+        pollWindowEvent(const SDL_WindowEvent &event,
+                        Scene *scene);
+
+        void
+        handleResizeEvent(const SDL_WindowEvent &event,
+                          Scene *scene);
 
         [[nodiscard]]
-        vk::UniqueSurfaceKHR createSurface(const vk::UniqueInstance &instance) const;
+        std::vector<const char *>
+        getExtensions() const;
+
+        void
+        waitForEvents() const;
 
         [[nodiscard]]
-        std::vector<const char *> getExtensions() const;
+        bool
+        isFramebufferResized() const noexcept;
 
-        void waitForEvents() const;
-
-        [[nodiscard]]
-        bool isFramebufferResized() const noexcept;
-
-        void setFramebufferResized(bool flag) noexcept;
+        void
+        setFramebufferResized(bool flag) noexcept;
 
     private:
         bool framebufferResized = false;
-        std::unique_ptr<SDL_Window, SDL_Deleter> window;
+        std::unique_ptr<SDL_Window, SDL_Deleter> cWindow;
     };
 
 }

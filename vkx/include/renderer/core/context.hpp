@@ -2,16 +2,11 @@
 
 #include <renderer/core/renderer_types.hpp>
 #include <renderer/core/profile.hpp>
-#include <window.hpp>
 
 namespace vkx {
     class RendererContext {
     public:
         RendererContext() = default;
-
-        explicit RendererContext(SDL_Window *window);
-
-        explicit RendererContext(SDL_Window *window, const Profile &profile);
 
         explicit RendererContext(std::shared_ptr<SDLWindow> const &window, const Profile &profile);
 
@@ -22,16 +17,21 @@ namespace vkx {
 
         [[nodiscard]]
         vk::PhysicalDevice
-        getBestPhysicalDevice(const vk::UniqueSurfaceKHR &surface, const vkx::Profile &profile) const;
+        getBestPhysicalDevice(const vk::UniqueSurfaceKHR &surface,
+                              const vkx::Profile &profile) const;
 
-    protected:
+        [[nodiscard("Do not discard an integral Vulkan component")]]
+        vk::UniqueSurfaceKHR
+        createSurface(std::shared_ptr<SDLWindow> const &window) const;
+
+    private:
         vk::UniqueInstance instance;
 
-        static std::vector<const char *> getWindowExtensions(SDL_Window *window);
+        static vk::UniqueInstance
+        createInstance(const vk::InstanceCreateInfo &instanceCreateInfo);
 
-        static vk::UniqueInstance createInstance(const vk::InstanceCreateInfo &instanceCreateInfo);
-
-        static std::uint32_t ratePhysicalDevice(const vk::PhysicalDevice &physicalDevice,
+        static std::uint32_t
+        ratePhysicalDevice(const vk::PhysicalDevice &physicalDevice,
                                                 const vk::UniqueSurfaceKHR &surface,
                                                 const Profile &profile);
     };
