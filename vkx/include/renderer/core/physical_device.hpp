@@ -9,6 +9,9 @@
 namespace vkx {
     class PhysicalDevice {
     public:
+        explicit PhysicalDevice(RendererContext const &rendererContext);
 
+    private:
+        vk::PhysicalDevice physicalDevice;
     };
 }

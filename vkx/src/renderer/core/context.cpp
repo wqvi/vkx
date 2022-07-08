@@ -5,7 +5,8 @@
 #include <vkx_exceptions.hpp>
 #include "debug.hpp"
 
-vkx::RendererContext::RendererContext(std::shared_ptr<vkx::SDLWindow> const &window, const Profile &profile) {
+vkx::RendererContext::RendererContext(std::shared_ptr<vkx::SDLWindow> const &window,
+                                      Profile const &profile) {
     // Everything that inherits just has one instance of application info as it is the same for everything
     constexpr static const vk::ApplicationInfo applicationInfo{
             "Voxel Game",
@@ -28,8 +29,8 @@ vkx::RendererContext::RendererContext(std::shared_ptr<vkx::SDLWindow> const &win
 }
 
 std::unordered_map<std::uint32_t, vk::PhysicalDevice>
-vkx::RendererContext::getPhysicalDevices(const vk::UniqueSurfaceKHR &surface,
-                                         const vkx::Profile &profile) const {
+vkx::RendererContext::getPhysicalDevices(vk::UniqueSurfaceKHR const &surface,
+                                         vkx::Profile const &profile) const {
     auto physicalDevices = instance->enumeratePhysicalDevices();
     std::unordered_map<std::uint32_t, vk::PhysicalDevice> ratedPhysicalDevices;
     std::ranges::transform(physicalDevices, std::inserter(ratedPhysicalDevices, ratedPhysicalDevices.begin()),
@@ -41,8 +42,8 @@ vkx::RendererContext::getPhysicalDevices(const vk::UniqueSurfaceKHR &surface,
 }
 
 vk::PhysicalDevice
-vkx::RendererContext::getBestPhysicalDevice(const vk::UniqueSurfaceKHR &surface,
-                                            const Profile &profile) const {
+vkx::RendererContext::getBestPhysicalDevice(vk::UniqueSurfaceKHR const &surface,
+                                            Profile const &profile) const {
     auto physicalDevices = getPhysicalDevices(surface, profile);
 
     auto location = std::ranges::max_element(physicalDevices,
@@ -64,7 +65,7 @@ vk::UniqueSurfaceKHR vkx::RendererContext::createSurface(std::shared_ptr<SDLWind
 }
 
 vk::UniqueInstance
-vkx::RendererContext::createInstance(const vk::InstanceCreateInfo &instanceCreateInfo) {
+vkx::RendererContext::createInstance(vk::InstanceCreateInfo const &instanceCreateInfo) {
 #ifdef DEBUG
     auto messageSeverity =
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
@@ -90,9 +91,9 @@ vkx::RendererContext::createInstance(const vk::InstanceCreateInfo &instanceCreat
 }
 
 std::uint32_t
-vkx::RendererContext::ratePhysicalDevice(const vk::PhysicalDevice &physicalDevice,
-                                         const vk::UniqueSurfaceKHR &surface,
-                                         const Profile &profile) {
+vkx::RendererContext::ratePhysicalDevice(vk::PhysicalDevice const &physicalDevice,
+                                         vk::UniqueSurfaceKHR const &surface,
+                                         Profile const &profile) {
     std::uint32_t rating = 0;
     if (profile.validateExtensions(physicalDevice)) {
         rating++;
