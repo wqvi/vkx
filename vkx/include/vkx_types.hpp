@@ -4,16 +4,8 @@
 
 #pragma once
 
+#include <renderer/core/renderer_types.hpp>
+
 namespace vkx {
-    struct GlobalConfiguration;
 
-    class Application;
-
-    class SDLWindow;
-
-    struct Scene;
-
-    class SDLError;
-
-    struct Node;
 }
