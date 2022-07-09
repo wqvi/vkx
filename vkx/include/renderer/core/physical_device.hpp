@@ -9,7 +9,9 @@
 namespace vkx {
     class PhysicalDevice {
     public:
-        explicit PhysicalDevice(RendererContext const &rendererContext);
+        explicit PhysicalDevice(RendererContext const &rendererContext,
+                                vk::UniqueSurfaceKHR const &surface,
+                                vkx::Profile const &profile);
 
     private:
         vk::PhysicalDevice physicalDevice;
