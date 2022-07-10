@@ -28,8 +28,6 @@ namespace vkx {
     template<class T>
     class Allocable;
 
-    class Buffer;
-
     class BufferBase;
 
     class VertexBuffer;
