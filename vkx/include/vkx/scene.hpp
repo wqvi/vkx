@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <vkx_types.hpp>
-#include <renderer/core/renderer_types.hpp>
-#include <renderer/viewport.hpp>
-#include <camera.hpp>
+#include <vkx/vkx_types.hpp>
+#include <vkx/renderer/core/renderer_types.hpp>
+#include <vkx/renderer/viewport.hpp>
+#include <vkx/camera.hpp>
 
 namespace vkx {
     struct Scene {

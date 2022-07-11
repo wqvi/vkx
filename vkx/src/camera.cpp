@@ -1,4 +1,4 @@
-#include "camera.hpp"
+#include <vkx/camera.hpp>
 
 #include <SDL2/SDL_keycode.h>
 

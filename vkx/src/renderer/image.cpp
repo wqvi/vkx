@@ -1,4 +1,4 @@
-#include <renderer/image.hpp>
+#include <vkx/renderer/image.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

@@ -1,7 +1,7 @@
-#include <voxels/greedy_mask.hpp>
+#include <vkx/voxels/greedy_mask.hpp>
 
-#include <voxels/voxel_matrix.hpp>
-#include <voxels/voxel_mask.hpp>
+#include <vkx/voxels/voxel_matrix.hpp>
+#include <vkx/voxels/voxel_mask.hpp>
 
 namespace vkx
 {

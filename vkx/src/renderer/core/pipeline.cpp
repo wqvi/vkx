@@ -1,4 +1,4 @@
-#include <renderer/core/pipeline.hpp>
+#include <vkx/renderer/core/pipeline.hpp>
 
 vkx::PipelineShader::PipelineShader(const Device &device, const std::string &file) {
     auto code = readFile(file);

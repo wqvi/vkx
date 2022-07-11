@@ -1,7 +1,7 @@
 #pragma once
 
-#include <renderer/core/allocable.hpp>
-#include <renderer/core/device.hpp>
+#include "vkx/renderer/core/allocable.hpp"
+#include "vkx/renderer/core/device.hpp"
 
 namespace vkx
 {

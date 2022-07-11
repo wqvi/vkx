@@ -1,6 +1,6 @@
 #pragma once
 
-#include <renderer/image.hpp>
+#include "image.hpp"
 
 namespace vkx
 {

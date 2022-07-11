@@ -1,4 +1,4 @@
-#include <renderer/core/profile.hpp>
+#include <vkx/renderer/core/profile.hpp>
 
 namespace vkx {
     [[maybe_unused]] Profile::Profile(const std::vector<char const *> &requestedLayers,

@@ -1,11 +1,11 @@
-#include <renderer/core/renderer_base.hpp>
+#include <vkx/renderer/core/renderer_base.hpp>
 
-#include <renderer/core/swapchain_info.hpp>
-#include <renderer/core/queue_config.hpp>
-#include <renderer/core/commands.hpp>
-#include <renderer/uniform_buffer.hpp>
-#include <renderer/model.hpp>
-#include <vkx_exceptions.hpp>
+#include <vkx/renderer/core/swapchain_info.hpp>
+#include <vkx/renderer/core/queue_config.hpp>
+#include <vkx/renderer/core/commands.hpp>
+#include <vkx/renderer/uniform_buffer.hpp>
+#include <vkx/renderer/model.hpp>
+#include <vkx/vkx_exceptions.hpp>
 
 template<>
 vkx::ShaderUniformVariable<vk::UniqueSampler>::ShaderUniformVariable(vk::UniqueSampler &&variable)

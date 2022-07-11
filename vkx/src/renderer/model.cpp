@@ -1,4 +1,4 @@
-#include <renderer/model.hpp>
+#include <vkx/renderer/model.hpp>
 
 namespace vkx {
     Mesh::Mesh(std::vector<Vertex> const &vertices, std::vector<std::uint32_t> const &indices, Device const &device)

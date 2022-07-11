@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <renderer/core/renderer_types.hpp>
+#include <vkx/renderer/core/renderer_types.hpp>
 
 namespace vkx {
 

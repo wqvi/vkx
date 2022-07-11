@@ -1,4 +1,4 @@
-#include "voxels/voxels.hpp"
+#include <vkx/voxels/voxels.hpp>
 
 #include <iostream>
 

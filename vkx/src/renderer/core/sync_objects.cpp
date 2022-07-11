@@ -2,8 +2,8 @@
 // Created by december on 7/7/22.
 //
 
-#include <renderer/core/sync_objects.hpp>
-#include <renderer/core/device.hpp>
+#include <vkx/renderer/core/sync_objects.hpp>
+#include <vkx/renderer/core/device.hpp>
 
 vkx::SyncObjects::SyncObjects(Device const &device)
         : imageAvailableSemaphore(device->createSemaphoreUnique({})),

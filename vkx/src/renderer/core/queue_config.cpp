@@ -1,6 +1,6 @@
-#include <renderer/core/queue_config.hpp>
+#include <vkx/renderer/core/queue_config.hpp>
 
-#include <renderer/core/device.hpp>
+#include <vkx/renderer/core/device.hpp>
 
 namespace vkx
 {

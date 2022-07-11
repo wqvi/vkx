@@ -1,4 +1,4 @@
-#include <renderer/core/swapchain_info.hpp>
+#include <vkx/renderer/core/swapchain_info.hpp>
 
 namespace vkx
 {

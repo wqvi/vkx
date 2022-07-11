@@ -1,5 +1,5 @@
-#include <renderer/texture.hpp>
-#include <renderer/core/device.hpp>
+#include <vkx/renderer/texture.hpp>
+#include <vkx/renderer/core/device.hpp>
 
 namespace vkx
 {

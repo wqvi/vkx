@@ -1,7 +1,7 @@
-#include <renderer/core/commands.hpp>
+#include <vkx/renderer/core/commands.hpp>
 
-#include <renderer/buffer.hpp>
-#include <renderer/core/device.hpp>
+#include <vkx/renderer/buffer.hpp>
+#include <vkx/renderer/core/device.hpp>
 
 namespace vkx
 {

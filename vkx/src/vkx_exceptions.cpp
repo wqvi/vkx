@@ -2,7 +2,7 @@
 // Created by december on 6/30/22.
 //
 
-#include <vkx_exceptions.hpp>
+#include <vkx/vkx_exceptions.hpp>
 
 const char *vkx::SDLError::what() const noexcept {
     return SDL_GetError();

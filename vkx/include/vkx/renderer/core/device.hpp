@@ -1,9 +1,9 @@
 #pragma once
 
-#include <renderer/core/renderer_types.hpp>
-#include <renderer/core/profile.hpp>
-#include <renderer/core/vertex.hpp>
-#include <renderer/core/queue_config.hpp>
+#include "renderer_types.hpp"
+#include "profile.hpp"
+#include "vertex.hpp"
+#include "queue_config.hpp"
 #include "vk_mem_alloc.h"
 
 namespace vkx {

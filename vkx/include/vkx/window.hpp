@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vkx_types.hpp>
-#include <scene.hpp>
-#include <renderer/core/context.hpp>
+#include <vkx/vkx_types.hpp>
+#include <vkx/scene.hpp>
+#include <vkx/renderer/core/context.hpp>
 
 namespace vkx {
     // A SDL c Window wrapper class

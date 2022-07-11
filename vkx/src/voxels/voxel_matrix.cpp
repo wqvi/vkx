@@ -1,5 +1,5 @@
-#include <voxels/voxel_matrix.hpp>
-#include <voxels/voxel.hpp>
+#include <vkx/voxels/voxel_matrix.hpp>
+#include <vkx/voxels/voxel.hpp>
 
 namespace vkx
 {

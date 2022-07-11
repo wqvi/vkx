@@ -1,7 +1,7 @@
 #pragma once
 
-#include <voxels/voxel_types.hpp>
-#include <voxels/voxel.hpp>
+#include "voxel_types.hpp"
+#include "voxel.hpp"
 
 namespace vkx
 {

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <macros.hpp>
-#include <renderer/core/swapchain.hpp>
-#include <renderer/core/pipeline.hpp>
-#include <camera.hpp>
-#include <renderer/core/commands.hpp>
-#include <renderer/core/context.hpp>
-#include <renderer/texture.hpp>
-#include <renderer/core/sync_objects.hpp>
+#include <vkx/macros.hpp>
+#include <vkx/renderer/core/swapchain.hpp>
+#include <vkx/renderer/core/pipeline.hpp>
+#include <vkx/camera.hpp>
+#include <vkx/renderer/core/commands.hpp>
+#include <vkx/renderer/core/context.hpp>
+#include <vkx/renderer/texture.hpp>
+#include <vkx/renderer/core/sync_objects.hpp>
 
 namespace vkx {
     template<class T>

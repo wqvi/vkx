@@ -1,7 +1,7 @@
 #pragma once
 
-#include <voxels/voxel_mask.hpp>
-#include <util/multi_dimensional.hpp>
+#include <vkx/voxels/voxel_mask.hpp>
+#include <vkx/util/multi_dimensional.hpp>
 
 namespace vkx
 {

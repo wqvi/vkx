@@ -1,6 +1,6 @@
 #pragma once
 
-#include <node.hpp>
+#include <vkx/node.hpp>
 
 /* TO BE FIXED BUT DON'T TOUCH FOR NOW! */
 namespace vkx {

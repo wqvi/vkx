@@ -1,11 +1,10 @@
 #ifdef DEBUG
 
-#include <debug.hpp>
+#include <vkx/debug.hpp>
 #include <iostream>
 #include <vulkan/vulkan.h>
 
-extern "C"
-{
+extern "C" {
 VkBool32 vkDebugCallback([[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                          [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
                          [[maybe_unused]] const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,

@@ -2,7 +2,7 @@
 // Created by december on 6/21/22.
 //
 
-#include <vkx.hpp>
+#include <vkx/vkx.hpp>
 #include <iostream>
 
 const std::uint32_t WIDTH = 800;

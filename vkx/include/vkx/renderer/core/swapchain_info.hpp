@@ -1,6 +1,6 @@
 #pragma once
 
-#include <window.hpp>
+#include <vkx/window.hpp>
 
 namespace vkx
 {

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <renderer/buffer.hpp>
-#include <renderer/image.hpp>
-#include <renderer/uniform_buffer.hpp>
-#include <node.hpp>
+#include <vkx/renderer/buffer.hpp>
+#include <vkx/renderer/image.hpp>
+#include <vkx/renderer/uniform_buffer.hpp>
+#include <vkx/node.hpp>
 
 namespace vkx {
     class Mesh {

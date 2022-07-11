@@ -1,9 +1,9 @@
-#include <renderer/core/context.hpp>
-#include <renderer/core/profile.hpp>
-#include <renderer/core/queue_config.hpp>
-#include <renderer/core/swapchain_info.hpp>
-#include <vkx_exceptions.hpp>
-#include "debug.hpp"
+#include <vkx/renderer/core/context.hpp>
+#include <vkx/renderer/core/profile.hpp>
+#include <vkx/renderer/core/queue_config.hpp>
+#include <vkx/renderer/core/swapchain_info.hpp>
+#include <vkx/vkx_exceptions.hpp>
+#include <vkx/debug.hpp>
 
 vkx::RendererContext::RendererContext(std::shared_ptr<vkx::SDLWindow> const &window,
                                       Profile const &profile) {

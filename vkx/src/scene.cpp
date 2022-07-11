@@ -2,7 +2,7 @@
 // Created by december on 7/5/22.
 //
 
-#include <scene.hpp>
+#include <vkx/scene.hpp>
 
 vkx::Viewport &vkx::Scene::getViewport() {
     return viewport;

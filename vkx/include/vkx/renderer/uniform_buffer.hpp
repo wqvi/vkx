@@ -1,6 +1,6 @@
 #pragma once
 
-#include <renderer/core/allocable.hpp>
+#include "vkx/renderer/core/allocable.hpp"
 
 namespace vkx
 {

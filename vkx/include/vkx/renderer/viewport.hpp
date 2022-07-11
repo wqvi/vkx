@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <node.hpp>
+#include <vkx/node.hpp>
 
 namespace vkx {
     class Viewport : public Node {

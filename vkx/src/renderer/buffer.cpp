@@ -1,6 +1,6 @@
-#include <renderer/buffer.hpp>
+#include <vkx/renderer/buffer.hpp>
 
-#include <renderer/core/device.hpp>
+#include <vkx/renderer/core/device.hpp>
 
 vkx::BufferBase::operator vk::Buffer const &() const noexcept {
     return buffer.get();

@@ -1,6 +1,6 @@
-#include <window.hpp>
+#include <vkx/window.hpp>
 
-#include <vkx_exceptions.hpp>
+#include <vkx/vkx_exceptions.hpp>
 
 void vkx::SDLWindow::SDLDeleter::operator()(SDL_Window *ptr) const noexcept {
     if (ptr != nullptr) SDL_DestroyWindow(ptr);

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <renderer/core/renderer_types.hpp>
+#include "renderer_types.hpp"
 
 namespace vkx {
     class PhysicalDevice {

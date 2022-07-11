@@ -1,9 +1,9 @@
-#include <renderer/core/device.hpp>
+#include <vkx/renderer/core/device.hpp>
 
-#include <renderer/core/swapchain_info.hpp>
-#include <renderer/core/commands.hpp>
-#include <renderer/core/sync_objects.hpp>
-#include <vkx_exceptions.hpp>
+#include <vkx/renderer/core/swapchain_info.hpp>
+#include <vkx/renderer/core/commands.hpp>
+#include <vkx/renderer/core/sync_objects.hpp>
+#include <vkx/vkx_exceptions.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"

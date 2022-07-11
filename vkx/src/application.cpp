@@ -2,7 +2,7 @@
 // Created by december on 6/21/22.
 //
 
-#include <application.hpp>
+#include <vkx/application.hpp>
 
 vkx::Application::Application(const vkx::GlobalConfiguration &config)
     : config(config) {

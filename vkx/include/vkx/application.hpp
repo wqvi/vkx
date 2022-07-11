@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <renderer/core/renderer_base.hpp>
-#include <scene.hpp>
-#include <renderer/uniform_buffer.hpp>
-#include <renderer/model.hpp>
+#include <vkx/renderer/core/renderer_base.hpp>
+#include <vkx/scene.hpp>
+#include <vkx/renderer/uniform_buffer.hpp>
+#include <vkx/renderer/model.hpp>
 
 namespace vkx {
     struct GlobalConfiguration {

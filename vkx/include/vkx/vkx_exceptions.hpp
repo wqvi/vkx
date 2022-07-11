@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <vkx_types.hpp>
-#include <renderer/core/renderer_types.hpp>
+#include <vkx/vkx_types.hpp>
+#include <vkx/renderer/core/renderer_types.hpp>
 
 namespace vkx {
     class SDLError : public std::exception {
