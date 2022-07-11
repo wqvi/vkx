@@ -10,7 +10,7 @@ namespace vkx {
     class SDLWindow {
         // Helper class that default initializes thus making the construction of the
         // managed pointer much simpler looking
-        struct SDL_Deleter {
+        struct SDLDeleter {
             void operator()(SDL_Window *ptr) const noexcept;
         };
 
@@ -85,7 +85,7 @@ namespace vkx {
 
     private:
         bool framebufferResized = false;
-        std::unique_ptr<SDL_Window, SDL_Deleter> cWindow;
+        std::unique_ptr<SDL_Window, SDLDeleter> cWindow;
     };
 
 }

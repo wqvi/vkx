@@ -2,7 +2,7 @@
 
 #include <vkx_exceptions.hpp>
 
-void vkx::SDLWindow::SDL_Deleter::operator()(SDL_Window *ptr) const noexcept {
+void vkx::SDLWindow::SDLDeleter::operator()(SDL_Window *ptr) const noexcept {
     if (ptr != nullptr) SDL_DestroyWindow(ptr);
 }
 
@@ -20,7 +20,8 @@ vkx::SDLWindow::SDLWindow(char const *title, int width, int height) {
     }
 
     // Creates valid unique window wrapper
-    cWindow = std::unique_ptr<SDL_Window, SDL_Deleter>(sdlWindow);
+    // Does not use std::make_unique due to custom deleter
+    cWindow = std::unique_ptr<SDL_Window, SDLDeleter>(sdlWindow);
 
     // Hides the cursor and locks it within the window
     // This should eventually only happen when in the first person camera
