@@ -36,7 +36,9 @@
 *.xml
 clion-log.*
 cmake-build-debug/
+cmake-build-debug-coverage/
 cmake-build-release/
+cmake-build-release-coverage/
 .idea/
 
 # Laziness
