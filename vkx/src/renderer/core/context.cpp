@@ -64,6 +64,10 @@ vk::UniqueSurfaceKHR vkx::RendererContext::createSurface(std::shared_ptr<SDLWind
     return vk::UniqueSurfaceKHR(surface, *instance);
 }
 
+vk::UniqueInstance const &vkx::RendererContext::getInstance() const noexcept {
+    return instance;
+}
+
 vk::UniqueInstance
 vkx::RendererContext::createInstance(vk::InstanceCreateInfo const &instanceCreateInfo) {
 #ifdef DEBUG

@@ -10,12 +10,12 @@ namespace vkx {
         explicit RendererContext(std::shared_ptr<SDLWindow> const &window,
                                  Profile const &profile);
 
-        [[nodiscard]]
+        [[nodiscard("Do not discard integral Vulkan components")]]
         std::unordered_map<std::uint32_t, vk::PhysicalDevice>
         getPhysicalDevices(vk::UniqueSurfaceKHR const &surface,
                            vkx::Profile const &profile) const;
 
-        [[nodiscard]]
+        [[nodiscard("Do not discard an integral Vulkan component")]]
         vk::PhysicalDevice
         getBestPhysicalDevice(vk::UniqueSurfaceKHR const &surface,
                               vkx::Profile const &profile) const;
@@ -23,6 +23,11 @@ namespace vkx {
         [[nodiscard("Do not discard an integral Vulkan component")]]
         vk::UniqueSurfaceKHR
         createSurface(std::shared_ptr<SDLWindow> const &window) const;
+
+    protected:
+        [[nodiscard("Do not discard an integral Vulkan component")]]
+        vk::UniqueInstance const &
+        getInstance() const noexcept;
 
     private:
         vk::UniqueInstance instance;
