@@ -49,6 +49,7 @@ vkx::Device::Device(vk::UniqueInstance const &instance,
     queues = Queues(*this, queueConfig);
 
     VmaAllocatorCreateInfo allocatorCreateInfo{};
+    allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT; // Allow multithreading memory
     allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_0;
     allocatorCreateInfo.physicalDevice = physicalDevice;
     allocatorCreateInfo.device = *device;
