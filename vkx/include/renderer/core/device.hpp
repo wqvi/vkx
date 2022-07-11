@@ -4,13 +4,21 @@
 #include <renderer/core/profile.hpp>
 #include <renderer/core/vertex.hpp>
 #include <renderer/core/queue_config.hpp>
+#include "vk_mem_alloc.h"
 
 namespace vkx {
     class Device {
+        // Helper class that default initializes thus making the construction of the
+        // managed pointer much simpler looking
+        struct VmaAllocatorDeleter {
+            void operator()(VmaAllocator allocator) const noexcept;
+        };
     public:
         Device() = default;
 
-        explicit Device(vk::PhysicalDevice const &physicalDevice, vk::UniqueSurfaceKHR const &surface,
+        explicit Device(vk::UniqueInstance const &instance,
+                        vk::PhysicalDevice const &physicalDevice,
+                        vk::UniqueSurfaceKHR const &surface,
                         Profile const &profile);
 
         explicit operator vk::PhysicalDevice const &() const;
@@ -127,5 +135,7 @@ namespace vkx {
         vk::PhysicalDeviceProperties properties;
 
         Queues queues;
+
+        std::unique_ptr<VmaAllocator_T, VmaAllocatorDeleter> memoryAllocator;
     };
 }

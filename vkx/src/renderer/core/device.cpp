@@ -5,10 +5,18 @@
 #include <renderer/core/sync_objects.hpp>
 #include <vkx_exceptions.hpp>
 
-vkx::Device::Device(vk::PhysicalDevice const &physicalDevice, vk::UniqueSurfaceKHR const &surface,
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
+
+void vkx::Device::VmaAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
+    vmaDestroyAllocator(allocator);
+}
+
+vkx::Device::Device(vk::UniqueInstance const &instance,
+                    vk::PhysicalDevice const &physicalDevice,
+                    vk::UniqueSurfaceKHR const &surface,
                     Profile const &profile)
-        : physicalDevice(physicalDevice) {
-    properties = physicalDevice.getProperties();
+        : physicalDevice(physicalDevice), properties(physicalDevice.getProperties()) {
 
     QueueConfig queueConfig{physicalDevice, surface};
     if (!queueConfig.isComplete()) {
@@ -39,6 +47,19 @@ vkx::Device::Device(vk::PhysicalDevice const &physicalDevice, vk::UniqueSurfaceK
     commandPool = device->createCommandPoolUnique(commandPoolInfo);
 
     queues = Queues(*this, queueConfig);
+
+    VmaAllocatorCreateInfo allocatorCreateInfo{};
+    allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+    allocatorCreateInfo.physicalDevice = physicalDevice;
+    allocatorCreateInfo.device = *device;
+    allocatorCreateInfo.instance = *instance;
+
+    VmaAllocator allocator;
+    if (vmaCreateAllocator(&allocatorCreateInfo, &allocator) != VK_SUCCESS) {
+        throw vkx::VulkanError("Failure to create vulkan memory allocator.");
+    }
+
+    memoryAllocator = std::unique_ptr<VmaAllocator_T, VmaAllocatorDeleter>(allocator);
 }
 
 vkx::Device::operator vk::PhysicalDevice const &() const {
