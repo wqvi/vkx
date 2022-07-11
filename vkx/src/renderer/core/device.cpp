@@ -68,11 +68,11 @@ vkx::Device::operator vk::PhysicalDevice const &() const {
 }
 
 vkx::Device::operator vk::Device const &() const {
-    return *device;
+    return device.get();
 }
 
 vkx::Device::operator vk::CommandPool const &() const {
-    return *commandPool;
+    return commandPool.get();
 }
 
 vkx::Device::operator vk::UniqueCommandPool const &() const {
