@@ -23,7 +23,7 @@ namespace vkx {
     public:
         Application() = delete;
 
-        explicit Application(const GlobalConfiguration &config);
+        explicit Application(const GlobalConfiguration &configuration);
 
         ~Application();
 
