@@ -8,8 +8,28 @@
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
-void vkx::Device::VmaAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
+
+vkx::Device::AllocatorWrapper::AllocatorWrapper(vk::UniqueInstance const &instance,
+                                                vk::PhysicalDevice const &physicalDevice,
+                                                vk::UniqueDevice const &device) {
+    VmaAllocatorCreateInfo allocatorCreateInfo{};
+    allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT; // Allow multithreading memory
+    allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+    allocatorCreateInfo.physicalDevice = physicalDevice;
+    allocatorCreateInfo.device = *device;
+    allocatorCreateInfo.instance = *instance;
+
+    if (vmaCreateAllocator(&allocatorCreateInfo, &allocator) != VK_SUCCESS) {
+        throw vkx::VulkanError("Failure to create vulkan memory allocator.");
+    }
+}
+
+vkx::Device::AllocatorWrapper::~AllocatorWrapper() {
     vmaDestroyAllocator(allocator);
+}
+
+vkx::Device::AllocatorWrapper::operator VmaAllocator() const {
+    return allocator;
 }
 
 vkx::Device::Device(vk::UniqueInstance const &instance,
@@ -48,19 +68,7 @@ vkx::Device::Device(vk::UniqueInstance const &instance,
 
     queues = Queues(*this, queueConfig);
 
-    VmaAllocatorCreateInfo allocatorCreateInfo{};
-    allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT; // Allow multithreading memory
-    allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_0;
-    allocatorCreateInfo.physicalDevice = physicalDevice;
-    allocatorCreateInfo.device = *device;
-    allocatorCreateInfo.instance = *instance;
-
-    VmaAllocator allocator;
-    if (vmaCreateAllocator(&allocatorCreateInfo, &allocator) != VK_SUCCESS) {
-        throw vkx::VulkanError("Failure to create vulkan memory allocator.");
-    }
-
-    memoryAllocator = std::unique_ptr<VmaAllocator_T, VmaAllocatorDeleter>(allocator);
+    allocator = std::make_unique<AllocatorWrapper>(instance, physicalDevice, device);
 }
 
 vkx::Device::operator vk::PhysicalDevice const &() const {

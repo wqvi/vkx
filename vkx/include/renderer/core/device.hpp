@@ -10,8 +10,18 @@ namespace vkx {
     class Device {
         // Helper class that default initializes thus making the construction of the
         // managed pointer much simpler looking
-        struct VmaAllocatorDeleter {
-            void operator()(VmaAllocator allocator) const noexcept;
+        class AllocatorWrapper {
+        public:
+            AllocatorWrapper(vk::UniqueInstance const &instance,
+                             vk::PhysicalDevice const &physicalDevice,
+                             vk::UniqueDevice const &device);
+
+            ~AllocatorWrapper();
+
+            explicit operator VmaAllocator() const;
+
+        private:
+            VmaAllocator allocator = nullptr;
         };
     public:
         Device() = default;
@@ -128,6 +138,8 @@ namespace vkx {
         vk::UniqueSampler
         createTextureSamplerUnique() const;
 
+        // TODO fix this violation
+        std::unique_ptr<AllocatorWrapper> allocator;
     private:
         vk::PhysicalDevice physicalDevice;
         vk::UniqueDevice device;
@@ -135,7 +147,5 @@ namespace vkx {
         vk::PhysicalDeviceProperties properties;
 
         Queues queues;
-
-        std::unique_ptr<VmaAllocator_T, VmaAllocatorDeleter> memoryAllocator;
     };
 }
