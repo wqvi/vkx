@@ -23,10 +23,15 @@ vkx::RendererBase::RendererBase(std::shared_ptr<SDLWindow> const &window, Profil
           window(window) {
     surface = vkx::RendererContext::createSurface(window);
 
-    device = vkx::Device{vkx::RendererContext::getInstance(),
-                         getBestPhysicalDevice(surface, profile),
-                         surface,
-                         profile};
+    device = std::make_unique<vkx::Device>(vkx::RendererContext::getInstance(),
+                                           vkx::RendererContext::getBestPhysicalDevice(surface, profile),
+                                           surface,
+                                           profile);
+
+//    device = vkx::Device{vkx::RendererContext::getInstance(),
+//                         getBestPhysicalDevice(surface, profile),
+//                         surface,
+//                         profile};
 
     createSwapchain();
 
@@ -73,13 +78,13 @@ vkx::RendererBase::RendererBase(std::shared_ptr<SDLWindow> const &window, Profil
             bindings // binding
     };
 
-    descriptorSetLayout = device->createDescriptorSetLayoutUnique(layoutInfo);
+    descriptorSetLayout = (*device)->createDescriptorSetLayoutUnique(layoutInfo);
 
-    graphicsPipeline = GraphicsPipeline{device, swapchain.extent, renderPass, descriptorSetLayout};
+    graphicsPipeline = GraphicsPipeline{*device, swapchain.extent, renderPass, descriptorSetLayout};
 
-    drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
+    drawCommands = device->createDrawCommands(MAX_FRAMES_IN_FLIGHT);
 
-    syncObjects = SyncObjects::createSyncObjects(device);
+    syncObjects = SyncObjects::createSyncObjects(*device);
 
     createDescriptorPool();
 }
@@ -88,10 +93,10 @@ namespace vkx {
     void RendererBase::recreateSwapchain() {
         window.lock()->waitForEvents();
 
-        device->waitIdle();
+        (*device)->waitIdle();
 
         createSwapchain();
-        graphicsPipeline = GraphicsPipeline{device, swapchain.extent, renderPass, descriptorSetLayout};
+        graphicsPipeline = GraphicsPipeline{*device, swapchain.extent, renderPass, descriptorSetLayout};
     }
 
     void RendererBase::createDescriptorPool() {
@@ -111,7 +116,7 @@ namespace vkx {
                 poolSizes             // poolSizes
         };
 
-        descriptorPool = device->createDescriptorPoolUnique(poolInfo);
+        descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
     }
 
     void RendererBase::createDescriptorSets(
@@ -125,7 +130,7 @@ namespace vkx {
                 layouts             // setLayouts
         };
 
-        descriptorSets = device->allocateDescriptorSets(allocInfo);
+        descriptorSets = (*device)->allocateDescriptorSets(allocInfo);
 
         for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             std::array<vk::WriteDescriptorSet, 4> descriptorWrites{
@@ -135,7 +140,7 @@ namespace vkx {
                     materialBuffers[i].createWriteDescriptorSet(descriptorSets[i], 3),
             };
 
-            device->updateDescriptorSets(descriptorWrites, {});
+            (*device)->updateDescriptorSets(descriptorWrites, {});
         }
     }
 
@@ -146,8 +151,8 @@ namespace vkx {
                                  IndexBuffer const &indexBuffer,
                                  std::uint32_t indexCount,
                                  std::uint32_t &currentIndexFrame) {
-        static_cast<void>(device->waitForFences(*syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));
-        auto [result, imageIndex] = swapchain.acquireNextImage(device,
+        static_cast<void>((*device)->waitForFences(*syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));
+        auto [result, imageIndex] = swapchain.acquireNextImage(*device,
                                                                syncObjects[currentIndexFrame].imageAvailableSemaphore);
 
         if (result == vk::Result::eErrorOutOfDateKHR) {
@@ -161,7 +166,7 @@ namespace vkx {
         lightBuffer.mapMemory();
         materialBuffer.mapMemory();
 
-        device->resetFences(*syncObjects[currentIndexFrame].inFlightFence);
+        (*device)->resetFences(*syncObjects[currentIndexFrame].inFlightFence);
 
         drawCommands[currentIndexFrame].record(*renderPass, *swapchain.framebuffers[imageIndex], swapchain.extent,
                                                *graphicsPipeline.pipeline, *graphicsPipeline.layout,
@@ -171,12 +176,12 @@ namespace vkx {
         std::vector<vk::CommandBuffer> commandBuffers{
                 static_cast<vk::CommandBuffer>(drawCommands[currentIndexFrame])
         };
-        device.submit(commandBuffers,
+        device->submit(commandBuffers,
                       *syncObjects[currentIndexFrame].imageAvailableSemaphore,
                       *syncObjects[currentIndexFrame].renderFinishedSemaphore,
                       *syncObjects[currentIndexFrame].inFlightFence);
 
-        result = device.present(swapchain, imageIndex, *syncObjects[currentIndexFrame].renderFinishedSemaphore);
+        result = device->present(swapchain, imageIndex, *syncObjects[currentIndexFrame].renderFinishedSemaphore);
 
         if (auto ptr = window.lock();
                 result == vk::Result::eErrorOutOfDateKHR ||
@@ -196,11 +201,11 @@ namespace vkx {
     }
 
     void RendererBase::createSwapchain() {
-        swapchain = vkx::Swapchain{device, surface, window.lock(), swapchain};
+        swapchain = vkx::Swapchain{*device, surface, window.lock(), swapchain};
 
         renderPass = createRenderPass();
 
-        swapchain.createFramebuffers(device, renderPass);
+        swapchain.createFramebuffers(*device, renderPass);
     }
 
     vk::UniqueRenderPass RendererBase::createRenderPass(vk::AttachmentLoadOp loadOp) const {
@@ -223,7 +228,7 @@ namespace vkx {
 
         vk::AttachmentDescription depthAttachment{
                 {},                                             // flags
-                device.findDepthFormat(),                       // format
+                device->findDepthFormat(),                       // format
                 vk::SampleCountFlagBits::e1,                    // samples
                 vk::AttachmentLoadOp::eClear,                   // loadOp
                 vk::AttachmentStoreOp::eDontCare,               // storeOp
@@ -273,19 +278,19 @@ namespace vkx {
                 dependency             // dependencies
         };
 
-        return device->createRenderPassUnique(renderPassInfo);
+        return (*device)->createRenderPassUnique(renderPassInfo);
     }
 }
 
 vkx::Mesh vkx::RendererBase::allocateMesh(const std::vector<Vertex> &vertices,
                                           const std::vector<std::uint32_t> &indices) const {
-    return vkx::Mesh{vertices, indices, device};
+    return vkx::Mesh{vertices, indices, *device};
 }
 
 vkx::Texture vkx::RendererBase::allocateTexture(const std::string &textureFile) const {
-    return vkx::Texture{textureFile, device};
+    return vkx::Texture{textureFile, *device};
 }
 
 void vkx::RendererBase::waitIdle() const {
-    device->waitIdle();
+    (*device)->waitIdle();
 }

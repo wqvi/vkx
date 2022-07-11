@@ -63,7 +63,7 @@ namespace vkx {
             std::vector<vkx::UniformBuffer<T>> buffers;
             buffers.reserve(MAX_FRAMES_IN_FLIGHT);
             for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-                buffers.emplace_back(value, device);
+                buffers.emplace_back(value, *device);
             }
             return buffers;
         }
@@ -80,7 +80,7 @@ namespace vkx {
     private:
         std::weak_ptr<SDLWindow> window;
         vk::UniqueSurfaceKHR surface;
-        Device device;
+        std::unique_ptr<Device> device;
 
         Swapchain swapchain;
 
