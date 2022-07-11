@@ -2,21 +2,9 @@
 
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
-#include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 #include <vkx/renderer/model.hpp>
 #include <vkx/vkx_exceptions.hpp>
-
-template<>
-vkx::ShaderUniformVariable<vk::UniqueSampler>::ShaderUniformVariable(vk::UniqueSampler &&variable)
-        : variable(std::move(variable)) {}
-
-template<>
-vk::DescriptorSetLayoutBinding
-vkx::ShaderUniformVariable<vk::UniqueSampler>::createDescriptorSetLayoutBinding(std::uint32_t binding,
-                                                                                vk::ShaderStageFlagBits flags) const {
-    return vk::DescriptorSetLayoutBinding{binding, vk::DescriptorType::eCombinedImageSampler, 1, flags};
-}
 
 vkx::RendererBase::RendererBase(std::shared_ptr<SDLWindow> const &window, Profile const &profile)
         : vkx::RendererContext(window, profile),
@@ -28,43 +16,38 @@ vkx::RendererBase::RendererBase(std::shared_ptr<SDLWindow> const &window, Profil
                                            surface,
                                            profile);
 
-//    device = vkx::Device{vkx::RendererContext::getInstance(),
-//                         getBestPhysicalDevice(surface, profile),
-//                         surface,
-//                         profile};
-
     createSwapchain();
 
     vk::DescriptorSetLayoutBinding uboLayoutBinding{
-            0,                                  // binding
-            vk::DescriptorType::eUniformBuffer, // descriptorType
-            1,                                  // descriptorCount
-            vk::ShaderStageFlagBits::eVertex,   // stageFlags
-            nullptr                             // pImmutableSamplers
+            0,
+            vk::DescriptorType::eUniformBuffer,
+            1,
+            vk::ShaderStageFlagBits::eVertex,
+            nullptr
     };
 
     vk::DescriptorSetLayoutBinding samplerLayoutBinding{
-            1,                                         // binding
-            vk::DescriptorType::eCombinedImageSampler, // descriptorType
-            1,                                         // descriptorCount
-            vk::ShaderStageFlagBits::eFragment,        // stageFlags
-            nullptr                                    // pImmutableSamplers
+            1,
+            vk::DescriptorType::eCombinedImageSampler,
+            1,
+            vk::ShaderStageFlagBits::eFragment,
+            nullptr
     };
 
     vk::DescriptorSetLayoutBinding lightLayoutBinding{
-            2,                                  // binding
-            vk::DescriptorType::eUniformBuffer, // descriptorType
-            1,                                  // descriptorCount
-            vk::ShaderStageFlagBits::eFragment, // stageFlags
-            nullptr                             // pImmutableSamplers
+            2,
+            vk::DescriptorType::eUniformBuffer,
+            1,
+            vk::ShaderStageFlagBits::eFragment,
+            nullptr
     };
 
     vk::DescriptorSetLayoutBinding materialLayoutBinding{
-            3,                                  // binding
-            vk::DescriptorType::eUniformBuffer, // descriptorType
-            1,                                  // descriptorCount
-            vk::ShaderStageFlagBits::eFragment, // stageFlags
-            nullptr                             // pImmutableSamplers
+            3,
+            vk::DescriptorType::eUniformBuffer,
+            1,
+            vk::ShaderStageFlagBits::eFragment,
+            nullptr
     };
 
     std::vector<vk::DescriptorSetLayoutBinding> bindings{
@@ -74,8 +57,8 @@ vkx::RendererBase::RendererBase(std::shared_ptr<SDLWindow> const &window, Profil
             materialLayoutBinding};
 
     vk::DescriptorSetLayoutCreateInfo layoutInfo{
-            {},      // flags
-            bindings // binding
+            {},
+            bindings
     };
 
     descriptorSetLayout = (*device)->createDescriptorSetLayoutUnique(layoutInfo);
@@ -101,8 +84,8 @@ namespace vkx {
 
     void RendererBase::createDescriptorPool() {
         vk::DescriptorPoolSize uniformBufferDescriptor{
-                vk::DescriptorType::eUniformBuffer, // type
-                MAX_FRAMES_IN_FLIGHT                // descriptorType
+                vk::DescriptorType::eUniformBuffer,
+                MAX_FRAMES_IN_FLIGHT
         };
 
         std::array<vk::DescriptorPoolSize, 4> poolSizes{};
@@ -111,9 +94,9 @@ namespace vkx {
         poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
 
         vk::DescriptorPoolCreateInfo poolInfo{
-                {},                   // flags
-                MAX_FRAMES_IN_FLIGHT, // maxSets
-                poolSizes             // poolSizes
+                {},
+                MAX_FRAMES_IN_FLIGHT,
+                poolSizes
         };
 
         descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
@@ -126,8 +109,8 @@ namespace vkx {
             Texture const &texture) {
         std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
         vk::DescriptorSetAllocateInfo allocInfo{
-                *descriptorPool, // descriptorPool
-                layouts             // setLayouts
+                *descriptorPool,
+                layouts
         };
 
         descriptorSets = (*device)->allocateDescriptorSets(allocInfo);
