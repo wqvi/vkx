@@ -23,7 +23,10 @@ vkx::RendererBase::RendererBase(std::shared_ptr<SDLWindow> const &window, Profil
           window(window) {
     surface = vkx::RendererContext::createSurface(window);
 
-    device = vkx::Device{getBestPhysicalDevice(surface, profile), surface, profile};
+    device = vkx::Device{vkx::RendererContext::getInstance(),
+                         getBestPhysicalDevice(surface, profile),
+                         surface,
+                         profile};
 
     createSwapchain();
 
