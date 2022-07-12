@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include <vkx/ray_cast.hpp>
 #include <vkx/voxels/voxels.hpp>
-
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/window.hpp>
