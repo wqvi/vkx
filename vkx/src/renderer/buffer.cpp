@@ -18,4 +18,4 @@ vkx::VertexBuffer::VertexBuffer(std::vector<Vertex> const &vertices, Device cons
         : BufferBase(vertices.data(), vertices.size() * sizeof(Vertex), device) {}
 
 vkx::IndexBuffer::IndexBuffer(std::vector<std::uint32_t> const &indices, Device const &device)
-        : BufferBase(indices.data(), indices.size() * sizeof(Vertex), device) {}
+        : BufferBase(indices.data(), indices.size() * sizeof(std::uint32_t), device) {}
