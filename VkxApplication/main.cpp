@@ -24,15 +24,8 @@ public:
               const vkx::RendererBase &rendererState) override {
         chunk.greedy();
 
-        std::vector<vkx::Vertex> vertices;
-        std::vector<std::uint32_t> indices;
-
-        node = BuildOctree(glm::ivec3{-32}, 64, -0.005f);
-
-        GenerateMeshFromOctree(node, vertices, indices);
-
         model = vkx::Model{
-                rendererState.allocateMesh(vertices, indices),
+                rendererState.allocateMesh(chunk.vertices, chunk.indices),
                 rendererState.allocateTexture("a.jpg"),
                 {glm::vec3(0.2f), 100.0f}
         };
@@ -53,7 +46,6 @@ public:
 
     void destroy() noexcept override {
         // Temporarily empty
-        DestroyOctree(node);
     }
 
     void onKeyPress(const SDL_KeyboardEvent &event) override {
@@ -73,8 +65,6 @@ public:
     }
 
 private:
-    OctreeNode *node = nullptr;
-
     vkx::Model model;
 
     vkx::VoxelChunk chunk{glm::vec3(0), 16, 15, 14};
