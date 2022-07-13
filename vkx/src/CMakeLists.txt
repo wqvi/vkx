@@ -9,5 +9,6 @@ target_sources(vkx
 		"${CMAKE_CURRENT_SOURCE_DIR}/window.cpp"
 )
 
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/dual_contour")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/renderer")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/voxels")
