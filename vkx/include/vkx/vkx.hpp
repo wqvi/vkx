@@ -18,3 +18,4 @@
 #include <vkx/renderer/model.hpp>
 #include <vkx/scene.hpp>
 #include <vkx/node.hpp>
+#include <vkx/dual_contour/octree.hpp>
