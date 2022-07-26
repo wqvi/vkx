@@ -2,6 +2,9 @@
 *.gch
 *.so
 
+# Big binary files
+build/
+
 # Laziness
 stb_image.h
 
