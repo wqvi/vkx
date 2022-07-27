@@ -7,7 +7,7 @@ project(vkx
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(vkx)
+add_executable(vkx src/main.cpp)
 
 add_subdirectory("src")
 
@@ -15,20 +15,7 @@ set_target_properties(vkx PROPERTIES
         VERSION ${PROJECT_VERSION}
         SOVERSION 1)
 
-if (MSVC)
-    #[[
-    Weird MSVC Visual Studio IDE work around.
-    This is to get the main executable as a startup project.
-    ]]
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
-    #[[
-    Another weird MSVC Visual Studio IDE work around.
-    This allows for IDE specific filter usage.
-    ]]
-    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-    # Set MSVC compiler warning level to the highest
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
-else ()
+if (GCC)
     # All the warnings!
     target_compile_options(${PROJECT_NAME} PRIVATE
             -Wall
@@ -57,30 +44,13 @@ find_package(Vulkan REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 
-if (WIN32)
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS YES CACHE BOOL "Export all windows symbols")
-    target_link_libraries(vkx
-            PRIVATE
-            Vulkan::Vulkan
-            glm::glm
-            )
-else ()
-    target_link_libraries(vkx
-            PUBLIC
-            Vulkan::Vulkan
-            glm
-            SDL2
-            )
-endif ()
+target_link_libraries(vkx
+	PUBLIC
+		Vulkan::Vulkan
+		glm
+		SDL2
+		)
 
-install(
-        TARGETS vkx
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-)
-
-# This is temporary
 target_include_directories(vkx
         PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
@@ -91,22 +61,6 @@ target_precompile_headers(vkx
         PUBLIC
         "include/vkx/pch.hpp"
         )
-
-
-if (MSVC)
-    #[[
-    Silly script to recursively create a filter structure for MSVC Visual Studio IDE
-    Don't touch this it just works.
-    This needs to be after we add the executable and add subdirectories!
-    ]]
-    get_target_property(SRCS vkx SOURCES)
-    foreach (FILE ${SRCS})
-        get_filename_component(PARENT_DIR "${FILE}" DIRECTORY)
-        string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}" "" GROUP "${PARENT_DIR}")
-        string(REPLACE "/" "\\" GROUP "${GROUP}")
-        source_group("${GROUP}" FILES "${FILE}")
-    endforeach ()
-endif ()
 
 # Compile vertex shader to SPIR-V
 add_custom_command(TARGET vkx PRE_BUILD

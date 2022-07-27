@@ -70,7 +70,7 @@ private:
     vkx::VoxelChunk chunk{glm::vec3(0), 16, 15, 14};
 };
 
-int main(int argc, char **argv) {
+int main(void) {
     try {
         vkx::GlobalConfiguration appConfig = {"VKX App", WIDTH, HEIGHT};
         auto myApplication = MyApplication{appConfig};
