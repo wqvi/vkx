@@ -1,7 +1,3 @@
-//
-// Created by december on 6/21/22.
-//
-
 #pragma once
 
 #include <vkx/ray_cast.hpp>
@@ -18,4 +14,3 @@
 #include <vkx/renderer/model.hpp>
 #include <vkx/scene.hpp>
 #include <vkx/node.hpp>
-#include <vkx/dual_contour/octree.hpp>
