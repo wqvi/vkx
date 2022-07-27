@@ -1,13 +1,7 @@
-//
-// Created by december on 7/5/22.
-//
-
 #pragma once
 
-#include <vkx/node.hpp>
-
 namespace vkx {
-    class Viewport : public Node {
+    class Viewport {
     public:
         Viewport() = default;
 

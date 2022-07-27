@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vkx/node.hpp>
-
 /* TO BE FIXED BUT DON'T TOUCH FOR NOW! */
 namespace vkx {
     [[maybe_unused]]
@@ -22,7 +20,7 @@ namespace vkx {
     [[maybe_unused]]
     constexpr static const glm::vec3 DOWN = glm::vec3{0.0f, -1.0f, 0.0f};
 
-    class Camera : public Node {
+    class Camera {
     public:
         Camera() = default;
 

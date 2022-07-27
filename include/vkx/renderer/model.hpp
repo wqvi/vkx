@@ -3,7 +3,6 @@
 #include <vkx/renderer/buffer.hpp>
 #include <vkx/renderer/image.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
-#include <vkx/node.hpp>
 
 namespace vkx {
     class Mesh {
@@ -33,7 +32,7 @@ namespace vkx {
         vk::UniqueSampler sampler;
     };
 
-    struct Model : public Node {
+    struct Model {
         Model() = default;
 
         explicit Model(Mesh &&mesh, Texture &&texture, const Material &material);
