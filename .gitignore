@@ -10,3 +10,6 @@ stb_image.h
 
 # SPIR-V binary files
 *.spv
+
+# Code blocks project files
+*.cbp
