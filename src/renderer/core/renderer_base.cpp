@@ -6,7 +6,7 @@
 #include <vkx/renderer/model.hpp>
 #include <vkx/vkx_exceptions.hpp>
 
-vkx::RendererBase::RendererBase(std::shared_ptr<SDLWindow> const &window, Profile const &profile)
+vkx::RendererBase::RendererBase(SDL_Window* window, Profile const &profile)
         : vkx::RendererContext(window, profile),
           window(window) {
     surface = vkx::RendererContext::createSurface(window);
@@ -74,7 +74,12 @@ vkx::RendererBase::RendererBase(std::shared_ptr<SDLWindow> const &window, Profil
 
 namespace vkx {
     void RendererBase::recreateSwapchain() {
-        window.lock()->waitForEvents();
+        int width, height;
+        SDL_Vulkan_GetDrawableSize(window, &width, &height);
+        while (width == 0 || height == 0) {
+            SDL_Vulkan_GetDrawableSize(window, &width, &height);
+            SDL_WaitEvent(nullptr);
+        }
 
         (*device)->waitIdle();
 
@@ -166,11 +171,10 @@ namespace vkx {
 
         result = device->present(swapchain, imageIndex, *syncObjects[currentIndexFrame].renderFinishedSemaphore);
 
-        if (auto ptr = window.lock();
-                result == vk::Result::eErrorOutOfDateKHR ||
-                result == vk::Result::eSuboptimalKHR ||
-                ptr->isFramebufferResized()) {
-            ptr->setFramebufferResized(false);
+        if (result == vk::Result::eErrorOutOfDateKHR ||
+            result == vk::Result::eSuboptimalKHR || 
+            framebufferResized) {
+            framebufferResized = false;
             recreateSwapchain();
         } else if (result != vk::Result::eSuccess) {
             throw vkx::VulkanError(result);
@@ -184,7 +188,7 @@ namespace vkx {
     }
 
     void RendererBase::createSwapchain() {
-        swapchain = vkx::Swapchain{*device, surface, window.lock(), swapchain};
+        swapchain = vkx::Swapchain{*device, surface, window, swapchain};
 
         renderPass = createRenderPass();
 

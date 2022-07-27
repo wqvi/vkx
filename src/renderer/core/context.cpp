@@ -5,7 +5,7 @@
 #include <vkx/vkx_exceptions.hpp>
 #include <vkx/debug.hpp>
 
-vkx::RendererContext::RendererContext(std::shared_ptr<vkx::SDLWindow> const &window,
+vkx::RendererContext::RendererContext(SDL_Window* window,
                                       Profile const &profile) {
     // Everything that inherits just has one instance of application info as it is the same for everything
     constexpr static const vk::ApplicationInfo applicationInfo{
@@ -16,13 +16,31 @@ vkx::RendererContext::RendererContext(std::shared_ptr<vkx::SDLWindow> const &win
             VK_API_VERSION_1_0
     };
 
-    auto instanceExtensions = window->getExtensions();
+    std::uint32_t count = 0;
+
+    // Query the amount of extensions
+    if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
+        throw vkx::SDLError();
+    }
+
+    // Allocate vector
+    std::vector<char const *> extensions(count);
+
+    // Query extensions
+    if (SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()) != SDL_TRUE) {
+        throw vkx::SDLError();
+    }
+
+    // If built in debug add debug util extension
+#ifdef DEBUG
+    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
 
     vk::InstanceCreateInfo instanceCreateInfo{
             {},
             &applicationInfo,
             profile.layers,
-            instanceExtensions
+            extensions
     };
 
     instance = createInstance(instanceCreateInfo);
@@ -57,6 +75,16 @@ vkx::RendererContext::getBestPhysicalDevice(vk::UniqueSurfaceKHR const &surface,
 vk::UniqueSurfaceKHR vkx::RendererContext::createSurface(std::shared_ptr<SDLWindow> const &window) const {
     VkSurfaceKHR surface = nullptr;
     if (SDL_Vulkan_CreateSurface(window->cWindow.get(),
+                                 *instance,
+                                 &surface) != SDL_TRUE) {
+        throw vkx::VulkanError("Failure to create VkSurfaceKHR via the SDL2 API.");
+    }
+    return vk::UniqueSurfaceKHR(surface, *instance);
+}
+
+vk::UniqueSurfaceKHR vkx::RendererContext::createSurface(SDL_Window* window) const {
+    VkSurfaceKHR surface = nullptr;
+    if (SDL_Vulkan_CreateSurface(window,
                                  *instance,
                                  &surface) != SDL_TRUE) {
         throw vkx::VulkanError("Failure to create VkSurfaceKHR via the SDL2 API.");

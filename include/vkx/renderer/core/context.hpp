@@ -7,7 +7,7 @@ namespace vkx {
     public:
         RendererContext() = default;
 
-        explicit RendererContext(std::shared_ptr<SDLWindow> const &window,
+        explicit RendererContext(SDL_Window* window,
                                  Profile const &profile);
 
         [[nodiscard("Do not discard integral Vulkan components")]]
@@ -23,6 +23,9 @@ namespace vkx {
         [[nodiscard("Do not discard an integral Vulkan component")]]
         vk::UniqueSurfaceKHR
         createSurface(std::shared_ptr<SDLWindow> const &window) const;
+
+        vk::UniqueSurfaceKHR
+        createSurface(SDL_Window* window) const;
 
     protected:
         [[nodiscard("Do not discard an integral Vulkan component")]]
