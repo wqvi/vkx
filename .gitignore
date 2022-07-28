@@ -13,3 +13,10 @@ stb_image.h
 
 # Code blocks project files
 *.cbp
+
+# Hide clangd files
+.cache
+compile_commands.json
+
+# For vscode users
+.vscode
