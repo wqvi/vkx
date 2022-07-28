@@ -2,47 +2,48 @@
 
 #include "device.hpp"
 
-namespace vkx
-{
-    class PipelineShader {
-    public:
-        explicit PipelineShader(const Device &device, const std::string &file);
+namespace vkx {
+class PipelineShader {
+public:
+  explicit PipelineShader(const Device &device, const std::string &file);
 
-    private:
-        static std::vector<std::uint32_t> readFile(const std::string &filename);
+private:
+  static std::vector<std::uint32_t> readFile(const std::string &filename);
 
-        vk::UniqueDescriptorSetLayout descriptorSetLayout;
-    };
+  vk::UniqueDescriptorSetLayout descriptorSetLayout;
+};
 
-  class Pipeline
-  {
-  public:
-    Pipeline() = default;
+class Pipeline {
+public:
+  Pipeline() = default;
 
-    explicit Pipeline(Device const &device, vk::UniqueDescriptorSetLayout const &descriptorSetLayout);
+  explicit Pipeline(Device const &device,
+                    vk::UniqueDescriptorSetLayout const &descriptorSetLayout);
 
-    vk::UniquePipelineLayout layout;
-    vk::UniquePipeline pipeline;
-  
-  protected:
-    static std::vector<char> readFile(std::string const &filename);
+  vk::UniquePipelineLayout layout;
+  vk::UniquePipeline pipeline;
 
-    static vk::UniqueShaderModule createShaderModule(Device const &device, std::vector<char> const &code);
-  };
+protected:
+  static std::vector<char> readFile(std::string const &filename);
 
-  class ComputePipeline : public Pipeline
-  {
-  public:
-    ComputePipeline() = default;
+  static vk::UniqueShaderModule
+  createShaderModule(Device const &device, std::vector<char> const &code);
+};
 
-    ComputePipeline(Device const &device, vk::UniqueDescriptorSetLayout const &descriptorSetLayout);
-  };
+class ComputePipeline : public Pipeline {
+public:
+  ComputePipeline() = default;
 
-  class GraphicsPipeline : public Pipeline
-  {
-  public:
-    GraphicsPipeline() = default;
+  ComputePipeline(Device const &device,
+                  vk::UniqueDescriptorSetLayout const &descriptorSetLayout);
+};
 
-    GraphicsPipeline(Device const &device, vk::Extent2D const &extent, vk::UniqueRenderPass const &renderPass, vk::UniqueDescriptorSetLayout const &descriptorSetLayout);
-  };
-}
+class GraphicsPipeline : public Pipeline {
+public:
+  GraphicsPipeline() = default;
+
+  GraphicsPipeline(Device const &device, vk::Extent2D const &extent,
+                   vk::UniqueRenderPass const &renderPass,
+                   vk::UniqueDescriptorSetLayout const &descriptorSetLayout);
+};
+} // namespace vkx

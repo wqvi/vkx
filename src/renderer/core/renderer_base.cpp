@@ -1,416 +1,378 @@
 #include <vkx/renderer/core/renderer_base.hpp>
 
-#include <vkx/renderer/core/swapchain_info.hpp>
-#include <vkx/renderer/core/queue_config.hpp>
-#include <vkx/renderer/uniform_buffer.hpp>
-#include <vkx/renderer/model.hpp>
-#include <vkx/vkx_exceptions.hpp>
-#include <vkx/debug.hpp>
 #include <iostream>
+#include <vkx/debug.hpp>
+#include <vkx/renderer/core/queue_config.hpp>
+#include <vkx/renderer/core/swapchain_info.hpp>
+#include <vkx/renderer/model.hpp>
+#include <vkx/renderer/uniform_buffer.hpp>
+#include <vkx/vkx_exceptions.hpp>
 
-static bool isSubset(const std::vector<const char*>& arr, const std::vector<const char*>& subset) {
-    auto iter = arr.begin();
-    const auto end = arr.end();
+static bool isSubset(const std::vector<const char *> &arr,
+                     const std::vector<const char *> &subset) {
+  auto iter = arr.begin();
+  const auto end = arr.end();
 
-    if (arr.size() < subset.size()) {
-        throw std::invalid_argument("Arr must be larger than subset.");
+  if (arr.size() < subset.size()) {
+    throw std::invalid_argument("Arr must be larger than subset.");
+  }
+
+  for (const char *subsetStr : subset) {
+    for (iter = arr.begin(); iter != end; iter++) {
+      if (std::strcmp(*iter, subsetStr) == 0)
+        break;
     }
 
-    for (const char* subsetStr: subset) {
-        for (iter = arr.begin(); iter != end; iter++) {
-            if (std::strcmp(*iter, subsetStr) == 0) break;
-        }
-
-        if (iter == end) {
-            return false;
-        }
+    if (iter == end) {
+      return false;
     }
-    
-    return true;
+  }
+
+  return true;
 }
 
-vkx::RendererBase::RendererBase(SDL_Window* window) 
-    : window(window) {
-    static constexpr vk::ApplicationInfo applicationInfo{
-        "Jewelry",
-        VK_MAKE_VERSION(0, 0, 1),
-        "Vulcan",
-        VK_MAKE_VERSION(0, 0, 1),
-        VK_API_VERSION_1_0
-    };
+vkx::RendererBase::RendererBase(SDL_Window *window) : window(window) {
+  static constexpr vk::ApplicationInfo applicationInfo{
+      "Jewelry", VK_MAKE_VERSION(0, 0, 1), "Vulcan", VK_MAKE_VERSION(0, 0, 1),
+      VK_API_VERSION_1_0};
 
-    std::uint32_t count = 0;
-    if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
-        throw vkx::SDLError();
-    }
-    std::vector<const char*> extensions(count);
-    if (SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()) != SDL_TRUE) {
-        throw vkx::SDLError();
-    }
+  std::uint32_t count = 0;
+  if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
+    throw vkx::SDLError();
+  }
+  std::vector<const char *> extensions(count);
+  if (SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()) !=
+      SDL_TRUE) {
+    throw vkx::SDLError();
+  }
 
 #ifdef DEBUG
-    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+  extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-    std::vector<const char*> layers {
+  std::vector<const char *> layers{
 #ifdef DEBUG
-        "VK_LAYER_KHRONOS_validation",
+      "VK_LAYER_KHRONOS_validation",
 #endif
-    };
+  };
 
 #ifdef DEBUG
-    auto availableLayers = vk::enumerateInstanceLayerProperties();
-    std::vector<const char*> currentStrLayers;
-    std::transform(availableLayers.begin(), availableLayers.end(), std::back_inserter(currentStrLayers),
-        [](const auto& props) { return props.layerName; });
-    if (!isSubset(currentStrLayers, layers)) {
-        throw vkx::VulkanError("Failed to find requested Vulkan instance layers.");
-    }
+  auto availableLayers = vk::enumerateInstanceLayerProperties();
+  std::vector<const char *> currentStrLayers;
+  std::transform(availableLayers.begin(), availableLayers.end(),
+                 std::back_inserter(currentStrLayers),
+                 [](const auto &props) { return props.layerName; });
+  if (!isSubset(currentStrLayers, layers)) {
+    throw vkx::VulkanError("Failed to find requested Vulkan instance layers.");
+  }
 #endif
 
-    vk::InstanceCreateInfo instanceCreateInfo{
-        {},
-        &applicationInfo,
-        layers,
-        extensions
-    };
+  vk::InstanceCreateInfo instanceCreateInfo{
+      {}, &applicationInfo, layers, extensions};
 
 #ifdef DEBUG
-    auto messageSeverity =
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | 
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
-    auto messageType =
-            vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | 
-            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
-            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+  auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+                         vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+  auto messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+                     vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+                     vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
 
-    vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
-            {},
-            messageSeverity,
-            messageType,
-            vkDebugCallback,
-            nullptr
-    };
+  vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
+      {}, messageSeverity, messageType, vkDebugCallback, nullptr};
 
-    vk::StructureChain structureChain{
-        instanceCreateInfo,
-        debugUtilsMessengerCreateInfo
-    };
+  vk::StructureChain structureChain{instanceCreateInfo,
+                                    debugUtilsMessengerCreateInfo};
 
-    instance = vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
+  instance =
+      vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
 #else
-    instance = vk::createInstanceUnique(instanceCreateInfo);
+  instance = vk::createInstanceUnique(instanceCreateInfo);
 #endif
 
-    VkSurfaceKHR cSurface = nullptr;
-    if (SDL_Vulkan_CreateSurface(window, *instance, &cSurface) != SDL_TRUE) {
-        throw vkx::SDLError();
-    }
-    surface = vk::UniqueSurfaceKHR(cSurface, *instance);
+  VkSurfaceKHR cSurface = nullptr;
+  if (SDL_Vulkan_CreateSurface(window, *instance, &cSurface) != SDL_TRUE) {
+    throw vkx::SDLError();
+  }
+  surface = vk::UniqueSurfaceKHR(cSurface, *instance);
 
-    auto physicalDevices = instance->enumeratePhysicalDevices();
-    vk::PhysicalDevice bestPhysicalDevice = nullptr;
-    std::uint32_t bestRating = 0;
-    for (const auto& pDevice : physicalDevices) {
-        std::uint32_t rating = 0;
+  auto physicalDevices = instance->enumeratePhysicalDevices();
+  vk::PhysicalDevice bestPhysicalDevice = nullptr;
+  std::uint32_t bestRating = 0;
+  for (const auto &pDevice : physicalDevices) {
+    std::uint32_t rating = 0;
 
-        auto extensionProperties = pDevice.enumerateDeviceExtensionProperties();
-        std::vector<const char*> stringExtensions;
-        std::transform(extensionProperties.begin(), extensionProperties.end(), std::back_inserter(stringExtensions), 
-            [](auto const &props) { return props.extensionName; });
-        if (isSubset(stringExtensions, extensions)) {
-            rating++;
-        }
-
-        if (QueueConfig indices{pDevice, surface}; indices.isComplete()) {
-            rating++;
-        }
-
-        if (SwapchainInfo info{pDevice, surface}; info.isComplete()) {
-            rating++;
-        }
-
-        if (pDevice.getFeatures().samplerAnisotropy) {
-            rating++;
-        }
-
-        if (rating > bestRating) {
-            bestRating = rating;
-            bestPhysicalDevice = pDevice;
-        }
+    auto extensionProperties = pDevice.enumerateDeviceExtensionProperties();
+    std::vector<const char *> stringExtensions;
+    std::transform(extensionProperties.begin(), extensionProperties.end(),
+                   std::back_inserter(stringExtensions),
+                   [](auto const &props) { return props.extensionName; });
+    if (isSubset(stringExtensions, extensions)) {
+      rating++;
     }
 
-    if (!static_cast<bool>(bestPhysicalDevice)) {
-        throw vkx::VulkanError("Failure to initialize device.");
+    if (QueueConfig indices{pDevice, surface}; indices.isComplete()) {
+      rating++;
     }
 
-    device = std::make_unique<vkx::Device>(instance,
-                                           bestPhysicalDevice,
-                                           surface);
+    if (SwapchainInfo info{pDevice, surface}; info.isComplete()) {
+      rating++;
+    }
 
-    createSwapchain();
+    if (pDevice.getFeatures().samplerAnisotropy) {
+      rating++;
+    }
 
-    vk::DescriptorSetLayoutBinding uboLayoutBinding{
-            0,
-            vk::DescriptorType::eUniformBuffer,
-            1,
-            vk::ShaderStageFlagBits::eVertex,
-            nullptr
-    };
+    if (rating > bestRating) {
+      bestRating = rating;
+      bestPhysicalDevice = pDevice;
+    }
+  }
 
-    vk::DescriptorSetLayoutBinding samplerLayoutBinding{
-            1,
-            vk::DescriptorType::eCombinedImageSampler,
-            1,
-            vk::ShaderStageFlagBits::eFragment,
-            nullptr
-    };
+  if (!static_cast<bool>(bestPhysicalDevice)) {
+    throw vkx::VulkanError("Failure to initialize device.");
+  }
 
-    vk::DescriptorSetLayoutBinding lightLayoutBinding{
-            2,
-            vk::DescriptorType::eUniformBuffer,
-            1,
-            vk::ShaderStageFlagBits::eFragment,
-            nullptr
-    };
+  device = std::make_unique<vkx::Device>(instance, bestPhysicalDevice, surface);
 
-    vk::DescriptorSetLayoutBinding materialLayoutBinding{
-            3,
-            vk::DescriptorType::eUniformBuffer,
-            1,
-            vk::ShaderStageFlagBits::eFragment,
-            nullptr
-    };
+  createSwapchain();
 
-    std::vector<vk::DescriptorSetLayoutBinding> bindings{
-            uboLayoutBinding,
-            samplerLayoutBinding,
-            lightLayoutBinding,
-            materialLayoutBinding};
+  vk::DescriptorSetLayoutBinding uboLayoutBinding{
+      0, vk::DescriptorType::eUniformBuffer, 1,
+      vk::ShaderStageFlagBits::eVertex, nullptr};
 
-    vk::DescriptorSetLayoutCreateInfo layoutInfo{
-            {},
-            bindings
-    };
+  vk::DescriptorSetLayoutBinding samplerLayoutBinding{
+      1, vk::DescriptorType::eCombinedImageSampler, 1,
+      vk::ShaderStageFlagBits::eFragment, nullptr};
 
-    descriptorSetLayout = (*device)->createDescriptorSetLayoutUnique(layoutInfo);
+  vk::DescriptorSetLayoutBinding lightLayoutBinding{
+      2, vk::DescriptorType::eUniformBuffer, 1,
+      vk::ShaderStageFlagBits::eFragment, nullptr};
 
-    graphicsPipeline = GraphicsPipeline{*device, swapchain.extent, renderPass, descriptorSetLayout};
+  vk::DescriptorSetLayoutBinding materialLayoutBinding{
+      3, vk::DescriptorType::eUniformBuffer, 1,
+      vk::ShaderStageFlagBits::eFragment, nullptr};
 
-    drawCommands = device->createDrawCommands(MAX_FRAMES_IN_FLIGHT);
+  std::vector<vk::DescriptorSetLayoutBinding> bindings{
+      uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding,
+      materialLayoutBinding};
 
-    syncObjects = SyncObjects::createSyncObjects(*device);
+  vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
 
-    createDescriptorPool();
+  descriptorSetLayout = (*device)->createDescriptorSetLayoutUnique(layoutInfo);
+
+  graphicsPipeline = GraphicsPipeline{*device, swapchain.extent, renderPass,
+                                      descriptorSetLayout};
+
+  drawCommands = device->createDrawCommands(MAX_FRAMES_IN_FLIGHT);
+
+  syncObjects = SyncObjects::createSyncObjects(*device);
+
+  createDescriptorPool();
 }
 
 namespace vkx {
-    void RendererBase::recreateSwapchain() {
-        int width, height;
-        SDL_Vulkan_GetDrawableSize(window, &width, &height);
-        while (width == 0 || height == 0) {
-            SDL_Vulkan_GetDrawableSize(window, &width, &height);
-            SDL_WaitEvent(nullptr);
-        }
+void RendererBase::recreateSwapchain() {
+  int width, height;
+  SDL_Vulkan_GetDrawableSize(window, &width, &height);
+  while (width == 0 || height == 0) {
+    SDL_Vulkan_GetDrawableSize(window, &width, &height);
+    SDL_WaitEvent(nullptr);
+  }
 
-        (*device)->waitIdle();
+  (*device)->waitIdle();
 
-        createSwapchain();
-        graphicsPipeline = GraphicsPipeline{*device, swapchain.extent, renderPass, descriptorSetLayout};
-    }
-
-    void RendererBase::createDescriptorPool() {
-        vk::DescriptorPoolSize uniformBufferDescriptor{
-                vk::DescriptorType::eUniformBuffer,
-                MAX_FRAMES_IN_FLIGHT
-        };
-
-        std::array<vk::DescriptorPoolSize, 4> poolSizes{};
-        std::ranges::fill(poolSizes, uniformBufferDescriptor);
-
-        poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
-
-        vk::DescriptorPoolCreateInfo poolInfo{
-                {},
-                MAX_FRAMES_IN_FLIGHT,
-                poolSizes
-        };
-
-        descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
-    }
-
-    void RendererBase::createDescriptorSets(
-            std::vector<UniformBuffer<MVP>> const &mvpBuffers,
-            std::vector<UniformBuffer<DirectionalLight>> const &lightBuffers,
-            std::vector<UniformBuffer<Material>> const &materialBuffers,
-            Texture const &texture) {
-        std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
-        vk::DescriptorSetAllocateInfo allocInfo{
-                *descriptorPool,
-                layouts
-        };
-
-        descriptorSets = (*device)->allocateDescriptorSets(allocInfo);
-
-        for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            std::array<vk::WriteDescriptorSet, 4> descriptorWrites{
-                    mvpBuffers[i].createWriteDescriptorSet(descriptorSets[i], 0),
-                    texture.createWriteDescriptorSet(descriptorSets[i], 1),
-                    lightBuffers[i].createWriteDescriptorSet(descriptorSets[i], 2),
-                    materialBuffers[i].createWriteDescriptorSet(descriptorSets[i], 3),
-            };
-
-            (*device)->updateDescriptorSets(descriptorWrites, {});
-        }
-    }
-
-    void RendererBase::drawFrame(UniformBuffer<MVP> const &mvpBuffer,
-                                 UniformBuffer<DirectionalLight> const &lightBuffer,
-                                 UniformBuffer<Material> const &materialBuffer,
-                                 VertexBuffer const &vertexBuffer,
-                                 IndexBuffer const &indexBuffer,
-                                 std::uint32_t indexCount,
-                                 std::uint32_t &currentIndexFrame) {
-        static_cast<void>((*device)->waitForFences(*syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));
-        auto [result, imageIndex] = swapchain.acquireNextImage(*device,
-                                                               syncObjects[currentIndexFrame].imageAvailableSemaphore);
-
-        if (result == vk::Result::eErrorOutOfDateKHR) {
-            recreateSwapchain();
-            return;
-        } else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
-            throw vkx::VulkanError(result);
-        }
-
-        mvpBuffer.mapMemory();
-        lightBuffer.mapMemory();
-        materialBuffer.mapMemory();
-
-        (*device)->resetFences(*syncObjects[currentIndexFrame].inFlightFence);
-
-        drawCommands[currentIndexFrame].record(*renderPass, *swapchain.framebuffers[imageIndex], swapchain.extent,
-                                               *graphicsPipeline.pipeline, *graphicsPipeline.layout,
-                                               descriptorSets[currentIndexFrame],
-                                               vertexBuffer, indexBuffer, indexCount);
-
-        std::vector<vk::CommandBuffer> commandBuffers{
-                static_cast<vk::CommandBuffer>(drawCommands[currentIndexFrame])
-        };
-        device->submit(commandBuffers,
-                      *syncObjects[currentIndexFrame].imageAvailableSemaphore,
-                      *syncObjects[currentIndexFrame].renderFinishedSemaphore,
-                      *syncObjects[currentIndexFrame].inFlightFence);
-
-        result = device->present(swapchain, imageIndex, *syncObjects[currentIndexFrame].renderFinishedSemaphore);
-
-        if (result == vk::Result::eErrorOutOfDateKHR ||
-            result == vk::Result::eSuboptimalKHR || 
-            framebufferResized) {
-            framebufferResized = false;
-            recreateSwapchain();
-        } else if (result != vk::Result::eSuccess) {
-            throw vkx::VulkanError(result);
-        }
-
-        currentIndexFrame = (currentIndexFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-    }
-
-    std::uint32_t RendererBase::getCurrentFrameIndex() const {
-        return currentFrame;
-    }
-
-    void RendererBase::createSwapchain() {
-        swapchain = vkx::Swapchain{*device, surface, window, swapchain};
-
-        renderPass = createRenderPass();
-
-        swapchain.createFramebuffers(*device, renderPass);
-    }
-
-    vk::UniqueRenderPass RendererBase::createRenderPass(vk::AttachmentLoadOp loadOp) const {
-        vk::AttachmentDescription colorAttachment{
-                {},                               // flags
-                swapchain.imageFormat,            // format
-                vk::SampleCountFlagBits::e1,      // samples
-                loadOp,                           // loadOp
-                vk::AttachmentStoreOp::eStore,    // storeOp
-                vk::AttachmentLoadOp::eDontCare,  // stencilLoadOp
-                vk::AttachmentStoreOp::eDontCare, // stencilStoreOp
-                vk::ImageLayout::eUndefined,      // initialLayout
-                vk::ImageLayout::ePresentSrcKHR   // finalLayout
-        };
-
-        vk::AttachmentReference colorAttachmentRef{
-                0,                                       // attachment
-                vk::ImageLayout::eColorAttachmentOptimal // layout
-        };
-
-        vk::AttachmentDescription depthAttachment{
-                {},                                             // flags
-                device->findDepthFormat(),                       // format
-                vk::SampleCountFlagBits::e1,                    // samples
-                vk::AttachmentLoadOp::eClear,                   // loadOp
-                vk::AttachmentStoreOp::eDontCare,               // storeOp
-                vk::AttachmentLoadOp::eDontCare,                // stencilLoadOp
-                vk::AttachmentStoreOp::eDontCare,               // stencilStoreOp
-                vk::ImageLayout::eUndefined,                    // initialLayout
-                vk::ImageLayout::eDepthStencilAttachmentOptimal // finalLayout
-        };
-
-        vk::AttachmentReference depthAttachmentRef{
-                1,                                              // attachment
-                vk::ImageLayout::eDepthStencilAttachmentOptimal // layout
-        };
-
-        vk::SubpassDescription subpass{
-                {},                               // flags
-                vk::PipelineBindPoint::eGraphics, // pipelineBindPoint
-                {},                               // inputAttachments
-                colorAttachmentRef,               // colorAttachments
-                {},                               // resolveAttachments
-                &depthAttachmentRef,              // pDepthStencilAttachment
-                {}                                // preserveAttachments
-        };
-
-        auto dependencyStageMask =
-                vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-        auto dependencyAccessMask =
-                vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-
-        vk::SubpassDependency dependency{
-                VK_SUBPASS_EXTERNAL, // srcSubpass
-                0,                   // dstSubpass
-                dependencyStageMask, // srcStageMask
-                dependencyStageMask, // dstStageMask
-                {},                  // srcAccessMask
-                dependencyAccessMask // dstAccessMask
-        };
-
-        std::vector renderPassAttachments{
-                colorAttachment,
-                depthAttachment};
-
-        vk::RenderPassCreateInfo renderPassInfo{
-                {},                    // flags
-                renderPassAttachments, // attachments
-                subpass,               // subpasses
-                dependency             // dependencies
-        };
-
-        return (*device)->createRenderPassUnique(renderPassInfo);
-    }
+  createSwapchain();
+  graphicsPipeline = GraphicsPipeline{*device, swapchain.extent, renderPass,
+                                      descriptorSetLayout};
 }
 
-vkx::Mesh vkx::RendererBase::allocateMesh(const std::vector<Vertex> &vertices,
-                                          const std::vector<std::uint32_t> &indices) const {
-    return vkx::Mesh{vertices, indices, *device};
+void RendererBase::createDescriptorPool() {
+  vk::DescriptorPoolSize uniformBufferDescriptor{
+      vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
+
+  std::array<vk::DescriptorPoolSize, 4> poolSizes{};
+  std::ranges::fill(poolSizes, uniformBufferDescriptor);
+
+  poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
+
+  vk::DescriptorPoolCreateInfo poolInfo{{}, MAX_FRAMES_IN_FLIGHT, poolSizes};
+
+  descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
 }
 
-vkx::Texture vkx::RendererBase::allocateTexture(const std::string &textureFile) const {
-    return vkx::Texture{textureFile, *device};
+void RendererBase::createDescriptorSets(
+    std::vector<UniformBuffer<MVP>> const &mvpBuffers,
+    std::vector<UniformBuffer<DirectionalLight>> const &lightBuffers,
+    std::vector<UniformBuffer<Material>> const &materialBuffers,
+    Texture const &texture) {
+  std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
+                                               *descriptorSetLayout);
+  vk::DescriptorSetAllocateInfo allocInfo{*descriptorPool, layouts};
+
+  descriptorSets = (*device)->allocateDescriptorSets(allocInfo);
+
+  for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    std::array<vk::WriteDescriptorSet, 4> descriptorWrites{
+        mvpBuffers[i].createWriteDescriptorSet(descriptorSets[i], 0),
+        texture.createWriteDescriptorSet(descriptorSets[i], 1),
+        lightBuffers[i].createWriteDescriptorSet(descriptorSets[i], 2),
+        materialBuffers[i].createWriteDescriptorSet(descriptorSets[i], 3),
+    };
+
+    (*device)->updateDescriptorSets(descriptorWrites, {});
+  }
+}
+
+void RendererBase::drawFrame(UniformBuffer<MVP> const &mvpBuffer,
+                             UniformBuffer<DirectionalLight> const &lightBuffer,
+                             UniformBuffer<Material> const &materialBuffer,
+                             VertexBuffer const &vertexBuffer,
+                             IndexBuffer const &indexBuffer,
+                             std::uint32_t indexCount,
+                             std::uint32_t &currentIndexFrame) {
+  static_cast<void>((*device)->waitForFences(
+      *syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));
+  auto [result, imageIndex] = swapchain.acquireNextImage(
+      *device, syncObjects[currentIndexFrame].imageAvailableSemaphore);
+
+  if (result == vk::Result::eErrorOutOfDateKHR) {
+    recreateSwapchain();
+    return;
+  } else if (result != vk::Result::eSuccess &&
+             result != vk::Result::eSuboptimalKHR) {
+    throw vkx::VulkanError(result);
+  }
+
+  mvpBuffer.mapMemory();
+  lightBuffer.mapMemory();
+  materialBuffer.mapMemory();
+
+  (*device)->resetFences(*syncObjects[currentIndexFrame].inFlightFence);
+
+  drawCommands[currentIndexFrame].record(
+      *renderPass, *swapchain.framebuffers[imageIndex], swapchain.extent,
+      *graphicsPipeline.pipeline, *graphicsPipeline.layout,
+      descriptorSets[currentIndexFrame], vertexBuffer, indexBuffer, indexCount);
+
+  std::vector<vk::CommandBuffer> commandBuffers{
+      static_cast<vk::CommandBuffer>(drawCommands[currentIndexFrame])};
+  device->submit(commandBuffers,
+                 *syncObjects[currentIndexFrame].imageAvailableSemaphore,
+                 *syncObjects[currentIndexFrame].renderFinishedSemaphore,
+                 *syncObjects[currentIndexFrame].inFlightFence);
+
+  result =
+      device->present(swapchain, imageIndex,
+                      *syncObjects[currentIndexFrame].renderFinishedSemaphore);
+
+  if (result == vk::Result::eErrorOutOfDateKHR ||
+      result == vk::Result::eSuboptimalKHR || framebufferResized) {
+    framebufferResized = false;
+    recreateSwapchain();
+  } else if (result != vk::Result::eSuccess) {
+    throw vkx::VulkanError(result);
+  }
+
+  currentIndexFrame = (currentIndexFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+std::uint32_t RendererBase::getCurrentFrameIndex() const {
+  return currentFrame;
+}
+
+void RendererBase::createSwapchain() {
+  swapchain = vkx::Swapchain{*device, surface, window, swapchain};
+
+  renderPass = createRenderPass();
+
+  swapchain.createFramebuffers(*device, renderPass);
+}
+
+vk::UniqueRenderPass
+RendererBase::createRenderPass(vk::AttachmentLoadOp loadOp) const {
+  vk::AttachmentDescription colorAttachment{
+      {},                               // flags
+      swapchain.imageFormat,            // format
+      vk::SampleCountFlagBits::e1,      // samples
+      loadOp,                           // loadOp
+      vk::AttachmentStoreOp::eStore,    // storeOp
+      vk::AttachmentLoadOp::eDontCare,  // stencilLoadOp
+      vk::AttachmentStoreOp::eDontCare, // stencilStoreOp
+      vk::ImageLayout::eUndefined,      // initialLayout
+      vk::ImageLayout::ePresentSrcKHR   // finalLayout
+  };
+
+  vk::AttachmentReference colorAttachmentRef{
+      0,                                       // attachment
+      vk::ImageLayout::eColorAttachmentOptimal // layout
+  };
+
+  vk::AttachmentDescription depthAttachment{
+      {},                                             // flags
+      device->findDepthFormat(),                      // format
+      vk::SampleCountFlagBits::e1,                    // samples
+      vk::AttachmentLoadOp::eClear,                   // loadOp
+      vk::AttachmentStoreOp::eDontCare,               // storeOp
+      vk::AttachmentLoadOp::eDontCare,                // stencilLoadOp
+      vk::AttachmentStoreOp::eDontCare,               // stencilStoreOp
+      vk::ImageLayout::eUndefined,                    // initialLayout
+      vk::ImageLayout::eDepthStencilAttachmentOptimal // finalLayout
+  };
+
+  vk::AttachmentReference depthAttachmentRef{
+      1,                                              // attachment
+      vk::ImageLayout::eDepthStencilAttachmentOptimal // layout
+  };
+
+  vk::SubpassDescription subpass{
+      {},                               // flags
+      vk::PipelineBindPoint::eGraphics, // pipelineBindPoint
+      {},                               // inputAttachments
+      colorAttachmentRef,               // colorAttachments
+      {},                               // resolveAttachments
+      &depthAttachmentRef,              // pDepthStencilAttachment
+      {}                                // preserveAttachments
+  };
+
+  auto dependencyStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput |
+                             vk::PipelineStageFlagBits::eEarlyFragmentTests;
+  auto dependencyAccessMask = vk::AccessFlagBits::eColorAttachmentWrite |
+                              vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+  vk::SubpassDependency dependency{
+      VK_SUBPASS_EXTERNAL, // srcSubpass
+      0,                   // dstSubpass
+      dependencyStageMask, // srcStageMask
+      dependencyStageMask, // dstStageMask
+      {},                  // srcAccessMask
+      dependencyAccessMask // dstAccessMask
+  };
+
+  std::vector renderPassAttachments{colorAttachment, depthAttachment};
+
+  vk::RenderPassCreateInfo renderPassInfo{
+      {},                    // flags
+      renderPassAttachments, // attachments
+      subpass,               // subpasses
+      dependency             // dependencies
+  };
+
+  return (*device)->createRenderPassUnique(renderPassInfo);
+}
+} // namespace vkx
+
+vkx::Mesh vkx::RendererBase::allocateMesh(
+    const std::vector<Vertex> &vertices,
+    const std::vector<std::uint32_t> &indices) const {
+  return vkx::Mesh{vertices, indices, *device};
+}
+
+vkx::Texture
+vkx::RendererBase::allocateTexture(const std::string &textureFile) const {
+  return vkx::Texture{textureFile, *device};
 }
 
 void vkx::RendererBase::waitIdle() const {
-    (*device)->waitIdle();
-    std::cout << "Hello World!\n";
+  (*device)->waitIdle();
+  std::cout << "Hello World!\n";
 }
