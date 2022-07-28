@@ -28,8 +28,7 @@ namespace vkx {
 
         explicit Device(vk::UniqueInstance const &instance,
                         vk::PhysicalDevice const &physicalDevice,
-                        vk::UniqueSurfaceKHR const &surface,
-                        Profile const &profile);
+                        vk::UniqueSurfaceKHR const &surface);
 
         explicit operator vk::PhysicalDevice const &() const;
 

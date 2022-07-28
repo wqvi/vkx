@@ -96,7 +96,7 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    vkx::RendererBase renderer{window, vkx::Profile{}};
+    vkx::RendererBase renderer{window};
 
     vkx::Model model{};
 

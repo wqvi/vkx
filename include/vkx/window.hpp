@@ -2,7 +2,6 @@
 
 #include <vkx/vkx_types.hpp>
 #include <vkx/scene.hpp>
-#include <vkx/renderer/core/context.hpp>
 
 namespace vkx {
     // A SDL c Window wrapper class
@@ -13,10 +12,6 @@ namespace vkx {
         struct SDLDeleter {
             void operator()(SDL_Window *ptr) const noexcept;
         };
-
-        // Friend function to create a surface, this function only needs to access the SDL_Window* variable
-        friend vk::UniqueSurfaceKHR
-        RendererContext::createSurface(std::shared_ptr<SDLWindow> const &window) const;
 
     public:
         // Construct a base window, it uses C types as the C api it interfaces with use weakly typed parameters

@@ -1,7 +1,6 @@
 target_sources(vkx
 	PRIVATE
 		"${CMAKE_CURRENT_SOURCE_DIR}/commands.cpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/context.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/debug.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/device.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/physical_device.cpp"

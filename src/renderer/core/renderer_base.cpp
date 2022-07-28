@@ -5,13 +5,36 @@
 #include <vkx/renderer/uniform_buffer.hpp>
 #include <vkx/renderer/model.hpp>
 #include <vkx/vkx_exceptions.hpp>
+#include <vkx/debug.hpp>
 #include <iostream>
 
-vkx::RendererBase::RendererBase(SDL_Window* window, Profile const &profile) : window(window) {
+static bool isSubset(const std::vector<const char*>& arr, const std::vector<const char*>& subset) {
+    auto iter = arr.begin();
+    const auto end = arr.end();
+
+    if (arr.size() < subset.size()) {
+        throw std::invalid_argument("Arr must be larger than subset.");
+    }
+
+    for (const char* subsetStr: subset) {
+        for (iter = arr.begin(); iter != end; iter++) {
+            if (std::strcmp(*iter, subsetStr) == 0) break;
+        }
+
+        if (iter == end) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+vkx::RendererBase::RendererBase(SDL_Window* window) 
+    : window(window) {
     static constexpr vk::ApplicationInfo applicationInfo{
         "Jewelry",
         VK_MAKE_VERSION(0, 0, 1),
-        "Vulcan (See what I did there?)",
+        "Vulcan",
         VK_MAKE_VERSION(0, 0, 1),
         VK_API_VERSION_1_0
     };
@@ -20,8 +43,7 @@ vkx::RendererBase::RendererBase(SDL_Window* window, Profile const &profile) : wi
     if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
         throw vkx::SDLError();
     }
-    std::vector<const char*> extensions;
-    extension.reserve(count);
+    std::vector<const char*> extensions(count);
     if (SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()) != SDL_TRUE) {
         throw vkx::SDLError();
     }
@@ -30,10 +52,26 @@ vkx::RendererBase::RendererBase(SDL_Window* window, Profile const &profile) : wi
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
+    std::vector<const char*> layers {
+#ifdef DEBUG
+        "VK_LAYER_KHRONOS_validation",
+#endif
+    };
+
+#ifdef DEBUG
+    auto availableLayers = vk::enumerateInstanceLayerProperties();
+    std::vector<const char*> currentStrLayers;
+    std::transform(availableLayers.begin(), availableLayers.end(), std::back_inserter(currentStrLayers),
+        [](const auto& props) { return props.layerName; });
+    if (!isSubset(currentStrLayers, layers)) {
+        throw vkx::VulkanError("Failed to find requested Vulkan instance layers.");
+    }
+#endif
+
     vk::InstanceCreateInfo instanceCreateInfo{
         {},
         &applicationInfo,
-        {},
+        layers,
         extensions
     };
 
@@ -63,7 +101,6 @@ vkx::RendererBase::RendererBase(SDL_Window* window, Profile const &profile) : wi
 #else
     instance = vk::createInstanceUnique(instanceCreateInfo);
 #endif
-    surface = vkx::RendererContext::createSurface(window);
 
     VkSurfaceKHR cSurface = nullptr;
     if (SDL_Vulkan_CreateSurface(window, *instance, &cSurface) != SDL_TRUE) {
@@ -71,12 +108,45 @@ vkx::RendererBase::RendererBase(SDL_Window* window, Profile const &profile) : wi
     }
     surface = vk::UniqueSurfaceKHR(cSurface, *instance);
 
-    auto physicalDevices = instance.getPhysicalDevices();
+    auto physicalDevices = instance->enumeratePhysicalDevices();
+    vk::PhysicalDevice bestPhysicalDevice = nullptr;
+    std::uint32_t bestRating = 0;
+    for (const auto& pDevice : physicalDevices) {
+        std::uint32_t rating = 0;
 
-    device = std::make_unique<vkx::Device>(instance
-                                           vkx::RendererContext::getBestPhysicalDevice(surface, profile),
-                                           surface,
-                                           profile);
+        auto extensionProperties = pDevice.enumerateDeviceExtensionProperties();
+        std::vector<const char*> stringExtensions;
+        std::transform(extensionProperties.begin(), extensionProperties.end(), std::back_inserter(stringExtensions), 
+            [](auto const &props) { return props.extensionName; });
+        if (isSubset(stringExtensions, extensions)) {
+            rating++;
+        }
+
+        if (QueueConfig indices{pDevice, surface}; indices.isComplete()) {
+            rating++;
+        }
+
+        if (SwapchainInfo info{pDevice, surface}; info.isComplete()) {
+            rating++;
+        }
+
+        if (pDevice.getFeatures().samplerAnisotropy) {
+            rating++;
+        }
+
+        if (rating > bestRating) {
+            bestRating = rating;
+            bestPhysicalDevice = pDevice;
+        }
+    }
+
+    if (!static_cast<bool>(bestPhysicalDevice)) {
+        throw vkx::VulkanError("Failure to initialize device.");
+    }
+
+    device = std::make_unique<vkx::Device>(instance,
+                                           bestPhysicalDevice,
+                                           surface);
 
     createSwapchain();
 

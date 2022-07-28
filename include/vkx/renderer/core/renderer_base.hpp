@@ -4,7 +4,6 @@
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/camera.hpp>
 #include <vkx/renderer/core/commands.hpp>
-#include <vkx/renderer/core/context.hpp>
 #include <vkx/renderer/texture.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
 
@@ -14,7 +13,7 @@ namespace vkx {
     public:
         RendererBase() = default;
 
-        RendererBase(SDL_Window* window, Profile const &profile);
+        RendererBase(SDL_Window* window);
 
         void recreateSwapchain();
 

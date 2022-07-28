@@ -36,8 +36,7 @@ vkx::Device::AllocatorWrapper::operator VmaAllocator() const {
 
 vkx::Device::Device(vk::UniqueInstance const &instance,
                     vk::PhysicalDevice const &physicalDevice,
-                    vk::UniqueSurfaceKHR const &surface,
-                    Profile const &profile)
+                    vk::UniqueSurfaceKHR const &surface)
         : physicalDevice(physicalDevice), properties(physicalDevice.getProperties()) {
 
     QueueConfig queueConfig{physicalDevice, surface};
@@ -51,11 +50,21 @@ vkx::Device::Device(vk::UniqueInstance const &instance,
     vk::PhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = true;
 
+    std::vector<const char*> layers {
+#ifdef DEBUG
+        "VK_LAYER_KHRONOS_validation",
+#endif
+    };
+
+    std::vector<char const *> extensions {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
+
     vk::DeviceCreateInfo deviceCreateInfo{
             {},
             queueCreateInfos,
-            profile.layers,
-            profile.extensions,
+            layers,
+            extensions,
             &deviceFeatures
     };
 
