@@ -3,7 +3,7 @@
 
 int main(void) {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-    SDL_LogCritical(0, "Failure to initialize SDL2: %s", SDL_GetError());
+    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR, "Failure to initialize SDL2: %s", SDL_GetError());
     return EXIT_FAILURE;
   }
 
@@ -15,7 +15,7 @@ int main(void) {
                        SDL_WINDOWPOS_UNDEFINED, 640, 480, windowFlags);
 
   if (window == nullptr) {
-    SDL_LogCritical(0, "Failure to initialize SDL2 window: %s", SDL_GetError());
+    SDL_LogCritical(SDL_LOG_CATEGORY_ERROR, "Failure to initialize SDL2 window: %s", SDL_GetError());
     SDL_Quit();
     return EXIT_FAILURE;
   }
