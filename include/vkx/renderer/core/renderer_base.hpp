@@ -10,8 +10,6 @@
 namespace vkx {
 class RendererBase {
 public:
-  RendererBase() = default;
-
   RendererBase(SDL_Window *window);
 
   void recreateSwapchain();

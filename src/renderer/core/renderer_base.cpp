@@ -71,7 +71,8 @@ vkx::RendererBase::RendererBase(SDL_Window *window) : window(window) {
       {}, &applicationInfo, layers, extensions};
 
 #ifdef DEBUG
-  auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+  auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+                         vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
                          vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
   auto messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
                      vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
@@ -372,7 +373,4 @@ vkx::RendererBase::allocateTexture(const std::string &textureFile) const {
   return vkx::Texture{textureFile, *device};
 }
 
-void vkx::RendererBase::waitIdle() const {
-  (*device)->waitIdle();
-  std::cout << "Hello World!\n";
-}
+void vkx::RendererBase::waitIdle() const { (*device)->waitIdle(); }
