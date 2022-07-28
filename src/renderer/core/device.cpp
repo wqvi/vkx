@@ -8,6 +8,8 @@
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
+#include <iostream>
+
 
 vkx::Device::AllocatorWrapper::AllocatorWrapper(vk::UniqueInstance const &instance,
                                                 vk::PhysicalDevice const &physicalDevice,

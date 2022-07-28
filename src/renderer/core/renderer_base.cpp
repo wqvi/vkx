@@ -5,13 +5,75 @@
 #include <vkx/renderer/uniform_buffer.hpp>
 #include <vkx/renderer/model.hpp>
 #include <vkx/vkx_exceptions.hpp>
+#include <iostream>
 
-vkx::RendererBase::RendererBase(SDL_Window* window, Profile const &profile)
-        : vkx::RendererContext(window, profile),
-          window(window) {
+vkx::RendererBase::RendererBase(SDL_Window* window, Profile const &profile) : window(window) {
+    static constexpr vk::ApplicationInfo applicationInfo{
+        "Jewelry",
+        VK_MAKE_VERSION(0, 0, 1),
+        "Vulcan (See what I did there?)",
+        VK_MAKE_VERSION(0, 0, 1),
+        VK_API_VERSION_1_0
+    };
+
+    std::uint32_t count = 0;
+    if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
+        throw vkx::SDLError();
+    }
+    std::vector<const char*> extensions;
+    extension.reserve(count);
+    if (SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()) != SDL_TRUE) {
+        throw vkx::SDLError();
+    }
+
+#ifdef DEBUG
+    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+    vk::InstanceCreateInfo instanceCreateInfo{
+        {},
+        &applicationInfo,
+        {},
+        extensions
+    };
+
+#ifdef DEBUG
+    auto messageSeverity =
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | 
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+    auto messageType =
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | 
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+
+    vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
+            {},
+            messageSeverity,
+            messageType,
+            vkDebugCallback,
+            nullptr
+    };
+
+    vk::StructureChain structureChain{
+        instanceCreateInfo,
+        debugUtilsMessengerCreateInfo
+    };
+
+    instance = vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
+#else
+    instance = vk::createInstanceUnique(instanceCreateInfo);
+#endif
     surface = vkx::RendererContext::createSurface(window);
 
-    device = std::make_unique<vkx::Device>(vkx::RendererContext::getInstance(),
+    VkSurfaceKHR cSurface = nullptr;
+    if (SDL_Vulkan_CreateSurface(window, *instance, &cSurface) != SDL_TRUE) {
+        throw vkx::SDLError();
+    }
+    surface = vk::UniqueSurfaceKHR(cSurface, *instance);
+
+    auto physicalDevices = instance.getPhysicalDevices();
+
+    device = std::make_unique<vkx::Device>(instance
                                            vkx::RendererContext::getBestPhysicalDevice(surface, profile),
                                            surface,
                                            profile);
@@ -280,4 +342,5 @@ vkx::Texture vkx::RendererBase::allocateTexture(const std::string &textureFile) 
 
 void vkx::RendererBase::waitIdle() const {
     (*device)->waitIdle();
+    std::cout << "Hello World!\n";
 }

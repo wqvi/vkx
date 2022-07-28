@@ -10,7 +10,7 @@
 
 namespace vkx {
 
-    class RendererBase : public RendererContext {
+    class RendererBase {
     public:
         RendererBase() = default;
 
@@ -59,6 +59,7 @@ namespace vkx {
 
     private:
         SDL_Window* window;
+        vk::UniqueInstance instance;
         vk::UniqueSurfaceKHR surface;
         std::unique_ptr<Device> device;
 
