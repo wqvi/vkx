@@ -1,7 +1,6 @@
 #pragma once
 
 #include "renderer_types.hpp"
-#include "profile.hpp"
 #include "vertex.hpp"
 #include "queue_config.hpp"
 #include "vk_mem_alloc.h"
@@ -138,7 +137,7 @@ namespace vkx {
         createTextureSamplerUnique() const;
 
         // TODO fix this violation
-        std::unique_ptr<AllocatorWrapper> allocator;
+        // std::unique_ptr<AllocatorWrapper> allocator;
     private:
         vk::PhysicalDevice physicalDevice;
         vk::UniqueDevice device;

@@ -79,7 +79,7 @@ vkx::Device::Device(vk::UniqueInstance const &instance,
 
     queues = Queues(*this, queueConfig);
 
-    allocator = std::make_unique<AllocatorWrapper>(instance, physicalDevice, device);
+    // allocator = std::make_unique<AllocatorWrapper>(instance, physicalDevice, device);
 }
 
 vkx::Device::operator vk::PhysicalDevice const &() const {
