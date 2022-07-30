@@ -8,20 +8,6 @@
 #include <vkx/renderer/texture.hpp>
 #include <vulkan/vulkan_core.h>
 
-extern "C" {
-VkInstance createInstance(VkApplicationInfo* applicationInfo);
-
-VkSurfaceKHR createSurface(SDL_Window* window);
-
-struct RendererBootstrap {
-	SDL_Window* window;
-	VkInstance instance;
-	VkSurfaceKHR surface;
-};
-
-void initBootstrap(RendererBootstrap* bootstrap, SDL_Window* window);
-}
-
 namespace vkx {
 class RendererBase {
 public:

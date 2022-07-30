@@ -9,32 +9,6 @@
 #include <vkx/vkx_exceptions.hpp>
 #include <vulkan/vulkan_core.h>
 
-extern "C" {
-VkInstance createInstance(VkApplicationInfo* applicationInfo) {
-	return nullptr;
-}
-
-VkSurfaceKHR createSurface(SDL_Window* window) {
-	return nullptr;
-}
-
-void initBootstrap(RendererBootstrap* bootstrap, SDL_Window* window) {
-	VkApplicationInfo applicationInfo = {
-		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pNext = nullptr,
-		.pApplicationName = "Jewelry",
-		.applicationVersion = VK_MAKE_VERSION(0, 0, 0),
-		.pEngineName = "Vulcan",
-		.engineVersion = VK_MAKE_VERSION(0, 0, 0),
-		.apiVersion = VK_VERSION_1_0
-	};
-
-	bootstrap->window = window;
-	bootstrap->instance = createInstance(nullptr);
-	bootstrap->surface = createSurface(window);
-}
-}
-
 static bool isSubset(const std::vector<const char*>& arr,
 		     const std::vector<const char*>& subset) {
 	auto iter = arr.begin();
