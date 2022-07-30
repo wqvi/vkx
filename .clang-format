@@ -1,0 +1,8 @@
+BasedOnStyle: LLVM
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+IndentWidth: 8
+UseTab: Always
+QualifierAlignment: Left # dangerous!
+ColumnLimit: 0
+AccessModifierOffset: -8
