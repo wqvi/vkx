@@ -14,7 +14,7 @@ std::vector<vkx::SyncObjects> vkx::SyncObjects::createSyncObjects(Device const &
     std::vector<vkx::SyncObjects> objs;
     objs.resize(MAX_FRAMES_IN_FLIGHT);
 
-    std::ranges::generate(objs, [&device]() { return SyncObjects{device}; });
+    std::generate(objs.begin(), objs.end(), [&device]() { return SyncObjects{device}; });
 
     return objs;
 }

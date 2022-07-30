@@ -24,7 +24,7 @@ std::vector<std::uint32_t> vkx::PipelineShader::readFile(const std::string &file
     std::vector<std::uint32_t> buffer(fileSize);
 
     file.seekg(std::ios::beg);
-    file.read(std::bit_cast<char*>(buffer.data()), fileSize);
+    file.read(reinterpret_cast<char*>(buffer.data()), fileSize);
 
     file.close();
 
@@ -75,7 +75,7 @@ namespace vkx
         std::vector<std::uint32_t> buffer(fileSize);
 
         file.seekg(std::ios::beg);
-        file.read(std::bit_cast<char*>(buffer.data()), fileSize);
+        file.read(reinterpret_cast<char*>(buffer.data()), fileSize);
 
         file.close();
 

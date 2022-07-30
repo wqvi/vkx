@@ -12,7 +12,7 @@ namespace vkx
 
     constexpr Voxel() = default;
 
-    constexpr explicit(false) Voxel(VoxelType type)
+    constexpr Voxel(VoxelType type)
         : type(type)
     {
       switch (type)
@@ -35,6 +35,10 @@ namespace vkx
         : type(type),
           visible(visible) {}
 
-    auto operator<=>(Voxel const &other) const = default;
+    // auto operator<=>(Voxel const &other) const = default;
+
+    bool operator==(Voxel const &other) const {
+      return type == other.type && visible == other.visible;
+    }
   };
 }

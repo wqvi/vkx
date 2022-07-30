@@ -16,6 +16,10 @@ namespace vkx
         : voxel(voxel),
           normal(normal) {}
 
-    auto operator<=>(const VoxelMask &other) const = default;
+    // auto operator<=>(const VoxelMask &other) const = default;
+
+    bool operator==(const VoxelMask &other) const {
+      return voxel == other.voxel && normal == other.normal;
+    }
   };
 }

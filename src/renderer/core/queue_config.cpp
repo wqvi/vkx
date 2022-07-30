@@ -39,7 +39,7 @@ namespace vkx
                 computeIndex.value(),
                 presentIndex.value()};
 
-            std::ranges::copy(uniqueIndices.begin(), uniqueIndices.end(), std::back_inserter(indices));
+            std::copy(uniqueIndices.begin(), uniqueIndices.end(), std::back_inserter(indices));
         }
     }
 

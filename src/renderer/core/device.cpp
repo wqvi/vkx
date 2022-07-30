@@ -116,7 +116,7 @@ std::vector<vkx::DrawCommand> vkx::Device::createDrawCommands(std::uint32_t size
     auto commandBuffers = device->allocateCommandBuffers(allocInfo);
 
     std::vector<DrawCommand> drawCommands;
-    std::ranges::transform(commandBuffers, std::back_inserter(drawCommands),
+    std::transform(commandBuffers.begin(), commandBuffers.end(), std::back_inserter(drawCommands),
                            [&device = this->device](auto const &commandBuffer) -> DrawCommand {
                                return vkx::DrawCommand{device, commandBuffer};
                            });
@@ -414,7 +414,7 @@ void vkx::Device::submit(
             vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
     std::vector<vk::CommandBuffer> commands;
-    std::ranges::transform(drawCommands, std::back_inserter(commands), [](auto const &drawCommand) {
+    std::transform(drawCommands.begin(), drawCommands.end(), std::back_inserter(commands), [](auto const &drawCommand) {
         return static_cast<vk::CommandBuffer>(drawCommand);
     });
 
