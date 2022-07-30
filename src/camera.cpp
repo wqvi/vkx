@@ -37,13 +37,6 @@ void vkx::Camera::updateKey(int key) {
     if (key == SDLK_d) {
         direction = right;
     }
-
-    if (key != SDLK_w &&
-        key != SDLK_s &&
-        key != SDLK_a &&
-        key != SDLK_d) {
-        direction = glm::vec3{0};
-    }
 }
 
 [[nodiscard]] glm::mat4 vkx::Camera::viewMatrix() const {

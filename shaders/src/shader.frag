@@ -31,6 +31,7 @@ layout(location = 0) in Data
 
 void main()
 {
+    /*
     vec3 ambient = vec3(light.ambientColor.rgb * light.ambientColor.w) * texture(materialDiffuse, data.uv).rgb;
 
     vec3 lightDir = normalize(light.position - data.worldPos);
@@ -54,4 +55,6 @@ void main()
 
     vec3 result = ambient + diffuse + specular;
     outColor = vec4(result, 1.0);
+    */
+    outColor = vec4(1.0);
 }
