@@ -1,5 +1,8 @@
 #pragma once
 
+#include <SDL2/SDL_video.h>
+#include <cstddef>
+#include <cstdint>
 #include <vkx/camera.hpp>
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/pipeline.hpp>
@@ -7,6 +10,62 @@
 #include <vkx/renderer/core/sync_objects.hpp>
 #include <vkx/renderer/texture.hpp>
 #include <vulkan/vulkan_core.h>
+
+struct Queue {
+	VkQueue graphics = nullptr;
+	VkQueue present = nullptr;
+};
+
+struct QueueConfig {
+	std::uint32_t graphicsIndex = UINT32_MAX;
+	std::uint32_t presentIndex = UINT32_MAX;
+
+	explicit QueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+
+	bool complete() const noexcept;
+};
+
+class VulkanDevice {
+private:
+	VkPhysicalDevice physicalDevice = nullptr;
+	VkPhysicalDeviceProperties properties = {};
+	VkDevice device = nullptr;
+	Queue queue = {};
+	VkCommandPool commandPool = nullptr;
+	VmaAllocator allocator = nullptr;
+
+public:
+	VulkanDevice() = default;
+
+	explicit VulkanDevice(VkInstance instance, VkSurfaceKHR surface);
+
+	void destroy() const noexcept;
+
+private:
+	static VkPhysicalDevice pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
+};
+
+class VulkanBootstrap {
+private:
+	SDL_Window* window = nullptr;
+	VkInstance instance = nullptr;
+	VkSurfaceKHR surface = nullptr;
+	VulkanDevice device = {};
+
+public:
+	VulkanBootstrap() = delete;
+
+	explicit VulkanBootstrap(SDL_Window* window);
+
+	~VulkanBootstrap();
+
+private:
+	static VkBool32 debug(VkDebugUtilsMessageSeverityFlagBitsEXT, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT*, void*);
+
+	static VkInstance initInstance(SDL_Window* window, VkApplicationInfo* applicationInfo);
+
+	VkSurfaceKHR initSurface(SDL_Window* window);
+};
 
 namespace vkx {
 class RendererBase {

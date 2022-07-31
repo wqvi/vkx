@@ -1,3 +1,11 @@
+#include <SDL2/SDL_error.h>
+#include <SDL2/SDL_log.h>
+#include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_vulkan.h>
+#include <cstdint>
+#include <cstring>
+#include <exception>
+#include <stdexcept>
 #include <vkx/renderer/core/renderer_base.hpp>
 
 #include <iostream>
@@ -9,8 +17,9 @@
 #include <vkx/vkx_exceptions.hpp>
 #include <vulkan/vulkan_core.h>
 
-static bool isSubset(const std::vector<const char*>& arr,
-		     const std::vector<const char*>& subset) {
+static constexpr std::uint32_t API_VERSION = VK_API_VERSION_1_0;
+
+static bool isSubset(const std::vector<const char*>& arr, const std::vector<const char*>& subset) {
 	auto iter = arr.begin();
 	const auto end = arr.end();
 
@@ -30,6 +39,216 @@ static bool isSubset(const std::vector<const char*>& arr,
 	}
 
 	return true;
+}
+
+QueueConfig::QueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+	std::uint32_t count = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &count, nullptr);
+
+	std::vector<VkQueueFamilyProperties> queueFamilies;
+	queueFamilies.resize(count);
+	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &count, queueFamilies.data());
+
+	for (std::uint32_t i = 0; i < count; i++) {
+		auto flags = queueFamilies[i].queueFlags;
+		if (flags & VK_QUEUE_GRAPHICS_BIT) {
+			if (graphicsIndex == UINT32_MAX) {
+				graphicsIndex = i;
+			}
+		}
+
+		VkBool32 support = VK_FALSE;
+		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &support);
+		if (support) {
+			if (presentIndex == UINT32_MAX) {
+				presentIndex = i;
+			}
+		}
+
+		if (complete()) {
+			break;
+		}
+	}
+}
+
+bool QueueConfig::complete() const noexcept {
+	return graphicsIndex != UINT32_MAX && presentIndex != UINT32_MAX;
+}
+
+VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface) {
+	physicalDevice = pickPhysicalDevice(instance, surface);
+}
+
+void VulkanDevice::destroy() const noexcept {
+	// vmaDestroyAllocator(allocator);
+	// vkDestroyCommandPool(device, commandPool, nullptr);
+	// vkDestroyDevice(device, nullptr);
+	SDL_Log("Destroyed VulkanDevice.");
+}
+
+VkPhysicalDevice VulkanDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface) {
+	std::uint32_t count = 0;
+	if (vkEnumeratePhysicalDevices(instance, &count, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to get count of available physical devices.");
+	}
+
+	std::vector<VkPhysicalDevice> physicalDevices;
+	physicalDevices.resize(count);
+	if (vkEnumeratePhysicalDevices(instance, &count, physicalDevices.data()) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to enumerate physical devices.");
+	}
+
+	VkPhysicalDevice bestPhysicalDevice = nullptr;
+	for (VkPhysicalDevice physicalDevice : physicalDevices) {
+		std::uint32_t rating = 0;
+
+		VkPhysicalDeviceProperties properties;
+		vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+
+		count = 0;
+		if (vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &count, nullptr) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to get count of available device extension properties.");
+		}
+
+		std::vector<VkExtensionProperties> extensions;
+		extensions.resize(count);
+		if (vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &count, extensions.data()) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to enumerate device extension properties.");
+		}
+
+		bool valid = false;
+		for (const VkExtensionProperties& ext : extensions) {
+			if (std::strcmp(ext.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
+				valid = true;
+			}
+
+			if (valid) {
+				break;
+			}
+		}
+
+		if (!valid) {
+			continue;
+		}
+
+		QueueConfig queueConfig{physicalDevice, surface};
+		if (!queueConfig.complete()) {
+			continue;
+		}
+
+		bestPhysicalDevice = physicalDevice;
+		break;
+	}
+
+	if (bestPhysicalDevice == nullptr) {
+		throw std::runtime_error("Failed to pick physical device.");
+	}
+
+	return bestPhysicalDevice;
+}
+
+VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
+	VkApplicationInfo applicationInfo = {
+	    .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+	    .pNext = nullptr,
+	    .pApplicationName = "jewelry",
+	    .applicationVersion = VK_MAKE_VERSION(0, 0, 0),
+	    .pEngineName = "vulcan",
+	    .engineVersion = VK_MAKE_VERSION(0, 0, 0),
+	    .apiVersion = API_VERSION};
+
+	instance = initInstance(window, &applicationInfo);
+	surface = initSurface(window);
+
+	device = VulkanDevice{instance, surface};
+}
+
+VulkanBootstrap::~VulkanBootstrap() {
+	device.destroy();
+	vkDestroySurfaceKHR(instance, surface, nullptr);
+	vkDestroyInstance(instance, nullptr);
+	SDL_Log("Destroyed VulkanBootstrap.");
+}
+
+VkBool32 VulkanBootstrap::debug(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {
+	if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+		SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
+	} else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
+	}
+	return VK_FALSE;
+}
+
+VkInstance VulkanBootstrap::initInstance(SDL_Window* window, VkApplicationInfo* applicationInfo) {
+	std::uint32_t count = 0;
+	if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
+		throw std::runtime_error(SDL_GetError());
+	}
+	std::vector<const char*> extensions(count);
+	if (SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()) != SDL_TRUE) {
+		throw std::runtime_error(SDL_GetError());
+	}
+
+#ifdef DEBUG
+	extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+#ifdef DEBUG
+	VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+	    .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+	    .pfnUserCallback = debug,
+	    .pUserData = nullptr};
+#endif
+
+#ifdef DEBUG
+	const char* layer = "VK_LAYER_KHRONOS_validation";
+#endif
+
+	VkInstanceCreateInfo instanceCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+#ifdef DEBUG
+	    .pNext = &debugUtilsMessengerCreateInfo,
+#else
+	    .pNext = nullptr,
+#endif
+	    .flags = 0,
+	    .pApplicationInfo = applicationInfo,
+#ifdef DEBUG
+	    .enabledLayerCount = 1,
+	    .ppEnabledLayerNames = &layer,
+#else
+	    .enabledLayerCount = 0,
+	    .ppEnabledLayerNames = nullptr,
+#endif
+	    .enabledExtensionCount = static_cast<std::uint32_t>(extensions.size()),
+	    .ppEnabledExtensionNames = extensions.data()};
+
+	VkInstance instance = nullptr;
+	auto result = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
+	switch (result) {
+	case VK_SUCCESS:
+		break;
+	case VK_ERROR_LAYER_NOT_PRESENT:
+		throw std::runtime_error("Layer not present upon instance creation.");
+	case VK_ERROR_EXTENSION_NOT_PRESENT:
+		throw std::runtime_error("Extension not present upon instance creation.");
+	default:
+		throw std::runtime_error("Failed to create instance.");
+	}
+
+	return instance;
+}
+
+VkSurfaceKHR VulkanBootstrap::initSurface(SDL_Window* window) {
+	VkSurfaceKHR surface = nullptr;
+	if (SDL_Vulkan_CreateSurface(window, instance, &surface) != SDL_TRUE) {
+		return nullptr;
+	}
+	return surface;
 }
 
 vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {

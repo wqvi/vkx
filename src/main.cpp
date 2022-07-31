@@ -1,3 +1,4 @@
+#include "vkx/renderer/core/renderer_base.hpp"
 #include "vkx/renderer/core/vertex.hpp"
 #include <SDL2/SDL_log.h>
 #include <cstdint>
@@ -24,6 +25,7 @@ int main(void) {
 	}
 
 	{
+		VulkanBootstrap bootstrap{window};
 		vkx::RendererBase renderer{window};
 
 		vkx::Model model{};
