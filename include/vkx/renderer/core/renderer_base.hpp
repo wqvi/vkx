@@ -11,6 +11,22 @@
 #include <vkx/renderer/texture.hpp>
 #include <vulkan/vulkan_core.h>
 
+struct SwapchainInfo {
+	VkSurfaceCapabilitiesKHR capabilities;
+	std::vector<VkSurfaceFormatKHR> formats;
+	std::vector<VkPresentModeKHR> presentModes;
+
+	explicit SwapchainInfo(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+
+	VkSurfaceFormatKHR chooseSurfaceFormat() const;
+
+	VkPresentModeKHR choosePresentMode() const;
+
+	VkExtent2D chooseExtent(int width, int height) const;
+
+	bool complete() const noexcept;
+};
+
 struct Queue {
 	VkQueue graphics = nullptr;
 	VkQueue present = nullptr;
@@ -21,6 +37,8 @@ struct QueueConfig {
 	std::uint32_t presentIndex = UINT32_MAX;
 
 	explicit QueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+
+	std::vector<VkDeviceQueueCreateInfo> createQueueInfos(float priority) const;
 
 	bool complete() const noexcept;
 };
@@ -43,6 +61,10 @@ public:
 
 private:
 	static VkPhysicalDevice pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
+
+	static VkDevice createDevice(const QueueConfig& queueConfig, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+
+	static VkCommandPool createCommandPool(const QueueConfig& queueConfig, VkDevice device);
 };
 
 class VulkanBootstrap {
@@ -64,7 +86,7 @@ private:
 
 	static VkInstance initInstance(SDL_Window* window, VkApplicationInfo* applicationInfo);
 
-	VkSurfaceKHR initSurface(SDL_Window* window);
+	static VkSurfaceKHR initSurface(SDL_Window* window, VkInstance instance);
 };
 
 namespace vkx {

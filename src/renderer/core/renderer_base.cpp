@@ -19,6 +19,68 @@
 
 static constexpr std::uint32_t API_VERSION = VK_API_VERSION_1_0;
 
+SwapchainInfo::SwapchainInfo(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
+
+	std::uint32_t count = 0;
+	if (vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &count, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to get physical device surface format count.");
+	}
+
+	formats.resize(count);
+	if (vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &count, formats.data()) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to get physical device surface formats.");
+	}
+
+	count = 0;
+	if (vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &count, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to get physical device surface present mode count.");
+	}
+
+	presentModes.resize(count);
+	if (vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &count, presentModes.data()) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to get physical device surface present modes.");
+	}
+}
+
+VkSurfaceFormatKHR SwapchainInfo::chooseSurfaceFormat() const {
+	for (const auto& surfaceFormat : formats) {
+		if (surfaceFormat.format == VK_FORMAT_B8G8R8A8_SRGB && surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+			return surfaceFormat;
+		}
+	}
+
+	return formats[0];
+}
+
+VkPresentModeKHR SwapchainInfo::choosePresentMode() const {
+	for (VkPresentModeKHR presentMode : presentModes) {
+		if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+			return presentMode;
+		}
+	}
+	return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D SwapchainInfo::chooseExtent(int width, int height) const {
+	if (capabilities.currentExtent.width != UINT32_MAX) {
+		return capabilities.currentExtent;
+	}
+
+	VkExtent2D extent = {
+	    .width = static_cast<std::uint32_t>(width),
+	    .height = static_cast<std::uint32_t>(height)};
+
+	extent.width = std::clamp(extent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+	extent.height = std::clamp(extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+	return extent;
+}
+
+bool SwapchainInfo::complete() const noexcept {
+	return !formats.empty() && !presentModes.empty();
+}
+
 static bool isSubset(const std::vector<const char*>& arr, const std::vector<const char*>& subset) {
 	auto iter = arr.begin();
 	const auto end = arr.end();
@@ -71,12 +133,39 @@ QueueConfig::QueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) 
 	}
 }
 
+std::vector<VkDeviceQueueCreateInfo> QueueConfig::createQueueInfos(float priority) const {
+	std::set<std::uint32_t> uniqueIndices{
+	    graphicsIndex,
+	    presentIndex};
+
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	queueCreateInfos.resize(uniqueIndices.size());
+	for (const std::uint32_t index : uniqueIndices) {
+		VkDeviceQueueCreateInfo queueCreateInfo = {
+		    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+		    .pNext = nullptr,
+		    .flags = 0,
+		    .queueFamilyIndex = index,
+		    .queueCount = 1,
+		    .pQueuePriorities = &priority};
+
+		queueCreateInfos.push_back(queueCreateInfo);
+	}
+
+	return queueCreateInfos;
+}
+
 bool QueueConfig::complete() const noexcept {
 	return graphicsIndex != UINT32_MAX && presentIndex != UINT32_MAX;
 }
 
 VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface) {
 	physicalDevice = pickPhysicalDevice(instance, surface);
+
+	QueueConfig queueConfig{physicalDevice, surface};
+
+	device = createDevice(queueConfig, physicalDevice, surface);
+	commandPool = createCommandPool(queueConfig, device);
 }
 
 void VulkanDevice::destroy() const noexcept {
@@ -136,6 +225,17 @@ VkPhysicalDevice VulkanDevice::pickPhysicalDevice(VkInstance instance, VkSurface
 			continue;
 		}
 
+		SwapchainInfo swapchainInfo{physicalDevice, surface};
+		if (!swapchainInfo.complete()) {
+			continue;
+		}
+
+		VkPhysicalDeviceFeatures features;
+		vkGetPhysicalDeviceFeatures(physicalDevice, &features);
+		if (!features.samplerAnisotropy) {
+			continue;
+		}
+
 		bestPhysicalDevice = physicalDevice;
 		break;
 	}
@@ -145,6 +245,53 @@ VkPhysicalDevice VulkanDevice::pickPhysicalDevice(VkInstance instance, VkSurface
 	}
 
 	return bestPhysicalDevice;
+}
+
+VkDevice VulkanDevice::createDevice(const QueueConfig& queueConfig, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+	float queuePriority = 1.0f;
+	const auto queueConfigs = queueConfig.createQueueInfos(queuePriority);
+
+	VkPhysicalDeviceFeatures requestedFeatures = {};
+	requestedFeatures.samplerAnisotropy = VK_TRUE;
+
+	VkDeviceCreateInfo deviceCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = 0,
+		.queueCreateInfoCount = static_cast<std::uint32_t>(queueConfigs.size()),
+		.pQueueCreateInfos = queueConfigs.data(),
+		.enabledLayerCount = 0,
+		.ppEnabledLayerNames = nullptr,
+		.enabledExtensionCount = 0,
+		.ppEnabledExtensionNames = nullptr,
+		.pEnabledFeatures = &requestedFeatures
+	};
+
+	VkDevice device = nullptr;
+	auto result = vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
+	if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
+		throw std::runtime_error("Extension not present upon device creation.");
+	} else if (result != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create device.");
+	}
+
+	return device;
+}
+
+VkCommandPool VulkanDevice::createCommandPool(const QueueConfig& queueConfig, VkDevice device) {
+	VkCommandPoolCreateInfo commandPoolCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+		.queueFamilyIndex = queueConfig.graphicsIndex
+	};
+
+	VkCommandPool commandPool = nullptr;
+	if (vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create device command pool.");
+	}
+
+	return commandPool;
 }
 
 VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
@@ -158,7 +305,7 @@ VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
 	    .apiVersion = API_VERSION};
 
 	instance = initInstance(window, &applicationInfo);
-	surface = initSurface(window);
+	surface = initSurface(window, instance);
 
 	device = VulkanDevice{instance, surface};
 }
@@ -171,7 +318,9 @@ VulkanBootstrap::~VulkanBootstrap() {
 }
 
 VkBool32 VulkanBootstrap::debug(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {
-	if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+	if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+		SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
+	} else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
 		SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
 	} else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
@@ -198,7 +347,7 @@ VkInstance VulkanBootstrap::initInstance(SDL_Window* window, VkApplicationInfo* 
 	    .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
 	    .pNext = nullptr,
 	    .flags = 0,
-	    .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+	    .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
 	    .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
 	    .pfnUserCallback = debug,
 	    .pUserData = nullptr};
@@ -243,7 +392,7 @@ VkInstance VulkanBootstrap::initInstance(SDL_Window* window, VkApplicationInfo* 
 	return instance;
 }
 
-VkSurfaceKHR VulkanBootstrap::initSurface(SDL_Window* window) {
+VkSurfaceKHR VulkanBootstrap::initSurface(SDL_Window* window, VkInstance instance) {
 	VkSurfaceKHR surface = nullptr;
 	if (SDL_Vulkan_CreateSurface(window, instance, &surface) != SDL_TRUE) {
 		return nullptr;
