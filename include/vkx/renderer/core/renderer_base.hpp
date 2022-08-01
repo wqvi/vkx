@@ -75,13 +75,15 @@ public:
 		return findSupportedFormat({VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT}, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 	}
 
-	VkImage createImage(std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) const;
-
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const;
 
-	VmaAllocation allocateImage(VkImage image) const;
+	VmaAllocation allocateImage(std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkImage* image) const;
 
-	VmaAllocation allocateBuffer(VkBuffer buffer) const;
+	VmaAllocation allocateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer* buffer) const;
+
+	VmaAllocator getAllocator() const noexcept;
+
+	VkRenderPass createRenderPass(VkFormat format, VkAttachmentLoadOp loadOp) const;
 
 private:
 	static VkPhysicalDevice pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
@@ -93,7 +95,8 @@ private:
 
 class VulkanSwapchain {
 private:
-	VkDevice device;
+	VkDevice device = nullptr;
+	VmaAllocator allocator = nullptr;
 	VkSwapchainKHR swapchain = nullptr;
 	VkFormat imageFormat = VK_FORMAT_UNDEFINED;
 	VkExtent2D extent = {};

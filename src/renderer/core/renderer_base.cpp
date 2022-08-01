@@ -193,6 +193,34 @@ VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface) {
 
 	device = createDevice(queueConfig, physicalDevice, surface);
 	commandPool = createCommandPool(queueConfig, device);
+
+	// 	VmaAllocatorCreateInfo allocatorCreateInfo = {};
+	// allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+	// allocatorCreateInfo.physicalDevice = physicalDevice;
+	// allocatorCreateInfo.device = device;
+	// allocatorCreateInfo.instance = instance;
+	// allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+
+	VmaVulkanFunctions vkFunctions = {
+	    .vkGetInstanceProcAddr = vkGetInstanceProcAddr,
+	    .vkGetDeviceProcAddr = vkGetDeviceProcAddr};
+
+	VmaAllocatorCreateInfo allocatorCreateInfo = {
+	    .flags = 0,
+	    .physicalDevice = physicalDevice,
+	    .device = device,
+	    .preferredLargeHeapBlockSize = 0,
+	    .pAllocationCallbacks = nullptr,
+	    .pDeviceMemoryCallbacks = nullptr,
+	    .pHeapSizeLimit = nullptr,
+	    .pVulkanFunctions = &vkFunctions,
+	    .instance = instance,
+	    .vulkanApiVersion = API_VERSION,
+	    .pTypeExternalMemoryHandleTypes = nullptr};
+
+	if (vmaCreateAllocator(&allocatorCreateInfo, &allocator) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create allocator.");
+	}
 }
 
 VulkanDevice::operator VkDevice() const {
@@ -204,7 +232,7 @@ VulkanDevice::operator VkPhysicalDevice() const {
 }
 
 void VulkanDevice::destroy() const noexcept {
-	// vmaDestroyAllocator(allocator);
+	vmaDestroyAllocator(allocator);
 	vkDestroyCommandPool(device, commandPool, nullptr);
 	vkDestroyDevice(device, nullptr);
 	SDL_Log("Destroyed VulkanDevice.");
@@ -226,58 +254,23 @@ VkFormat VulkanDevice::findSupportedFormat(const std::vector<VkFormat>& candidat
 	return VK_FORMAT_UNDEFINED;
 }
 
-VkImage VulkanDevice::createImage(std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) const {
-	VkExtent3D extent = {
-		.width = width,
-		.height = height,
-		.depth = 1
-	};
-
-	VkImageCreateInfo imageCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.imageType = VK_IMAGE_TYPE_2D,
-		.format = format,
-		.extent = extent,
-		.mipLevels = 1,
-		.arrayLayers = 1,
-		.samples = VK_SAMPLE_COUNT_1_BIT,
-		.tiling = tiling,
-		.usage = usage,
-		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-		.queueFamilyIndexCount = 0,
-		.pQueueFamilyIndices = nullptr,
-		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-	};
-
-	VkImage image = nullptr;
-	if (vkCreateImage(device, &imageCreateInfo, nullptr, &image) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create image.");
-	}
-
-	return image;
-}
-
 VkImageView VulkanDevice::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const {
 	VkImageSubresourceRange subresourceRange = {
-		.aspectMask = aspectFlags,
-		.baseMipLevel = 0,
-		.levelCount = 1,
-		.baseArrayLayer = 0,
-		.layerCount = 1
-	};
+	    .aspectMask = aspectFlags,
+	    .baseMipLevel = 0,
+	    .levelCount = 1,
+	    .baseArrayLayer = 0,
+	    .layerCount = 1};
 
 	VkImageViewCreateInfo imageViewCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.image = image,
-		.viewType = VK_IMAGE_VIEW_TYPE_2D,
-		.format = format,
-		.components = {},
-		.subresourceRange = subresourceRange
-	};
+	    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .image = image,
+	    .viewType = VK_IMAGE_VIEW_TYPE_2D,
+	    .format = format,
+	    .components = {},
+	    .subresourceRange = subresourceRange};
 
 	VkImageView imageView = nullptr;
 	if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS) {
@@ -287,44 +280,154 @@ VkImageView VulkanDevice::createImageView(VkImage image, VkFormat format, VkImag
 	return imageView;
 }
 
-VmaAllocation VulkanDevice::allocateImage(VkImage image) const {
+VmaAllocation VulkanDevice::allocateImage(std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkImage* image) const {
+	VkExtent3D extent = {
+	    .width = width,
+	    .height = height,
+	    .depth = 1};
+
+	VkImageCreateInfo imageCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .imageType = VK_IMAGE_TYPE_2D,
+	    .format = format,
+	    .extent = extent,
+	    .mipLevels = 1,
+	    .arrayLayers = 1,
+	    .samples = VK_SAMPLE_COUNT_1_BIT,
+	    .tiling = tiling,
+	    .usage = usage,
+	    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+	    .queueFamilyIndexCount = 0,
+	    .pQueueFamilyIndices = nullptr,
+	    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED};
+
 	VmaAllocationCreateInfo allocationCreateInfo = {
-		.flags = 0,
-		.usage = VMA_MEMORY_USAGE_AUTO,
-		.requiredFlags = 0,
-		.preferredFlags = 0,
-		.memoryTypeBits = 0,
-		.pool = VK_NULL_HANDLE,
-		.pUserData = nullptr,
-		.priority = 1.0f
-	};
+	    .flags = 0,
+	    .usage = VMA_MEMORY_USAGE_AUTO,
+	    .requiredFlags = 0,
+	    .preferredFlags = 0,
+	    .memoryTypeBits = 0,
+	    .pool = VK_NULL_HANDLE,
+	    .pUserData = nullptr,
+	    .priority = 1.0f};
 
 	VmaAllocation allocation = nullptr;
-	if (vmaAllocateMemoryForImage(allocator, image, &allocationCreateInfo, &allocation, nullptr) != VK_SUCCESS) {
+	if (vmaCreateImage(allocator, &imageCreateInfo, &allocationCreateInfo, image, &allocation, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate image.");
+	}
+
+	return allocation;
+}
+
+VmaAllocation VulkanDevice::allocateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkBuffer* buffer) const {
+	VkBufferCreateInfo bufferCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .size = size,
+	    .usage = usage,
+	    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+	    .queueFamilyIndexCount = 0,
+	    .pQueueFamilyIndices = nullptr};
+
+	VmaAllocationCreateInfo allocationCreateInfo = {
+	    .flags = 0,
+	    .usage = VMA_MEMORY_USAGE_AUTO,
+	    .requiredFlags = 0,
+	    .preferredFlags = 0,
+	    .memoryTypeBits = 0,
+	    .pool = VK_NULL_HANDLE,
+	    .pUserData = nullptr,
+	    .priority = 1.0f};
+
+	VmaAllocation allocation = nullptr;
+	if (vmaCreateBuffer(allocator, &bufferCreateInfo, &allocationCreateInfo, buffer, &allocation, nullptr) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate memory for image.");
 	}
 
 	return allocation;
 }
 
-VmaAllocation VulkanDevice::allocateBuffer(VkBuffer buffer) const {
-	VmaAllocationCreateInfo allocationCreateInfo = {
+VmaAllocator VulkanDevice::getAllocator() const noexcept {
+	return allocator;
+}
+
+VkRenderPass VulkanDevice::createRenderPass(VkFormat format, VkAttachmentLoadOp loadOp) const {
+	VkAttachmentDescription colorAttachment = {
+	    .flags = 0,
+	    .format = format,
+	    .samples = VK_SAMPLE_COUNT_1_BIT,
+	    .loadOp = loadOp,
+	    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+	    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+	    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+	    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+	    .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
+
+	VkAttachmentReference colorAttachmentRef = {
+	    .attachment = 0,
+	    .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+
+	VkAttachmentDescription depthAttachment = {
+	    .flags = 0,
+	    .format = findDepthFormat(),
+	    .samples = VK_SAMPLE_COUNT_1_BIT,
+	    .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+	    .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+	    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+	    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+	    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+	    .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
+
+	VkAttachmentReference depthAttachmentRef = {
+	    .attachment = 1,
+	    .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
+
+	VkSubpassDescription subpass = {
+	    .flags = 0,
+	    .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+	    .inputAttachmentCount = 0,
+	    .pInputAttachments = nullptr,
+	    .colorAttachmentCount = 1,
+	    .pColorAttachments = &colorAttachmentRef,
+	    .pResolveAttachments = nullptr,
+	    .pDepthStencilAttachment = &depthAttachmentRef,
+	    .preserveAttachmentCount = 0,
+	    .pPreserveAttachments = nullptr};
+
+	VkPipelineStageFlags dependencyStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	VkAccessFlags dependencyAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+	VkSubpassDependency dependency = {
+	    .srcSubpass = VK_SUBPASS_EXTERNAL,
+	    .dstSubpass = 0,
+	    .srcStageMask = dependencyStageMask,
+	    .dstStageMask = dependencyStageMask,
+	    .srcAccessMask = 0,
+	    .dstAccessMask = dependencyAccessMask};
+
+	std::array<VkAttachmentDescription, 2> renderPassAttachments{colorAttachment, depthAttachment};
+
+	VkRenderPassCreateInfo renderPassCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+		.pNext = nullptr,
 		.flags = 0,
-		.usage = VMA_MEMORY_USAGE_AUTO,
-		.requiredFlags = 0,
-		.preferredFlags = 0,
-		.memoryTypeBits = 0,
-		.pool = VK_NULL_HANDLE,
-		.pUserData = nullptr,
-		.priority = 1.0f
+		.attachmentCount = 2,
+		.pAttachments = renderPassAttachments.data(),
+		.subpassCount = 1,
+		.pSubpasses = &subpass,
+		.dependencyCount = 1,
+		.pDependencies = &dependency
 	};
 
-	VmaAllocation allocation = nullptr;
-	if (vmaAllocateMemoryForBuffer(allocator, buffer, &allocationCreateInfo, &allocation, nullptr) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocate memory for image.");
+	VkRenderPass renderPass = nullptr;
+	if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create render pass.");
 	}
 
-	return allocation;
+	return renderPass;
 }
 
 VkPhysicalDevice VulkanDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface) {
@@ -451,8 +554,8 @@ VkCommandPool VulkanDevice::createCommandPool(const QueueConfig& queueConfig, Vk
 	return commandPool;
 }
 
-VulkanSwapchain::VulkanSwapchain(SDL_Window* window, const VulkanDevice& device, VkSurfaceKHR surface, VkSwapchainKHR oldSwapchain) 
-	: device(static_cast<VkDevice>(device)) {
+VulkanSwapchain::VulkanSwapchain(SDL_Window* window, const VulkanDevice& device, VkSurfaceKHR surface, VkSwapchainKHR oldSwapchain)
+    : device(static_cast<VkDevice>(device)), allocator(device.getAllocator()) {
 	SwapchainInfo info{static_cast<VkPhysicalDevice>(device), surface};
 	QueueConfig config{static_cast<VkPhysicalDevice>(device), surface};
 	swapchain = createSwapchain(info, config, window, static_cast<VkDevice>(device), surface);
@@ -476,18 +579,27 @@ VulkanSwapchain::VulkanSwapchain(SDL_Window* window, const VulkanDevice& device,
 	imageFormat = surfaceFormat.format;
 	extent = info.chooseExtent(width, height);
 
+	for (VkImage image : images) {
+		imageViews.push_back(device.createImageView(image, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT));
+	}
+
 	const auto depthFormat = device.findDepthFormat();
-	depthImage = device.createImage(extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
-	depthImageAllocation = device.allocateImage(depthImage);
+	depthImageAllocation = device.allocateImage(extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, &depthImage);
 	depthImageView = device.createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void VulkanSwapchain::destroy() const noexcept {
+	vkDestroyImageView(device, depthImageView, nullptr);
+	vmaDestroyImage(allocator, depthImage, depthImageAllocation);
+	for (VkImageView imageView : imageViews) {
+		vkDestroyImageView(device, imageView, nullptr);
+	}
 	vkDestroySwapchainKHR(device, swapchain, nullptr);
 	SDL_Log("Destroyed VulkanSwapchain.");
 }
 
-void VulkanSwapchain::createFramebuffers(VkDevice device, VkRenderPass renderPass) {}
+void VulkanSwapchain::createFramebuffers(VkDevice device, VkRenderPass renderPass) {
+}
 
 VkSwapchainKHR VulkanSwapchain::createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface) {
 	int width;
