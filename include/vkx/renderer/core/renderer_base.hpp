@@ -75,6 +75,14 @@ public:
 		return findSupportedFormat({VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT}, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 	}
 
+	VkImage createImage(std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) const;
+
+	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const;
+
+	VmaAllocation allocateImage(VkImage image) const;
+
+	VmaAllocation allocateBuffer(VkBuffer buffer) const;
+
 private:
 	static VkPhysicalDevice pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
 
@@ -93,7 +101,7 @@ private:
 	std::vector<VkImageView> imageViews = {};
 
 	VkImage depthImage = nullptr;
-	VkDeviceMemory depthImageMemory = nullptr;
+	VmaAllocation depthImageAllocation = nullptr;
 	VkImageView depthImageView = nullptr;
 
 	std::vector<VkFramebuffer> framebuffers = {};

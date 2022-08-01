@@ -7,6 +7,7 @@
 #include <cstring>
 #include <exception>
 #include <stdexcept>
+#include <vk_mem_alloc.h>
 #include <vkx/renderer/core/renderer_base.hpp>
 
 #include <iostream>
@@ -225,6 +226,107 @@ VkFormat VulkanDevice::findSupportedFormat(const std::vector<VkFormat>& candidat
 	return VK_FORMAT_UNDEFINED;
 }
 
+VkImage VulkanDevice::createImage(std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage) const {
+	VkExtent3D extent = {
+		.width = width,
+		.height = height,
+		.depth = 1
+	};
+
+	VkImageCreateInfo imageCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = 0,
+		.imageType = VK_IMAGE_TYPE_2D,
+		.format = format,
+		.extent = extent,
+		.mipLevels = 1,
+		.arrayLayers = 1,
+		.samples = VK_SAMPLE_COUNT_1_BIT,
+		.tiling = tiling,
+		.usage = usage,
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+		.queueFamilyIndexCount = 0,
+		.pQueueFamilyIndices = nullptr,
+		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+	};
+
+	VkImage image = nullptr;
+	if (vkCreateImage(device, &imageCreateInfo, nullptr, &image) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create image.");
+	}
+
+	return image;
+}
+
+VkImageView VulkanDevice::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const {
+	VkImageSubresourceRange subresourceRange = {
+		.aspectMask = aspectFlags,
+		.baseMipLevel = 0,
+		.levelCount = 1,
+		.baseArrayLayer = 0,
+		.layerCount = 1
+	};
+
+	VkImageViewCreateInfo imageViewCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = 0,
+		.image = image,
+		.viewType = VK_IMAGE_VIEW_TYPE_2D,
+		.format = format,
+		.components = {},
+		.subresourceRange = subresourceRange
+	};
+
+	VkImageView imageView = nullptr;
+	if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create image view.");
+	}
+
+	return imageView;
+}
+
+VmaAllocation VulkanDevice::allocateImage(VkImage image) const {
+	VmaAllocationCreateInfo allocationCreateInfo = {
+		.flags = 0,
+		.usage = VMA_MEMORY_USAGE_AUTO,
+		.requiredFlags = 0,
+		.preferredFlags = 0,
+		.memoryTypeBits = 0,
+		.pool = VK_NULL_HANDLE,
+		.pUserData = nullptr,
+		.priority = 1.0f
+	};
+
+	VmaAllocation allocation = nullptr;
+	if (vmaAllocateMemoryForImage(allocator, image, &allocationCreateInfo, &allocation, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate memory for image.");
+	}
+
+	return allocation;
+}
+
+VmaAllocation VulkanDevice::allocateBuffer(VkBuffer buffer) const {
+	VmaAllocationCreateInfo allocationCreateInfo = {
+		.flags = 0,
+		.usage = VMA_MEMORY_USAGE_AUTO,
+		.requiredFlags = 0,
+		.preferredFlags = 0,
+		.memoryTypeBits = 0,
+		.pool = VK_NULL_HANDLE,
+		.pUserData = nullptr,
+		.priority = 1.0f
+	};
+
+	VmaAllocation allocation = nullptr;
+	if (vmaAllocateMemoryForBuffer(allocator, buffer, &allocationCreateInfo, &allocation, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate memory for image.");
+	}
+
+	return allocation;
+}
+
 VkPhysicalDevice VulkanDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface) {
 	std::uint32_t count = 0;
 	if (vkEnumeratePhysicalDevices(instance, &count, nullptr) != VK_SUCCESS) {
@@ -375,7 +477,9 @@ VulkanSwapchain::VulkanSwapchain(SDL_Window* window, const VulkanDevice& device,
 	extent = info.chooseExtent(width, height);
 
 	const auto depthFormat = device.findDepthFormat();
-	// depthImage = device.createImage(extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL);
+	depthImage = device.createImage(extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	depthImageAllocation = device.allocateImage(depthImage);
+	depthImageView = device.createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void VulkanSwapchain::destroy() const noexcept {
