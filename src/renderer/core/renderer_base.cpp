@@ -2,6 +2,7 @@
 #include <SDL2/SDL_log.h>
 #include <SDL2/SDL_stdinc.h>
 #include <SDL2/SDL_vulkan.h>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <exception>
@@ -184,75 +185,6 @@ bool QueueConfig::complete() const noexcept {
 	return graphicsIndex != UINT32_MAX && presentIndex != UINT32_MAX;
 }
 
-VulkanSwapchain::VulkanSwapchain(SDL_Window* window, VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSwapchainKHR oldSwapchain) {
-	SwapchainInfo info{physicalDevice, surface};
-	QueueConfig config{physicalDevice, surface};
-	swapchain = createSwapchain(info, config, window, device, surface);
-
-	std::uint32_t count = 0;
-	if (vkGetSwapchainImagesKHR(device, swapchain, &count, nullptr) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to get swapchain image count.");
-	}
-
-	images.resize(count);
-	if (vkGetSwapchainImagesKHR(device, swapchain, &count, images.data()) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to get swapchain images.");
-	}
-
-	int width;
-	int height;
-	SDL_Vulkan_GetDrawableSize(window, &width, &height);
-
-	const auto surfaceFormat = info.chooseSurfaceFormat();
-
-	imageFormat = surfaceFormat.format;
-	extent = info.chooseExtent(width, height);
-}
-
-void VulkanSwapchain::destroy() const noexcept {}
-
-void VulkanSwapchain::createFramebuffers(VkDevice device, VkRenderPass renderPass) {}
-
-VkSwapchainKHR VulkanSwapchain::createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface) {
-	int width;
-	int height;
-	SDL_Vulkan_GetDrawableSize(window, &width, &height);
-
-	const auto surfaceFormat = info.chooseSurfaceFormat();
-	const auto presentMode = info.choosePresentMode();
-	const auto actualExtent = info.chooseExtent(width, height);
-	const auto imageCount = info.getImageCount();
-	const auto imageSharingMode = config.getImageSharingMode();
-	const auto indices = config.getContigousValues();
-
-	VkSwapchainCreateInfoKHR swapchainCreateInfo = {
-	    .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-	    .pNext = nullptr,
-	    .flags = 0,
-	    .surface = surface,
-	    .minImageCount = imageCount,
-	    .imageFormat = surfaceFormat.format,
-	    .imageColorSpace = surfaceFormat.colorSpace,
-	    .imageExtent = actualExtent,
-	    .imageArrayLayers = 1,
-	    .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-	    .imageSharingMode = imageSharingMode,
-	    .queueFamilyIndexCount = static_cast<std::uint32_t>(indices.size()),
-	    .pQueueFamilyIndices = indices.data(),
-	    .preTransform = info.capabilities.currentTransform,
-	    .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-	    .presentMode = presentMode,
-	    .clipped = VK_TRUE,
-	    .oldSwapchain = nullptr};
-
-	VkSwapchainKHR swapchain = nullptr;
-	if (vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create swapchain.");
-	}
-
-	return swapchain;
-}
-
 VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface) {
 	physicalDevice = pickPhysicalDevice(instance, surface);
 
@@ -260,6 +192,14 @@ VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface) {
 
 	device = createDevice(queueConfig, physicalDevice, surface);
 	commandPool = createCommandPool(queueConfig, device);
+}
+
+VulkanDevice::operator VkDevice() const {
+	return device;
+}
+
+VulkanDevice::operator VkPhysicalDevice() const {
+	return physicalDevice;
 }
 
 void VulkanDevice::destroy() const noexcept {
@@ -409,6 +349,82 @@ VkCommandPool VulkanDevice::createCommandPool(const QueueConfig& queueConfig, Vk
 	return commandPool;
 }
 
+VulkanSwapchain::VulkanSwapchain(SDL_Window* window, const VulkanDevice& device, VkSurfaceKHR surface, VkSwapchainKHR oldSwapchain) 
+	: device(static_cast<VkDevice>(device)) {
+	SwapchainInfo info{static_cast<VkPhysicalDevice>(device), surface};
+	QueueConfig config{static_cast<VkPhysicalDevice>(device), surface};
+	swapchain = createSwapchain(info, config, window, static_cast<VkDevice>(device), surface);
+
+	std::uint32_t count = 0;
+	if (vkGetSwapchainImagesKHR(static_cast<VkDevice>(device), swapchain, &count, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to get swapchain image count.");
+	}
+
+	images.resize(count);
+	if (vkGetSwapchainImagesKHR(static_cast<VkDevice>(device), swapchain, &count, images.data()) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to get swapchain images.");
+	}
+
+	int width;
+	int height;
+	SDL_Vulkan_GetDrawableSize(window, &width, &height);
+
+	const auto surfaceFormat = info.chooseSurfaceFormat();
+
+	imageFormat = surfaceFormat.format;
+	extent = info.chooseExtent(width, height);
+
+	const auto depthFormat = device.findDepthFormat();
+	// depthImage = device.createImage(extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL);
+}
+
+void VulkanSwapchain::destroy() const noexcept {
+	vkDestroySwapchainKHR(device, swapchain, nullptr);
+	SDL_Log("Destroyed VulkanSwapchain.");
+}
+
+void VulkanSwapchain::createFramebuffers(VkDevice device, VkRenderPass renderPass) {}
+
+VkSwapchainKHR VulkanSwapchain::createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface) {
+	int width;
+	int height;
+	SDL_Vulkan_GetDrawableSize(window, &width, &height);
+
+	const auto surfaceFormat = info.chooseSurfaceFormat();
+	const auto presentMode = info.choosePresentMode();
+	const auto actualExtent = info.chooseExtent(width, height);
+	const auto imageCount = info.getImageCount();
+	const auto imageSharingMode = config.getImageSharingMode();
+	const auto indices = config.getContigousValues();
+
+	VkSwapchainCreateInfoKHR swapchainCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .surface = surface,
+	    .minImageCount = imageCount,
+	    .imageFormat = surfaceFormat.format,
+	    .imageColorSpace = surfaceFormat.colorSpace,
+	    .imageExtent = actualExtent,
+	    .imageArrayLayers = 1,
+	    .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+	    .imageSharingMode = imageSharingMode,
+	    .queueFamilyIndexCount = static_cast<std::uint32_t>(indices.size()),
+	    .pQueueFamilyIndices = indices.data(),
+	    .preTransform = info.capabilities.currentTransform,
+	    .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+	    .presentMode = presentMode,
+	    .clipped = VK_TRUE,
+	    .oldSwapchain = nullptr};
+
+	VkSwapchainKHR swapchain = nullptr;
+	if (vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create swapchain.");
+	}
+
+	return swapchain;
+}
+
 VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
 	VkApplicationInfo applicationInfo = {
 	    .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -423,9 +439,11 @@ VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
 	surface = initSurface(window, instance);
 
 	device = VulkanDevice{instance, surface};
+	swapchain = VulkanSwapchain{window, device, surface, nullptr};
 }
 
 VulkanBootstrap::~VulkanBootstrap() {
+	swapchain.destroy();
 	device.destroy();
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
@@ -435,9 +453,11 @@ VulkanBootstrap::~VulkanBootstrap() {
 VkBool32 VulkanBootstrap::debug(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {
 	if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
 		SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
-	} else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+	}
+	if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
 		SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
-	} else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+	}
+	if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
 	}
 	return VK_FALSE;

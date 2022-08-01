@@ -49,33 +49,6 @@ struct QueueConfig {
 	bool complete() const noexcept;
 };
 
-class VulkanSwapchain {
-private:
-	VkSwapchainKHR swapchain;
-	VkFormat imageFormat;
-	VkExtent2D extent;
-	std::vector<VkImage> images;
-	std::vector<VkImageView> imageViews;
-
-	VkImage depthImage;
-	VkDeviceMemory depthImageMemory;
-	VkImageView depthImageView;
-
-	std::vector<VkFramebuffer> framebuffers;
-
-public:
-	VulkanSwapchain() = default;
-
-	VulkanSwapchain(SDL_Window* window, VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSwapchainKHR oldSwapchain);
-
-	void destroy() const noexcept;
-
-	void createFramebuffers(VkDevice device, VkRenderPass renderPass);
-
-private:
-	static VkSwapchainKHR createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface);
-};
-
 class VulkanDevice {
 private:
 	VkPhysicalDevice physicalDevice = nullptr;
@@ -89,6 +62,10 @@ public:
 	VulkanDevice() = default;
 
 	explicit VulkanDevice(VkInstance instance, VkSurfaceKHR surface);
+
+	explicit operator VkDevice() const;
+
+	explicit operator VkPhysicalDevice() const;
 
 	void destroy() const noexcept;
 
@@ -106,12 +83,41 @@ private:
 	static VkCommandPool createCommandPool(const QueueConfig& queueConfig, VkDevice device);
 };
 
+class VulkanSwapchain {
+private:
+	VkDevice device;
+	VkSwapchainKHR swapchain = nullptr;
+	VkFormat imageFormat = VK_FORMAT_UNDEFINED;
+	VkExtent2D extent = {};
+	std::vector<VkImage> images = {};
+	std::vector<VkImageView> imageViews = {};
+
+	VkImage depthImage = nullptr;
+	VkDeviceMemory depthImageMemory = nullptr;
+	VkImageView depthImageView = nullptr;
+
+	std::vector<VkFramebuffer> framebuffers = {};
+
+public:
+	VulkanSwapchain() = default;
+
+	VulkanSwapchain(SDL_Window* window, const VulkanDevice& device, VkSurfaceKHR surface, VkSwapchainKHR oldSwapchain);
+
+	void destroy() const noexcept;
+
+	void createFramebuffers(VkDevice device, VkRenderPass renderPass);
+
+private:
+	static VkSwapchainKHR createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface);
+};
+
 class VulkanBootstrap {
 private:
 	SDL_Window* window = nullptr;
 	VkInstance instance = nullptr;
 	VkSurfaceKHR surface = nullptr;
 	VulkanDevice device = {};
+	VulkanSwapchain swapchain = {};
 
 public:
 	VulkanBootstrap() = delete;
