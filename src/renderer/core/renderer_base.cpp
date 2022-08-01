@@ -19,6 +19,10 @@
 
 static constexpr std::uint32_t API_VERSION = VK_API_VERSION_1_0;
 
+#ifdef DEBUG
+	static constexpr const char* VALIDATION_LAYER = "VK_LAYER_KHRONOS_validation";
+#endif
+
 SwapchainInfo::SwapchainInfo(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
 
@@ -139,7 +143,6 @@ std::vector<VkDeviceQueueCreateInfo> QueueConfig::createQueueInfos(float priorit
 	    presentIndex};
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-	queueCreateInfos.resize(uniqueIndices.size());
 	for (const std::uint32_t index : uniqueIndices) {
 		VkDeviceQueueCreateInfo queueCreateInfo = {
 		    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -170,8 +173,8 @@ VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface) {
 
 void VulkanDevice::destroy() const noexcept {
 	// vmaDestroyAllocator(allocator);
-	// vkDestroyCommandPool(device, commandPool, nullptr);
-	// vkDestroyDevice(device, nullptr);
+	vkDestroyCommandPool(device, commandPool, nullptr);
+	vkDestroyDevice(device, nullptr);
 	SDL_Log("Destroyed VulkanDevice.");
 }
 
@@ -254,18 +257,24 @@ VkDevice VulkanDevice::createDevice(const QueueConfig& queueConfig, VkPhysicalDe
 	VkPhysicalDeviceFeatures requestedFeatures = {};
 	requestedFeatures.samplerAnisotropy = VK_TRUE;
 
+	static constexpr const char* extension = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+
 	VkDeviceCreateInfo deviceCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.queueCreateInfoCount = static_cast<std::uint32_t>(queueConfigs.size()),
-		.pQueueCreateInfos = queueConfigs.data(),
-		.enabledLayerCount = 0,
-		.ppEnabledLayerNames = nullptr,
-		.enabledExtensionCount = 0,
-		.ppEnabledExtensionNames = nullptr,
-		.pEnabledFeatures = &requestedFeatures
-	};
+	    .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .queueCreateInfoCount = static_cast<std::uint32_t>(queueConfigs.size()),
+	    .pQueueCreateInfos = queueConfigs.data(),
+#ifdef DEBUG
+		.enabledLayerCount = 1,
+		.ppEnabledLayerNames = &VALIDATION_LAYER,
+#else
+	    .enabledLayerCount = 0,
+	    .ppEnabledLayerNames = nullptr,
+#endif
+	    .enabledExtensionCount = 1,
+	    .ppEnabledExtensionNames = &extension,
+	    .pEnabledFeatures = &requestedFeatures};
 
 	VkDevice device = nullptr;
 	auto result = vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
@@ -280,11 +289,10 @@ VkDevice VulkanDevice::createDevice(const QueueConfig& queueConfig, VkPhysicalDe
 
 VkCommandPool VulkanDevice::createCommandPool(const QueueConfig& queueConfig, VkDevice device) {
 	VkCommandPoolCreateInfo commandPoolCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-		.queueFamilyIndex = queueConfig.graphicsIndex
-	};
+	    .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+	    .queueFamilyIndex = queueConfig.graphicsIndex};
 
 	VkCommandPool commandPool = nullptr;
 	if (vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS) {
@@ -353,10 +361,6 @@ VkInstance VulkanBootstrap::initInstance(SDL_Window* window, VkApplicationInfo* 
 	    .pUserData = nullptr};
 #endif
 
-#ifdef DEBUG
-	const char* layer = "VK_LAYER_KHRONOS_validation";
-#endif
-
 	VkInstanceCreateInfo instanceCreateInfo = {
 	    .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 #ifdef DEBUG
@@ -368,7 +372,7 @@ VkInstance VulkanBootstrap::initInstance(SDL_Window* window, VkApplicationInfo* 
 	    .pApplicationInfo = applicationInfo,
 #ifdef DEBUG
 	    .enabledLayerCount = 1,
-	    .ppEnabledLayerNames = &layer,
+	    .ppEnabledLayerNames = &VALIDATION_LAYER,
 #else
 	    .enabledLayerCount = 0,
 	    .ppEnabledLayerNames = nullptr,
