@@ -20,7 +20,7 @@
 static constexpr std::uint32_t API_VERSION = VK_API_VERSION_1_0;
 
 #ifdef DEBUG
-	static constexpr const char* VALIDATION_LAYER = "VK_LAYER_KHRONOS_validation";
+static constexpr const char* VALIDATION_LAYER = "VK_LAYER_KHRONOS_validation";
 #endif
 
 SwapchainInfo::SwapchainInfo(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
@@ -79,6 +79,14 @@ VkExtent2D SwapchainInfo::chooseExtent(int width, int height) const {
 	extent.height = std::clamp(extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 
 	return extent;
+}
+
+std::uint32_t SwapchainInfo::getImageCount() const {
+	std::uint32_t imageCount = capabilities.minImageCount + 1;
+	if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
+		return capabilities.maxImageCount;
+	}
+	return imageCount;
 }
 
 bool SwapchainInfo::complete() const noexcept {
@@ -158,8 +166,91 @@ std::vector<VkDeviceQueueCreateInfo> QueueConfig::createQueueInfos(float priorit
 	return queueCreateInfos;
 }
 
+VkSharingMode QueueConfig::getImageSharingMode() const {
+	if (graphicsIndex == presentIndex) {
+		return VK_SHARING_MODE_EXCLUSIVE;
+	}
+	return VK_SHARING_MODE_CONCURRENT;
+}
+
+std::vector<std::uint32_t> QueueConfig::getContigousValues() const {
+	std::set<std::uint32_t> uniqueIndices{
+	    graphicsIndex,
+	    presentIndex};
+	return {uniqueIndices.begin(), uniqueIndices.end()};
+}
+
 bool QueueConfig::complete() const noexcept {
 	return graphicsIndex != UINT32_MAX && presentIndex != UINT32_MAX;
+}
+
+VulkanSwapchain::VulkanSwapchain(SDL_Window* window, VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSwapchainKHR oldSwapchain) {
+	SwapchainInfo info{physicalDevice, surface};
+	QueueConfig config{physicalDevice, surface};
+	swapchain = createSwapchain(info, config, window, device, surface);
+
+	std::uint32_t count = 0;
+	if (vkGetSwapchainImagesKHR(device, swapchain, &count, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to get swapchain image count.");
+	}
+
+	images.resize(count);
+	if (vkGetSwapchainImagesKHR(device, swapchain, &count, images.data()) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to get swapchain images.");
+	}
+
+	int width;
+	int height;
+	SDL_Vulkan_GetDrawableSize(window, &width, &height);
+
+	const auto surfaceFormat = info.chooseSurfaceFormat();
+
+	imageFormat = surfaceFormat.format;
+	extent = info.chooseExtent(width, height);
+}
+
+void VulkanSwapchain::destroy() const noexcept {}
+
+void VulkanSwapchain::createFramebuffers(VkDevice device, VkRenderPass renderPass) {}
+
+VkSwapchainKHR VulkanSwapchain::createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface) {
+	int width;
+	int height;
+	SDL_Vulkan_GetDrawableSize(window, &width, &height);
+
+	const auto surfaceFormat = info.chooseSurfaceFormat();
+	const auto presentMode = info.choosePresentMode();
+	const auto actualExtent = info.chooseExtent(width, height);
+	const auto imageCount = info.getImageCount();
+	const auto imageSharingMode = config.getImageSharingMode();
+	const auto indices = config.getContigousValues();
+
+	VkSwapchainCreateInfoKHR swapchainCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .surface = surface,
+	    .minImageCount = imageCount,
+	    .imageFormat = surfaceFormat.format,
+	    .imageColorSpace = surfaceFormat.colorSpace,
+	    .imageExtent = actualExtent,
+	    .imageArrayLayers = 1,
+	    .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+	    .imageSharingMode = imageSharingMode,
+	    .queueFamilyIndexCount = static_cast<std::uint32_t>(indices.size()),
+	    .pQueueFamilyIndices = indices.data(),
+	    .preTransform = info.capabilities.currentTransform,
+	    .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+	    .presentMode = presentMode,
+	    .clipped = VK_TRUE,
+	    .oldSwapchain = nullptr};
+
+	VkSwapchainKHR swapchain = nullptr;
+	if (vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create swapchain.");
+	}
+
+	return swapchain;
 }
 
 VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface) {
@@ -176,6 +267,22 @@ void VulkanDevice::destroy() const noexcept {
 	vkDestroyCommandPool(device, commandPool, nullptr);
 	vkDestroyDevice(device, nullptr);
 	SDL_Log("Destroyed VulkanDevice.");
+}
+
+VkFormat VulkanDevice::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const {
+	for (VkFormat format : candidates) {
+		VkFormatProperties formatProps;
+		vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProps);
+
+		bool isLinear = tiling == VK_IMAGE_TILING_LINEAR && (formatProps.linearTilingFeatures & features) == features;
+		bool isOptimal = tiling == VK_IMAGE_TILING_OPTIMAL && (formatProps.optimalTilingFeatures & features) == features;
+
+		if (isLinear || isOptimal) {
+			return format;
+		}
+	}
+
+	return VK_FORMAT_UNDEFINED;
 }
 
 VkPhysicalDevice VulkanDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface) {
@@ -266,8 +373,8 @@ VkDevice VulkanDevice::createDevice(const QueueConfig& queueConfig, VkPhysicalDe
 	    .queueCreateInfoCount = static_cast<std::uint32_t>(queueConfigs.size()),
 	    .pQueueCreateInfos = queueConfigs.data(),
 #ifdef DEBUG
-		.enabledLayerCount = 1,
-		.ppEnabledLayerNames = &VALIDATION_LAYER,
+	    .enabledLayerCount = 1,
+	    .ppEnabledLayerNames = &VALIDATION_LAYER,
 #else
 	    .enabledLayerCount = 0,
 	    .ppEnabledLayerNames = nullptr,

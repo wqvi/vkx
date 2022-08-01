@@ -24,6 +24,8 @@ struct SwapchainInfo {
 
 	VkExtent2D chooseExtent(int width, int height) const;
 
+	std::uint32_t getImageCount() const;
+
 	bool complete() const noexcept;
 };
 
@@ -40,7 +42,38 @@ struct QueueConfig {
 
 	std::vector<VkDeviceQueueCreateInfo> createQueueInfos(float priority) const;
 
+	VkSharingMode getImageSharingMode() const;
+
+	std::vector<std::uint32_t> getContigousValues() const;
+
 	bool complete() const noexcept;
+};
+
+class VulkanSwapchain {
+private:
+	VkSwapchainKHR swapchain;
+	VkFormat imageFormat;
+	VkExtent2D extent;
+	std::vector<VkImage> images;
+	std::vector<VkImageView> imageViews;
+
+	VkImage depthImage;
+	VkDeviceMemory depthImageMemory;
+	VkImageView depthImageView;
+
+	std::vector<VkFramebuffer> framebuffers;
+
+public:
+	VulkanSwapchain() = default;
+
+	VulkanSwapchain(SDL_Window* window, VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSwapchainKHR oldSwapchain);
+
+	void destroy() const noexcept;
+
+	void createFramebuffers(VkDevice device, VkRenderPass renderPass);
+
+private:
+	static VkSwapchainKHR createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface);
 };
 
 class VulkanDevice {
@@ -58,6 +91,12 @@ public:
 	explicit VulkanDevice(VkInstance instance, VkSurfaceKHR surface);
 
 	void destroy() const noexcept;
+
+	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
+
+	inline VkFormat findDepthFormat() const {
+		return findSupportedFormat({VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT}, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	}
 
 private:
 	static VkPhysicalDevice pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
