@@ -599,6 +599,27 @@ void VulkanSwapchain::destroy() const noexcept {
 }
 
 void VulkanSwapchain::createFramebuffers(VkDevice device, VkRenderPass renderPass) {
+	framebuffers.resize(imageViews.size());
+
+	for (std::uint32_t i = 0; i < imageViews.size(); i++) {
+		std::array<VkImageView, 2> framebufferAttachments {imageViews[i], depthImageView};
+
+		VkFramebufferCreateInfo framebufferCreateInfo = {
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.renderPass = renderPass,
+			.attachmentCount = 2,
+			.pAttachments = framebufferAttachments.data(),
+			.width = extent.width,
+			.height = extent.height,
+			.layers = 1
+		};
+
+		if (vkCreateFramebuffer(device, &framebufferCreateInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create framebuffer.");
+		}
+	}
 }
 
 VkSwapchainKHR VulkanSwapchain::createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface) {

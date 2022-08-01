@@ -143,6 +143,8 @@ private:
 	static VkInstance initInstance(SDL_Window* window, VkApplicationInfo* applicationInfo);
 
 	static VkSurfaceKHR initSurface(SDL_Window* window, VkInstance instance);
+
+	static VulkanSwapchain initSwapchain();
 };
 
 namespace vkx {
