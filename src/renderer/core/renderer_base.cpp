@@ -583,6 +583,10 @@ VulkanSwapchain::VulkanSwapchain(SDL_Window* window, const VulkanDevice& device,
 }
 
 void VulkanSwapchain::destroy() const noexcept {
+	for (VkFramebuffer framebuffer : framebuffers) {
+		vkDestroyFramebuffer(device, framebuffer, nullptr);
+	}
+
 	vkDestroyImageView(device, depthImageView, nullptr);
 	vmaDestroyImage(allocator, depthImage, depthImageAllocation);
 	for (VkImageView imageView : imageViews) {
@@ -617,6 +621,10 @@ void VulkanSwapchain::createFramebuffers(VkDevice device, VkRenderPass renderPas
 
 VkFormat VulkanSwapchain::getImageFormat() const noexcept {
 	return imageFormat;
+}
+
+const VkExtent2D& VulkanSwapchain::getExtent() const noexcept {
+	return extent;
 }
 
 VkSwapchainKHR VulkanSwapchain::createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface) {
@@ -698,7 +706,8 @@ static VkShaderModule createShaderModule(VkDevice device, const std::string& fil
 	return shaderModule;
 }
 
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(const VulkanDevice& device, const VkExtent2D& extent, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout) {
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(const VulkanDevice& device, const VkExtent2D& extent, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout)
+    : device(static_cast<VkDevice>(device)) {
 	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 	    .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 	    .pNext = nullptr,
@@ -849,6 +858,15 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(const VulkanDevice& device, const
 	if (vkCreateGraphicsPipelines(static_cast<VkDevice>(device), nullptr, 1, &pipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create graphics pipeline.");
 	}
+
+	vkDestroyShaderModule(static_cast<VkDevice>(device), vertexModule, nullptr);
+	vkDestroyShaderModule(static_cast<VkDevice>(device), fragmentModule, nullptr);
+}
+
+void VulkanGraphicsPipeline::destroy() const noexcept {
+	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	vkDestroyPipeline(device, pipeline, nullptr);
+	SDL_Log("Destroyed VulkanGraphicsPipeline.");
 }
 
 VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
@@ -867,9 +885,9 @@ VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
 	device = VulkanDevice{instance, surface};
 	swapchain = VulkanSwapchain{window, device, surface, nullptr};
 
-	renderPass = device.createRenderPass(swapchain.getImageFormat(), VK_ATTACHMENT_LOAD_OP_CLEAR);
+	clearRenderPass = device.createRenderPass(swapchain.getImageFormat(), VK_ATTACHMENT_LOAD_OP_CLEAR);
 
-	swapchain.createFramebuffers(static_cast<VkDevice>(device), renderPass);
+	swapchain.createFramebuffers(static_cast<VkDevice>(device), clearRenderPass);
 
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {
 	    .binding = 0,
@@ -897,10 +915,14 @@ VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
 	if (vkCreateDescriptorSetLayout(static_cast<VkDevice>(device), &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create descriptor set layout.");
 	}
+
+	graphicsPipeline = VulkanGraphicsPipeline{device, swapchain.getExtent(), clearRenderPass, descriptorSetLayout};
 }
 
 VulkanBootstrap::~VulkanBootstrap() {
-	vkDestroyRenderPass(static_cast<VkDevice>(device), renderPass, nullptr);
+	graphicsPipeline.destroy();
+	vkDestroyDescriptorSetLayout(static_cast<VkDevice>(device), descriptorSetLayout, nullptr);
+	vkDestroyRenderPass(static_cast<VkDevice>(device), clearRenderPass, nullptr);
 	swapchain.destroy();
 	device.destroy();
 	vkDestroySurfaceKHR(instance, surface, nullptr);

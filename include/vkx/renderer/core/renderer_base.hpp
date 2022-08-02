@@ -145,18 +145,24 @@ public:
 
 	VkFormat getImageFormat() const noexcept;
 
+	const VkExtent2D& getExtent() const noexcept;
+
 private:
 	static VkSwapchainKHR createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface);
 };
 
 class VulkanGraphicsPipeline {
 private:
+	VkDevice device = nullptr;
 	VkPipelineLayout pipelineLayout = nullptr;
-	VkPipelineCache cache = nullptr;
 	VkPipeline pipeline = nullptr;
 
 public:
+	VulkanGraphicsPipeline() = default;
+
 	VulkanGraphicsPipeline(const VulkanDevice& device, const VkExtent2D& extent, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout);
+
+	void destroy() const noexcept;
 };
 
 class VulkanBootstrap {
@@ -166,8 +172,9 @@ private:
 	VkSurfaceKHR surface = nullptr;
 	VulkanDevice device = {};
 	VulkanSwapchain swapchain = {};
-	VkRenderPass renderPass = nullptr;
+	VkRenderPass clearRenderPass = nullptr;
 	VkDescriptorSetLayout descriptorSetLayout = nullptr;
+	VulkanGraphicsPipeline graphicsPipeline = {};
 
 public:
 	VulkanBootstrap() = delete;
