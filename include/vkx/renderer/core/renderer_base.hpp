@@ -118,6 +118,8 @@ public:
 
 	void createFramebuffers(VkDevice device, VkRenderPass renderPass);
 
+	VkFormat getImageFormat() const noexcept;
+
 private:
 	static VkSwapchainKHR createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface);
 };
@@ -129,6 +131,8 @@ private:
 	VkSurfaceKHR surface = nullptr;
 	VulkanDevice device = {};
 	VulkanSwapchain swapchain = {};
+	VkRenderPass renderPass = nullptr;
+	VkDescriptorSetLayout descriptorSetLayout = nullptr;
 
 public:
 	VulkanBootstrap() = delete;

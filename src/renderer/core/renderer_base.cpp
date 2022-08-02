@@ -194,13 +194,6 @@ VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface) {
 	device = createDevice(queueConfig, physicalDevice, surface);
 	commandPool = createCommandPool(queueConfig, device);
 
-	// 	VmaAllocatorCreateInfo allocatorCreateInfo = {};
-	// allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_2;
-	// allocatorCreateInfo.physicalDevice = physicalDevice;
-	// allocatorCreateInfo.device = device;
-	// allocatorCreateInfo.instance = instance;
-	// allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
-
 	VmaVulkanFunctions vkFunctions = {
 	    .vkGetInstanceProcAddr = vkGetInstanceProcAddr,
 	    .vkGetDeviceProcAddr = vkGetDeviceProcAddr};
@@ -411,16 +404,15 @@ VkRenderPass VulkanDevice::createRenderPass(VkFormat format, VkAttachmentLoadOp 
 	std::array<VkAttachmentDescription, 2> renderPassAttachments{colorAttachment, depthAttachment};
 
 	VkRenderPassCreateInfo renderPassCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.attachmentCount = 2,
-		.pAttachments = renderPassAttachments.data(),
-		.subpassCount = 1,
-		.pSubpasses = &subpass,
-		.dependencyCount = 1,
-		.pDependencies = &dependency
-	};
+	    .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .attachmentCount = 2,
+	    .pAttachments = renderPassAttachments.data(),
+	    .subpassCount = 1,
+	    .pSubpasses = &subpass,
+	    .dependencyCount = 1,
+	    .pDependencies = &dependency};
 
 	VkRenderPass renderPass = nullptr;
 	if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS) {
@@ -602,24 +594,27 @@ void VulkanSwapchain::createFramebuffers(VkDevice device, VkRenderPass renderPas
 	framebuffers.resize(imageViews.size());
 
 	for (std::uint32_t i = 0; i < imageViews.size(); i++) {
-		std::array<VkImageView, 2> framebufferAttachments {imageViews[i], depthImageView};
+		std::array<VkImageView, 2> framebufferAttachments{imageViews[i], depthImageView};
 
 		VkFramebufferCreateInfo framebufferCreateInfo = {
-			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-			.pNext = nullptr,
-			.flags = 0,
-			.renderPass = renderPass,
-			.attachmentCount = 2,
-			.pAttachments = framebufferAttachments.data(),
-			.width = extent.width,
-			.height = extent.height,
-			.layers = 1
-		};
+		    .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+		    .pNext = nullptr,
+		    .flags = 0,
+		    .renderPass = renderPass,
+		    .attachmentCount = 2,
+		    .pAttachments = framebufferAttachments.data(),
+		    .width = extent.width,
+		    .height = extent.height,
+		    .layers = 1};
 
 		if (vkCreateFramebuffer(device, &framebufferCreateInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create framebuffer.");
 		}
 	}
+}
+
+VkFormat VulkanSwapchain::getImageFormat() const noexcept {
+	return imageFormat;
 }
 
 VkSwapchainKHR VulkanSwapchain::createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface) {
@@ -677,9 +672,42 @@ VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
 
 	device = VulkanDevice{instance, surface};
 	swapchain = VulkanSwapchain{window, device, surface, nullptr};
+
+	renderPass = device.createRenderPass(swapchain.getImageFormat(), VK_ATTACHMENT_LOAD_OP_CLEAR);
+
+	swapchain.createFramebuffers(static_cast<VkDevice>(device), renderPass);
+
+	VkDescriptorSetLayoutBinding uboLayoutBinding = {
+	    .binding = 0,
+	    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+	    .descriptorCount = 1,
+	    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+	    .pImmutableSamplers = nullptr};
+
+	VkDescriptorSetLayoutBinding samplerLayoutBinding = {
+	    .binding = 1,
+	    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+	    .descriptorCount = 1,
+	    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+	    .pImmutableSamplers = nullptr};
+
+	std::array<VkDescriptorSetLayoutBinding, 2> layouts{uboLayoutBinding, samplerLayoutBinding};
+
+	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = 0,
+		.bindingCount = 2,
+		.pBindings = layouts.data()
+	};
+
+	if (vkCreateDescriptorSetLayout(static_cast<VkDevice>(device), &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create descriptor set layout.");
+	}
 }
 
 VulkanBootstrap::~VulkanBootstrap() {
+	vkDestroyRenderPass(static_cast<VkDevice>(device), renderPass, nullptr);
 	swapchain.destroy();
 	device.destroy();
 	vkDestroySurfaceKHR(instance, surface, nullptr);
