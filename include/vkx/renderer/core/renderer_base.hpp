@@ -11,6 +11,31 @@
 #include <vkx/renderer/texture.hpp>
 #include <vulkan/vulkan_core.h>
 
+struct Vertex {
+	glm::vec2 pos;
+
+	static constexpr VkVertexInputBindingDescription getBindingDescription() {
+		VkVertexInputBindingDescription bindingDescription = {
+			.binding = 0,
+			.stride = 0,
+			.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+		};
+
+		return bindingDescription;
+	}
+
+	static constexpr std::array<VkVertexInputAttributeDescription, 1> getAttributeDescriptions() {
+		VkVertexInputAttributeDescription posDescription = {
+			.location = 0,
+			.binding = 0,
+			.format = VK_FORMAT_R32G32_SFLOAT,
+			.offset = offsetof(Vertex, pos)
+		};
+
+		return {posDescription};
+	}
+};
+
 struct SwapchainInfo {
 	VkSurfaceCapabilitiesKHR capabilities;
 	std::vector<VkSurfaceFormatKHR> formats;
@@ -122,6 +147,16 @@ public:
 
 private:
 	static VkSwapchainKHR createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface);
+};
+
+class VulkanGraphicsPipeline {
+private:
+	VkPipelineLayout pipelineLayout = nullptr;
+	VkPipelineCache cache = nullptr;
+	VkPipeline pipeline = nullptr;
+
+public:
+	VulkanGraphicsPipeline(const VulkanDevice& device, const VkExtent2D& extent, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout);
 };
 
 class VulkanBootstrap {

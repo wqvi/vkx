@@ -6,7 +6,9 @@
 #include <cstdint>
 #include <cstring>
 #include <exception>
+#include <fstream>
 #include <stdexcept>
+#include <string_view>
 #include <vk_mem_alloc.h>
 #include <vkx/renderer/core/renderer_base.hpp>
 
@@ -657,6 +659,198 @@ VkSwapchainKHR VulkanSwapchain::createSwapchain(const SwapchainInfo& info, const
 	return swapchain;
 }
 
+static std::vector<char> readFile(const std::string& file) {
+	std::ifstream filestream;
+	filestream.open(file, std::ios::ate | std::ios::binary);
+
+	if (!filestream.is_open()) {
+		std::string errMsg = std::string("Failed to open file: ") + file;
+		throw std::invalid_argument(errMsg);
+	}
+
+	auto fileSize = filestream.tellg();
+	std::vector<char> buffer;
+	buffer.resize(fileSize);
+
+	filestream.seekg(std::ios::beg);
+	filestream.read(buffer.data(), fileSize);
+
+	filestream.close();
+
+	return buffer;
+}
+
+static VkShaderModule createShaderModule(VkDevice device, const std::string& file) {
+	auto buffer = readFile(file);
+
+	VkShaderModuleCreateInfo shaderModuleCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .codeSize = static_cast<std::size_t>(buffer.size()),
+	    .pCode = reinterpret_cast<const std::uint32_t*>(buffer.data())};
+
+	VkShaderModule shaderModule = nullptr;
+	if (vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create shader module.");
+	}
+
+	return shaderModule;
+}
+
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(const VulkanDevice& device, const VkExtent2D& extent, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout) {
+	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .setLayoutCount = 1,
+	    .pSetLayouts = &descriptorSetLayout,
+	    .pushConstantRangeCount = 0,
+	    .pPushConstantRanges = nullptr};
+
+	if (vkCreatePipelineLayout(static_cast<VkDevice>(device), &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create pipeline layout.");
+	}
+
+	const auto vertexModule = createShaderModule(static_cast<VkDevice>(device), "shader.vert.spv");
+	const auto fragmentModule = createShaderModule(static_cast<VkDevice>(device), "shader.frag.spv");
+
+	VkPipelineShaderStageCreateInfo vertexShaderStageCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .stage = VK_SHADER_STAGE_VERTEX_BIT,
+	    .module = vertexModule,
+	    .pName = "main",
+	    .pSpecializationInfo = nullptr};
+
+	VkPipelineShaderStageCreateInfo fragmentShaderStageCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+	    .module = fragmentModule,
+	    .pName = "main",
+	    .pSpecializationInfo = nullptr};
+
+	const std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages{vertexShaderStageCreateInfo, fragmentShaderStageCreateInfo};
+
+	const auto bindingDescription = Vertex::getBindingDescription();
+	const auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .vertexBindingDescriptionCount = 1,
+	    .pVertexBindingDescriptions = &bindingDescription,
+	    .vertexAttributeDescriptionCount = static_cast<std::uint32_t>(attributeDescriptions.size()),
+	    .pVertexAttributeDescriptions = attributeDescriptions.data()};
+
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+	    .primitiveRestartEnable = VK_FALSE};
+
+	VkViewport viewport = {
+	    .x = 0.0f,
+	    .y = 0.0f,
+	    .width = static_cast<float>(extent.width),
+	    .height = static_cast<float>(extent.height),
+	    .minDepth = 0.0f,
+	    .maxDepth = 1.0f};
+
+	VkRect2D scissor = {
+	    .offset = {
+		.x = 0,
+		.y = 0},
+	    .extent = extent};
+
+	VkPipelineViewportStateCreateInfo viewportState = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .viewportCount = 1,
+	    .pViewports = &viewport,
+	    .scissorCount = 1,
+	    .pScissors = &scissor};
+
+	VkPipelineRasterizationStateCreateInfo rasterizer = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .depthClampEnable = VK_FALSE,
+	    .rasterizerDiscardEnable = VK_FALSE,
+	    .polygonMode = VK_POLYGON_MODE_FILL,
+	    .cullMode = VK_CULL_MODE_BACK_BIT,
+	    .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+	    .depthBiasEnable = VK_FALSE,
+	    .depthBiasConstantFactor = 0.0f,
+	    .depthBiasClamp = 0.0f,
+	    .depthBiasSlopeFactor = 0.0f,
+	    .lineWidth = 1.0f};
+
+	VkPipelineMultisampleStateCreateInfo multisampling = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+	    .sampleShadingEnable = VK_FALSE,
+	};
+
+	VkPipelineDepthStencilStateCreateInfo depthStencil = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .depthTestEnable = VK_TRUE,
+	    .depthWriteEnable = VK_TRUE,
+	    .depthCompareOp = VK_COMPARE_OP_LESS,
+	    .depthBoundsTestEnable = VK_FALSE,
+	    .stencilTestEnable = VK_FALSE,
+	};
+
+	VkPipelineColorBlendAttachmentState colorBlendAttachment = {
+	    .blendEnable = VK_FALSE,
+	    .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT};
+
+	VkPipelineColorBlendStateCreateInfo colorBlending = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .logicOpEnable = VK_FALSE,
+	    .logicOp = VK_LOGIC_OP_COPY,
+	    .attachmentCount = 1,
+	    .pAttachments = &colorBlendAttachment,
+	    .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}};
+
+	VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .stageCount = static_cast<std::uint32_t>(shaderStages.size()),
+	    .pStages = shaderStages.data(),
+	    .pVertexInputState = &vertexInputInfo,
+	    .pInputAssemblyState = &inputAssembly,
+	    .pTessellationState = nullptr,
+	    .pViewportState = &viewportState,
+	    .pRasterizationState = &rasterizer,
+	    .pMultisampleState = &multisampling,
+	    .pDepthStencilState = &depthStencil,
+	    .pColorBlendState = &colorBlending,
+	    .pDynamicState = nullptr,
+	    .layout = pipelineLayout,
+	    .renderPass = renderPass,
+	    .subpass = 0,
+	    .basePipelineHandle = nullptr,
+	    .basePipelineIndex = 0};
+
+	if (vkCreateGraphicsPipelines(static_cast<VkDevice>(device), nullptr, 1, &pipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create graphics pipeline.");
+	}
+}
+
 VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
 	VkApplicationInfo applicationInfo = {
 	    .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -694,12 +888,11 @@ VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
 	std::array<VkDescriptorSetLayoutBinding, 2> layouts{uboLayoutBinding, samplerLayoutBinding};
 
 	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.bindingCount = 2,
-		.pBindings = layouts.data()
-	};
+	    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .bindingCount = 2,
+	    .pBindings = layouts.data()};
 
 	if (vkCreateDescriptorSetLayout(static_cast<VkDevice>(device), &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create descriptor set layout.");
