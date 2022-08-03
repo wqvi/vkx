@@ -3,6 +3,7 @@
 #include <SDL2/SDL_video.h>
 #include <cstddef>
 #include <cstdint>
+#include <string_view>
 #include <vkx/camera.hpp>
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/pipeline.hpp>
@@ -74,8 +75,25 @@ struct QueueConfig {
 	bool complete() const noexcept;
 };
 
+struct GraphicsPipelineInfo {
+	std::string vertexFile = "\0";
+	std::string fragmentFile = "\0";
+	VkExtent2D extent = {};
+	VkRenderPass renderPass = nullptr;
+	VkDescriptorSetLayout descriptorSetLayout = nullptr;
+};
+
+class VulkanBootstrap;
+
+class VulkanDevice;
+
+class VulkanSwapchain;
+
+class VulkanGraphicsPipeline;
+
 class VulkanDevice {
 private:
+	VkSurfaceKHR surface = nullptr;
 	VkPhysicalDevice physicalDevice = nullptr;
 	VkPhysicalDeviceProperties properties = {};
 	VkDevice device = nullptr;
@@ -109,6 +127,12 @@ public:
 	VmaAllocator getAllocator() const noexcept;
 
 	VkRenderPass createRenderPass(VkFormat format, VkAttachmentLoadOp loadOp) const;
+
+	VulkanSwapchain createSwapchain(SDL_Window* window) const;
+
+	VkDescriptorSetLayout createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& bindings) const;
+
+	VulkanGraphicsPipeline createGraphicsPipeline(const GraphicsPipelineInfo& info) const;
 
 private:
 	static VkPhysicalDevice pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
@@ -160,7 +184,7 @@ private:
 public:
 	VulkanGraphicsPipeline() = default;
 
-	VulkanGraphicsPipeline(const VulkanDevice& device, const VkExtent2D& extent, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout);
+	VulkanGraphicsPipeline(VkDevice device, const GraphicsPipelineInfo& info);
 
 	void destroy() const noexcept;
 };
@@ -170,11 +194,6 @@ private:
 	SDL_Window* window = nullptr;
 	VkInstance instance = nullptr;
 	VkSurfaceKHR surface = nullptr;
-	VulkanDevice device = {};
-	VulkanSwapchain swapchain = {};
-	VkRenderPass clearRenderPass = nullptr;
-	VkDescriptorSetLayout descriptorSetLayout = nullptr;
-	VulkanGraphicsPipeline graphicsPipeline = {};
 
 public:
 	VulkanBootstrap() = delete;
@@ -182,6 +201,8 @@ public:
 	explicit VulkanBootstrap(SDL_Window* window);
 
 	~VulkanBootstrap();
+
+	VulkanDevice createDevice() const;
 
 private:
 	static VkBool32 debug(VkDebugUtilsMessageSeverityFlagBitsEXT, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT*, void*);

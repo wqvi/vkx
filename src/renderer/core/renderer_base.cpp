@@ -188,7 +188,8 @@ bool QueueConfig::complete() const noexcept {
 	return graphicsIndex != UINT32_MAX && presentIndex != UINT32_MAX;
 }
 
-VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface) {
+VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface)
+    : surface(surface) {
 	physicalDevice = pickPhysicalDevice(instance, surface);
 
 	QueueConfig queueConfig{physicalDevice, surface};
@@ -347,6 +348,30 @@ VmaAllocation VulkanDevice::allocateBuffer(VkDeviceSize size, VkBufferUsageFlags
 
 VmaAllocator VulkanDevice::getAllocator() const noexcept {
 	return allocator;
+}
+
+VulkanSwapchain VulkanDevice::createSwapchain(SDL_Window* window) const {
+	return VulkanSwapchain{window, *this, surface, nullptr};
+}
+
+VkDescriptorSetLayout VulkanDevice::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& bindings) const {
+	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .bindingCount = static_cast<std::uint32_t>(bindings.size()),
+	    .pBindings = bindings.data()};
+
+	VkDescriptorSetLayout descriptorSetLayout = nullptr;
+	if (vkCreateDescriptorSetLayout(static_cast<VkDevice>(device), &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create descriptor set layout.");
+	}
+
+	return descriptorSetLayout;
+}
+
+VulkanGraphicsPipeline VulkanDevice::createGraphicsPipeline(const GraphicsPipelineInfo& info) const {
+	return VulkanGraphicsPipeline{device, info};
 }
 
 VkRenderPass VulkanDevice::createRenderPass(VkFormat format, VkAttachmentLoadOp loadOp) const {
@@ -706,23 +731,23 @@ static VkShaderModule createShaderModule(VkDevice device, const std::string& fil
 	return shaderModule;
 }
 
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(const VulkanDevice& device, const VkExtent2D& extent, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout)
-    : device(static_cast<VkDevice>(device)) {
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice device, const GraphicsPipelineInfo& info)
+    : device(device) {
 	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
 	    .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 	    .pNext = nullptr,
 	    .flags = 0,
 	    .setLayoutCount = 1,
-	    .pSetLayouts = &descriptorSetLayout,
+	    .pSetLayouts = &info.descriptorSetLayout,
 	    .pushConstantRangeCount = 0,
 	    .pPushConstantRanges = nullptr};
 
-	if (vkCreatePipelineLayout(static_cast<VkDevice>(device), &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create pipeline layout.");
 	}
 
-	const auto vertexModule = createShaderModule(static_cast<VkDevice>(device), "shader.vert.spv");
-	const auto fragmentModule = createShaderModule(static_cast<VkDevice>(device), "shader.frag.spv");
+	const auto vertexModule = createShaderModule(static_cast<VkDevice>(device), info.vertexFile);
+	const auto fragmentModule = createShaderModule(static_cast<VkDevice>(device), info.fragmentFile);
 
 	VkPipelineShaderStageCreateInfo vertexShaderStageCreateInfo = {
 	    .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -766,8 +791,8 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(const VulkanDevice& device, const
 	VkViewport viewport = {
 	    .x = 0.0f,
 	    .y = 0.0f,
-	    .width = static_cast<float>(extent.width),
-	    .height = static_cast<float>(extent.height),
+	    .width = static_cast<float>(info.extent.width),
+	    .height = static_cast<float>(info.extent.height),
 	    .minDepth = 0.0f,
 	    .maxDepth = 1.0f};
 
@@ -775,7 +800,7 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(const VulkanDevice& device, const
 	    .offset = {
 		.x = 0,
 		.y = 0},
-	    .extent = extent};
+	    .extent = info.extent};
 
 	VkPipelineViewportStateCreateInfo viewportState = {
 	    .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
@@ -850,7 +875,7 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(const VulkanDevice& device, const
 	    .pColorBlendState = &colorBlending,
 	    .pDynamicState = nullptr,
 	    .layout = pipelineLayout,
-	    .renderPass = renderPass,
+	    .renderPass = info.renderPass,
 	    .subpass = 0,
 	    .basePipelineHandle = nullptr,
 	    .basePipelineIndex = 0};
@@ -881,53 +906,16 @@ VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
 
 	instance = initInstance(window, &applicationInfo);
 	surface = initSurface(window, instance);
-
-	device = VulkanDevice{instance, surface};
-	swapchain = VulkanSwapchain{window, device, surface, nullptr};
-
-	clearRenderPass = device.createRenderPass(swapchain.getImageFormat(), VK_ATTACHMENT_LOAD_OP_CLEAR);
-
-	swapchain.createFramebuffers(static_cast<VkDevice>(device), clearRenderPass);
-
-	VkDescriptorSetLayoutBinding uboLayoutBinding = {
-	    .binding = 0,
-	    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-	    .descriptorCount = 1,
-	    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-	    .pImmutableSamplers = nullptr};
-
-	VkDescriptorSetLayoutBinding samplerLayoutBinding = {
-	    .binding = 1,
-	    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-	    .descriptorCount = 1,
-	    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-	    .pImmutableSamplers = nullptr};
-
-	std::array<VkDescriptorSetLayoutBinding, 2> layouts{uboLayoutBinding, samplerLayoutBinding};
-
-	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
-	    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-	    .pNext = nullptr,
-	    .flags = 0,
-	    .bindingCount = 2,
-	    .pBindings = layouts.data()};
-
-	if (vkCreateDescriptorSetLayout(static_cast<VkDevice>(device), &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create descriptor set layout.");
-	}
-
-	graphicsPipeline = VulkanGraphicsPipeline{device, swapchain.getExtent(), clearRenderPass, descriptorSetLayout};
 }
 
 VulkanBootstrap::~VulkanBootstrap() {
-	graphicsPipeline.destroy();
-	vkDestroyDescriptorSetLayout(static_cast<VkDevice>(device), descriptorSetLayout, nullptr);
-	vkDestroyRenderPass(static_cast<VkDevice>(device), clearRenderPass, nullptr);
-	swapchain.destroy();
-	device.destroy();
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
 	SDL_Log("Destroyed VulkanBootstrap.");
+}
+
+VulkanDevice VulkanBootstrap::createDevice() const {
+	return VulkanDevice{instance, surface};
 }
 
 VkBool32 VulkanBootstrap::debug(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {

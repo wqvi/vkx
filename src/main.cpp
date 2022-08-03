@@ -7,6 +7,7 @@
 #include <glm/fwd.hpp>
 #include <iostream>
 #include <vkx/vkx.hpp>
+#include <vulkan/vulkan_core.h>
 
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -26,6 +27,46 @@ int main(void) {
 
 	{
 		VulkanBootstrap bootstrap{window};
+		VulkanDevice device = bootstrap.createDevice();
+		VulkanSwapchain swapchain = device.createSwapchain(window);
+		VkRenderPass clearRenderPass = device.createRenderPass(swapchain.getImageFormat(), VK_ATTACHMENT_LOAD_OP_CLEAR);
+		swapchain.createFramebuffers(static_cast<VkDevice>(device), clearRenderPass);
+		VkDescriptorSetLayoutBinding uboLayoutBinding = {
+		    .binding = 0,
+		    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		    .descriptorCount = 1,
+		    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+		    .pImmutableSamplers = nullptr};
+
+		VkDescriptorSetLayoutBinding samplerLayoutBinding = {
+		    .binding = 1,
+		    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		    .descriptorCount = 1,
+		    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+		    .pImmutableSamplers = nullptr};
+
+		std::vector<VkDescriptorSetLayoutBinding> bindings{uboLayoutBinding, samplerLayoutBinding};
+
+		VkDescriptorSetLayout descriptorSetLayout = device.createDescriptorSetLayout(bindings);
+
+		GraphicsPipelineInfo info = {
+			.vertexFile = "shader2D.vert.spv",
+			.fragmentFile = "shader2D.frag.spv",
+			.extent = swapchain.getExtent(),
+			.renderPass = clearRenderPass,
+			.descriptorSetLayout = descriptorSetLayout
+		};
+
+		VulkanGraphicsPipeline graphicsPipeline = device.createGraphicsPipeline(info);
+		
+		/* 
+		drawCommands = device->createDrawCommands(MAX_FRAMES_IN_FLIGHT);
+
+	syncObjects = SyncObjects::createSyncObjects(*device);
+
+	createDescriptorPool();
+		*/
+
 		vkx::RendererBase renderer{window};
 
 		vkx::Model model{};
@@ -91,6 +132,12 @@ int main(void) {
 				}
 			}
 		}
+
+		graphicsPipeline.destroy();
+		vkDestroyDescriptorSetLayout(static_cast<VkDevice>(device), descriptorSetLayout, nullptr);
+		vkDestroyRenderPass(static_cast<VkDevice>(device), clearRenderPass, nullptr);
+		swapchain.destroy();
+		device.destroy();
 
 		renderer.waitIdle();
 	}
