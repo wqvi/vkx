@@ -58,6 +58,8 @@ int main(void) {
 		};
 
 		VulkanGraphicsPipeline graphicsPipeline = device.createGraphicsPipeline(info);
+
+		const auto syncObjects = SyncObjects::createSyncObjects(static_cast<VkDevice>(device));
 		
 		/* 
 		drawCommands = device->createDrawCommands(MAX_FRAMES_IN_FLIGHT);
@@ -131,6 +133,10 @@ int main(void) {
 					break;
 				}
 			}
+		}
+
+		for (const auto& syncObject : syncObjects) {
+			syncObject.destroy(static_cast<VkDevice>(device));
 		}
 
 		graphicsPipeline.destroy();

@@ -894,6 +894,46 @@ void VulkanGraphicsPipeline::destroy() const noexcept {
 	SDL_Log("Destroyed VulkanGraphicsPipeline.");
 }
 
+SyncObjects::SyncObjects(VkDevice device) {
+	VkSemaphoreCreateInfo semaphoreCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0};
+
+	if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create image available semaphore.");
+	}
+
+	if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create render finished semaphore.");
+	}
+
+	VkFenceCreateInfo fenceCreateInfo = {
+	    .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = VK_FENCE_CREATE_SIGNALED_BIT};
+
+	if (vkCreateFence(device, &fenceCreateInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create in flight fence.");
+	}
+}
+
+void SyncObjects::destroy(VkDevice device) const noexcept {
+	vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+	vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
+	vkDestroyFence(device, inFlightFence, nullptr);
+	SDL_Log("Destroyed SyncObject.");
+}
+
+std::vector<SyncObjects> SyncObjects::createSyncObjects(VkDevice device) {
+	std::vector<SyncObjects> objs;
+	objs.resize(MAX_FRAMES_IN_FLIGHT);
+
+	std::generate(objs.begin(), objs.end(), [&device]() { return SyncObjects{device}; });
+
+	return objs;
+}
+
 VulkanBootstrap::VulkanBootstrap(SDL_Window* window) {
 	VkApplicationInfo applicationInfo = {
 	    .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,

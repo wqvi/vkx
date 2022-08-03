@@ -189,6 +189,20 @@ public:
 	void destroy() const noexcept;
 };
 
+struct SyncObjects {
+	VkSemaphore imageAvailableSemaphore = nullptr;
+	VkSemaphore renderFinishedSemaphore = nullptr;
+	VkFence inFlightFence = nullptr;
+
+	SyncObjects() = default;
+
+	SyncObjects(VkDevice device);
+
+	void destroy(VkDevice device) const noexcept;
+
+	static std::vector<SyncObjects> createSyncObjects(VkDevice device);
+};
+
 class VulkanBootstrap {
 private:
 	SDL_Window* window = nullptr;
