@@ -28,65 +28,6 @@ int main(void) {
 	}
 
 	{
-		VulkanBootstrap bootstrap{window};
-		VulkanDevice device = bootstrap.createDevice();
-		VulkanSwapchain swapchain = device.createSwapchain(window);
-		VkRenderPass clearRenderPass = device.createRenderPass(swapchain.getImageFormat(), VK_ATTACHMENT_LOAD_OP_CLEAR);
-		swapchain.createFramebuffers(static_cast<VkDevice>(device), clearRenderPass);
-		VkDescriptorSetLayoutBinding uboLayoutBinding = {
-		    .binding = 0,
-		    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		    .descriptorCount = 1,
-		    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-		    .pImmutableSamplers = nullptr};
-
-		VkDescriptorSetLayoutBinding samplerLayoutBinding = {
-		    .binding = 1,
-		    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-		    .descriptorCount = 1,
-		    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-		    .pImmutableSamplers = nullptr};
-
-		std::vector<VkDescriptorSetLayoutBinding> bindings{uboLayoutBinding, samplerLayoutBinding};
-
-		VkDescriptorSetLayout descriptorSetLayout = device.createDescriptorSetLayout(bindings);
-
-		GraphicsPipelineInfo info = {
-		    .vertexFile = "shader2D.vert.spv",
-		    .fragmentFile = "shader2D.frag.spv",
-		    .extent = swapchain.getExtent(),
-		    .renderPass = clearRenderPass,
-		    .descriptorSetLayout = descriptorSetLayout};
-
-		VulkanGraphicsPipeline graphicsPipeline = device.createGraphicsPipeline(info);
-
-		const auto syncObjects = SyncObjects::createSyncObjects(static_cast<VkDevice>(device));
-
-		const auto drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
-
-		VkDescriptorPoolSize uniformBufferDescriptor = {
-		    .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		    .descriptorCount = MAX_FRAMES_IN_FLIGHT};
-
-		VkDescriptorPoolSize textureDescriptor = {
-		    .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-		    .descriptorCount = MAX_FRAMES_IN_FLIGHT};
-
-		std::array<VkDescriptorPoolSize, 2> descriptors{uniformBufferDescriptor, textureDescriptor};
-
-		VkDescriptorPoolCreateInfo poolCreateInfo = {
-		    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-		    .pNext = nullptr,
-		    .flags = 0,
-		    .maxSets = MAX_FRAMES_IN_FLIGHT,
-		    .poolSizeCount = static_cast<std::uint32_t>(descriptors.size()),
-		    .pPoolSizes = descriptors.data()};
-
-		VkDescriptorPool descriptorPool = nullptr;
-		if (vkCreateDescriptorPool(static_cast<VkDevice>(device), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create descriptor pool.");
-		}
-
 		vkx::RendererBase renderer{window};
 
 		vkx::Model model{};
@@ -123,75 +64,6 @@ int main(void) {
 		while (isRunning) {
 			auto currentFrame = renderer.getCurrentFrameIndex();
 
-			const auto currentIndex = swapchain.updateCurrentFrameIndex();
-
-			vkWaitForFences(static_cast<VkDevice>(device), 1, &syncObjects[currentIndex].inFlightFence, VK_TRUE, UINT64_MAX);
-
-			std::uint32_t imageIndex = 0;
-			auto result = swapchain.acquireNextImage(static_cast<VkDevice>(device), syncObjects[currentIndex].imageAvailableSemaphore, &imageIndex);
-
-			if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-				int width;
-				int height;
-				SDL_Vulkan_GetDrawableSize(window, &width, &height);
-				while (width == 0 || height == 0) {
-					SDL_Vulkan_GetDrawableSize(window, &width, &height);
-					SDL_WaitEvent(nullptr);
-				}
-				device.waitIdle();
-
-				swapchain.destroy();
-				graphicsPipeline.destroy();
-
-				swapchain = device.createSwapchain(window);
-
-				clearRenderPass = device.createRenderPass(swapchain.getImageFormat(), VK_ATTACHMENT_LOAD_OP_CLEAR);
-
-				swapchain.createFramebuffers(static_cast<VkDevice>(device), clearRenderPass);
-
-				info.extent = swapchain.getExtent();
-				graphicsPipeline = device.createGraphicsPipeline(info);
-				continue;
-			} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-				throw std::runtime_error("Vulkan swapchain failed to acquire next image.");
-			}
-
-			vkResetFences(static_cast<VkDevice>(device), 1, &syncObjects[currentIndex].inFlightFence);
-
-			/*
-			mvpBuffer.mapMemory();
-	lightBuffer.mapMemory();
-	materialBuffer.mapMemory();
-
-	(*device)->resetFences(*syncObjects[currentIndexFrame].inFlightFence);
-
-	drawCommands[currentIndexFrame].record(
-	    *renderPass, *swapchain.framebuffers[imageIndex], swapchain.extent,
-	    *graphicsPipeline.pipeline, *graphicsPipeline.layout,
-	    descriptorSets[currentIndexFrame], vertexBuffer, indexBuffer, indexCount);
-
-	std::vector<vk::CommandBuffer> commandBuffers{
-	    static_cast<vk::CommandBuffer>(drawCommands[currentIndexFrame])};
-	device->submit(commandBuffers,
-		       *syncObjects[currentIndexFrame].imageAvailableSemaphore,
-		       *syncObjects[currentIndexFrame].renderFinishedSemaphore,
-		       *syncObjects[currentIndexFrame].inFlightFence);
-
-	result =
-	    device->present(swapchain, imageIndex,
-			    *syncObjects[currentIndexFrame].renderFinishedSemaphore);
-
-	if (result == vk::Result::eErrorOutOfDateKHR ||
-	    result == vk::Result::eSuboptimalKHR || framebufferResized) {
-		framebufferResized = false;
-		recreateSwapchain();
-	} else if (result != vk::Result::eSuccess) {
-		throw vkx::VulkanError(result);
-	}
-
-	currentIndexFrame = (currentIndexFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-			*/
-
 			auto& mvpBuffer = mvpBuffers[currentFrame];
 			mvpBuffer->model = modelMatrix;
 			mvpBuffer->view = view;
@@ -221,19 +93,6 @@ int main(void) {
 				}
 			}
 		}
-
-		vkDestroyDescriptorPool(static_cast<VkDevice>(device), descriptorPool, nullptr);
-
-		for (const auto& syncObject : syncObjects) {
-			syncObject.destroy(static_cast<VkDevice>(device));
-		}
-
-		graphicsPipeline.destroy();
-		vkDestroyDescriptorSetLayout(static_cast<VkDevice>(device), descriptorSetLayout, nullptr);
-		vkDestroyRenderPass(static_cast<VkDevice>(device), clearRenderPass, nullptr);
-		swapchain.destroy();
-		device.destroy();
-
 		renderer.waitIdle();
 	}
 
