@@ -160,6 +160,8 @@ private:
 
 	std::vector<VkFramebuffer> framebuffers = {};
 
+	std::uint32_t currentFrame = 0;
+
 public:
 	VulkanSwapchain() = default;
 
@@ -172,6 +174,10 @@ public:
 	VkFormat getImageFormat() const noexcept;
 
 	const VkExtent2D& getExtent() const noexcept;
+
+	VkResult acquireNextImage(VkDevice device, VkSemaphore semaphore, std::uint32_t* imageIndex) const;
+
+	std::uint32_t getCurrentFrameIndex() const noexcept;
 
 private:
 	static VkSwapchainKHR createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface);

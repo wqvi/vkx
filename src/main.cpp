@@ -7,6 +7,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/fwd.hpp>
 #include <iostream>
+#include <stdexcept>
 #include <vkx/vkx.hpp>
 #include <vulkan/vulkan_core.h>
 
@@ -64,13 +65,31 @@ int main(void) {
 		
 		const auto drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
 
-		/* 
-		drawCommands = device->createDrawCommands(MAX_FRAMES_IN_FLIGHT);
+		VkDescriptorPoolSize uniformBufferDescriptor = {
+			.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.descriptorCount = MAX_FRAMES_IN_FLIGHT
+		};
 
-	syncObjects = SyncObjects::createSyncObjects(*device);
+		VkDescriptorPoolSize textureDescriptor = {
+			.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = MAX_FRAMES_IN_FLIGHT
+		};
 
-	createDescriptorPool();
-		*/
+		std::array<VkDescriptorPoolSize, 2> descriptors {uniformBufferDescriptor, textureDescriptor};
+
+		VkDescriptorPoolCreateInfo poolCreateInfo = {
+			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.maxSets = MAX_FRAMES_IN_FLIGHT, 
+			.poolSizeCount = static_cast<std::uint32_t>(descriptors.size()),
+			.pPoolSizes = descriptors.data()
+		};
+
+		VkDescriptorPool descriptorPool = nullptr;
+		if (vkCreateDescriptorPool(static_cast<VkDevice>(device), &poolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create descriptor pool.");
+		}
 
 		vkx::RendererBase renderer{window};
 
@@ -108,6 +127,10 @@ int main(void) {
 		while (isRunning) {
 			auto currentFrame = renderer.getCurrentFrameIndex();
 
+			const auto currentIndex = swapchain.getCurrentFrameIndex();
+
+			auto result = swapchain.acquireNextImage(static_cast<VkDevice>(device), nullptr, nullptr);
+
 			auto& mvpBuffer = mvpBuffers[currentFrame];
 			mvpBuffer->model = modelMatrix;
 			mvpBuffer->view = view;
@@ -137,6 +160,8 @@ int main(void) {
 				}
 			}
 		}
+
+		vkDestroyDescriptorPool(static_cast<VkDevice>(device), descriptorPool, nullptr);
 
 		for (const auto& syncObject : syncObjects) {
 			syncObject.destroy(static_cast<VkDevice>(device));

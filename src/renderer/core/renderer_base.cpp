@@ -670,6 +670,14 @@ const VkExtent2D& VulkanSwapchain::getExtent() const noexcept {
 	return extent;
 }
 
+VkResult VulkanSwapchain::acquireNextImage(VkDevice device, VkSemaphore semaphore, std::uint32_t* imageIndex) const {
+	return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, semaphore, nullptr, imageIndex);
+}
+
+std::uint32_t VulkanSwapchain::getCurrentFrameIndex() const noexcept {
+	return currentFrame;
+}
+
 VkSwapchainKHR VulkanSwapchain::createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface) {
 	int width;
 	int height;
