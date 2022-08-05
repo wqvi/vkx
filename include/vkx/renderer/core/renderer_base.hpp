@@ -136,6 +136,8 @@ public:
 
 	std::vector<VkCommandBuffer> createDrawCommands(std::uint32_t amount) const;
 
+	void waitIdle() const;
+
 private:
 	static VkPhysicalDevice pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
 
@@ -160,7 +162,7 @@ private:
 
 	std::vector<VkFramebuffer> framebuffers = {};
 
-	std::uint32_t currentFrame = 0;
+	std::uint32_t currentFrame = 1;
 
 public:
 	VulkanSwapchain() = default;
@@ -179,6 +181,8 @@ public:
 
 	std::uint32_t getCurrentFrameIndex() const noexcept;
 
+	std::uint32_t updateCurrentFrameIndex() noexcept;
+
 private:
 	static VkSwapchainKHR createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface);
 };
@@ -193,6 +197,8 @@ public:
 	VulkanGraphicsPipeline() = default;
 
 	VulkanGraphicsPipeline(VkDevice device, const GraphicsPipelineInfo& info);
+
+	explicit operator VkPipeline() const;
 
 	void destroy() const noexcept;
 };

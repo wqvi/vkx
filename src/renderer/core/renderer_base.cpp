@@ -1,3 +1,4 @@
+#include "vkx/renderer/core/renderer_types.hpp"
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_log.h>
 #include <SDL2/SDL_stdinc.h>
@@ -392,6 +393,12 @@ std::vector<VkCommandBuffer> VulkanDevice::createDrawCommands(std::uint32_t amou
 	return commandsBuffers;
 }
 
+void VulkanDevice::waitIdle() const {
+	if (vkDeviceWaitIdle(device) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to wait on device.");
+	}
+}
+
 VkRenderPass VulkanDevice::createRenderPass(VkFormat format, VkAttachmentLoadOp loadOp) const {
 	VkAttachmentDescription colorAttachment = {
 	    .flags = 0,
@@ -678,6 +685,11 @@ std::uint32_t VulkanSwapchain::getCurrentFrameIndex() const noexcept {
 	return currentFrame;
 }
 
+std::uint32_t VulkanSwapchain::updateCurrentFrameIndex() noexcept {
+	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+	return currentFrame;
+}
+
 VkSwapchainKHR VulkanSwapchain::createSwapchain(const SwapchainInfo& info, const QueueConfig config, SDL_Window* window, VkDevice device, VkSurfaceKHR surface) {
 	int width;
 	int height;
@@ -912,6 +924,10 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice device, const GraphicsPi
 
 	vkDestroyShaderModule(static_cast<VkDevice>(device), vertexModule, nullptr);
 	vkDestroyShaderModule(static_cast<VkDevice>(device), fragmentModule, nullptr);
+}
+
+VulkanGraphicsPipeline::operator VkPipeline() const {
+	return pipeline;
 }
 
 void VulkanGraphicsPipeline::destroy() const noexcept {
