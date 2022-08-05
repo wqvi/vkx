@@ -14,12 +14,6 @@
 #include <vkx/vkx.hpp>
 #include <vulkan/vulkan_core.h>
 
-template <class T>
-struct UniformVariable {
-	T variable;
-	VmaAllocation allocation;
-};
-
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2: %s", SDL_GetError());
@@ -115,7 +109,7 @@ int main(void) {
 	}
 		*/
 
-		std::vector<UniformVariable<VkBuffer>> uboBuffers;
+		std::vector<UniformVariable> uboBuffers;
 		uboBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			uboBuffers[i].allocation = device.allocateBuffer(sizeof(glm::mat4) * 3, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, &uboBuffers[i].variable);
@@ -138,23 +132,21 @@ int main(void) {
 
 		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			VkDescriptorBufferInfo bufferInfo = {
-				.buffer = uboBuffers[i].variable,
-				.offset = 0,
-				.range = sizeof(glm::mat4) * 3
-			};
+			    .buffer = uboBuffers[i].variable,
+			    .offset = 0,
+			    .range = sizeof(glm::mat4) * 3};
 
 			VkWriteDescriptorSet uniformWrite = {
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.pNext = nullptr,
-				.dstSet = descriptorSets[i],
-				.dstBinding = 0,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-				.pImageInfo = nullptr,
-				.pBufferInfo = &bufferInfo,
-				.pTexelBufferView = nullptr
-			};
+			    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			    .pNext = nullptr,
+			    .dstSet = descriptorSets[i],
+			    .dstBinding = 0,
+			    .dstArrayElement = 0,
+			    .descriptorCount = 1,
+			    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			    .pImageInfo = nullptr,
+			    .pBufferInfo = &bufferInfo,
+			    .pTexelBufferView = nullptr};
 
 			// VkDescriptorImageInfo imageInfo = {
 			// 	.sampler = nullptr,
@@ -175,9 +167,45 @@ int main(void) {
 			// 	.pTexelBufferView = nullptr
 			// };
 
-			std::array<VkWriteDescriptorSet, 1> writeDescriptorSets {uniformWrite};
+			std::array<VkWriteDescriptorSet, 1> writeDescriptorSets{uniformWrite};
 
 			vkUpdateDescriptorSets(static_cast<VkDevice>(device), static_cast<std::uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
+		}
+
+		std::vector<Vertex> testVertices{
+		    {{0.0f, 0.0f}},
+		    {{1.0f, 0.0f}},
+		    {{1.0f, 1.0f}},
+		    {{0.0f, 1.0f}}};
+
+		std::vector<std::uint32_t> testIndices{
+		    0, 1, 2, 2, 3, 0};
+
+		VkBufferCreateInfo bufCreateInfo = {VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
+		bufCreateInfo.size = 65536;
+		bufCreateInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+		VmaAllocationCreateInfo allocCreateInfo = {};
+		allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+		allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+					VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |
+					VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+		VkBuffer buf;
+		VmaAllocation alloc;
+		VmaAllocationInfo allocInfo;
+		vmaCreateBuffer(device.getAllocator(), &bufCreateInfo, &allocCreateInfo, &buf, &alloc, &allocInfo);
+
+		VkMemoryPropertyFlags memPropFlags;
+		vmaGetAllocationMemoryProperties(device.getAllocator(), alloc, &memPropFlags);
+
+		if (memPropFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+			// Allocation ended up in a mappable memory and is already mapped - write to it directly.
+
+			// [Executed in runtime]:
+			memcpy(allocInfo.pMappedData, testVertices.data(), testVertices.size() * sizeof(Vertex));
+		} else {
+			throw std::runtime_error("failed to allcoate");
 		}
 
 		vkx::RendererBase renderer{window};
@@ -191,15 +219,6 @@ int main(void) {
 		    {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}};
 
 		std::vector<std::uint32_t> indices{
-		    0, 1, 2, 2, 3, 0};
-
-		std::vector<Vertex> testVertices{
-		    {{0.0f, 0.0f}},
-		    {{1.0f, 0.0f}},
-		    {{1.0f, 1.0f}},
-		    {{0.0f, 1.0f}}};
-
-		std::vector<std::uint32_t> testIndices{
 		    0, 1, 2, 2, 3, 0};
 
 		model = vkx::Model{renderer.allocateMesh(vertices, indices),
@@ -227,40 +246,40 @@ int main(void) {
 
 			const auto currentIndex = swapchain.updateCurrentFrameIndex();
 
-			vkWaitForFences(static_cast<VkDevice>(device), 1, &syncObjects[currentIndex].inFlightFence, VK_TRUE, UINT64_MAX);
+			// vkWaitForFences(static_cast<VkDevice>(device), 1, &syncObjects[currentIndex].inFlightFence, VK_TRUE, UINT64_MAX);
 
-			std::uint32_t imageIndex = 0;
-			auto result = swapchain.acquireNextImage(static_cast<VkDevice>(device), syncObjects[currentIndex].imageAvailableSemaphore, &imageIndex);
+			// std::uint32_t imageIndex = 0;
+			// auto result = swapchain.acquireNextImage(static_cast<VkDevice>(device), syncObjects[currentIndex].imageAvailableSemaphore, &imageIndex);
 
-			if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-				int width;
-				int height;
-				SDL_Vulkan_GetDrawableSize(window, &width, &height);
-				while (width == 0 || height == 0) {
-					SDL_Vulkan_GetDrawableSize(window, &width, &height);
-					SDL_WaitEvent(nullptr);
-				}
-				device.waitIdle();
+			// if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			// 	int width;
+			// 	int height;
+			// 	SDL_Vulkan_GetDrawableSize(window, &width, &height);
+			// 	while (width == 0 || height == 0) {
+			// 		SDL_Vulkan_GetDrawableSize(window, &width, &height);
+			// 		SDL_WaitEvent(nullptr);
+			// 	}
+			// 	device.waitIdle();
 
-				swapchain.destroy();
-				graphicsPipeline.destroy();
+			// 	swapchain.destroy();
+			// 	graphicsPipeline.destroy();
 
-				swapchain = device.createSwapchain(window);
+			// 	swapchain = device.createSwapchain(window);
 
-				clearRenderPass = device.createRenderPass(swapchain.getImageFormat(), VK_ATTACHMENT_LOAD_OP_CLEAR);
+			// 	clearRenderPass = device.createRenderPass(swapchain.getImageFormat(), VK_ATTACHMENT_LOAD_OP_CLEAR);
 
-				swapchain.createFramebuffers(static_cast<VkDevice>(device), clearRenderPass);
+			// 	swapchain.createFramebuffers(static_cast<VkDevice>(device), clearRenderPass);
 
-				info.extent = swapchain.getExtent();
-				graphicsPipeline = device.createGraphicsPipeline(info);
-				continue;
-			} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-				throw std::runtime_error("Vulkan swapchain failed to acquire next image.");
-			}
+			// 	info.extent = swapchain.getExtent();
+			// 	graphicsPipeline = device.createGraphicsPipeline(info);
+			// 	continue;
+			// } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+			// 	throw std::runtime_error("Vulkan swapchain failed to acquire next image.");
+			// }
 
-			device.mapMemory(uboBuffers[currentIndex].allocation, nullptr);
+			// device.mapMemory(uboBuffers[currentIndex].allocation, nullptr);
 
-			vkResetFences(static_cast<VkDevice>(device), 1, &syncObjects[currentIndex].inFlightFence);
+			// vkResetFences(static_cast<VkDevice>(device), 1, &syncObjects[currentIndex].inFlightFence);
 
 			/*
 			mvpBuffer.mapMemory();
@@ -325,6 +344,8 @@ int main(void) {
 				}
 			}
 		}
+
+		vmaDestroyBuffer(device.getAllocator(), buf, alloc);
 
 		for (const auto& variable : uboBuffers) {
 			vmaDestroyBuffer(device.getAllocator(), variable.variable, variable.allocation);

@@ -73,6 +73,11 @@ struct QueueConfig {
 	bool complete() const noexcept;
 };
 
+struct UniformVariable {
+	VkBuffer variable;
+	VmaAllocation allocation;
+};
+
 struct GraphicsPipelineInfo {
 	std::string vertexFile = "\0";
 	std::string fragmentFile = "\0";
