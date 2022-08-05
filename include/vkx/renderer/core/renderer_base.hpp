@@ -17,21 +17,19 @@ struct Vertex {
 
 	static constexpr VkVertexInputBindingDescription getBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription = {
-			.binding = 0,
-			.stride = 0,
-			.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-		};
+		    .binding = 0,
+		    .stride = 0,
+		    .inputRate = VK_VERTEX_INPUT_RATE_VERTEX};
 
 		return bindingDescription;
 	}
 
 	static constexpr std::array<VkVertexInputAttributeDescription, 1> getAttributeDescriptions() {
 		VkVertexInputAttributeDescription posDescription = {
-			.location = 0,
-			.binding = 0,
-			.format = VK_FORMAT_R32G32_SFLOAT,
-			.offset = offsetof(Vertex, pos)
-		};
+		    .location = 0,
+		    .binding = 0,
+		    .format = VK_FORMAT_R32G32_SFLOAT,
+		    .offset = offsetof(Vertex, pos)};
 
 		return {posDescription};
 	}
@@ -137,6 +135,10 @@ public:
 	std::vector<VkCommandBuffer> createDrawCommands(std::uint32_t amount) const;
 
 	void waitIdle() const;
+
+	inline void mapMemory(VmaAllocation allocation, void* mem) {
+		vmaMapMemory(allocator, allocation, &mem);
+	}
 
 private:
 	static VkPhysicalDevice pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
