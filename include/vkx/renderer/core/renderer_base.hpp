@@ -134,6 +134,8 @@ public:
 
 	VulkanGraphicsPipeline createGraphicsPipeline(const GraphicsPipelineInfo& info) const;
 
+	std::vector<VkCommandBuffer> createDrawCommands(std::uint32_t amount) const;
+
 private:
 	static VkPhysicalDevice pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
 

@@ -374,6 +374,24 @@ VulkanGraphicsPipeline VulkanDevice::createGraphicsPipeline(const GraphicsPipeli
 	return VulkanGraphicsPipeline{device, info};
 }
 
+std::vector<VkCommandBuffer> VulkanDevice::createDrawCommands(std::uint32_t amount) const {
+	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+		.pNext = nullptr,
+		.commandPool = commandPool,
+		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+		.commandBufferCount = amount
+	};
+
+	std::vector<VkCommandBuffer> commandsBuffers;
+	commandsBuffers.resize(amount);
+	if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandsBuffers.data()) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate command buffers.");
+	}
+
+	return commandsBuffers;
+}
+
 VkRenderPass VulkanDevice::createRenderPass(VkFormat format, VkAttachmentLoadOp loadOp) const {
 	VkAttachmentDescription colorAttachment = {
 	    .flags = 0,

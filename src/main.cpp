@@ -1,4 +1,5 @@
 #include "vkx/renderer/core/renderer_base.hpp"
+#include "vkx/renderer/core/renderer_types.hpp"
 #include "vkx/renderer/core/vertex.hpp"
 #include <SDL2/SDL_log.h>
 #include <cstdint>
@@ -61,6 +62,8 @@ int main(void) {
 
 		const auto syncObjects = SyncObjects::createSyncObjects(static_cast<VkDevice>(device));
 		
+		const auto drawCommands = device.createDrawCommands(MAX_FRAMES_IN_FLIGHT);
+
 		/* 
 		drawCommands = device->createDrawCommands(MAX_FRAMES_IN_FLIGHT);
 
