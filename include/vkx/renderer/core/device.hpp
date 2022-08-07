@@ -6,7 +6,9 @@
 #include "vk_mem_alloc.h"
 #include <SDL2/SDL_log.h>
 #include <cstddef>
+#include <cstring>
 #include <memory>
+#include <vector>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
@@ -20,38 +22,44 @@ class Allocator;
 
 class Allocator {
 public:
-    Allocator();
+	Allocator();
 
-    ~Allocator();
+	~Allocator();
 
-	[[nodiscard]]
-    VmaAllocator getAllocator() const noexcept;
+	[[nodiscard]] VmaAllocator getAllocator() const noexcept;
 
-	[[nodiscard]]
-	Allocation<vk::Image> allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage) const;
+	[[nodiscard]] Allocation<vk::Image> allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage) const;
 
-	[[nodiscard]]
-	Allocation<vk::Buffer> allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const;
+	[[nodiscard]] Allocation<vk::Buffer> allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const;
+
+	template <class T>
+	Allocation<vk::Buffer> allocateBuffer(const std::vector<T>& data, vk::BufferUsageFlags usage) const;
 
 private:
-    VmaAllocator allocator = nullptr;
+	VmaAllocator allocator = nullptr;
 };
 
 template <class T>
 struct Allocation {
-    constexpr Allocation(const T object, VmaAllocation allocation, VmaAllocator allocator)
-        : object(object), allocation(allocation), allocator(allocator) {}
+	const T object = {};
+	const VmaAllocation allocation = nullptr;
+	const VmaAllocationInfo allocationInfo = {};
+	const VmaAllocator allocator = nullptr;
 
-    ~Allocation();
+	constexpr Allocation(const T object, VmaAllocation allocation, const VmaAllocationInfo& allocationInfo, VmaAllocator allocator)
+	    : object(object), allocation(allocation), allocationInfo(allocationInfo), allocator(allocator) {}
 
-    const T object = {};
-    const VmaAllocation allocation = nullptr;
-    const VmaAllocator allocator = nullptr;
+	~Allocation();
+
+	template <class K>
+	void mapMemory(const std::vector<K>& memory) const {
+		std::memcpy(memory.data(), allocationInfo.pMappedData, allocationInfo.size);
+	}
 };
 
 template <>
 inline Allocation<vk::Image>::~Allocation() {
-    vmaDestroyImage(allocator, static_cast<VkImage>(object), allocation);
+	vmaDestroyImage(allocator, static_cast<VkImage>(object), allocation);
 #ifdef DEBUG
 	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Freed image resource allocation.");
 #endif
@@ -59,10 +67,34 @@ inline Allocation<vk::Image>::~Allocation() {
 
 template <>
 inline Allocation<vk::Buffer>::~Allocation() {
-    vmaDestroyBuffer(allocator, static_cast<VkBuffer>(object), allocation);
+	vmaDestroyBuffer(allocator, static_cast<VkBuffer>(object), allocation);
 #ifdef DEBUG
 	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Freed buffer resource allocation.");
 #endif
+}
+
+template <class T>
+Allocation<vk::Buffer> Allocator::allocateBuffer(const std::vector<T>& data, vk::BufferUsageFlags usage) const {
+	vk::BufferCreateInfo bufferCreateInfo({}, data.size() * sizeof(T), usage, vk::SharingMode::eExclusive);
+
+	VmaAllocationCreateInfo allocationCreateInfo{};
+	allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+	allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+	allocationCreateInfo.requiredFlags = 0;
+	allocationCreateInfo.preferredFlags = 0;
+	allocationCreateInfo.memoryTypeBits = 0;
+	allocationCreateInfo.pool = nullptr;
+	allocationCreateInfo.pUserData = nullptr;
+	allocationCreateInfo.priority = {};
+
+	VkBuffer buffer = nullptr;
+	VmaAllocation allocation = nullptr;
+	VmaAllocationInfo allocationInfo = {};
+	if (vmaCreateBuffer(allocator, reinterpret_cast<VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate buffer memory resources.");
+	}
+
+	return {vk::Buffer(buffer), allocation, allocationInfo, allocator};
 }
 
 class Device {

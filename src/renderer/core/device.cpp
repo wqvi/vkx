@@ -55,7 +55,7 @@ vkx::Allocation<vk::Image> vkx::Allocator::allocateImage(std::uint32_t width, st
 	vk::ImageCreateInfo imageCreateInfo({}, vk::ImageType::e2D, format, imageExtent, 1, 1, vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined);
 
 	VmaAllocationCreateInfo allocationCreateInfo{};
-	allocationCreateInfo.flags = 0;
+	allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 	allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
 	allocationCreateInfo.requiredFlags = 0;
 	allocationCreateInfo.preferredFlags = 0;
@@ -70,15 +70,15 @@ vkx::Allocation<vk::Image> vkx::Allocator::allocateImage(std::uint32_t width, st
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
-	return {vk::Image(image), allocation, allocator};
+	return {vk::Image(image), allocation, {}, allocator};
 }
 
 vkx::Allocation<vk::Buffer> vkx::Allocator::allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const {
 	vk::BufferCreateInfo bufferCreateInfo({},size,usage,vk::SharingMode::eExclusive);
 
 	VmaAllocationCreateInfo allocationCreateInfo{};
-	allocationCreateInfo.flags = 0;
-	allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+	allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+	allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
 	allocationCreateInfo.requiredFlags = 0;
 	allocationCreateInfo.preferredFlags = 0;
 	allocationCreateInfo.memoryTypeBits = 0;
@@ -88,11 +88,12 @@ vkx::Allocation<vk::Buffer> vkx::Allocator::allocateBuffer(vk::DeviceSize size, 
 
 	VkBuffer buffer = nullptr;
 	VmaAllocation allocation = nullptr;
-	if (vmaCreateBuffer(allocator, reinterpret_cast<VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, nullptr) != VK_SUCCESS) {
+	VmaAllocationInfo allocationInfo = {};
+	if (vmaCreateBuffer(allocator, reinterpret_cast<VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate buffer memory resources.");
 	}
 
-	return {vk::Buffer(buffer), allocation, allocator};
+	return {vk::Buffer(buffer), allocation, allocationInfo, allocator};
 }
 
 vkx::Device::Device(const vk::UniqueInstance& instance,
