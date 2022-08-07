@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstring>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
@@ -53,6 +54,14 @@ struct Allocation {
 
 	template <class K>
 	void mapMemory(const std::vector<K>& memory) const {
+		// Ensure memory size in bytes is equal to the mapped memory's size in bytes
+		const auto size = memory.size() * sizeof(K);
+		if (size < allocationInfo.size) {
+			throw std::invalid_argument("Provided memory is too small to be mapped.");
+		}
+		if (size > allocationInfo.size) {
+			throw std::invalid_argument("Provided memory is too large to be mapped.");
+		}
 		std::memcpy(memory.data(), allocationInfo.pMappedData, allocationInfo.size);
 	}
 };
