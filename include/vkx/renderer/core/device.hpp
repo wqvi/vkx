@@ -29,12 +29,12 @@ public:
 
 	[[nodiscard]] VmaAllocator getAllocator() const noexcept;
 
-	[[nodiscard]] Allocation<vk::Image> allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage) const;
+	[[nodiscard]] std::shared_ptr<Allocation<vk::Image>> allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage) const;
 
-	[[nodiscard]] Allocation<vk::Buffer> allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const;
+	[[nodiscard]] std::shared_ptr<Allocation<vk::Buffer>> allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const;
 
 	template <class T>
-	Allocation<vk::Buffer> allocateBuffer(const std::vector<T>& data, vk::BufferUsageFlags usage) const;
+	std::shared_ptr<Allocation<vk::Buffer>> allocateBuffer(const std::vector<T>& data, vk::BufferUsageFlags usage) const;
 
 private:
 	VmaAllocator allocator = nullptr;
@@ -54,6 +54,7 @@ struct Allocation {
 
 	template <class K>
 	void mapMemory(const std::vector<K>& memory) const {
+#ifdef DEBUG
 		// Ensure memory size in bytes is equal to the mapped memory's size in bytes
 		const auto size = memory.size() * sizeof(K);
 		if (size < allocationInfo.size) {
@@ -62,6 +63,7 @@ struct Allocation {
 		if (size > allocationInfo.size) {
 			throw std::invalid_argument("Provided memory is too large to be mapped.");
 		}
+#endif
 		std::memcpy(memory.data(), allocationInfo.pMappedData, allocationInfo.size);
 	}
 };
@@ -83,7 +85,7 @@ inline Allocation<vk::Buffer>::~Allocation() {
 }
 
 template <class T>
-Allocation<vk::Buffer> Allocator::allocateBuffer(const std::vector<T>& data, vk::BufferUsageFlags usage) const {
+std::shared_ptr<Allocation<vk::Buffer>> Allocator::allocateBuffer(const std::vector<T>& data, vk::BufferUsageFlags usage) const {
 	vk::BufferCreateInfo bufferCreateInfo({}, data.size() * sizeof(T), usage, vk::SharingMode::eExclusive);
 
 	VmaAllocationCreateInfo allocationCreateInfo{};
@@ -103,7 +105,9 @@ Allocation<vk::Buffer> Allocator::allocateBuffer(const std::vector<T>& data, vk:
 		throw std::runtime_error("Failed to allocate buffer memory resources.");
 	}
 
-	return {vk::Buffer(buffer), allocation, allocationInfo, allocator};
+	std::memcpy(data.data(), allocationInfo.pMappedData, allocationInfo.size);
+
+	return std::make_shared<Allocation<vk::Buffer>>(vk::Buffer(buffer), allocation, allocationInfo, allocator);
 }
 
 class Device {

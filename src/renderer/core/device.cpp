@@ -1,4 +1,5 @@
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <vkx/renderer/core/device.hpp>
 
@@ -49,7 +50,7 @@ VmaAllocator vkx::Allocator::getAllocator() const noexcept {
 	return allocator;
 }
 
-vkx::Allocation<vk::Image> vkx::Allocator::allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage) const {
+std::shared_ptr<vkx::Allocation<vk::Image>> vkx::Allocator::allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage) const {
 	vk::Extent3D imageExtent(width, height, 1);
 
 	vk::ImageCreateInfo imageCreateInfo({}, vk::ImageType::e2D, format, imageExtent, 1, 1, vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined);
@@ -70,10 +71,10 @@ vkx::Allocation<vk::Image> vkx::Allocator::allocateImage(std::uint32_t width, st
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
-	return {vk::Image(image), allocation, {}, allocator};
+	return std::make_shared<Allocation<vk::Image>>(vk::Image(image), allocation, VmaAllocationInfo(), allocator);
 }
 
-vkx::Allocation<vk::Buffer> vkx::Allocator::allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const {
+std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const {
 	vk::BufferCreateInfo bufferCreateInfo({},size,usage,vk::SharingMode::eExclusive);
 
 	VmaAllocationCreateInfo allocationCreateInfo{};
@@ -93,7 +94,7 @@ vkx::Allocation<vk::Buffer> vkx::Allocator::allocateBuffer(vk::DeviceSize size, 
 		throw std::runtime_error("Failed to allocate buffer memory resources.");
 	}
 
-	return {vk::Buffer(buffer), allocation, allocationInfo, allocator};
+	return std::make_shared<Allocation<vk::Buffer>>(vk::Buffer(buffer), allocation, allocationInfo, allocator);
 }
 
 vkx::Device::Device(const vk::UniqueInstance& instance,
