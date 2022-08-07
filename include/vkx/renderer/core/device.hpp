@@ -1,149 +1,177 @@
 #pragma once
 
+#include "queue_config.hpp"
 #include "renderer_types.hpp"
 #include "vertex.hpp"
-#include "queue_config.hpp"
 #include "vk_mem_alloc.h"
+#include <SDL2/SDL_log.h>
+#include <cstddef>
+#include <memory>
+#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan_handles.hpp>
+#include <vulkan/vulkan_structs.hpp>
 
 namespace vkx {
-    class Device {
-        // Helper class that default initializes thus making the construction of the
-        // managed pointer much simpler looking
-        class AllocatorWrapper {
-        public:
-            AllocatorWrapper(vk::UniqueInstance const &instance,
-                             vk::PhysicalDevice const &physicalDevice,
-                             vk::UniqueDevice const &device);
+template <class T>
+class Allocation;
 
-            ~AllocatorWrapper();
+class Allocator;
 
-            explicit operator VmaAllocator() const;
+class Allocator {
+public:
+    Allocator();
 
-        private:
-            VmaAllocator allocator = nullptr;
-        };
-    public:
-        Device() = default;
+    ~Allocator();
 
-        explicit Device(vk::UniqueInstance const &instance,
-                        vk::PhysicalDevice const &physicalDevice,
-                        vk::UniqueSurfaceKHR const &surface);
+	[[nodiscard]]
+    VmaAllocator getAllocator() const noexcept;
 
-        explicit operator vk::PhysicalDevice const &() const;
+	[[nodiscard]]
+	Allocation<vk::Image> allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage) const;
 
-        explicit operator vk::Device const &() const;
+	[[nodiscard]]
+	Allocation<vk::Buffer> allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const;
 
-        explicit operator vk::CommandPool const &() const;
+private:
+    VmaAllocator allocator = nullptr;
+};
 
-        explicit operator vk::UniqueCommandPool const &() const;
+template <class T>
+struct Allocation {
+    constexpr Allocation(const T object, VmaAllocation allocation, VmaAllocator allocator)
+        : object(object), allocation(allocation), allocator(allocator) {}
 
-        vk::Device const &operator*() const;
+    ~Allocation();
 
-        vk::Device const *operator->() const;
+    const T object = {};
+    const VmaAllocation allocation = nullptr;
+    const VmaAllocator allocator = nullptr;
+};
 
-        [[nodiscard]]
-        std::vector<DrawCommand>
-        createDrawCommands(std::uint32_t size) const;
-
-        [[nodiscard]]
-        std::uint32_t
-        findMemoryType(std::uint32_t typeFilter,
-                       vk::MemoryPropertyFlags const &flags) const;
-
-        [[nodiscard]]
-        vk::Format
-        findSupportedFormat(std::vector<vk::Format> const &candidates,
-                            vk::ImageTiling tiling,
-                            vk::FormatFeatureFlags const &features) const;
-
-        [[nodiscard]]
-        vk::Format
-        findDepthFormat() const;
-
-        [[nodiscard]]
-        vk::UniqueImage
-        createImageUnique(std::uint32_t width,
-                          std::uint32_t height,
-                          vk::Format format,
-                          vk::ImageTiling tiling,
-                          vk::ImageUsageFlags const &usage) const;
-
-        [[nodiscard]]
-        vk::UniqueBuffer
-        createBufferUnique(vk::DeviceSize size,
-                           vk::BufferUsageFlags const &usage) const;
-
-        [[nodiscard]]
-        vk::UniqueDeviceMemory
-        allocateMemoryUnique(vk::UniqueBuffer const &buffer,
-                             vk::MemoryPropertyFlags const &flags) const;
-
-        [[nodiscard]]
-        vk::UniqueDeviceMemory
-        allocateMemoryUnique(vk::UniqueImage const &image,
-                             vk::MemoryPropertyFlags const &flags) const;
-
-        [[nodiscard]]
-        vk::UniqueImageView
-        createImageViewUnique(vk::Image const &image,
-                              vk::Format format,
-                              vk::ImageAspectFlags const &aspectFlags) const;
-
-        void
-        copyBuffer(
-                vk::Buffer const &srcBuffer,
-                vk::Buffer const &dstBuffer,
-                vk::DeviceSize const &size) const;
-
-        void
-        copyBufferToImage(
-                vk::Buffer const &buffer,
-                vk::Image const &image,
-                std::uint32_t width,
-                std::uint32_t height) const;
-
-        void
-        transitionImageLayout(
-                vk::Image const &image,
-                vk::ImageLayout const &oldLayout,
-                vk::ImageLayout const &newLayout) const;
-
-        [[maybe_unused]]
-        void
-        submit(
-                std::vector<vk::CommandBuffer> const &commandBuffers,
-                vk::Semaphore const &waitSemaphore,
-                vk::Semaphore const &signalSemaphore,
-                vk::Fence const &flightFence) const;
-
-        [[maybe_unused]]
-        void
-        submit(
-                std::vector<DrawCommand> const &drawCommands,
-                SyncObjects const &syncObjects) const;
-
-        [[nodiscard]]
-        vk::Result
-        present(vk::SwapchainKHR const &swapchain,
-                std::uint32_t imageIndex,
-                vk::Semaphore const &signalSemaphores) const;
-
-        [[nodiscard]]
-        vk::UniqueImageView
-        createTextureImageViewUnique(vk::Image const &image) const;
-
-        [[nodiscard]]
-        vk::UniqueSampler
-        createTextureSamplerUnique() const;
-
-        // TODO fix this violation
-        // std::unique_ptr<AllocatorWrapper> allocator;
-    private:
-        vk::PhysicalDevice physicalDevice;
-        vk::UniqueDevice device;
-        vk::UniqueCommandPool commandPool;
-        vk::PhysicalDeviceProperties properties;
-
-        Queues queues;
-    };
+template <>
+inline Allocation<vk::Image>::~Allocation() {
+    vmaDestroyImage(allocator, static_cast<VkImage>(object), allocation);
+#ifdef DEBUG
+	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Freed image resource allocation.");
+#endif
 }
+
+template <>
+inline Allocation<vk::Buffer>::~Allocation() {
+    vmaDestroyBuffer(allocator, static_cast<VkBuffer>(object), allocation);
+#ifdef DEBUG
+	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Freed buffer resource allocation.");
+#endif
+}
+
+class Device {
+public:
+	Device() = default;
+
+	explicit Device(const vk::UniqueInstance& instance,
+			const vk::PhysicalDevice& physicalDevice,
+			const vk::UniqueSurfaceKHR& surface);
+
+	explicit operator const vk::PhysicalDevice&() const;
+
+	explicit operator const vk::Device&() const;
+
+	explicit operator const vk::CommandPool&() const;
+
+	explicit operator const vk::UniqueCommandPool&() const;
+
+	const vk::Device& operator*() const;
+
+	const vk::Device* operator->() const;
+
+	[[nodiscard]] std::vector<DrawCommand>
+	createDrawCommands(std::uint32_t size) const;
+
+	[[nodiscard]] std::uint32_t
+	findMemoryType(std::uint32_t typeFilter,
+		       const vk::MemoryPropertyFlags& flags) const;
+
+	[[nodiscard]] vk::Format
+	findSupportedFormat(const std::vector<vk::Format>& candidates,
+			    vk::ImageTiling tiling,
+			    const vk::FormatFeatureFlags& features) const;
+
+	[[nodiscard]] vk::Format
+	findDepthFormat() const;
+
+	[[nodiscard]] vk::UniqueImage
+	createImageUnique(std::uint32_t width,
+			  std::uint32_t height,
+			  vk::Format format,
+			  vk::ImageTiling tiling,
+			  const vk::ImageUsageFlags& usage) const;
+
+	[[nodiscard]] vk::UniqueBuffer
+	createBufferUnique(vk::DeviceSize size,
+			   const vk::BufferUsageFlags& usage) const;
+
+	[[nodiscard]] vk::UniqueDeviceMemory
+	allocateMemoryUnique(const vk::UniqueBuffer& buffer,
+			     const vk::MemoryPropertyFlags& flags) const;
+
+	[[nodiscard]] vk::UniqueDeviceMemory
+	allocateMemoryUnique(const vk::UniqueImage& image,
+			     const vk::MemoryPropertyFlags& flags) const;
+
+	[[nodiscard]] vk::UniqueImageView
+	createImageViewUnique(const vk::Image& image,
+			      vk::Format format,
+			      const vk::ImageAspectFlags& aspectFlags) const;
+
+	void
+	copyBuffer(
+	    const vk::Buffer& srcBuffer,
+	    const vk::Buffer& dstBuffer,
+	    const vk::DeviceSize& size) const;
+
+	void
+	copyBufferToImage(
+	    const vk::Buffer& buffer,
+	    const vk::Image& image,
+	    std::uint32_t width,
+	    std::uint32_t height) const;
+
+	void
+	transitionImageLayout(
+	    const vk::Image& image,
+	    const vk::ImageLayout& oldLayout,
+	    const vk::ImageLayout& newLayout) const;
+
+	[[maybe_unused]] void
+	submit(
+	    const std::vector<vk::CommandBuffer>& commandBuffers,
+	    const vk::Semaphore& waitSemaphore,
+	    const vk::Semaphore& signalSemaphore,
+	    const vk::Fence& flightFence) const;
+
+	[[maybe_unused]] void
+	submit(
+	    const std::vector<DrawCommand>& drawCommands,
+	    const SyncObjects& syncObjects) const;
+
+	[[nodiscard]] vk::Result
+	present(const vk::SwapchainKHR& swapchain,
+		std::uint32_t imageIndex,
+		const vk::Semaphore& signalSemaphores) const;
+
+	[[nodiscard]] vk::UniqueImageView
+	createTextureImageViewUnique(const vk::Image& image) const;
+
+	[[nodiscard]] vk::UniqueSampler
+	createTextureSamplerUnique() const;
+
+private:
+	vk::PhysicalDevice physicalDevice;
+	vk::UniqueDevice device;
+	vk::UniqueCommandPool commandPool;
+	vk::PhysicalDeviceProperties properties;
+
+	Queues queues;
+};
+} // namespace vkx

@@ -10,7 +10,6 @@
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
-#include <vulkan/vulkan_core.h>
 
 namespace vkx {
 class RendererBase {
