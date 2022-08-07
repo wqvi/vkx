@@ -1,49 +1,21 @@
 #pragma once
 
 #include "device.hpp"
+#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
-class PipelineShader {
+class GraphicsPipeline {
 public:
-  explicit PipelineShader(const Device &device, const std::string &file);
+  vk::UniquePipelineLayout layout;
+	vk::UniquePipeline pipeline;
+
+	GraphicsPipeline() = default;
+
+	GraphicsPipeline(const Device& device, const vk::Extent2D& extent, const vk::UniqueRenderPass& renderPass, const vk::UniqueDescriptorSetLayout& descriptorSetLayout);
 
 private:
-  static std::vector<std::uint32_t> readFile(const std::string &filename);
+  static vk::UniquePipelineLayout createPipelineLayout(const Device& device, const vk::UniqueDescriptorSetLayout& descriptorSetLayout);
 
-  vk::UniqueDescriptorSetLayout descriptorSetLayout;
-};
-
-class Pipeline {
-public:
-  Pipeline() = default;
-
-  explicit Pipeline(Device const &device,
-                    vk::UniqueDescriptorSetLayout const &descriptorSetLayout);
-
-  vk::UniquePipelineLayout layout;
-  vk::UniquePipeline pipeline;
-
-protected:
-  static std::vector<char> readFile(std::string const &filename);
-
-  static vk::UniqueShaderModule
-  createShaderModule(Device const &device, std::vector<char> const &code);
-};
-
-class ComputePipeline : public Pipeline {
-public:
-  ComputePipeline() = default;
-
-  ComputePipeline(Device const &device,
-                  vk::UniqueDescriptorSetLayout const &descriptorSetLayout);
-};
-
-class GraphicsPipeline : public Pipeline {
-public:
-  GraphicsPipeline() = default;
-
-  GraphicsPipeline(Device const &device, vk::Extent2D const &extent,
-                   vk::UniqueRenderPass const &renderPass,
-                   vk::UniqueDescriptorSetLayout const &descriptorSetLayout);
+	static vk::UniqueShaderModule createShaderModule(const Device& device, const std::string& filename);
 };
 } // namespace vkx
