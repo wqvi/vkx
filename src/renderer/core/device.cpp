@@ -4,6 +4,7 @@
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
 #include <vkx/vkx_exceptions.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
@@ -72,7 +73,7 @@ vkx::Device::Device(vk::UniqueInstance const &instance,
 
     vk::CommandPoolCreateInfo commandPoolInfo{
             vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-            queueConfig.graphicsIndex.value()
+            queueConfig.graphicsIndex
     };
 
     commandPool = device->createCommandPoolUnique(commandPoolInfo);
@@ -116,9 +117,10 @@ std::vector<vkx::DrawCommand> vkx::Device::createDrawCommands(std::uint32_t size
     auto commandBuffers = device->allocateCommandBuffers(allocInfo);
 
     std::vector<DrawCommand> drawCommands;
+    const vk::UniqueDevice& tmp = device;
     std::transform(commandBuffers.begin(), commandBuffers.end(), std::back_inserter(drawCommands),
-                           [&device = this->device](auto const &commandBuffer) -> DrawCommand {
-                               return vkx::DrawCommand{device, commandBuffer};
+                           [&tmp](const vk::CommandBuffer& commandBuffer) -> DrawCommand {
+                               return vkx::DrawCommand{tmp, commandBuffer};
                            });
     return drawCommands;
 }
@@ -414,7 +416,7 @@ void vkx::Device::submit(
             vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
     std::vector<vk::CommandBuffer> commands;
-    std::transform(drawCommands.begin(), drawCommands.end(), std::back_inserter(commands), [](auto const &drawCommand) {
+    std::transform(drawCommands.begin(), drawCommands.end(), std::back_inserter(commands), [](const vkx::DrawCommand& drawCommand) {
         return static_cast<vk::CommandBuffer>(drawCommand);
     });
 

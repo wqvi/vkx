@@ -99,7 +99,9 @@ std::vector<char const *> vkx::SDLWindow::getExtensions() const {
 
 void vkx::SDLWindow::waitForEvents() const {
     // Wait until size is zero
-    auto [width, height] = getSize();
+    int width;
+    int height;
+    std::tie(width, height) = getSize();
     while (width == 0 || height == 0) {
         std::tie(width, height) = getSize();
         SDL_WaitEvent(nullptr);

@@ -3,22 +3,22 @@
 /* TO BE FIXED BUT DON'T TOUCH FOR NOW! */
 namespace vkx {
     [[maybe_unused]]
-    constexpr static const glm::vec3 NORTH = glm::vec3{0.0f, 0.0f, 1.0f};
+    static const glm::vec3 NORTH = glm::vec3{0.0f, 0.0f, 1.0f};
 
     [[maybe_unused]]
-    constexpr static const glm::vec3 EAST = glm::vec3{1.0f, 0.0f, 0.0f};
+    static const glm::vec3 EAST = glm::vec3{1.0f, 0.0f, 0.0f};
 
     [[maybe_unused]]
-    constexpr static const glm::vec3 SOUTH = glm::vec3{0.0f, 0.0f, -1.0f};
+    static const glm::vec3 SOUTH = glm::vec3{0.0f, 0.0f, -1.0f};
 
     [[maybe_unused]]
-    constexpr static const glm::vec3 WEST = glm::vec3{-1.0f, 0.0f, 0.0f};
+    static const glm::vec3 WEST = glm::vec3{-1.0f, 0.0f, 0.0f};
 
     [[maybe_unused]]
-    constexpr static const glm::vec3 UP = glm::vec3{0.0f, 1.0f, 0.0f};
+    static const glm::vec3 UP = glm::vec3{0.0f, 1.0f, 0.0f};
 
     [[maybe_unused]]
-    constexpr static const glm::vec3 DOWN = glm::vec3{0.0f, -1.0f, 0.0f};
+    static const glm::vec3 DOWN = glm::vec3{0.0f, -1.0f, 0.0f};
 
     class Camera {
     public:

@@ -55,17 +55,17 @@ namespace vkx
       }
     }
 
-    constexpr auto index(std::int32_t x, std::int32_t y) const
+    constexpr std::int32_t index(std::int32_t x, std::int32_t y) const
     {
       return x + width * y;
     }
 
-    [[nodiscard]] auto getWidth() const
+    [[nodiscard]] std::int32_t getWidth() const
     {
       return width;
     }
 
-    [[nodiscard]] auto getHeight() const
+    [[nodiscard]] std::int32_t getHeight() const
     {
       return height;
     }
@@ -74,7 +74,7 @@ namespace vkx
     std::int32_t const width;
     std::int32_t const height;
 
-    constexpr auto validLocation(std::int32_t x, std::int32_t y) const
+    constexpr bool validLocation(std::int32_t x, std::int32_t y) const
     {
       return x >= 0 && x < width && y >= 0 && y < height;
     }
@@ -120,28 +120,27 @@ namespace vkx
       }
     }
 
-    constexpr auto index(std::int32_t x, std::int32_t y, std::int32_t z) const
+    constexpr std::int32_t index(std::int32_t x, std::int32_t y, std::int32_t z) const
     {
       return z * width * height + y * width + x;
     }
 
-    [[nodiscard]] auto getWidth() const
+    [[nodiscard]] std::int32_t getWidth() const
     {
       return width;
     }
 
-    [[nodiscard]] auto getHeight() const
+    [[nodiscard]] std::int32_t getHeight() const
     {
       return height;
     }
 
-    [[nodiscard]] auto getDepth() const
+    [[nodiscard]] std::int32_t getDepth() const
     {
       return depth;
     }
 
-
-    [[nodiscard]] auto getSize() const {
+    [[nodiscard]] glm::vec3 getSize() const {
         return glm::vec3(width, height, depth);
     }
 
@@ -150,7 +149,7 @@ namespace vkx
     const std::int32_t height;
     const std::int32_t depth;
 
-    constexpr auto validLocation(std::int32_t x, std::int32_t y, std::int32_t z) const
+    constexpr bool validLocation(std::int32_t x, std::int32_t y, std::int32_t z) const
     {
       return x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth;
     }

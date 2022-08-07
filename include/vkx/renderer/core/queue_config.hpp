@@ -1,38 +1,36 @@
 #pragma once
 
 #include "renderer_types.hpp"
+#include <cstdint>
 
-namespace vkx
-{
-	struct QueueConfig
-	{
-		QueueConfig(vk::PhysicalDevice const &physicalDevice, vk::UniqueSurfaceKHR const &surface);
+namespace vkx {
+struct QueueConfig {
+	QueueConfig(const vk::PhysicalDevice& physicalDevice, const vk::UniqueSurfaceKHR& surface);
 
-		QueueConfig(Device const &device, vk::UniqueSurfaceKHR const &surface);
+	QueueConfig(const Device& device, const vk::UniqueSurfaceKHR& surface);
 
-		std::optional<std::uint32_t> computeIndex;
-		std::optional<std::uint32_t> graphicsIndex;
-		std::optional<std::uint32_t> presentIndex;
+	std::uint32_t computeIndex = UINT32_MAX;
+	std::uint32_t graphicsIndex = UINT32_MAX;
+	std::uint32_t presentIndex = UINT32_MAX;
 
-		std::vector<std::uint32_t> indices;
+	std::vector<std::uint32_t> indices;
 
-		[[nodiscard]] bool isComplete() const;
+	[[nodiscard]] bool isComplete() const;
 
-		[[nodiscard]] bool isUniversal() const;
+	[[nodiscard]] bool isUniversal() const;
 
-		[[nodiscard]] std::vector<vk::DeviceQueueCreateInfo> createQueueInfos(vk::ArrayProxy<float> const &queuePriorities = {1.0f}) const;
-		
-		[[nodiscard]] vk::SharingMode getImageSharingMode() const;
-	};
+	[[nodiscard]] std::vector<vk::DeviceQueueCreateInfo> createQueueInfos(const vk::ArrayProxy<float>& queuePriorities = {1.0f}) const;
 
-	struct Queues
-	{
-		Queues() = default;
+	[[nodiscard]] vk::SharingMode getImageSharingMode() const;
+};
 
-		Queues(Device const &device, QueueConfig const &queueConfig);
+struct Queues {
+	Queues() = default;
 
-		vk::Queue compute;
-		vk::Queue graphics;
-		vk::Queue present;
-	};
-}
+	Queues(const Device& device, const QueueConfig& queueConfig);
+
+	vk::Queue compute;
+	vk::Queue graphics;
+	vk::Queue present;
+};
+} // namespace vkx

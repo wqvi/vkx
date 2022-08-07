@@ -12,7 +12,7 @@ namespace vkx
 
     constexpr Voxel() = default;
 
-    constexpr Voxel(VoxelType type)
+    Voxel(VoxelType type)
         : type(type)
     {
       switch (type)
