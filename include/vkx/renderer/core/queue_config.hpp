@@ -2,6 +2,7 @@
 
 #include "renderer_types.hpp"
 #include <cstdint>
+#include <optional>
 
 namespace vkx {
 struct QueueConfig {
@@ -9,9 +10,9 @@ struct QueueConfig {
 
 	QueueConfig(const Device& device, const vk::UniqueSurfaceKHR& surface);
 
-	std::uint32_t computeIndex = UINT32_MAX;
-	std::uint32_t graphicsIndex = UINT32_MAX;
-	std::uint32_t presentIndex = UINT32_MAX;
+	std::optional<std::uint32_t> computeIndex;
+	std::optional<std::uint32_t> graphicsIndex;
+	std::optional<std::uint32_t> presentIndex;
 
 	std::vector<std::uint32_t> indices;
 
@@ -19,7 +20,7 @@ struct QueueConfig {
 
 	[[nodiscard]] bool isUniversal() const;
 
-	[[nodiscard]] std::vector<vk::DeviceQueueCreateInfo> createQueueInfos(const vk::ArrayProxy<float>& queuePriorities = {1.0f}) const;
+	[[nodiscard]] std::vector<vk::DeviceQueueCreateInfo> createQueueInfos(float queuePriorities) const;
 
 	[[nodiscard]] vk::SharingMode getImageSharingMode() const;
 };
