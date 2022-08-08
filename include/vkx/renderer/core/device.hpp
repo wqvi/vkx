@@ -49,6 +49,8 @@ struct Allocation {
 	const VmaAllocationInfo allocationInfo = {};
 	const VmaAllocator allocator = nullptr;
 
+	Allocation() = default;
+
 	constexpr Allocation(const T object, VmaAllocation allocation, const VmaAllocationInfo& allocationInfo, VmaAllocator allocator)
 	    : object(object), allocation(allocation), allocationInfo(allocationInfo), allocator(allocator) {}
 

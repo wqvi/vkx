@@ -329,7 +329,7 @@ vkx::Mesh vkx::RendererBase::allocateMesh(
 
 vkx::Texture
 vkx::RendererBase::allocateTexture(const std::string& textureFile) const {
-	return vkx::Texture{textureFile, *device};
+	return vkx::Texture{textureFile, *device, allocator};
 }
 
 void vkx::RendererBase::waitIdle() const { (*device)->waitIdle(); }

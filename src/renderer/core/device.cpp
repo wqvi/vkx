@@ -66,11 +66,12 @@ std::shared_ptr<vkx::Allocation<vk::Image>> vkx::Allocator::allocateImage(std::u
 
 	VkImage image = nullptr;
 	VmaAllocation allocation = nullptr;
-	if (vmaCreateImage(allocator, reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &image, &allocation, nullptr) != VK_SUCCESS) {
+	VmaAllocationInfo allocationInfo = {};
+	if (vmaCreateImage(allocator, reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &image, &allocation, &allocationInfo) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
-	return std::make_shared<Allocation<vk::Image>>(vk::Image(image), allocation, VmaAllocationInfo(), allocator);
+	return std::make_shared<Allocation<vk::Image>>(vk::Image(image), allocation, allocationInfo, allocator);
 }
 
 std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const {
