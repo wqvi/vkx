@@ -5,101 +5,78 @@
 
 vkx::Swapchain::Swapchain() = default;
 
-vkx::Swapchain::Swapchain(Device const &device, vk::UniqueSurfaceKHR const &surface,
-                     SDL_Window *window, Swapchain const &oldSwapchain) {
-  SwapchainInfo info{static_cast<vk::PhysicalDevice>(device), surface};
-  QueueConfig config{static_cast<vk::PhysicalDevice>(device), surface};
+vkx::Swapchain::Swapchain(const Device& device, const vk::UniqueSurfaceKHR& surface, SDL_Window* window, const Swapchain& oldSwapchain) {
+	const SwapchainInfo info{static_cast<vk::PhysicalDevice>(device), surface};
+	const QueueConfig config{static_cast<vk::PhysicalDevice>(device), surface};
 
-  int width;
-  int height;
-  SDL_Vulkan_GetDrawableSize(window, &width, &height);
+	int width;
+	int height;
+	SDL_Vulkan_GetDrawableSize(window, &width, &height);
 
-  auto surfaceFormat = info.chooseSurfaceFormat();
-  auto presentMode = info.choosePresentMode();
-  auto actualExtent = info.chooseExtent(width, height);
+	const auto surfaceFormat = info.chooseSurfaceFormat();
+	const auto presentMode = info.choosePresentMode();
+	const auto actualExtent = info.chooseExtent(width, height);
+	const auto imageCount = info.getImageCount();
+	const auto imageSharingMode = config.getImageSharingMode();
 
-  auto imageCount = info.getImageCount();
-  auto imageSharingMode = config.getImageSharingMode();
+	const vk::SwapchainCreateInfoKHR swapchainCreateInfo(
+	    {},
+	    *surface,
+	    imageCount,
+	    surfaceFormat.format,
+	    surfaceFormat.colorSpace,
+	    actualExtent,
+	    1,
+	    vk::ImageUsageFlagBits::eColorAttachment,
+	    imageSharingMode,
+	    config.indices,
+	    info.capabilities.currentTransform,
+	    vk::CompositeAlphaFlagBitsKHR::eOpaque,
+	    presentMode,
+	    true);
 
-  vk::SwapchainCreateInfoKHR swapchainCreateInfo{
-      {},                                       // flags
-      *surface,                                 // surface
-      imageCount,                               // minImageCount
-      surfaceFormat.format,                     // imageFormat
-      surfaceFormat.colorSpace,                 // imageColorSpace
-      actualExtent,                             // imageExtent,
-      1,                                        // imageArrayLayers
-      vk::ImageUsageFlagBits::eColorAttachment, // imageUsage
-      imageSharingMode,                         // imageSharingMode
-      config.indices,                           // queueFamilyIndices
-      info.capabilities.currentTransform,       // preTransform
-      vk::CompositeAlphaFlagBitsKHR::eOpaque,   // compositeAlpha
-      presentMode,                              // presentMode,
-      true                                      // clipped
-  };
+	swapchain = device->createSwapchainKHRUnique(swapchainCreateInfo);
 
-  // According to Vulkan spec providing the old swapchain can prove beneficial.
-  // It aids in resource reusing. While this is only really useful during
-  // resizing the window it's good practice.
-  if (static_cast<bool>(oldSwapchain.swapchain)) {
-    swapchainCreateInfo.oldSwapchain = *oldSwapchain.swapchain;
-  }
+	images = device->getSwapchainImagesKHR(*swapchain);
 
-  swapchain = device->createSwapchainKHRUnique(swapchainCreateInfo);
+	imageFormat = surfaceFormat.format;
+	extent = actualExtent;
 
-  images = device->getSwapchainImagesKHR(*swapchain);
+	for (const auto image : images) {
+		imageViews.push_back(device.createImageViewUnique(image, imageFormat, vk::ImageAspectFlagBits::eColor));
+	}
 
-  imageFormat = surfaceFormat.format;
-  extent = actualExtent;
-
-  for (auto const &image : images) {
-    imageViews.push_back(device.createImageViewUnique(
-        image, imageFormat, vk::ImageAspectFlagBits::eColor));
-  }
-
-  auto depthFormat = device.findDepthFormat();
-  depthImage = device.createImageUnique(
-      extent.width, extent.height, depthFormat, vk::ImageTiling::eOptimal,
-      vk::ImageUsageFlagBits::eDepthStencilAttachment);
-  depthImageMemory = device.allocateMemoryUnique(
-      depthImage, vk::MemoryPropertyFlagBits::eDeviceLocal);
-  depthImageView = device.createImageViewUnique(
-      *depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
+	const auto depthFormat = device.findDepthFormat();
+	depthImage = device.createImageUnique(extent.width, extent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+	depthImageMemory = device.allocateMemoryUnique(depthImage, vk::MemoryPropertyFlagBits::eDeviceLocal);
+	depthImageView = device.createImageViewUnique(*depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
 }
 
-namespace vkx {
-Swapchain::operator vk::SwapchainKHR const &() const { return *swapchain; }
+vkx::Swapchain::operator const vk::SwapchainKHR&() const { return *swapchain; }
 
-Swapchain::operator vk::UniqueSwapchainKHR const &() const { return swapchain; }
+vkx::Swapchain::operator const vk::UniqueSwapchainKHR&() const { return swapchain; }
 
-void Swapchain::createFramebuffers(Device const &device,
-                                   vk::UniqueRenderPass const &renderPass) {
-  framebuffers.resize(imageViews.size());
+void vkx::Swapchain::createFramebuffers(const Device& device, const vk::UniqueRenderPass& renderPass) {
+	framebuffers.resize(imageViews.size());
 
-  for (std::size_t i = 0; i < imageViews.size(); i++) {
-    std::vector<vk::ImageView> framebufferAttachments{*imageViews[i],
-                                                      *depthImageView};
+	for (std::size_t i = 0; i < imageViews.size(); i++) {
+		const std::array framebufferAttachments{*imageViews[i], *depthImageView};
 
-    vk::FramebufferCreateInfo framebufferInfo{
-        {},                     // flags
-        *renderPass,            // renderPass
-        framebufferAttachments, // attachments
-        extent.width,           // width
-        extent.height,          // height
-        1                       // layers
-    };
+		const vk::FramebufferCreateInfo framebufferInfo(
+		    {},
+		    *renderPass,
+		    framebufferAttachments,
+		    extent.width,
+		    extent.height,
+		    1);
 
-    framebuffers[i] = device->createFramebufferUnique(framebufferInfo);
-  }
+		framebuffers[i] = device->createFramebufferUnique(framebufferInfo);
+	}
 }
 
-vk::ResultValue<std::uint32_t>
-Swapchain::acquireNextImage(Device const &device,
-                            vk::UniqueSemaphore const &semaphore) const {
-  std::uint32_t imageIndex = 0;
-  auto const result = device->acquireNextImageKHR(*swapchain, UINT64_MAX,
-                                                  *semaphore, {}, &imageIndex);
+vk::ResultValue<std::uint32_t> vkx::Swapchain::acquireNextImage(const Device& device, const vk::UniqueSemaphore& semaphore) const {
+	std::uint32_t imageIndex = 0;
+	const auto result = device->acquireNextImageKHR(*swapchain, UINT64_MAX, *semaphore, {}, &imageIndex);
+	
   return {result, imageIndex};
 }
-
-} // namespace vkx
