@@ -1,7 +1,6 @@
 target_sources(vkx
 	PRIVATE
 		"${CMAKE_CURRENT_SOURCE_DIR}/camera.cpp"
-		"${CMAKE_CURRENT_SOURCE_DIR}/scene.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/vkx_exceptions.cpp"
 )
 
