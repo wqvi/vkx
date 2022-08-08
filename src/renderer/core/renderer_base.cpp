@@ -190,11 +190,7 @@ void vkx::RendererBase::createDescriptorPool() {
 	descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
 }
 
-void vkx::RendererBase::createDescriptorSets(
-    const std::vector<UniformBuffer<MVP>>& mvpBuffers,
-    const std::vector<UniformBuffer<DirectionalLight>>& lightBuffers,
-    const std::vector<UniformBuffer<Material>>& materialBuffers,
-    const Texture& texture) {
+void vkx::RendererBase::createDescriptorSets(const std::vector<UniformBuffer<MVP>>& mvpBuffers, const std::vector<UniformBuffer<DirectionalLight>>& lightBuffers, const std::vector<UniformBuffer<Material>>& materialBuffers, const Texture& texture) {
 	const std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
 	vk::DescriptorSetAllocateInfo allocInfo{*descriptorPool, layouts};
 

@@ -1,7 +1,9 @@
 #include "vkx/renderer/core/renderer_base.hpp"
 #include "vkx/renderer/core/renderer_types.hpp"
 #include "vkx/renderer/core/vertex.hpp"
+#include "vkx/renderer/model.hpp"
 #include "vkx/renderer/uniform_buffer.hpp"
+#include "vkx/voxels/voxels.hpp"
 #include <SDL2/SDL_log.h>
 #include <cstddef>
 #include <cstdint>
@@ -31,31 +33,20 @@ int main(void) {
 	}
 
 	{
-		vkx::RendererBase renderer{window};
+		vkx::RendererBase renderer(window);
 
-		vkx::Model model{};
+		vkx::VoxelChunk chunk({0, 0, 0}, 16);
+		chunk.greedy();
 
-		std::vector<vkx::Vertex> vertices{
-		    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-		    {{1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-		    {{1.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-		    {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}};
-
-		std::vector<std::uint32_t> indices{
-		    0, 1, 2, 2, 3, 0};
-
-		model = vkx::Model{renderer.allocateMesh(vertices, indices),
-				   renderer.allocateTexture("a.jpg"),
-				   {glm::vec3(0.2f), 100.0f}};
+		const vkx::Model model(renderer.allocateMesh(chunk.vertices, chunk.indices), renderer.allocateTexture("a.jpg"), {glm::vec3(0.2f), 100.0f});
 
 		std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers = renderer.createBuffers(vkx::MVP{});
 		std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers = renderer.createBuffers(vkx::DirectionalLight{});
 		std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers = renderer.createBuffers(vkx::Material{});
 		renderer.createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, model.texture);
 
-		glm::mat4 modelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(100.0f, 100.0f, 100.0f));
 		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
-		glm::mat4 proj = glm::ortho(0.0f, 640.0f, 480.0f, 0.0f, 0.1f, 100.0f);
+		glm::mat4 proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
 		SDL_Event event{};
 		bool isRunning = true;
@@ -64,13 +55,23 @@ int main(void) {
 			auto currentFrame = renderer.getCurrentFrameIndex();
 
 			auto& mvpBuffer = mvpBuffers[currentFrame];
-			mvpBuffer->model = modelMatrix;
+			mvpBuffer->model = model.getModelMatrix();
 			mvpBuffer->view = view;
 			mvpBuffer->proj = proj;
 
 			auto& lightBuffer = lightBuffers[currentFrame];
+			lightBuffer->position = glm::vec3(1.0f, 3.0f, 1.0f);
+			lightBuffer->eyePosition = glm::vec3(0.0f, 0.0f, -1.0f);
+			lightBuffer->ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.2f);
+			lightBuffer->diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
+			lightBuffer->specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
+			lightBuffer->constant = 1.0f;
+			lightBuffer->linear = 0.09f;
+			lightBuffer->quadratic = 0.032f;
 
 			auto& materialBuffer = materialBuffers[currentFrame];
+			materialBuffer->specularColor = model.material.specularColor;
+			materialBuffer->shininess = model.material.shininess;
 
 			// TODO whatever this is lol
 			renderer.drawFrame(mvpBuffer, lightBuffer, materialBuffer,
@@ -86,7 +87,8 @@ int main(void) {
 				case SDL_WINDOWEVENT:
 					if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
 						renderer.framebufferResized = true;
-						proj = glm::ortho(0.0f, static_cast<float>(event.window.data1), static_cast<float>(event.window.data2), 0.0f, 0.1f, 100.0f);
+						// proj = glm::ortho(0.0f, static_cast<float>(event.window.data1), static_cast<float>(event.window.data2), 0.0f, 0.1f, 100.0f);
+						proj = glm::perspective(70.0f, static_cast<float>(event.window.data1) / static_cast<float>(event.window.data2), 0.1f, 100.0f);
 					}
 					break;
 				}
