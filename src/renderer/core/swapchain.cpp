@@ -5,7 +5,7 @@
 
 vkx::Swapchain::Swapchain() = default;
 
-vkx::Swapchain::Swapchain(const Device& device, const vk::UniqueSurfaceKHR& surface, SDL_Window* window, const Swapchain& oldSwapchain) {
+vkx::Swapchain::Swapchain(const Device& device, const vk::UniqueSurfaceKHR& surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator) {
 	const SwapchainInfo info{static_cast<vk::PhysicalDevice>(device), surface};
 	const QueueConfig config{static_cast<vk::PhysicalDevice>(device), surface};
 
@@ -47,9 +47,8 @@ vkx::Swapchain::Swapchain(const Device& device, const vk::UniqueSurfaceKHR& surf
 	}
 
 	const auto depthFormat = device.findDepthFormat();
-	depthImage = device.createImageUnique(extent.width, extent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
-	depthImageMemory = device.allocateMemoryUnique(depthImage, vk::MemoryPropertyFlagBits::eDeviceLocal);
-	depthImageView = device.createImageViewUnique(*depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
+	depthResource = allocator->allocateImage(extent.width, extent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+	depthImageView = device.createImageViewUnique(depthResource->object, depthFormat, vk::ImageAspectFlagBits::eDepth);
 }
 
 vkx::Swapchain::operator const vk::SwapchainKHR&() const { return *swapchain; }

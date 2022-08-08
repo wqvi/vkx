@@ -252,7 +252,7 @@ std::uint32_t vkx::RendererBase::getCurrentFrameIndex() const {
 }
 
 void vkx::RendererBase::createSwapchain() {
-	swapchain = vkx::Swapchain(*device, surface, window, swapchain);
+	swapchain = vkx::Swapchain(*device, surface, window, allocator);
 
 	renderPass = createRenderPass();
 

@@ -5,6 +5,7 @@
 #include <SDL2/SDL_video.h>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string_view>
 #include <vkx/camera.hpp>
 #include <vkx/renderer/core/commands.hpp>
@@ -61,7 +62,7 @@ private:
 	vk::UniqueInstance instance;
 	vk::UniqueSurfaceKHR surface;
 	std::unique_ptr<Device> device;
-	std::unique_ptr<Allocator> allocator{};
+	std::shared_ptr<Allocator> allocator{};
 
 	Swapchain swapchain;
 

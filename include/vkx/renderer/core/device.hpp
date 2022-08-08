@@ -164,7 +164,7 @@ public:
 
 	[[nodiscard]] vk::UniqueSampler createTextureSamplerUnique() const;
 
-	std::unique_ptr<Allocator> createAllocator(const vk::UniqueInstance& instance) const;
+	std::shared_ptr<Allocator> createAllocator(const vk::UniqueInstance& instance) const;
 
 private:
 	vk::PhysicalDevice physicalDevice{};

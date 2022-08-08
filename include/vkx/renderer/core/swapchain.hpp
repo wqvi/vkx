@@ -1,13 +1,14 @@
 #pragma once
 
 #include <vkx/renderer/core/device.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
 class Swapchain {
 public:
 	Swapchain();
 
-	Swapchain(const Device& device, const vk::UniqueSurfaceKHR& surface, SDL_Window* window, const Swapchain& oldSwapchain);
+	Swapchain(const Device& device, const vk::UniqueSurfaceKHR& surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator);
 
 	operator const vk::SwapchainKHR&() const;
 
@@ -26,6 +27,8 @@ public:
 	vk::UniqueImage depthImage;
 	vk::UniqueDeviceMemory depthImageMemory;
 	vk::UniqueImageView depthImageView;
+
+	std::shared_ptr<Allocation<vk::Image>> depthResource; 
 
 	std::vector<vk::UniqueFramebuffer> framebuffers;
 };

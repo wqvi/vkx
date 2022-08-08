@@ -50,9 +50,9 @@ VmaAllocator vkx::Allocator::getAllocator() const noexcept {
 }
 
 std::shared_ptr<vkx::Allocation<vk::Image>> vkx::Allocator::allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage) const {
-	vk::Extent3D imageExtent(width, height, 1);
+	const vk::Extent3D imageExtent(width, height, 1);
 
-	vk::ImageCreateInfo imageCreateInfo({}, vk::ImageType::e2D, format, imageExtent, 1, 1, vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined);
+	const vk::ImageCreateInfo imageCreateInfo({}, vk::ImageType::e2D, format, imageExtent, 1, 1, vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined);
 
 	VmaAllocationCreateInfo allocationCreateInfo{};
 	allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
@@ -66,7 +66,7 @@ std::shared_ptr<vkx::Allocation<vk::Image>> vkx::Allocator::allocateImage(std::u
 
 	VkImage image = nullptr;
 	VmaAllocation allocation = nullptr;
-	if (vmaCreateImage(allocator, reinterpret_cast<VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &image, &allocation, nullptr) != VK_SUCCESS) {
+	if (vmaCreateImage(allocator, reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &image, &allocation, nullptr) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
@@ -74,7 +74,7 @@ std::shared_ptr<vkx::Allocation<vk::Image>> vkx::Allocator::allocateImage(std::u
 }
 
 std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const {
-	vk::BufferCreateInfo bufferCreateInfo({}, size, usage, vk::SharingMode::eExclusive);
+	const vk::BufferCreateInfo bufferCreateInfo({}, size, usage, vk::SharingMode::eExclusive);
 
 	VmaAllocationCreateInfo allocationCreateInfo{};
 	allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
@@ -89,7 +89,7 @@ std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(vk::
 	VkBuffer buffer = nullptr;
 	VmaAllocation allocation = nullptr;
 	VmaAllocationInfo allocationInfo = {};
-	if (vmaCreateBuffer(allocator, reinterpret_cast<VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
+	if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate buffer memory resources.");
 	}
 
@@ -407,6 +407,6 @@ void vkx::Device::submit(const std::vector<DrawCommand>& drawCommands, const Syn
 	queues.graphics.submit(submitInfo, *syncObjects.inFlightFence);
 }
 
-std::unique_ptr<vkx::Allocator> vkx::Device::createAllocator(const vk::UniqueInstance& instance) const {
-	return std::make_unique<vkx::Allocator>(physicalDevice, *device, *instance);
+std::shared_ptr<vkx::Allocator> vkx::Device::createAllocator(const vk::UniqueInstance& instance) const {
+	return std::make_shared<vkx::Allocator>(physicalDevice, *device, *instance);
 }
