@@ -1,6 +1,6 @@
 #pragma once
 
-constexpr static const std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+static constexpr std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace vkx {
     struct GlobalConfiguration;
