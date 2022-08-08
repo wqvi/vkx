@@ -118,6 +118,8 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 
 	device = std::make_unique<vkx::Device>(instance, bestPhysicalDevice, surface);
 
+	allocator = device->createAllocator(instance);
+
 	createSwapchain();
 
 	const vk::DescriptorSetLayoutBinding uboLayoutBinding(

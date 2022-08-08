@@ -16,21 +16,21 @@
 
 #include <iostream>
 
-vkx::Allocator::Allocator() {
+vkx::Allocator::Allocator(VkPhysicalDevice physicalDevice, VkDevice device, VkInstance instance) {
 	VmaVulkanFunctions vulkanFunctions{};
 	vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
 	vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
 
 	VmaAllocatorCreateInfo allocatorCreateInfo{};
 	allocatorCreateInfo.flags = 0;
-	allocatorCreateInfo.physicalDevice = nullptr;
-	allocatorCreateInfo.device = nullptr;
+	allocatorCreateInfo.physicalDevice = physicalDevice;
+	allocatorCreateInfo.device = device;
 	allocatorCreateInfo.preferredLargeHeapBlockSize = 0;
 	allocatorCreateInfo.pAllocationCallbacks = nullptr;
 	allocatorCreateInfo.pDeviceMemoryCallbacks = nullptr;
 	allocatorCreateInfo.pHeapSizeLimit = nullptr;
 	allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
-	allocatorCreateInfo.instance = nullptr;
+	allocatorCreateInfo.instance = instance;
 	allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_0;
 #if VMA_EXTERNAL_MEMORY
 	allocatorCreateInfo.pTypeExternalMemoryHandleTypes = nullptr;
@@ -405,4 +405,8 @@ void vkx::Device::submit(const std::vector<DrawCommand>& drawCommands, const Syn
 	    &*syncObjects.renderFinishedSemaphore);
 
 	queues.graphics.submit(submitInfo, *syncObjects.inFlightFence);
+}
+
+std::unique_ptr<vkx::Allocator> vkx::Device::createAllocator(const vk::UniqueInstance& instance) const {
+	return std::make_unique<vkx::Allocator>(physicalDevice, *device, *instance);
 }

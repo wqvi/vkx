@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vkx/renderer/core/device.hpp"
 #include "vkx/renderer/uniform_buffer.hpp"
 #include <SDL2/SDL_video.h>
 #include <cstddef>
@@ -60,6 +61,7 @@ private:
 	vk::UniqueInstance instance;
 	vk::UniqueSurfaceKHR surface;
 	std::unique_ptr<Device> device;
+	std::unique_ptr<Allocator> allocator{};
 
 	Swapchain swapchain;
 

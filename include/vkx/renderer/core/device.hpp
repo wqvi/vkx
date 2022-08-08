@@ -23,7 +23,9 @@ class Allocator;
 
 class Allocator {
 public:
-	Allocator();
+	Allocator() = default;
+
+	Allocator(VkPhysicalDevice physicalDevice, VkDevice device, VkInstance instance);
 
 	~Allocator();
 
@@ -162,12 +164,14 @@ public:
 
 	[[nodiscard]] vk::UniqueSampler createTextureSamplerUnique() const;
 
-private:
-	vk::PhysicalDevice physicalDevice;
-	vk::UniqueDevice device;
-	vk::UniqueCommandPool commandPool;
-	vk::PhysicalDeviceProperties properties;
+	std::unique_ptr<Allocator> createAllocator(const vk::UniqueInstance& instance) const;
 
-	Queues queues;
+private:
+	vk::PhysicalDevice physicalDevice{};
+	vk::UniqueDevice device{};
+	vk::UniqueCommandPool commandPool{};
+	vk::PhysicalDeviceProperties properties{};
+
+	Queues queues{};
 };
 } // namespace vkx
