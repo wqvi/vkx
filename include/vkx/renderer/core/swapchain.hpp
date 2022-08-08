@@ -24,11 +24,8 @@ public:
 	std::vector<vk::Image> images;
 	std::vector<vk::UniqueImageView> imageViews;
 
-	vk::UniqueImage depthImage;
-	vk::UniqueDeviceMemory depthImageMemory;
+	std::shared_ptr<Allocation<vk::Image>> depthResource;
 	vk::UniqueImageView depthImageView;
-
-	std::shared_ptr<Allocation<vk::Image>> depthResource; 
 
 	std::vector<vk::UniqueFramebuffer> framebuffers;
 };
