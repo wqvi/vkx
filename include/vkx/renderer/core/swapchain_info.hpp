@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vkx/window.hpp>
-
 namespace vkx
 {
     struct SwapchainInfo

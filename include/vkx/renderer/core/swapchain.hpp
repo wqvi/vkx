@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vkx/window.hpp>
 #include <vkx/renderer/core/device.hpp>
 
 namespace vkx
