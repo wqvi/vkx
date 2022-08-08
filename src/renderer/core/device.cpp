@@ -6,7 +6,6 @@
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
-#include <vkx/vkx_exceptions.hpp>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
@@ -102,7 +101,7 @@ vkx::Device::Device(const vk::UniqueInstance& instance, const vk::PhysicalDevice
 
 	const QueueConfig queueConfig{physicalDevice, surface};
 	if (!queueConfig.isComplete()) {
-		throw vkx::VulkanError("Something went terribly wrong. Failure to find queue configuration.");
+		throw std::runtime_error("Something went terribly wrong. Failure to find queue configuration.");
 	}
 
 	constexpr float queuePriority = 1.0f;
@@ -182,7 +181,7 @@ std::uint32_t vkx::Device::findMemoryType(std::uint32_t typeFilter, const vk::Me
 		}
 	}
 
-	throw vkx::VulkanError("Failure to find suitable physical device memory type.");
+	throw std::runtime_error("Failure to find suitable physical device memory type.");
 }
 
 vk::Format vkx::Device::findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling,

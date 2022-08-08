@@ -20,7 +20,6 @@
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
-#include <vkx/vkx_exceptions.hpp>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
@@ -36,12 +35,12 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 
 	std::uint32_t count = 0;
 	if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
-		throw vkx::SDLError();
+		throw std::runtime_error(SDL_GetError());
 	}
 
 	std::vector<const char*> extensions(count);
 	if (SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()) != SDL_TRUE) {
-		throw vkx::SDLError();
+		throw std::runtime_error(SDL_GetError());
 	}
 
 #ifdef DEBUG
@@ -83,7 +82,7 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 
 	VkSurfaceKHR cSurface = nullptr;
 	if (SDL_Vulkan_CreateSurface(window, *instance, &cSurface) != SDL_TRUE) {
-		throw vkx::SDLError();
+		throw std::runtime_error(SDL_GetError());
 	}
 	surface = vk::UniqueSurfaceKHR(cSurface, *instance);
 
@@ -114,7 +113,7 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 	}
 
 	if (!static_cast<bool>(bestPhysicalDevice)) {
-		throw vkx::VulkanError("Failure to initialize device.");
+		throw std::runtime_error("Failure to initialize device.");
 	}
 
 	device = std::make_unique<vkx::Device>(instance, bestPhysicalDevice, surface);
@@ -217,7 +216,7 @@ void vkx::RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer, const Uni
 		return;
 	} else if (result != vk::Result::eSuccess &&
 		   result != vk::Result::eSuboptimalKHR) {
-		throw vkx::VulkanError(result);
+		throw std::runtime_error("Failed to acquire next image.");
 	}
 
 	mvpBuffer.mapMemory();
@@ -240,7 +239,7 @@ void vkx::RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer, const Uni
 		framebufferResized = false;
 		recreateSwapchain();
 	} else if (result != vk::Result::eSuccess) {
-		throw vkx::VulkanError(result);
+		throw std::runtime_error("Failed to present.");
 	}
 
 	currentIndexFrame = (currentIndexFrame + 1) % MAX_FRAMES_IN_FLIGHT;

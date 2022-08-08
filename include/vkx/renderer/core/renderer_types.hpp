@@ -3,22 +3,6 @@
 static constexpr std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace vkx {
-    struct GlobalConfiguration;
-
-    class Application;
-
-    class SDLWindow;
-
-    struct Scene;
-
-    class SDLError;
-
-    struct Node;
-
-    class VulkanError;
-
-    struct Profile;
-
     class RendererContext;
 
     class RendererBase;
