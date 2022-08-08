@@ -82,7 +82,7 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(const vkx::Device& devi
 	    false,
 	    false);
 
-	static constexpr auto mask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+	constexpr auto mask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 	vk::PipelineColorBlendAttachmentState colorBlendAttachment(
 	    false,
 	    vk::BlendFactor::eZero,
@@ -93,7 +93,7 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(const vkx::Device& devi
 	    vk::BlendOp::eAdd,
 	    mask);
 
-	static constexpr std::array blendConstants{0.0f, 0.0f, 0.0f, 0.0f};
+	constexpr std::array blendConstants{0.0f, 0.0f, 0.0f, 0.0f};
 	const vk::PipelineColorBlendStateCreateInfo colorBlending(
 	    {},
 	    false,

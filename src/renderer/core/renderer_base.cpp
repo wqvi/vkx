@@ -21,22 +21,26 @@
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 #include <vkx/vkx_exceptions.hpp>
+#include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
 vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
-	static constexpr vk::ApplicationInfo applicationInfo{
-	    "Jewelry", VK_MAKE_VERSION(0, 0, 1), "Vulcan", VK_MAKE_VERSION(0, 0, 1),
-	    VK_API_VERSION_1_0};
+	constexpr vk::ApplicationInfo applicationInfo(
+	    "Star explorer",
+	    VK_MAKE_VERSION(0, 0, 1),
+	    "VKX",
+	    VK_MAKE_VERSION(0, 0, 1),
+	    VK_API_VERSION_1_0);
 
 	std::uint32_t count = 0;
 	if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
 		throw vkx::SDLError();
 	}
+
 	std::vector<const char*> extensions(count);
-	if (SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()) !=
-	    SDL_TRUE) {
+	if (SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data()) != SDL_TRUE) {
 		throw vkx::SDLError();
 	}
 
@@ -44,31 +48,35 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 	extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-	std::vector<const char*> layers{
 #ifdef DEBUG
-	    "VK_LAYER_KHRONOS_validation",
+	constexpr std::array layers{
+	    "VK_LAYER_KHRONOS_validation"};
+#elif RELEASE
+	constexpr std::array<const char*, 0> layers{};
 #endif
-	};
 
-	vk::InstanceCreateInfo instanceCreateInfo{
-	    {}, &applicationInfo, layers, extensions};
+	const vk::InstanceCreateInfo instanceCreateInfo(
+	    {},
+	    &applicationInfo,
+	    layers,
+	    extensions);
 
 #ifdef DEBUG
-	auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-			       vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-			       vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
-	auto messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-			   vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
-			   vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+	constexpr auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+	constexpr auto messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
 
-	vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
-	    {}, messageSeverity, messageType, vkDebugCallback, nullptr};
+	const vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo(
+	    {},
+	    messageSeverity,
+	    messageType,
+	    vkDebugCallback,
+	    nullptr);
 
-	vk::StructureChain<vk::InstanceCreateInfo, vk::DebugUtilsMessengerCreateInfoEXT> structureChain{instanceCreateInfo,
-					  debugUtilsMessengerCreateInfo};
+	vk::StructureChain<vk::InstanceCreateInfo, vk::DebugUtilsMessengerCreateInfoEXT> structureChain{
+	    instanceCreateInfo,
+	    debugUtilsMessengerCreateInfo};
 
-	instance =
-	    vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
+	instance = vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
 #else
 	instance = vk::createInstanceUnique(instanceCreateInfo);
 #endif
@@ -79,18 +87,18 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 	}
 	surface = vk::UniqueSurfaceKHR(cSurface, *instance);
 
-	auto physicalDevices = instance->enumeratePhysicalDevices();
+	const auto physicalDevices = instance->enumeratePhysicalDevices();
 	vk::PhysicalDevice bestPhysicalDevice = nullptr;
 	std::uint32_t bestRating = 0;
 	for (const auto& pDevice : physicalDevices) {
 		std::uint32_t rating = 0;
 
-		QueueConfig indices{pDevice, surface};
+		const QueueConfig indices{pDevice, surface};
 		if (indices.isComplete()) {
 			rating++;
 		}
 
-		SwapchainInfo info{pDevice, surface};
+		const SwapchainInfo info{pDevice, surface};
 		if (info.isComplete()) {
 			rating++;
 		}
@@ -109,36 +117,45 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 		throw vkx::VulkanError("Failure to initialize device.");
 	}
 
-	device = std::unique_ptr<vkx::Device>(new vkx::Device(instance, bestPhysicalDevice, surface));
+	device = std::make_unique<vkx::Device>(instance, bestPhysicalDevice, surface);
 
 	createSwapchain();
 
-	vk::DescriptorSetLayoutBinding uboLayoutBinding{
-	    0, vk::DescriptorType::eUniformBuffer, 1,
-	    vk::ShaderStageFlagBits::eVertex, nullptr};
+	const vk::DescriptorSetLayoutBinding uboLayoutBinding(
+	    0,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eVertex,
+	    nullptr);
 
-	vk::DescriptorSetLayoutBinding samplerLayoutBinding{
-	    1, vk::DescriptorType::eCombinedImageSampler, 1,
-	    vk::ShaderStageFlagBits::eFragment, nullptr};
+	const vk::DescriptorSetLayoutBinding samplerLayoutBinding(
+	    1,
+	    vk::DescriptorType::eCombinedImageSampler,
+	    1,
+	    vk::ShaderStageFlagBits::eFragment,
+	    nullptr);
 
-	vk::DescriptorSetLayoutBinding lightLayoutBinding{
-	    2, vk::DescriptorType::eUniformBuffer, 1,
-	    vk::ShaderStageFlagBits::eFragment, nullptr};
+	const vk::DescriptorSetLayoutBinding lightLayoutBinding(
+	    2,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eFragment,
+	    nullptr);
 
-	vk::DescriptorSetLayoutBinding materialLayoutBinding{
-	    3, vk::DescriptorType::eUniformBuffer, 1,
-	    vk::ShaderStageFlagBits::eFragment, nullptr};
+	const vk::DescriptorSetLayoutBinding materialLayoutBinding(
+	    3,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eFragment,
+	    nullptr);
 
-	std::vector<vk::DescriptorSetLayoutBinding> bindings{
-	    uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding,
-	    materialLayoutBinding};
+	const auto bindings = {uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 
-	vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
+	const vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
 
 	descriptorSetLayout = (*device)->createDescriptorSetLayoutUnique(layoutInfo);
 
-	graphicsPipeline = GraphicsPipeline{*device, swapchain.extent, renderPass,
-					    descriptorSetLayout};
+	graphicsPipeline = GraphicsPipeline(*device, swapchain.extent, renderPass, descriptorSetLayout);
 
 	drawCommands = device->createDrawCommands(MAX_FRAMES_IN_FLIGHT);
 
@@ -147,9 +164,9 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 	createDescriptorPool();
 }
 
-namespace vkx {
-void RendererBase::recreateSwapchain() {
-	int width, height;
+void vkx::RendererBase::recreateSwapchain() {
+	int width;
+	int height;
 	SDL_Vulkan_GetDrawableSize(window, &width, &height);
 	while (width == 0 || height == 0) {
 		SDL_Vulkan_GetDrawableSize(window, &width, &height);
@@ -159,37 +176,32 @@ void RendererBase::recreateSwapchain() {
 	(*device)->waitIdle();
 
 	createSwapchain();
-	graphicsPipeline = GraphicsPipeline{*device, swapchain.extent, renderPass,
-					    descriptorSetLayout};
+	graphicsPipeline = vkx::GraphicsPipeline(*device, swapchain.extent, renderPass, descriptorSetLayout);
 }
 
-void RendererBase::createDescriptorPool() {
-	vk::DescriptorPoolSize uniformBufferDescriptor{
-	    vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
+void vkx::RendererBase::createDescriptorPool() {
+	constexpr vk::DescriptorPoolSize uniformBufferDescriptor(vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT);
+	constexpr vk::DescriptorPoolSize samplerBufferDescriptor(vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT);
 
-	std::array<vk::DescriptorPoolSize, 4> poolSizes{};
-	std::fill(poolSizes.begin(), poolSizes.end(), uniformBufferDescriptor);
+	constexpr std::array poolSizes{uniformBufferDescriptor, samplerBufferDescriptor, uniformBufferDescriptor, uniformBufferDescriptor};
 
-	poolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
-
-	vk::DescriptorPoolCreateInfo poolInfo{{}, MAX_FRAMES_IN_FLIGHT, poolSizes};
+	const vk::DescriptorPoolCreateInfo poolInfo({}, MAX_FRAMES_IN_FLIGHT, poolSizes);
 
 	descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
 }
 
-void RendererBase::createDescriptorSets(
+void vkx::RendererBase::createDescriptorSets(
     const std::vector<UniformBuffer<MVP>>& mvpBuffers,
     const std::vector<UniformBuffer<DirectionalLight>>& lightBuffers,
     const std::vector<UniformBuffer<Material>>& materialBuffers,
     const Texture& texture) {
-	std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
-						     *descriptorSetLayout);
+	const std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
 	vk::DescriptorSetAllocateInfo allocInfo{*descriptorPool, layouts};
 
 	descriptorSets = (*device)->allocateDescriptorSets(allocInfo);
 
 	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		std::array<vk::WriteDescriptorSet, 4> descriptorWrites{
+		const std::array descriptorWrites{
 		    mvpBuffers[i].createWriteDescriptorSet(descriptorSets[i], 0),
 		    texture.createWriteDescriptorSet(descriptorSets[i], 1),
 		    lightBuffers[i].createWriteDescriptorSet(descriptorSets[i], 2),
@@ -200,19 +212,9 @@ void RendererBase::createDescriptorSets(
 	}
 }
 
-void RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer,
-			     const UniformBuffer<DirectionalLight>& lightBuffer,
-			     const UniformBuffer<Material>& materialBuffer,
-			     const VertexBuffer& vertexBuffer,
-			     const IndexBuffer& indexBuffer,
-			     std::uint32_t indexCount,
-			     std::uint32_t& currentIndexFrame) {
-	static_cast<void>((*device)->waitForFences(
-	    *syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));
-	vk::Result result;
-	std::uint32_t imageIndex;
-	std::tie(result, imageIndex) = swapchain.acquireNextImage(
-	    *device, syncObjects[currentIndexFrame].imageAvailableSemaphore);
+void vkx::RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer, const UniformBuffer<DirectionalLight>& lightBuffer, const UniformBuffer<Material>& materialBuffer, const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, std::uint32_t indexCount, std::uint32_t& currentIndexFrame) {
+	static_cast<void>((*device)->waitForFences(*syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));
+	auto [result, imageIndex] = swapchain.acquireNextImage(*device, syncObjects[currentIndexFrame].imageAvailableSemaphore);
 
 	if (result == vk::Result::eErrorOutOfDateKHR) {
 		recreateSwapchain();
@@ -233,19 +235,12 @@ void RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer,
 	    *graphicsPipeline.pipeline, *graphicsPipeline.layout,
 	    descriptorSets[currentIndexFrame], vertexBuffer, indexBuffer, indexCount);
 
-	std::vector<vk::CommandBuffer> commandBuffers{
-	    static_cast<vk::CommandBuffer>(drawCommands[currentIndexFrame])};
-	device->submit(commandBuffers,
-		       *syncObjects[currentIndexFrame].imageAvailableSemaphore,
-		       *syncObjects[currentIndexFrame].renderFinishedSemaphore,
-		       *syncObjects[currentIndexFrame].inFlightFence);
+	std::vector<vk::CommandBuffer> commandBuffers{static_cast<vk::CommandBuffer>(drawCommands[currentIndexFrame])};
+	device->submit(commandBuffers, *syncObjects[currentIndexFrame].imageAvailableSemaphore, *syncObjects[currentIndexFrame].renderFinishedSemaphore, *syncObjects[currentIndexFrame].inFlightFence);
 
-	result =
-	    device->present(swapchain, imageIndex,
-			    *syncObjects[currentIndexFrame].renderFinishedSemaphore);
+	result = device->present(swapchain, imageIndex, *syncObjects[currentIndexFrame].renderFinishedSemaphore);
 
-	if (result == vk::Result::eErrorOutOfDateKHR ||
-	    result == vk::Result::eSuboptimalKHR || framebufferResized) {
+	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 		framebufferResized = false;
 		recreateSwapchain();
 	} else if (result != vk::Result::eSuccess) {
@@ -255,90 +250,79 @@ void RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer,
 	currentIndexFrame = (currentIndexFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-std::uint32_t RendererBase::getCurrentFrameIndex() const {
+std::uint32_t vkx::RendererBase::getCurrentFrameIndex() const {
 	return currentFrame;
 }
 
-void RendererBase::createSwapchain() {
-	swapchain = vkx::Swapchain{*device, surface, window, swapchain};
+void vkx::RendererBase::createSwapchain() {
+	swapchain = vkx::Swapchain(*device, surface, window, swapchain);
 
 	renderPass = createRenderPass();
 
 	swapchain.createFramebuffers(*device, renderPass);
 }
 
-vk::UniqueRenderPass
-RendererBase::createRenderPass(vk::AttachmentLoadOp loadOp) const {
-	vk::AttachmentDescription colorAttachment{
-	    {},				      // flags
-	    swapchain.imageFormat,	      // format
-	    vk::SampleCountFlagBits::e1,      // samples
-	    loadOp,			      // loadOp
-	    vk::AttachmentStoreOp::eStore,    // storeOp
-	    vk::AttachmentLoadOp::eDontCare,  // stencilLoadOp
-	    vk::AttachmentStoreOp::eDontCare, // stencilStoreOp
-	    vk::ImageLayout::eUndefined,      // initialLayout
-	    vk::ImageLayout::ePresentSrcKHR   // finalLayout
-	};
+vk::UniqueRenderPass vkx::RendererBase::createRenderPass(vk::AttachmentLoadOp loadOp) const {
+	const vk::AttachmentDescription colorAttachment(
+	    {},
+	    swapchain.imageFormat,
+	    vk::SampleCountFlagBits::e1,
+	    loadOp,
+	    vk::AttachmentStoreOp::eStore,
+	    vk::AttachmentLoadOp::eDontCare,
+	    vk::AttachmentStoreOp::eDontCare,
+	    vk::ImageLayout::eUndefined,
+	    vk::ImageLayout::ePresentSrcKHR);
 
-	vk::AttachmentReference colorAttachmentRef{
-	    0,					     // attachment
-	    vk::ImageLayout::eColorAttachmentOptimal // layout
-	};
+	const vk::AttachmentReference colorAttachmentRef(
+	    0,
+	    vk::ImageLayout::eColorAttachmentOptimal);
 
-	vk::AttachmentDescription depthAttachment{
-	    {},						    // flags
-	    device->findDepthFormat(),			    // format
-	    vk::SampleCountFlagBits::e1,		    // samples
-	    vk::AttachmentLoadOp::eClear,		    // loadOp
-	    vk::AttachmentStoreOp::eDontCare,		    // storeOp
-	    vk::AttachmentLoadOp::eDontCare,		    // stencilLoadOp
-	    vk::AttachmentStoreOp::eDontCare,		    // stencilStoreOp
-	    vk::ImageLayout::eUndefined,		    // initialLayout
-	    vk::ImageLayout::eDepthStencilAttachmentOptimal // finalLayout
-	};
+	const vk::AttachmentDescription depthAttachment(
+	    {},
+	    device->findDepthFormat(),
+	    vk::SampleCountFlagBits::e1,
+	    vk::AttachmentLoadOp::eClear,
+	    vk::AttachmentStoreOp::eDontCare,
+	    vk::AttachmentLoadOp::eDontCare,
+	    vk::AttachmentStoreOp::eDontCare,
+	    vk::ImageLayout::eUndefined,
+	    vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
-	vk::AttachmentReference depthAttachmentRef{
-	    1,						    // attachment
-	    vk::ImageLayout::eDepthStencilAttachmentOptimal // layout
-	};
+	const vk::AttachmentReference depthAttachmentRef(
+	    1,
+	    vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
-	vk::SubpassDescription subpass{
-	    {},				      // flags
-	    vk::PipelineBindPoint::eGraphics, // pipelineBindPoint
-	    {},				      // inputAttachments
-	    colorAttachmentRef,		      // colorAttachments
-	    {},				      // resolveAttachments
-	    &depthAttachmentRef,	      // pDepthStencilAttachment
-	    {}				      // preserveAttachments
-	};
+	const vk::SubpassDescription subpass(
+	    {},
+	    vk::PipelineBindPoint::eGraphics,
+	    {},
+	    colorAttachmentRef,
+	    {},
+	    &depthAttachmentRef,
+	    {});
 
-	auto dependencyStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput |
-				   vk::PipelineStageFlagBits::eEarlyFragmentTests;
-	auto dependencyAccessMask = vk::AccessFlagBits::eColorAttachmentWrite |
-				    vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+	constexpr auto dependencyStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+	constexpr auto dependencyAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 
-	vk::SubpassDependency dependency{
-	    VK_SUBPASS_EXTERNAL, // srcSubpass
-	    0,			 // dstSubpass
-	    dependencyStageMask, // srcStageMask
-	    dependencyStageMask, // dstStageMask
-	    {},			 // srcAccessMask
-	    dependencyAccessMask // dstAccessMask
-	};
+	const vk::SubpassDependency dependency(
+	    VK_SUBPASS_EXTERNAL,
+	    0,
+	    dependencyStageMask,
+	    dependencyStageMask,
+	    {},
+	    dependencyAccessMask);
 
-	std::vector<vk::AttachmentDescription> renderPassAttachments{colorAttachment, depthAttachment};
+	const auto renderPassAttachments = {colorAttachment, depthAttachment};
 
-	vk::RenderPassCreateInfo renderPassInfo{
-	    {},			   // flags
-	    renderPassAttachments, // attachments
-	    subpass,		   // subpasses
-	    dependency		   // dependencies
-	};
+	const vk::RenderPassCreateInfo renderPassInfo(
+	    {},
+	    renderPassAttachments,
+	    subpass,
+	    dependency);
 
 	return (*device)->createRenderPassUnique(renderPassInfo);
 }
-} // namespace vkx
 
 vkx::Mesh vkx::RendererBase::allocateMesh(
     const std::vector<Vertex>& vertices,
