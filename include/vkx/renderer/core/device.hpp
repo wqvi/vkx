@@ -114,9 +114,7 @@ class Device {
 public:
 	Device() = default;
 
-	explicit Device(const vk::UniqueInstance& instance,
-			const vk::PhysicalDevice& physicalDevice,
-			const vk::UniqueSurfaceKHR& surface);
+	explicit Device(const vk::UniqueInstance& instance, const vk::PhysicalDevice& physicalDevice, const vk::UniqueSurfaceKHR& surface);
 
 	explicit operator const vk::PhysicalDevice&() const;
 
@@ -130,86 +128,39 @@ public:
 
 	const vk::Device* operator->() const;
 
-	[[nodiscard]] std::vector<DrawCommand>
-	createDrawCommands(std::uint32_t size) const;
+	[[nodiscard]] std::vector<DrawCommand> createDrawCommands(std::uint32_t size) const;
 
-	[[nodiscard]] std::uint32_t
-	findMemoryType(std::uint32_t typeFilter,
-		       const vk::MemoryPropertyFlags& flags) const;
+	[[nodiscard]] std::uint32_t findMemoryType(std::uint32_t typeFilter, const vk::MemoryPropertyFlags& flags) const;
 
-	[[nodiscard]] vk::Format
-	findSupportedFormat(const std::vector<vk::Format>& candidates,
-			    vk::ImageTiling tiling,
-			    const vk::FormatFeatureFlags& features) const;
+	[[nodiscard]] vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, const vk::FormatFeatureFlags& features) const;
 
-	[[nodiscard]] vk::Format
-	findDepthFormat() const;
+	[[nodiscard]] vk::Format findDepthFormat() const;
 
-	[[nodiscard]] vk::UniqueImage
-	createImageUnique(std::uint32_t width,
-			  std::uint32_t height,
-			  vk::Format format,
-			  vk::ImageTiling tiling,
-			  const vk::ImageUsageFlags& usage) const;
+	[[nodiscard]] vk::UniqueImage createImageUnique(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, const vk::ImageUsageFlags& usage) const;
 
-	[[nodiscard]] vk::UniqueBuffer
-	createBufferUnique(vk::DeviceSize size,
-			   const vk::BufferUsageFlags& usage) const;
+	[[nodiscard]] vk::UniqueBuffer createBufferUnique(vk::DeviceSize size, const vk::BufferUsageFlags& usage) const;
 
-	[[nodiscard]] vk::UniqueDeviceMemory
-	allocateMemoryUnique(const vk::UniqueBuffer& buffer,
-			     const vk::MemoryPropertyFlags& flags) const;
+	[[nodiscard]] vk::UniqueDeviceMemory allocateMemoryUnique(const vk::UniqueBuffer& buffer, const vk::MemoryPropertyFlags& flags) const;
 
-	[[nodiscard]] vk::UniqueDeviceMemory
-	allocateMemoryUnique(const vk::UniqueImage& image,
-			     const vk::MemoryPropertyFlags& flags) const;
+	[[nodiscard]] vk::UniqueDeviceMemory allocateMemoryUnique(const vk::UniqueImage& image, const vk::MemoryPropertyFlags& flags) const;
 
-	[[nodiscard]] vk::UniqueImageView
-	createImageViewUnique(const vk::Image& image,
-			      vk::Format format,
-			      const vk::ImageAspectFlags& aspectFlags) const;
+	[[nodiscard]] vk::UniqueImageView createImageViewUnique(const vk::Image& image, vk::Format format, const vk::ImageAspectFlags& aspectFlags) const;
 
-	void
-	copyBuffer(
-	    const vk::Buffer& srcBuffer,
-	    const vk::Buffer& dstBuffer,
-	    const vk::DeviceSize& size) const;
+	void copyBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize& size) const;
 
-	void
-	copyBufferToImage(
-	    const vk::Buffer& buffer,
-	    const vk::Image& image,
-	    std::uint32_t width,
-	    std::uint32_t height) const;
+	void copyBufferToImage(const vk::Buffer& buffer, const vk::Image& image, std::uint32_t width, std::uint32_t height) const;
 
-	void
-	transitionImageLayout(
-	    const vk::Image& image,
-	    const vk::ImageLayout& oldLayout,
-	    const vk::ImageLayout& newLayout) const;
+	void transitionImageLayout(const vk::Image& image, const vk::ImageLayout& oldLayout, const vk::ImageLayout& newLayout) const;
 
-	[[maybe_unused]] void
-	submit(
-	    const std::vector<vk::CommandBuffer>& commandBuffers,
-	    const vk::Semaphore& waitSemaphore,
-	    const vk::Semaphore& signalSemaphore,
-	    const vk::Fence& flightFence) const;
+	void submit(const std::vector<vk::CommandBuffer>& commandBuffers, const vk::Semaphore& waitSemaphore, const vk::Semaphore& signalSemaphore, const vk::Fence& flightFence) const;
 
-	[[maybe_unused]] void
-	submit(
-	    const std::vector<DrawCommand>& drawCommands,
-	    const SyncObjects& syncObjects) const;
+	void submit(const std::vector<DrawCommand>& drawCommands, const SyncObjects& syncObjects) const;
 
-	[[nodiscard]] vk::Result
-	present(const vk::SwapchainKHR& swapchain,
-		std::uint32_t imageIndex,
-		const vk::Semaphore& signalSemaphores) const;
+	[[nodiscard]] vk::Result present(const vk::SwapchainKHR& swapchain, std::uint32_t imageIndex, const vk::Semaphore& signalSemaphores) const;
 
-	[[nodiscard]] vk::UniqueImageView
-	createTextureImageViewUnique(const vk::Image& image) const;
+	[[nodiscard]] vk::UniqueImageView createTextureImageViewUnique(const vk::Image& image) const;
 
-	[[nodiscard]] vk::UniqueSampler
-	createTextureSamplerUnique() const;
+	[[nodiscard]] vk::UniqueSampler createTextureSamplerUnique() const;
 
 private:
 	vk::PhysicalDevice physicalDevice;
