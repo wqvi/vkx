@@ -183,11 +183,11 @@ public:
 
 	[[nodiscard]] vk::Result present(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, vk::Semaphore signalSemaphores) const;
 
-	[[nodiscard]] vk::UniqueImageView createTextureImageViewUnique(const vk::Image& image) const;
+	[[nodiscard]] vk::UniqueImageView createTextureImageViewUnique(vk::Image image) const;
 
 	[[nodiscard]] vk::UniqueSampler createTextureSamplerUnique() const;
 
-	std::shared_ptr<Allocator> createAllocator(const vk::UniqueInstance& instance) const;
+	std::shared_ptr<Allocator> createAllocator(vk::Instance instance) const;
 
 private:
 	vk::PhysicalDevice physicalDevice{};

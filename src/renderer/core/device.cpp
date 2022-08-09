@@ -289,7 +289,7 @@ vk::Result vkx::Device::present(vk::SwapchainKHR swapchain, std::uint32_t imageI
 	return queues.present.presentKHR(&presentInfo);
 }
 
-[[nodiscard]] vk::UniqueImageView vkx::Device::createTextureImageViewUnique(const vk::Image& image) const {
+[[nodiscard]] vk::UniqueImageView vkx::Device::createTextureImageViewUnique(vk::Image image) const {
 	return createImageViewUnique(image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
 }
 
@@ -335,6 +335,6 @@ void vkx::Device::submit(const std::vector<DrawCommand>& drawCommands, const Syn
 	queues.graphics.submit(submitInfo, *syncObjects.inFlightFence);
 }
 
-std::shared_ptr<vkx::Allocator> vkx::Device::createAllocator(const vk::UniqueInstance& instance) const {
+std::shared_ptr<vkx::Allocator> vkx::Device::createAllocator(vk::UniqueInstance instance) const {
 	return std::make_shared<vkx::Allocator>(physicalDevice, *device, *instance);
 }
