@@ -1,10 +1,15 @@
+#include "vkx/camera.hpp"
 #include "vkx/renderer/core/renderer_base.hpp"
 #include "vkx/renderer/core/renderer_types.hpp"
 #include "vkx/renderer/core/vertex.hpp"
 #include "vkx/renderer/model.hpp"
 #include "vkx/renderer/uniform_buffer.hpp"
 #include "vkx/voxels/voxels.hpp"
+#include <SDL2/SDL_events.h>
 #include <SDL2/SDL_log.h>
+#include <SDL2/SDL_mouse.h>
+#include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_video.h>
 #include <cstddef>
 #include <cstdint>
 #include <glm/ext/matrix_clip_space.hpp>
@@ -32,7 +37,15 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
+	if (SDL_SetRelativeMouseMode(SDL_TRUE)) {
+		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to capture mouse: %s", SDL_GetError());
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
+
 	{
+		vkx::Camera camera({0, 0, 0});
 		vkx::RendererBase renderer(window);
 
 		vkx::VoxelChunk chunk({0, 0, 0}, 16);
@@ -45,7 +58,6 @@ int main(void) {
 		auto materialBuffers = renderer.createBuffers(vkx::Material{});
 		renderer.createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, model.texture);
 
-		auto view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
 		SDL_Event event{};
@@ -56,12 +68,12 @@ int main(void) {
 
 			auto& mvpBuffer = mvpBuffers[currentFrame];
 			mvpBuffer->model = model.getModelMatrix();
-			mvpBuffer->view = view;
+			mvpBuffer->view = camera.viewMatrix();
 			mvpBuffer->proj = proj;
 
 			auto& lightBuffer = lightBuffers[currentFrame];
 			lightBuffer->position = glm::vec3(1.0f, 3.0f, 1.0f);
-			lightBuffer->eyePosition = glm::vec3(0.0f, 0.0f, -1.0f);
+			lightBuffer->eyePosition = camera.position;
 			lightBuffer->ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.2f);
 			lightBuffer->diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
 			lightBuffer->specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -89,6 +101,14 @@ int main(void) {
 						renderer.framebufferResized = true;
 						proj = glm::perspective(70.0f, static_cast<float>(event.window.data1) / static_cast<float>(event.window.data2), 0.1f, 100.0f);
 					}
+					break;
+				case SDL_MOUSEMOTION:
+					camera.updateMouse({event.motion.xrel, event.motion.yrel});
+					break;
+				case SDL_KEYDOWN:
+					camera.updateKey(event.key.keysym.sym);
+					break;
+				default:
 					break;
 				}
 			}
