@@ -336,5 +336,5 @@ void vkx::Device::submit(const std::vector<DrawCommand>& drawCommands, const Syn
 }
 
 std::shared_ptr<vkx::Allocator> vkx::Device::createAllocator(vk::Instance instance) const {
-	return std::make_shared<vkx::Allocator>(physicalDevice, *device, *instance);
+	return std::make_shared<vkx::Allocator>(physicalDevice, *device, instance);
 }
