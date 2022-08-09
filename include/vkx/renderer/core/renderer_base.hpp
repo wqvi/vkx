@@ -12,6 +12,7 @@
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
 class RendererBase {
@@ -31,8 +32,9 @@ public:
 	void drawFrame(const UniformBuffer<MVP>& mvpBuffer,
 		       const UniformBuffer<DirectionalLight>& lightBuffer,
 		       const UniformBuffer<Material>& materialBuffer,
-		       const VertexBuffer& vertexBuffer,
-		       const IndexBuffer& indexBuffer, std::uint32_t indexCount,
+		       vk::Buffer vertexBuffer,
+		       vk::Buffer indexBuffer,
+		       std::uint32_t indexCount,
 		       std::uint32_t& currentIndexFrame);
 
 	[[nodiscard]] std::uint32_t getCurrentFrameIndex() const;

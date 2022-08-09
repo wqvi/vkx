@@ -2,6 +2,7 @@
 
 #include <vkx/renderer/buffer.hpp>
 #include <vkx/renderer/core/device.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx
 {
@@ -74,8 +75,8 @@ namespace vkx
                            vk::Pipeline const &graphicsPipeline,
                            vk::PipelineLayout const &graphicsPipelineLayout,
                            vk::DescriptorSet const &descriptorSet,
-                           VertexBuffer const &vertexBuffer,
-                           IndexBuffer const &indexBuffer,
+                           vk::Buffer vertexBuffer,
+                           vk::Buffer indexBuffer,
                            std::uint32_t indicesCount) const
   {
     commandBuffer.reset({});

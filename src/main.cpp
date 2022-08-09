@@ -75,7 +75,7 @@ int main(void) {
 
 			// TODO whatever this is lol
 			renderer.drawFrame(mvpBuffer, lightBuffer, materialBuffer,
-					   model.mesh.vertexBuffer, model.mesh.indexBuffer,
+					   model.mesh.vertex->object, model.mesh.index->object,
 					   static_cast<std::uint32_t>(model.mesh.indexCount),
 					   currentFrame);
 

@@ -90,7 +90,7 @@ inline Allocation<vk::Buffer>::~Allocation() {
 
 template <class T>
 std::shared_ptr<Allocation<vk::Buffer>> Allocator::allocateBuffer(const std::vector<T>& data, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) const {
-	vk::BufferCreateInfo bufferCreateInfo({}, data.size() * sizeof(T), bufferUsage, vk::SharingMode::eExclusive);
+	const vk::BufferCreateInfo bufferCreateInfo({}, data.size() * sizeof(T), bufferUsage, vk::SharingMode::eExclusive);
 
 	VmaAllocationCreateInfo allocationCreateInfo{};
 	allocationCreateInfo.flags = flags;
@@ -105,11 +105,11 @@ std::shared_ptr<Allocation<vk::Buffer>> Allocator::allocateBuffer(const std::vec
 	VkBuffer buffer = nullptr;
 	VmaAllocation allocation = nullptr;
 	VmaAllocationInfo allocationInfo = {};
-	if (vmaCreateBuffer(allocator, reinterpret_cast<VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
+	if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate buffer memory resources.");
 	}
 
-	std::memcpy(data.data(), allocationInfo.pMappedData, allocationInfo.size);
+	std::memcpy(allocationInfo.pMappedData, data.data(), allocationInfo.size);
 
 	return std::make_shared<Allocation<vk::Buffer>>(vk::Buffer(buffer), allocation, allocationInfo, allocator);
 }

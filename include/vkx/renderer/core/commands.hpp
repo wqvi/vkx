@@ -1,6 +1,7 @@
 #pragma once
 
 #include "renderer_types.hpp"
+#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
 class SingleTimeCommand {
@@ -38,7 +39,7 @@ public:
               vk::Pipeline const &graphicsPipeline,
               vk::PipelineLayout const &graphicsPipelineLayout,
               vk::DescriptorSet const &descriptorSet,
-              VertexBuffer const &vertexBuffer, IndexBuffer const &indexBuffer,
+              vk::Buffer vertexBuffer, vk::Buffer indexBuffer,
               std::uint32_t indicesCount) const;
 
 private:

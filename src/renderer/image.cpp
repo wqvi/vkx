@@ -12,7 +12,7 @@ vkx::Image::Image(const std::string& file, const Device& device, const std::shar
 	int texWidth;
 	int texHeight;
 	int texChannels;
-	auto* pixels = stbi_load(file.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	auto* const pixels = stbi_load(file.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	if (!pixels) {
 		throw std::runtime_error("Failed to load texture image.");
 	}

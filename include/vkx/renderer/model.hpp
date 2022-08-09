@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vkx/renderer/core/allocable.hpp"
+#include "vkx/renderer/core/device.hpp"
 #include <vkx/renderer/buffer.hpp>
 #include <vkx/renderer/image.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
@@ -9,10 +11,10 @@ class Mesh {
 public:
 	Mesh() = default;
 
-	explicit Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const Device& device);
+	explicit Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const Device& device, const std::shared_ptr<Allocator>& allocator);
 
-	VertexBuffer vertexBuffer;
-	IndexBuffer indexBuffer;
+	std::shared_ptr<Allocation<vk::Buffer>> vertex;
+	std::shared_ptr<Allocation<vk::Buffer>> index;
 	std::size_t indexCount = 0;
 };
 

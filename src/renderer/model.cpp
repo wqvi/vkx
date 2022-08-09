@@ -1,9 +1,10 @@
 #include "vkx/renderer/core/device.hpp"
 #include <vkx/renderer/model.hpp>
+#include <vulkan/vulkan_enums.hpp>
 
 namespace vkx {
-Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const Device& device)
-    : vertexBuffer(vertices, device), indexBuffer(indices, device), indexCount(indices.size()) {}
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const Device& device, const std::shared_ptr<Allocator>& allocator)
+    : vertex(allocator->allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator->allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
 Texture::Texture(const std::string& file, const Device& device, const std::shared_ptr<Allocator>& allocator)
     : image(file, device, allocator),

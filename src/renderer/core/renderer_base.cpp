@@ -23,6 +23,7 @@
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
 vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
@@ -209,7 +210,7 @@ void vkx::RendererBase::createDescriptorSets(const std::vector<UniformBuffer<MVP
 	}
 }
 
-void vkx::RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer, const UniformBuffer<DirectionalLight>& lightBuffer, const UniformBuffer<Material>& materialBuffer, const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, std::uint32_t indexCount, std::uint32_t& currentIndexFrame) {
+void vkx::RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer, const UniformBuffer<DirectionalLight>& lightBuffer, const UniformBuffer<Material>& materialBuffer, vk::Buffer vertexBuffer, vk::Buffer indexBuffer, std::uint32_t indexCount, std::uint32_t& currentIndexFrame) {
 	static_cast<void>((*device)->waitForFences(*syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));
 	auto [result, imageIndex] = swapchain.acquireNextImage(*device, syncObjects[currentIndexFrame].imageAvailableSemaphore);
 
@@ -324,7 +325,7 @@ vk::UniqueRenderPass vkx::RendererBase::createRenderPass(vk::AttachmentLoadOp lo
 vkx::Mesh vkx::RendererBase::allocateMesh(
     const std::vector<Vertex>& vertices,
     const std::vector<std::uint32_t>& indices) const {
-	return vkx::Mesh{vertices, indices, *device};
+	return vkx::Mesh{vertices, indices, *device, allocator};
 }
 
 vkx::Texture
