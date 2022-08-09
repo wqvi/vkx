@@ -38,6 +38,9 @@ public:
 	template <class T>
 	std::shared_ptr<Allocation<vk::Buffer>> allocateBuffer(const std::vector<T>& data, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
 
+	template <class T>
+	std::shared_ptr<Allocation<vk::Buffer>> allocateBuffer(const T& data, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
+
 private:
 	VmaAllocator allocator = nullptr;
 };
@@ -114,6 +117,32 @@ std::shared_ptr<Allocation<vk::Buffer>> Allocator::allocateBuffer(const std::vec
 	return std::make_shared<Allocation<vk::Buffer>>(vk::Buffer(buffer), allocation, allocationInfo, allocator);
 }
 
+template <class T>
+std::shared_ptr<Allocation<vk::Buffer>> Allocator::allocateBuffer(const T& data, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) const {
+	const vk::BufferCreateInfo bufferCreateInfo({}, sizeof(T), bufferUsage, vk::SharingMode::eExclusive);
+
+	VmaAllocationCreateInfo allocationCreateInfo{};
+	allocationCreateInfo.flags = flags;
+	allocationCreateInfo.usage = memoryUsage;
+	allocationCreateInfo.requiredFlags = 0;
+	allocationCreateInfo.preferredFlags = 0;
+	allocationCreateInfo.memoryTypeBits = 0;
+	allocationCreateInfo.pool = nullptr;
+	allocationCreateInfo.pUserData = nullptr;
+	allocationCreateInfo.priority = {};
+
+	VkBuffer buffer = nullptr;
+	VmaAllocation allocation = nullptr;
+	VmaAllocationInfo allocationInfo = {};
+	if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate buffer memory resources.");
+	}
+
+	std::memcpy(allocationInfo.pMappedData, &data, allocationInfo.size);
+
+	return std::make_shared<Allocation<vk::Buffer>>(vk::Buffer(buffer), allocation, allocationInfo, allocator);
+}
+
 class Device {
 public:
 	Device() = default;
@@ -139,8 +168,6 @@ public:
 	[[nodiscard]] vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, const vk::FormatFeatureFlags& features) const;
 
 	[[nodiscard]] vk::Format findDepthFormat() const;
-
-	[[nodiscard]] vk::UniqueImage createImageUnique(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, const vk::ImageUsageFlags& usage) const;
 
 	[[nodiscard]] vk::UniqueBuffer createBufferUnique(vk::DeviceSize size, const vk::BufferUsageFlags& usage) const;
 

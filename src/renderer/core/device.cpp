@@ -207,26 +207,6 @@ vk::Format vkx::Device::findDepthFormat() const {
 				   vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 }
 
-vk::UniqueImage vkx::Device::createImageUnique(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, const vk::ImageUsageFlags& usage) const {
-	const vk::Extent3D extent(width, height, 1);
-
-	const vk::ImageCreateInfo imageInfo(
-	    {},
-	    vk::ImageType::e2D,
-	    format,
-	    extent,
-	    1,
-	    1,
-	    vk::SampleCountFlagBits::e1,
-	    tiling,
-	    usage,
-	    vk::SharingMode::eExclusive,
-	    {},
-	    vk::ImageLayout::eUndefined);
-
-	return device->createImageUnique(imageInfo);
-}
-
 vk::UniqueBuffer vkx::Device::createBufferUnique(vk::DeviceSize size, const vk::BufferUsageFlags& usage) const {
 	const vk::BufferCreateInfo bufferInfo(
 	    {},

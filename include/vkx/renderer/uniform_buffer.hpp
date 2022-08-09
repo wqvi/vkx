@@ -1,103 +1,86 @@
 #pragma once
 
-#include <vkx/renderer/core/device.hpp>
 #include "vkx/renderer/core/allocable.hpp"
+#include <memory>
+#include <vkx/renderer/core/device.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
-namespace vkx
-{
-  template <class T>
-  class UniformBuffer : public Allocable<vk::Buffer>
-  {
-  public:
-    UniformBuffer() = default;
+namespace vkx {
+template <class T>
+class UniformBuffer {
+public:
+	std::shared_ptr<Allocation<vk::Buffer>> resource;
 
-    explicit UniformBuffer(Device const &device)
-        : UniformBuffer({}, device) {}
+	UniformBuffer() = default;
 
-    explicit UniformBuffer(T const &value, Device const &device)
-        : device(*device)
-    {
-      obj = device.createBufferUnique(sizeof(T), vk::BufferUsageFlagBits::eUniformBuffer);
-      memory = device.allocateMemoryUnique(obj, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-      uniformObject = value;
-    }
+	explicit UniformBuffer(const T& value, const std::shared_ptr<Allocator>& allocator) {
+		resource = allocator->allocateBuffer(value, vk::BufferUsageFlagBits::eUniformBuffer);
+		uniformObject = value;
+	}
 
-    T *operator->()
-    {
-      return &uniformObject;
-    }
+	T* operator->() {
+		return &uniformObject;
+	}
 
-    void mapMemory() const
-    {
-      void *mappedMemory = device.mapMemory(*memory, 0, sizeof(T), {});
-      std::memcpy(mappedMemory, &uniformObject, sizeof(T));
-      device.unmapMemory(*memory);
-    }
+	void mapMemory() const {
+		std::memcpy(resource->allocationInfo.pMappedData, &uniformObject, resource->allocationInfo.size);
+	}
 
-    void mapMemory(T const &data) const
-    {
-      void *mappedMemory = device.mapMemory(*memory, 0, sizeof(T), {});
-      std::memcpy(mappedMemory, &data, sizeof(T));
-      device.unmapMemory(*memory);
-    }
+	void mapMemory(T const& data) const {
+		std::memcpy(resource->allocationInfo.pMappedData, &data, resource->allocationInfo.size);
+	}
 
-    void setObject(T const &value)
-    {
-      uniformObject = value;
-    }
+	void setObject(T const& value) {
+		uniformObject = value;
+	}
 
-    vk::WriteDescriptorSet createWriteDescriptorSet(vk::DescriptorSet const &descriptorSet, std::uint32_t dstBinding) const
-    {
-      // This is a type safe uniform buffer. There will only be one info per type of this uniform buffer
-      static vk::DescriptorBufferInfo info{};
+	vk::WriteDescriptorSet createWriteDescriptorSet(const vk::DescriptorSet& descriptorSet, std::uint32_t dstBinding) const {
+		// This is a type safe uniform buffer. There will only be one info per type of this uniform buffer
+		static vk::DescriptorBufferInfo info{};
 
-      info = vk::DescriptorBufferInfo{
-          *obj,     // buffer
-          0,        // offset
-          sizeof(T) // range
-      };
+		info = vk::DescriptorBufferInfo{
+		    resource->object, // buffer
+		    0,		      // offset
+		    sizeof(T)	      // range
+		};
 
-      static vk::WriteDescriptorSet set{};
+		static vk::WriteDescriptorSet set{};
 
-      set = vk::WriteDescriptorSet{
-          descriptorSet,                      // dstSet
-          dstBinding,                         // dstBinding
-          0,                                  // dstArrayElement
-          1,                                  // descriptorCount
-          vk::DescriptorType::eUniformBuffer, // descriptorType
-          nullptr,                            // pImageInfo
-          &info                               // pBufferInfo
-      };
-      return set;
-    }
+		set = vk::WriteDescriptorSet{
+		    descriptorSet,			// dstSet
+		    dstBinding,				// dstBinding
+		    0,					// dstArrayElement
+		    1,					// descriptorCount
+		    vk::DescriptorType::eUniformBuffer, // descriptorType
+		    nullptr,				// pImageInfo
+		    &info				// pBufferInfo
+		};
+		return set;
+	}
 
-  private:
-    T uniformObject;
-    vk::Device device;
-  };
+private:
+	T uniformObject;
+};
 
-  struct MVP
-  {
-    alignas(16) glm::mat4 model;
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
-  };
+struct MVP {
+	alignas(16) glm::mat4 model;
+	alignas(16) glm::mat4 view;
+	alignas(16) glm::mat4 proj;
+};
 
-  struct DirectionalLight
-  {
-    glm::vec3 position;                 // Position of the light in the world space
-    alignas(16) glm::vec3 eyePosition;  // Position of the camera in the world space
-    alignas(16) glm::vec4 ambientColor; // W is the intensity of the ambient light
-    glm::vec3 diffuseColor;
-    alignas(16) glm::vec3 specularColor;
-    float constant;
-    float linear;
-    float quadratic;
-  };
+struct DirectionalLight {
+	glm::vec3 position;		    // Position of the light in the world space
+	alignas(16) glm::vec3 eyePosition;  // Position of the camera in the world space
+	alignas(16) glm::vec4 ambientColor; // W is the intensity of the ambient light
+	glm::vec3 diffuseColor;
+	alignas(16) glm::vec3 specularColor;
+	float constant;
+	float linear;
+	float quadratic;
+};
 
-  struct Material
-  {
-    glm::vec3 specularColor;
-    float shininess;
-  };
-}
+struct Material {
+	glm::vec3 specularColor;
+	float shininess;
+};
+} // namespace vkx
