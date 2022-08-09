@@ -188,12 +188,6 @@ vk::Format vkx::Device::findSupportedFormat(const std::vector<vk::Format>& candi
 	return vk::Format::eUndefined;
 }
 
-vk::Format vkx::Device::findDepthFormat() const {
-	return findSupportedFormat({vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint},
-				   vk::ImageTiling::eOptimal,
-				   vk::FormatFeatureFlagBits::eDepthStencilAttachment);
-}
-
 vk::UniqueImageView vkx::Device::createImageViewUnique(const vk::Image& image, vk::Format format, vk::ImageAspectFlags aspectFlags) const {
 	const vk::ImageSubresourceRange subresourceRange(aspectFlags, 0, 1, 0, 1);
 
@@ -244,7 +238,7 @@ void vkx::Device::transitionImageLayout(const vk::Image& image, const vk::ImageL
 	if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
 		srcAccessMask = vk::AccessFlagBits::eNone;
 		dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-		
+
 		sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
 		destinationStage = vk::PipelineStageFlagBits::eTransfer;
 	} else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {

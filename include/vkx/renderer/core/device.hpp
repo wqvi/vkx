@@ -165,7 +165,9 @@ public:
 
 	[[nodiscard]] vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const;
 
-	[[nodiscard]] vk::Format findDepthFormat() const;
+	[[nodiscard]] inline vk::Format findDepthFormat() const {
+		return findSupportedFormat({vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint}, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
+	}
 
 	[[nodiscard]] vk::UniqueImageView createImageViewUnique(const vk::Image& image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
