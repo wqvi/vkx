@@ -3,6 +3,7 @@
 #include "vkx/renderer/core/device.hpp"
 #include "vkx/renderer/uniform_buffer.hpp"
 #include <SDL2/SDL_video.h>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -13,6 +14,7 @@
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
 #include <vulkan/vulkan_handles.hpp>
+#include <vkx/renderer/model.hpp>
 
 namespace vkx {
 class RendererBase {
@@ -52,6 +54,11 @@ public:
 	[[nodiscard]] Mesh
 	allocateMesh(const std::vector<Vertex>& vertices,
 		     const std::vector<std::uint32_t>& indices) const;
+
+	template <std::size_t size>
+	vkx::Mesh allocateMesh(const std::array<Vertex, size * 4>& vertices, const std::array<std::uint32_t, size * 6>& indices) {
+		return vkx::Mesh::createMesh<size>(vertices, indices, allocator);
+	}
 
 	[[nodiscard]] Texture allocateTexture(const std::string& textureFile) const;
 

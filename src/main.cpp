@@ -48,10 +48,11 @@ int main(void) {
 		vkx::Camera camera({0, 0, -5});
 		vkx::RendererBase renderer(window);
 
-		vkx::VoxelChunk chunk({0, 0, 0}, 16);
+		vkx::VoxelChunk<16> chunk({0, 0, 0});
 		chunk.greedy();
 
-		const vkx::Model model(renderer.allocateMesh(chunk.vertices, chunk.indices), renderer.allocateTexture("a.jpg"), {glm::vec3(0.2f), 100.0f});
+		vkx::Model model(renderer.allocateMesh(chunk.vertices, chunk.indices), renderer.allocateTexture("a.jpg"), {glm::vec3(0.2f), 100.0f});
+		// model.mesh.indexCount = chunk.vertexCount;
 
 		auto mvpBuffers = renderer.createBuffers(vkx::MVP{});
 		auto lightBuffers = renderer.createBuffers(vkx::DirectionalLight{});
