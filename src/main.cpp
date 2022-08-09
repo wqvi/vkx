@@ -45,7 +45,7 @@ int main(void) {
 	}
 
 	{
-		vkx::Camera camera({0, 0, 0});
+		vkx::Camera camera({0, 0, -5});
 		vkx::RendererBase renderer(window);
 
 		vkx::VoxelChunk chunk({0, 0, 0}, 16);
@@ -59,12 +59,15 @@ int main(void) {
 		renderer.createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, model.texture);
 
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
+		proj[1][1] *= -1.0f;
 
 		SDL_Event event{};
 		bool isRunning = true;
 		SDL_ShowWindow(window);
 		while (isRunning) {
 			auto currentFrame = renderer.getCurrentFrameIndex();
+
+			camera.position += camera.direction * 0.0001f;
 
 			auto& mvpBuffer = mvpBuffers[currentFrame];
 			mvpBuffer->model = model.getModelMatrix();
@@ -100,14 +103,17 @@ int main(void) {
 					if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
 						renderer.framebufferResized = true;
 						proj = glm::perspective(70.0f, static_cast<float>(event.window.data1) / static_cast<float>(event.window.data2), 0.1f, 100.0f);
+						proj[1][1] *= -1.0f;
 					}
 					break;
 				case SDL_MOUSEMOTION:
-					camera.updateMouse({event.motion.xrel, event.motion.yrel});
+					camera.updateMouse({event.motion.xrel, -event.motion.yrel});
 					break;
 				case SDL_KEYDOWN:
 					camera.updateKey(event.key.keysym.sym);
 					break;
+				case SDL_KEYUP:
+					camera.updateKey(0);
 				default:
 					break;
 				}

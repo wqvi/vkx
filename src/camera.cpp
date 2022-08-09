@@ -1,3 +1,4 @@
+#include <glm/ext/quaternion_geometric.hpp>
 #include <vkx/camera.hpp>
 
 #include <SDL2/SDL_keycode.h>
@@ -37,6 +38,8 @@ void vkx::Camera::updateKey(SDL_Keycode key) {
     if (key == SDLK_d) {
         direction = right;
     }
+
+    direction = glm::normalize(direction);
 }
 
 [[nodiscard]] glm::mat4 vkx::Camera::viewMatrix() const {
