@@ -5,25 +5,22 @@
 #include <vulkan/vulkan.h>
 
 extern "C" {
-VkBool32
-vkDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                VkDebugUtilsMessageTypeFlagsEXT,
-                const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-                void *pUserData) {
+VkBool32 vkDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData) {
   switch (messageSeverity) {
   case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-    SDL_Log("%s", pCallbackData->pMessage);
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
     break;
+  case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+    SDL_LogVerbose(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
   case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-    SDL_LogWarn(SDL_LOG_CATEGORY_VIDEO, "%s", pCallbackData->pMessage);
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
     break;
   case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "%s", pCallbackData->pMessage);
+    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s", pCallbackData->pMessage);
     break;
   default:
     return VK_FALSE;
   }
-  // This suppresses the "non-void function does not return a value"
   return VK_FALSE;
 }
 
