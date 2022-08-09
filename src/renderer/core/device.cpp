@@ -207,16 +207,6 @@ vk::Format vkx::Device::findDepthFormat() const {
 				   vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 }
 
-vk::UniqueBuffer vkx::Device::createBufferUnique(vk::DeviceSize size, const vk::BufferUsageFlags& usage) const {
-	const vk::BufferCreateInfo bufferInfo(
-	    {},
-	    size,
-	    usage,
-	    vk::SharingMode::eExclusive);
-
-	return device->createBufferUnique(bufferInfo);
-}
-
 vk::UniqueDeviceMemory vkx::Device::allocateMemoryUnique(const vk::UniqueBuffer& buffer, const vk::MemoryPropertyFlags& flags) const {
 	const auto memReqs = device->getBufferMemoryRequirements(*buffer);
 

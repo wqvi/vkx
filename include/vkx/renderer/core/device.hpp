@@ -169,8 +169,6 @@ public:
 
 	[[nodiscard]] vk::Format findDepthFormat() const;
 
-	[[nodiscard]] vk::UniqueBuffer createBufferUnique(vk::DeviceSize size, const vk::BufferUsageFlags& usage) const;
-
 	[[nodiscard]] vk::UniqueDeviceMemory allocateMemoryUnique(const vk::UniqueBuffer& buffer, const vk::MemoryPropertyFlags& flags) const;
 
 	[[nodiscard]] vk::UniqueDeviceMemory allocateMemoryUnique(const vk::UniqueImage& image, const vk::MemoryPropertyFlags& flags) const;
