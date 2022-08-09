@@ -163,17 +163,11 @@ public:
 
 	[[nodiscard]] std::vector<DrawCommand> createDrawCommands(std::uint32_t size) const;
 
-	[[nodiscard]] std::uint32_t findMemoryType(std::uint32_t typeFilter, const vk::MemoryPropertyFlags& flags) const;
-
-	[[nodiscard]] vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, const vk::FormatFeatureFlags& features) const;
+	[[nodiscard]] vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const;
 
 	[[nodiscard]] vk::Format findDepthFormat() const;
 
-	[[nodiscard]] vk::UniqueDeviceMemory allocateMemoryUnique(const vk::UniqueBuffer& buffer, const vk::MemoryPropertyFlags& flags) const;
-
-	[[nodiscard]] vk::UniqueDeviceMemory allocateMemoryUnique(const vk::UniqueImage& image, const vk::MemoryPropertyFlags& flags) const;
-
-	[[nodiscard]] vk::UniqueImageView createImageViewUnique(const vk::Image& image, vk::Format format, const vk::ImageAspectFlags& aspectFlags) const;
+	[[nodiscard]] vk::UniqueImageView createImageViewUnique(const vk::Image& image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
 	void copyBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize& size) const;
 

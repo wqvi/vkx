@@ -173,21 +173,8 @@ std::vector<vkx::DrawCommand> vkx::Device::createDrawCommands(std::uint32_t size
 	return drawCommands;
 }
 
-std::uint32_t vkx::Device::findMemoryType(std::uint32_t typeFilter, const vk::MemoryPropertyFlags& flags) const {
-	const auto memProperties = physicalDevice.getMemoryProperties();
-
-	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & flags) == flags) {
-			return i;
-		}
-	}
-
-	throw std::runtime_error("Failure to find suitable physical device memory type.");
-}
-
-vk::Format vkx::Device::findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling,
-					    const vk::FormatFeatureFlags& features) const {
-	for (vk::Format format : candidates) {
+vk::Format vkx::Device::findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const {
+	for (const vk::Format format : candidates) {
 		const auto formatProps = physicalDevice.getFormatProperties(format);
 
 		bool isLinear = tiling == vk::ImageTiling::eLinear && (formatProps.linearTilingFeatures & features) == features;
@@ -207,31 +194,7 @@ vk::Format vkx::Device::findDepthFormat() const {
 				   vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 }
 
-vk::UniqueDeviceMemory vkx::Device::allocateMemoryUnique(const vk::UniqueBuffer& buffer, const vk::MemoryPropertyFlags& flags) const {
-	const auto memReqs = device->getBufferMemoryRequirements(*buffer);
-
-	const vk::MemoryAllocateInfo allocInfo(memReqs.size, findMemoryType(memReqs.memoryTypeBits, flags));
-
-	auto memory = device->allocateMemoryUnique(allocInfo);
-
-	device->bindBufferMemory(*buffer, *memory, 0);
-
-	return memory;
-}
-
-vk::UniqueDeviceMemory vkx::Device::allocateMemoryUnique(const vk::UniqueImage& image, const vk::MemoryPropertyFlags& flags) const {
-	const auto memReqs = device->getImageMemoryRequirements(*image);
-
-	const vk::MemoryAllocateInfo allocInfo(memReqs.size, findMemoryType(memReqs.memoryTypeBits, flags));
-
-	auto memory = device->allocateMemoryUnique(allocInfo);
-
-	device->bindImageMemory(*image, *memory, 0);
-
-	return memory;
-}
-
-vk::UniqueImageView vkx::Device::createImageViewUnique(const vk::Image& image, vk::Format format, const vk::ImageAspectFlags& aspectFlags) const {
+vk::UniqueImageView vkx::Device::createImageViewUnique(const vk::Image& image, vk::Format format, vk::ImageAspectFlags aspectFlags) const {
 	const vk::ImageSubresourceRange subresourceRange(aspectFlags, 0, 1, 0, 1);
 
 	const vk::ImageViewCreateInfo imageViewInfo({}, image, vk::ImageViewType::e2D, format, {}, subresourceRange);
