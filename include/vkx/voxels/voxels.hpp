@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vkx/renderer/core/vertex.hpp"
+#include <SDL2/SDL_log.h>
 #include <array>
 #include <glm/fwd.hpp>
 #include <vkx/renderer/core/renderer_base.hpp>
@@ -46,8 +47,8 @@ public:
 	}
 
 	void greedy() {
-		auto* vertexIter = ve.begin();
-		auto* indexIter = in.begin();
+		vertexIter = ve.begin();
+		indexIter = in.begin();
 		for (std::int32_t axis = 0; axis < 3; axis++) {
 			const auto axis1 = (axis + 1) % 3;
 			const auto axis2 = (axis + 2) % 3;
@@ -67,7 +68,7 @@ public:
 				chunkItr[axis]++;
 
 				// Generate Mesh From Mask
-				generateMesh(mask, axis1, axis2, axisMask, chunkItr, vertexIter, indexIter);
+				generateMesh(mask, axis1, axis2, axisMask, chunkItr);
 			}
 		}
 	}
@@ -75,13 +76,16 @@ public:
 	std::vector<vkx::Vertex> vertices;
 	std::vector<std::uint32_t> indices;
 
-	std::array<vkx::Vertex, size * 4> ve;
-	std::array<std::uint32_t, size * 6> in;
+	std::array<vkx::Vertex, (size * 4) * 2> ve;
+	std::array<std::uint32_t, (size * 6) * 2> in;
 
 	std::uint32_t vertexCount = 0;
 
+	vkx::Vertex* vertexIter;
+	std::uint32_t* indexIter;
+
 private:
-	void generateMesh(GreedyMask& mask, std::int32_t axis1, std::int32_t axis2, const glm::i32vec3& axisMask, glm::i32vec3& chunkItr, vkx::Vertex* vertexIter, std::uint32_t* indexIter) {
+	void generateMesh(GreedyMask& mask, std::int32_t axis1, std::int32_t axis2, const glm::i32vec3& axisMask, glm::i32vec3& chunkItr) {
 		for (int j = 0; j < axisLimit; ++j) {
 			for (int i = 0; i < axisLimit;) {
 				const auto& currentMask = mask.at(i, j);
@@ -104,7 +108,7 @@ private:
 					//     chunkItr + deltaAxis2,
 					//     chunkItr + deltaAxis1 + deltaAxis2);
 
-					createQuad(currentMask.normal, axisMask, width, height, chunkItr, axis1, axis2, vertexIter, indexIter);
+					createQuad(currentMask.normal, axisMask, width, height, chunkItr, axis1, axis2);
 
 					mask.clear(i, j, width, height);
 
@@ -116,7 +120,7 @@ private:
 		}
 	}
 
-	void createQuad(int normal, const glm::ivec3& axisMask, int width, int height, const glm::ivec3& pos, std::int32_t axis1, std::int32_t axis2, vkx::Vertex* vertexIter, std::uint32_t* indexIter) {
+	void createQuad(int normal, const glm::ivec3& axisMask, int width, int height, const glm::ivec3& pos, std::int32_t axis1, std::int32_t axis2) {
 		const auto maskNormal = axisMask * normal;
 
 		glm::ivec3 deltaAxis(0, 0, 0);
@@ -134,6 +138,8 @@ private:
 		vertices.push_back(v2);
 		vertices.push_back(v3);
 		vertices.push_back(v4);
+
+		SDL_Log("Creating quad! %d", vertexCount / 4);
 
 		*vertexIter = v1;
 		vertexIter++;

@@ -55,9 +55,9 @@ public:
 	allocateMesh(const std::vector<Vertex>& vertices,
 		     const std::vector<std::uint32_t>& indices) const;
 
-	template <std::size_t size>
-	vkx::Mesh allocateMesh(const std::array<Vertex, size * 4>& vertices, const std::array<std::uint32_t, size * 6>& indices) {
-		return vkx::Mesh::createMesh<size>(vertices, indices, allocator);
+	template <std::size_t T, std::size_t K>
+	vkx::Mesh allocateMesh(const std::array<Vertex, T>& vertices, const std::array<std::uint32_t, K>& indices) {
+		return Mesh{vertices, indices, allocator};
 	}
 
 	[[nodiscard]] Texture allocateTexture(const std::string& textureFile) const;

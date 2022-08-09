@@ -16,6 +16,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/fwd.hpp>
 #include <iostream>
+#include <iterator>
 #include <stdexcept>
 #include <vk_mem_alloc.h>
 #include <vkx/vkx.hpp>
@@ -54,6 +55,9 @@ int main(void) {
 		vkx::Model model(renderer.allocateMesh(chunk.vertices, chunk.indices), renderer.allocateTexture("a.jpg"), {glm::vec3(0.2f), 100.0f});
 		// model.mesh.indexCount = chunk.vertexCount;
 
+		auto mesh = renderer.allocateMesh(chunk.ve, chunk.in);
+		mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
+
 		auto mvpBuffers = renderer.createBuffers(vkx::MVP{});
 		auto lightBuffers = renderer.createBuffers(vkx::DirectionalLight{});
 		auto materialBuffers = renderer.createBuffers(vkx::Material{});
@@ -91,8 +95,8 @@ int main(void) {
 
 			// TODO whatever this is lol
 			renderer.drawFrame(mvpBuffer, lightBuffer, materialBuffer,
-					   model.mesh.vertex->object, model.mesh.index->object,
-					   static_cast<std::uint32_t>(model.mesh.indexCount),
+					   mesh.vertex->object, mesh.index->object,
+					   static_cast<std::uint32_t>(mesh.indexCount),
 					   currentFrame);
 
 			while (SDL_PollEvent(&event)) {
