@@ -2,7 +2,6 @@
 
 #include "vkx/renderer/core/allocable.hpp"
 #include "vkx/renderer/core/device.hpp"
-#include <vkx/renderer/buffer.hpp>
 #include <vkx/renderer/image.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 

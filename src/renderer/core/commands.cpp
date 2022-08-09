@@ -1,6 +1,5 @@
 #include <vkx/renderer/core/commands.hpp>
 
-#include <vkx/renderer/buffer.hpp>
 #include <vkx/renderer/core/device.hpp>
 #include <vulkan/vulkan_handles.hpp>
 
