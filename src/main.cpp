@@ -22,9 +22,9 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
-	auto windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
+	const auto windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
 
-	SDL_Window* window = SDL_CreateWindow("Jewelry", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, windowFlags);
+	SDL_Window* const window = SDL_CreateWindow("Jewelry", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, windowFlags);
 
 	if (window == nullptr) {
 		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2 window: %s", SDL_GetError());
@@ -40,13 +40,13 @@ int main(void) {
 
 		const vkx::Model model(renderer.allocateMesh(chunk.vertices, chunk.indices), renderer.allocateTexture("a.jpg"), {glm::vec3(0.2f), 100.0f});
 
-		std::vector<vkx::UniformBuffer<vkx::MVP>> mvpBuffers = renderer.createBuffers(vkx::MVP{});
-		std::vector<vkx::UniformBuffer<vkx::DirectionalLight>> lightBuffers = renderer.createBuffers(vkx::DirectionalLight{});
-		std::vector<vkx::UniformBuffer<vkx::Material>> materialBuffers = renderer.createBuffers(vkx::Material{});
+		auto mvpBuffers = renderer.createBuffers(vkx::MVP{});
+		auto lightBuffers = renderer.createBuffers(vkx::DirectionalLight{});
+		auto materialBuffers = renderer.createBuffers(vkx::Material{});
 		renderer.createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, model.texture);
 
-		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
-		glm::mat4 proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
+		auto view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
 		SDL_Event event{};
 		bool isRunning = true;
@@ -87,7 +87,6 @@ int main(void) {
 				case SDL_WINDOWEVENT:
 					if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
 						renderer.framebufferResized = true;
-						// proj = glm::ortho(0.0f, static_cast<float>(event.window.data1), static_cast<float>(event.window.data2), 0.0f, 0.1f, 100.0f);
 						proj = glm::perspective(70.0f, static_cast<float>(event.window.data1) / static_cast<float>(event.window.data2), 0.1f, 100.0f);
 					}
 					break;
