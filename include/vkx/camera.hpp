@@ -28,7 +28,7 @@ namespace vkx {
 
         void updateMouse(glm::vec2 const &relative);
 
-        void updateKey(int key);
+        void updateKey(SDL_Keycode key);
 
         [[nodiscard]] glm::mat4 viewMatrix() const;
 

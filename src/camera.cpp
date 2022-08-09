@@ -15,7 +15,7 @@ void vkx::Camera::updateMouse(glm::vec2 const &relative) {
     pitchOrientation = glm::angleAxis(glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 }
 
-void vkx::Camera::updateKey(int key) {
+void vkx::Camera::updateKey(SDL_Keycode key) {
     // FPS Camera
     // glm::quat orientation = yawOrientation * glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
     // Free Camera
