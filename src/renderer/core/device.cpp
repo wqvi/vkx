@@ -188,7 +188,7 @@ vk::Format vkx::Device::findSupportedFormat(const std::vector<vk::Format>& candi
 	return vk::Format::eUndefined;
 }
 
-vk::UniqueImageView vkx::Device::createImageViewUnique(const vk::Image& image, vk::Format format, vk::ImageAspectFlags aspectFlags) const {
+vk::UniqueImageView vkx::Device::createImageViewUnique(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const {
 	const vk::ImageSubresourceRange subresourceRange(aspectFlags, 0, 1, 0, 1);
 
 	const vk::ImageViewCreateInfo imageViewInfo({}, image, vk::ImageViewType::e2D, format, {}, subresourceRange);
@@ -196,7 +196,7 @@ vk::UniqueImageView vkx::Device::createImageViewUnique(const vk::Image& image, v
 	return device->createImageViewUnique(imageViewInfo);
 }
 
-void vkx::Device::copyBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize& size) const {
+void vkx::Device::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) const {
 	const SingleTimeCommand singleTimeCommand(*this, queues.graphics);
 
 	const vk::BufferCopy copyRegion(0, 0, size);
@@ -204,7 +204,7 @@ void vkx::Device::copyBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstB
 	singleTimeCommand->copyBuffer(srcBuffer, dstBuffer, copyRegion);
 }
 
-void vkx::Device::copyBufferToImage(const vk::Buffer& buffer, const vk::Image& image, std::uint32_t width, std::uint32_t height) const {
+void vkx::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const {
 	const SingleTimeCommand singleTimeCommand{*this, queues.graphics};
 
 	const vk::ImageSubresourceLayers subresourceLayer(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
@@ -224,7 +224,7 @@ void vkx::Device::copyBufferToImage(const vk::Buffer& buffer, const vk::Image& i
 	singleTimeCommand->copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
 }
 
-void vkx::Device::transitionImageLayout(const vk::Image& image, const vk::ImageLayout& oldLayout, const vk::ImageLayout& newLayout) const {
+void vkx::Device::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
 	const SingleTimeCommand singleTimeCommand{*this, queues.graphics};
 
 	const vk::ImageSubresourceRange subresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
@@ -264,7 +264,7 @@ void vkx::Device::transitionImageLayout(const vk::Image& image, const vk::ImageL
 	singleTimeCommand->pipelineBarrier(sourceStage, destinationStage, {}, {}, {}, barrier);
 }
 
-void vkx::Device::submit(const std::vector<vk::CommandBuffer>& commandBuffers, const vk::Semaphore& waitSemaphore, const vk::Semaphore& signalSemaphore, const vk::Fence& flightFence) const {
+void vkx::Device::submit(const std::vector<vk::CommandBuffer>& commandBuffers, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore, vk::Fence flightFence) const {
 	constexpr std::array waitStage{vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
 	const vk::SubmitInfo submitInfo(
 	    1,
@@ -278,7 +278,7 @@ void vkx::Device::submit(const std::vector<vk::CommandBuffer>& commandBuffers, c
 	queues.graphics.submit(submitInfo, flightFence);
 }
 
-vk::Result vkx::Device::present(const vk::SwapchainKHR& swapchain, std::uint32_t imageIndex, const vk::Semaphore& signalSemaphores) const {
+vk::Result vkx::Device::present(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, vk::Semaphore signalSemaphores) const {
 	const vk::PresentInfoKHR presentInfo(
 	    1,
 	    &signalSemaphores,

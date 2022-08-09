@@ -169,19 +169,19 @@ public:
 		return findSupportedFormat({vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint}, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 	}
 
-	[[nodiscard]] vk::UniqueImageView createImageViewUnique(const vk::Image& image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
+	[[nodiscard]] vk::UniqueImageView createImageViewUnique(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
-	void copyBuffer(const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize& size) const;
+	void copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) const;
 
-	void copyBufferToImage(const vk::Buffer& buffer, const vk::Image& image, std::uint32_t width, std::uint32_t height) const;
+	void copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const;
 
-	void transitionImageLayout(const vk::Image& image, const vk::ImageLayout& oldLayout, const vk::ImageLayout& newLayout) const;
+	void transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const;
 
-	void submit(const std::vector<vk::CommandBuffer>& commandBuffers, const vk::Semaphore& waitSemaphore, const vk::Semaphore& signalSemaphore, const vk::Fence& flightFence) const;
+	void submit(const std::vector<vk::CommandBuffer>& commandBuffers, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore, vk::Fence flightFence) const;
 
 	void submit(const std::vector<DrawCommand>& drawCommands, const SyncObjects& syncObjects) const;
 
-	[[nodiscard]] vk::Result present(const vk::SwapchainKHR& swapchain, std::uint32_t imageIndex, const vk::Semaphore& signalSemaphores) const;
+	[[nodiscard]] vk::Result present(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, vk::Semaphore signalSemaphores) const;
 
 	[[nodiscard]] vk::UniqueImageView createTextureImageViewUnique(const vk::Image& image) const;
 
