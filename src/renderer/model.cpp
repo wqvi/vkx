@@ -7,7 +7,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>
 
 Texture::Texture(const std::string& file, const Device& device, const std::shared_ptr<Allocator>& allocator)
     : image(file, device, allocator),
-      view(device.createTextureImageViewUnique(*image.obj)),
+      view(device.createTextureImageViewUnique(image.resource->object)),
       sampler(device.createTextureSamplerUnique()) {
 }
 

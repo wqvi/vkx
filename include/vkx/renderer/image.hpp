@@ -5,7 +5,7 @@
 #include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
-class Image : public Allocable<vk::Image> {
+class Image {
 public:
   std::shared_ptr<Allocation<vk::Image>> resource;
 

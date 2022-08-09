@@ -49,14 +49,14 @@ VmaAllocator vkx::Allocator::getAllocator() const noexcept {
 	return allocator;
 }
 
-std::shared_ptr<vkx::Allocation<vk::Image>> vkx::Allocator::allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage) const {
+std::shared_ptr<vkx::Allocation<vk::Image>> vkx::Allocator::allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags imageUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) const {
 	const vk::Extent3D imageExtent(width, height, 1);
 
-	const vk::ImageCreateInfo imageCreateInfo({}, vk::ImageType::e2D, format, imageExtent, 1, 1, vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined);
+	const vk::ImageCreateInfo imageCreateInfo({}, vk::ImageType::e2D, format, imageExtent, 1, 1, vk::SampleCountFlagBits::e1, tiling, imageUsage, vk::SharingMode::eExclusive, {}, vk::ImageLayout::eUndefined);
 
 	VmaAllocationCreateInfo allocationCreateInfo{};
-	allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
-	allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+	allocationCreateInfo.flags = flags;
+	allocationCreateInfo.usage = memoryUsage;
 	allocationCreateInfo.requiredFlags = 0;
 	allocationCreateInfo.preferredFlags = 0;
 	allocationCreateInfo.memoryTypeBits = 0;
@@ -74,12 +74,12 @@ std::shared_ptr<vkx::Allocation<vk::Image>> vkx::Allocator::allocateImage(std::u
 	return std::make_shared<Allocation<vk::Image>>(vk::Image(image), allocation, allocationInfo, allocator);
 }
 
-std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage) const {
-	const vk::BufferCreateInfo bufferCreateInfo({}, size, usage, vk::SharingMode::eExclusive);
+std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) const {
+	const vk::BufferCreateInfo bufferCreateInfo({}, size, bufferUsage, vk::SharingMode::eExclusive);
 
 	VmaAllocationCreateInfo allocationCreateInfo{};
-	allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
-	allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+	allocationCreateInfo.flags = flags;
+	allocationCreateInfo.usage = memoryUsage;
 	allocationCreateInfo.requiredFlags = 0;
 	allocationCreateInfo.preferredFlags = 0;
 	allocationCreateInfo.memoryTypeBits = 0;
