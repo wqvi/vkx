@@ -6,7 +6,7 @@
 namespace vkx {
 class GraphicsPipeline {
 public:
-  vk::UniquePipelineLayout layout;
+	vk::UniquePipelineLayout layout;
 	vk::UniquePipeline pipeline;
 
 	GraphicsPipeline() = default;
@@ -14,10 +14,10 @@ public:
 	GraphicsPipeline(const Device& device, const vk::Extent2D& extent, const vk::UniqueRenderPass& renderPass, const vk::UniqueDescriptorSetLayout& descriptorSetLayout);
 
 private:
-  static vk::UniquePipelineLayout createPipelineLayout(const Device& device, const vk::UniqueDescriptorSetLayout& descriptorSetLayout);
+	static vk::UniquePipelineLayout createPipelineLayout(const Device& device, const vk::UniqueDescriptorSetLayout& descriptorSetLayout);
 
 	static vk::UniqueShaderModule createShaderModule(const Device& device, const std::string& filename);
 
-  static vk::UniquePipeline createPipeline(const vkx::Device& device, const vk::Extent2D& extent, const vk::UniqueRenderPass& renderPass, const vk::UniquePipelineLayout& layout);
+	static vk::UniquePipeline createPipeline(const vkx::Device& device, const vk::Extent2D& extent, const vk::UniqueRenderPass& renderPass, const vk::UniquePipelineLayout& layout);
 };
 } // namespace vkx
