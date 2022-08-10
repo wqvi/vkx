@@ -23,13 +23,4 @@ struct QueueConfig {
 
 	[[nodiscard]] vk::SharingMode getImageSharingMode() const;
 };
-
-struct Queues {
-	Queues() = default;
-
-	Queues(const Device& device, const QueueConfig& queueConfig);
-
-	vk::Queue graphics;
-	vk::Queue present;
-};
 } // namespace vkx

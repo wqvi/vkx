@@ -208,6 +208,7 @@ private:
 	vk::UniqueDevice device{};
 	vk::UniqueCommandPool commandPool{};
 	float maxSamplerAnisotropy = 0.0f;
-	Queues queues{};
+	vk::Queue graphicsQueue{};
+	vk::Queue presentQueue{};
 };
 } // namespace vkx

@@ -59,7 +59,3 @@ vk::SharingMode vkx::QueueConfig::getImageSharingMode() const {
 	}
 	return vk::SharingMode::eConcurrent;
 }
-
-vkx::Queues::Queues(const Device& device, const QueueConfig& queueConfig)
-    : graphics(device->getQueue(*queueConfig.graphicsIndex, 0)),
-      present(device->getQueue(*queueConfig.presentIndex, 0)) {}

@@ -132,7 +132,8 @@ vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk
 
 	commandPool = device->createCommandPoolUnique(commandPoolInfo);
 
-	queues = Queues(*this, queueConfig);
+	graphicsQueue = device->getQueue(*queueConfig.graphicsIndex, 0);
+    presentQueue = device->getQueue(*queueConfig.presentIndex, 0);
 }
 
 vkx::Device::operator const vk::PhysicalDevice&() const {
@@ -196,7 +197,7 @@ vk::UniqueImageView vkx::Device::createImageViewUnique(vk::Image image, vk::Form
 }
 
 void vkx::Device::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) const {
-	const SingleTimeCommand singleTimeCommand(*this, queues.graphics);
+	const SingleTimeCommand singleTimeCommand(*this, graphicsQueue);
 
 	const vk::BufferCopy copyRegion(0, 0, size);
 
@@ -204,7 +205,7 @@ void vkx::Device::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::Dev
 }
 
 void vkx::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const {
-	const SingleTimeCommand singleTimeCommand{*this, queues.graphics};
+	const SingleTimeCommand singleTimeCommand{*this, graphicsQueue};
 
 	const vk::ImageSubresourceLayers subresourceLayer(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
 
@@ -224,7 +225,7 @@ void vkx::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uin
 }
 
 void vkx::Device::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
-	const SingleTimeCommand singleTimeCommand{*this, queues.graphics};
+	const SingleTimeCommand singleTimeCommand{*this, graphicsQueue};
 
 	const vk::ImageSubresourceRange subresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
@@ -274,7 +275,7 @@ void vkx::Device::submit(const std::vector<vk::CommandBuffer>& commandBuffers, v
 	    1,
 	    &signalSemaphore);
 
-	queues.graphics.submit(submitInfo, flightFence);
+	graphicsQueue.submit(submitInfo, flightFence);
 }
 
 vk::Result vkx::Device::present(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, vk::Semaphore signalSemaphores) const {
@@ -285,7 +286,7 @@ vk::Result vkx::Device::present(vk::SwapchainKHR swapchain, std::uint32_t imageI
 	    &swapchain,
 	    &imageIndex);
 
-	return queues.present.presentKHR(&presentInfo);
+	return presentQueue.presentKHR(&presentInfo);
 }
 
 [[nodiscard]] vk::UniqueImageView vkx::Device::createTextureImageViewUnique(vk::Image image) const {
