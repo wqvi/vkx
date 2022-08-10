@@ -10,7 +10,6 @@ struct QueueConfig {
 
 	QueueConfig(const Device& device, vk::SurfaceKHR surface);
 
-	std::optional<std::uint32_t> computeIndex;
 	std::optional<std::uint32_t> graphicsIndex;
 	std::optional<std::uint32_t> presentIndex;
 
@@ -30,7 +29,6 @@ struct Queues {
 
 	Queues(const Device& device, const QueueConfig& queueConfig);
 
-	vk::Queue compute;
 	vk::Queue graphics;
 	vk::Queue present;
 };

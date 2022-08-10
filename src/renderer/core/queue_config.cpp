@@ -8,10 +8,6 @@ vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR 
 
 	for (std::uint32_t i = 0; i < static_cast<std::uint32_t>(queueFamilies.size()); i++) {
 		const auto flags = queueFamilies[i].queueFlags;
-		if (flags & vk::QueueFlagBits::eCompute) {
-			computeIndex = i;
-		}
-
 		if (flags & vk::QueueFlagBits::eGraphics) {
 			graphicsIndex = i;
 		}
@@ -25,7 +21,7 @@ vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR 
 		}
 	}
 
-	if (isUniversal() && isComplete()) {
+	if (isComplete()) {
 		std::set uniqueIndices{*graphicsIndex, *presentIndex};
 
 		std::copy(uniqueIndices.begin(), uniqueIndices.end(), std::back_inserter(indices));
@@ -36,11 +32,11 @@ vkx::QueueConfig::QueueConfig(const Device& device, vk::SurfaceKHR surface)
     : QueueConfig(static_cast<vk::PhysicalDevice>(device), surface) {}
 
 bool vkx::QueueConfig::isComplete() const {
-	return graphicsIndex.has_value() && computeIndex.has_value() && presentIndex.has_value();
+	return graphicsIndex.has_value() && presentIndex.has_value();
 }
 
 bool vkx::QueueConfig::isUniversal() const {
-	return *computeIndex == *graphicsIndex && *graphicsIndex == *presentIndex;
+	return *graphicsIndex == *presentIndex;
 }
 
 std::vector<vk::DeviceQueueCreateInfo> vkx::QueueConfig::createQueueInfos(float queuePriorities) const {
@@ -65,6 +61,5 @@ vk::SharingMode vkx::QueueConfig::getImageSharingMode() const {
 }
 
 vkx::Queues::Queues(const Device& device, const QueueConfig& queueConfig)
-    : compute(device->getQueue(*queueConfig.computeIndex, 0)),
-      graphics(device->getQueue(*queueConfig.graphicsIndex, 0)),
+    : graphics(device->getQueue(*queueConfig.graphicsIndex, 0)),
       present(device->getQueue(*queueConfig.presentIndex, 0)) {}
