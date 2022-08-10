@@ -1,3 +1,4 @@
+#include "vkx/renderer/core/device.hpp"
 #include "vkx/renderer/core/renderer_types.hpp"
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_log.h>
@@ -87,37 +88,8 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 	}
 	surface = vk::UniqueSurfaceKHR(cSurface, *instance);
 
-	const auto physicalDevices = instance->enumeratePhysicalDevices();
-	vk::PhysicalDevice bestPhysicalDevice = nullptr;
-	std::uint32_t bestRating = 0;
-	for (const auto& pDevice : physicalDevices) {
-		std::uint32_t rating = 0;
-
-		const QueueConfig indices{pDevice, surface};
-		if (indices.isComplete()) {
-			rating++;
-		}
-
-		const SwapchainInfo info{pDevice, surface};
-		if (info.isComplete()) {
-			rating++;
-		}
-
-		if (pDevice.getFeatures().samplerAnisotropy) {
-			rating++;
-		}
-
-		if (rating > bestRating) {
-			bestRating = rating;
-			bestPhysicalDevice = pDevice;
-		}
-	}
-
-	if (!static_cast<bool>(bestPhysicalDevice)) {
-		throw std::runtime_error("Failure to initialize device.");
-	}
-
-	device = std::make_unique<vkx::Device>(instance, bestPhysicalDevice, surface);
+	const auto physicalDevice = getBestPhysicalDevice(instance, surface);
+	device = std::make_unique<vkx::Device>(instance, physicalDevice, surface);
 
 	allocator = device->createAllocator(*instance);
 
@@ -164,6 +136,11 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 	syncObjects = SyncObjects::createSyncObjects(*device);
 
 	createDescriptorPool();
+}
+
+vkx::Device vkx::RendererBase::createDevice() const {
+	const auto physicalDevice = getBestPhysicalDevice(instance, surface);
+	return vkx::Device(instance, physicalDevice, surface);
 }
 
 void vkx::RendererBase::recreateSwapchain() {
@@ -334,3 +311,38 @@ vkx::RendererBase::allocateTexture(const std::string& textureFile) const {
 }
 
 void vkx::RendererBase::waitIdle() const { (*device)->waitIdle(); }
+
+vk::PhysicalDevice vkx::RendererBase::getBestPhysicalDevice(const vk::UniqueInstance& instance, const vk::UniqueSurfaceKHR& surface) {
+	const auto physicalDevices = instance->enumeratePhysicalDevices();
+
+	vk::PhysicalDevice physicalDevice = nullptr;
+	std::uint32_t bestRating = 0;
+	for (const auto& pDevice : physicalDevices) {
+		std::uint32_t rating = 0;
+
+		const QueueConfig indices{pDevice, surface};
+		if (indices.isComplete()) {
+			rating++;
+		}
+
+		const SwapchainInfo info{pDevice, surface};
+		if (info.isComplete()) {
+			rating++;
+		}
+
+		if (pDevice.getFeatures().samplerAnisotropy) {
+			rating++;
+		}
+
+		if (rating > bestRating) {
+			bestRating = rating;
+			physicalDevice = pDevice;
+		}
+	}
+
+	if (!static_cast<bool>(physicalDevice)) {
+		throw std::runtime_error("Failed to find suitable GPU to use.");
+	}
+
+	return physicalDevice;
+}

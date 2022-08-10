@@ -19,7 +19,10 @@
 namespace vkx {
 class RendererBase {
 public:
-	RendererBase(SDL_Window* window);
+	explicit RendererBase(SDL_Window* window);
+
+	[[nodiscard]]
+	vkx::Device createDevice() const; 
 
 	void recreateSwapchain();
 
@@ -93,5 +96,7 @@ private:
 
 	[[nodiscard]] vk::UniqueRenderPass createRenderPass(
 	    vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
+
+	static vk::PhysicalDevice getBestPhysicalDevice(const vk::UniqueInstance& instance, const vk::UniqueSurfaceKHR& surface);
 };
 } // namespace vkx
