@@ -46,6 +46,8 @@ public:
 
 private:
 	VmaAllocator allocator = nullptr;
+
+	static VmaAllocationCreateInfo createAllocationInfo(VmaAllocationCreateFlags flags = 0, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO, VmaPool pool = nullptr);
 };
 
 template <class T>
@@ -98,15 +100,7 @@ template <class T>
 std::shared_ptr<Allocation<vk::Buffer>> Allocator::allocateBuffer(const std::vector<T>& data, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) const {
 	const vk::BufferCreateInfo bufferCreateInfo({}, data.size() * sizeof(T), bufferUsage, vk::SharingMode::eExclusive);
 
-	VmaAllocationCreateInfo allocationCreateInfo{};
-	allocationCreateInfo.flags = flags;
-	allocationCreateInfo.usage = memoryUsage;
-	allocationCreateInfo.requiredFlags = 0;
-	allocationCreateInfo.preferredFlags = 0;
-	allocationCreateInfo.memoryTypeBits = 0;
-	allocationCreateInfo.pool = nullptr;
-	allocationCreateInfo.pUserData = nullptr;
-	allocationCreateInfo.priority = {};
+	const VmaAllocationCreateInfo allocationCreateInfo = createAllocationInfo(flags, memoryUsage);
 
 	VkBuffer buffer = nullptr;
 	VmaAllocation allocation = nullptr;
@@ -124,15 +118,7 @@ template <class T, std::size_t size>
 std::shared_ptr<Allocation<vk::Buffer>> Allocator::allocateBuffer(const std::array<T, size>& data, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) const {
 	const vk::BufferCreateInfo bufferCreateInfo({}, sizeof(T) * size, bufferUsage, vk::SharingMode::eExclusive);
 
-	VmaAllocationCreateInfo allocationCreateInfo{};
-	allocationCreateInfo.flags = flags;
-	allocationCreateInfo.usage = memoryUsage;
-	allocationCreateInfo.requiredFlags = 0;
-	allocationCreateInfo.preferredFlags = 0;
-	allocationCreateInfo.memoryTypeBits = 0;
-	allocationCreateInfo.pool = nullptr;
-	allocationCreateInfo.pUserData = nullptr;
-	allocationCreateInfo.priority = {};
+	const VmaAllocationCreateInfo allocationCreateInfo = createAllocationInfo(flags, memoryUsage);
 
 	VkBuffer buffer = nullptr;
 	VmaAllocation allocation = nullptr;
@@ -150,15 +136,7 @@ template <class T>
 std::shared_ptr<Allocation<vk::Buffer>> Allocator::allocateBuffer(const T& data, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) const {
 	const vk::BufferCreateInfo bufferCreateInfo({}, sizeof(T), bufferUsage, vk::SharingMode::eExclusive);
 
-	VmaAllocationCreateInfo allocationCreateInfo{};
-	allocationCreateInfo.flags = flags;
-	allocationCreateInfo.usage = memoryUsage;
-	allocationCreateInfo.requiredFlags = 0;
-	allocationCreateInfo.preferredFlags = 0;
-	allocationCreateInfo.memoryTypeBits = 0;
-	allocationCreateInfo.pool = nullptr;
-	allocationCreateInfo.pUserData = nullptr;
-	allocationCreateInfo.priority = {};
+	const VmaAllocationCreateInfo allocationCreateInfo = createAllocationInfo(flags, memoryUsage);
 
 	VkBuffer buffer = nullptr;
 	VmaAllocation allocation = nullptr;
@@ -208,8 +186,6 @@ public:
 
 	void submit(const std::vector<vk::CommandBuffer>& commandBuffers, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore, vk::Fence flightFence) const;
 
-	void submit(const std::vector<DrawCommand>& drawCommands, const SyncObjects& syncObjects) const;
-
 	[[nodiscard]] vk::Result present(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, vk::Semaphore signalSemaphores) const;
 
 	[[nodiscard]] vk::UniqueImageView createTextureImageViewUnique(vk::Image image) const;
@@ -223,7 +199,6 @@ private:
 	vk::UniqueDevice device{};
 	vk::UniqueCommandPool commandPool{};
 	vk::PhysicalDeviceProperties properties{};
-
 	Queues queues{};
 };
 } // namespace vkx

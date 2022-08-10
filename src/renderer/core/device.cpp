@@ -97,6 +97,10 @@ std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(vk::
 	return std::make_shared<Allocation<vk::Buffer>>(vk::Buffer(buffer), allocation, allocationInfo, allocator);
 }
 
+VmaAllocationCreateInfo vkx::Allocator::createAllocationInfo(VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage, VmaPool pool) {
+	return VmaAllocationCreateInfo{flags, memoryUsage, 0, 0, 0, pool, nullptr, {}};
+}
+
 vkx::Device::Device(const vk::UniqueInstance& instance, const vk::PhysicalDevice& physicalDevice, const vk::UniqueSurfaceKHR& surface)
     : physicalDevice(physicalDevice), properties(physicalDevice.getProperties()) {
 
@@ -313,26 +317,6 @@ vk::Result vkx::Device::present(vk::SwapchainKHR swapchain, std::uint32_t imageI
 	    false);
 
 	return device->createSamplerUnique(samplerInfo);
-}
-
-void vkx::Device::submit(const std::vector<DrawCommand>& drawCommands, const SyncObjects& syncObjects) const {
-	constexpr std::array waitStage{vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
-
-	std::vector<vk::CommandBuffer> commands;
-	std::transform(drawCommands.begin(), drawCommands.end(), std::back_inserter(commands), [](const vkx::DrawCommand& drawCommand) {
-		return static_cast<vk::CommandBuffer>(drawCommand);
-	});
-
-	const vk::SubmitInfo submitInfo(
-	    1,
-	    &*syncObjects.imageAvailableSemaphore,
-	    waitStage.data(),
-	    static_cast<std::uint32_t>(commands.size()),
-	    commands.data(),
-	    1,
-	    &*syncObjects.renderFinishedSemaphore);
-
-	queues.graphics.submit(submitInfo, *syncObjects.inFlightFence);
 }
 
 std::shared_ptr<vkx::Allocator> vkx::Device::createAllocator(vk::Instance instance) const {
