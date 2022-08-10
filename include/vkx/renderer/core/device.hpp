@@ -4,6 +4,7 @@
 #include "renderer_types.hpp"
 #include "vertex.hpp"
 #include "vk_mem_alloc.h"
+#include "vkx/renderer/core/pipeline.hpp"
 #include <SDL2/SDL_log.h>
 #include <cstddef>
 #include <cstring>
@@ -192,9 +193,13 @@ public:
 
 	[[nodiscard]] vk::UniqueSampler createTextureSamplerUnique() const;
 
-	std::shared_ptr<Allocator> createAllocator() const;
+	std::shared_ptr<vkx::Allocator> createAllocator() const;
 
 	std::shared_ptr<vkx::Swapchain> createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const;
+
+	vk::UniqueRenderPass createRenderPass(vk::Format format, vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
+
+	std::shared_ptr<vkx::GraphicsPipeline> createGraphicsPipeline(const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) const;
 
 private:
 	vk::Instance instance{};

@@ -1,8 +1,12 @@
-#include <vkx/renderer/core/device.hpp>
+#include "vkx/renderer/core/pipeline.hpp"
+#include <memory>
 #include <vkx/renderer/core/commands.hpp>
+#include <vkx/renderer/core/device.hpp>
+#include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
-#include <vkx/renderer/core/swapchain.hpp>
+#include <vulkan/vulkan_handles.hpp>
+#include <vulkan/vulkan_structs.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
@@ -316,4 +320,70 @@ std::shared_ptr<vkx::Allocator> vkx::Device::createAllocator() const {
 
 std::shared_ptr<vkx::Swapchain> vkx::Device::createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const {
 	return std::make_shared<vkx::Swapchain>(*this, surface, window, allocator);
+}
+
+vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::AttachmentLoadOp loadOp) const {
+	const vk::AttachmentDescription colorAttachment(
+	    {},
+	    format,
+	    vk::SampleCountFlagBits::e1,
+	    loadOp,
+	    vk::AttachmentStoreOp::eStore,
+	    vk::AttachmentLoadOp::eDontCare,
+	    vk::AttachmentStoreOp::eDontCare,
+	    vk::ImageLayout::eUndefined,
+	    vk::ImageLayout::ePresentSrcKHR);
+
+	const vk::AttachmentReference colorAttachmentRef(
+	    0,
+	    vk::ImageLayout::eColorAttachmentOptimal);
+
+	const vk::AttachmentDescription depthAttachment(
+	    {},
+	    findDepthFormat(),
+	    vk::SampleCountFlagBits::e1,
+	    vk::AttachmentLoadOp::eClear,
+	    vk::AttachmentStoreOp::eDontCare,
+	    vk::AttachmentLoadOp::eDontCare,
+	    vk::AttachmentStoreOp::eDontCare,
+	    vk::ImageLayout::eUndefined,
+	    vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+	const vk::AttachmentReference depthAttachmentRef(
+	    1,
+	    vk::ImageLayout::eDepthStencilAttachmentOptimal);
+
+	const vk::SubpassDescription subpass(
+	    {},
+	    vk::PipelineBindPoint::eGraphics,
+	    {},
+	    colorAttachmentRef,
+	    {},
+	    &depthAttachmentRef,
+	    {});
+
+	constexpr auto dependencyStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+	constexpr auto dependencyAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+	const vk::SubpassDependency dependency(
+	    VK_SUBPASS_EXTERNAL,
+	    0,
+	    dependencyStageMask,
+	    dependencyStageMask,
+	    {},
+	    dependencyAccessMask);
+
+	const auto renderPassAttachments = {colorAttachment, depthAttachment};
+
+	const vk::RenderPassCreateInfo renderPassInfo(
+	    {},
+	    renderPassAttachments,
+	    subpass,
+	    dependency);
+
+	return device->createRenderPassUnique(renderPassInfo);
+}
+
+std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) const {
+	return std::make_shared<vkx::GraphicsPipeline>(*this, extent, renderPass, descriptorSetLayout);
 }

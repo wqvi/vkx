@@ -5,13 +5,13 @@
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(const vkx::Device& device, const vk::Extent2D& extent, const vk::UniqueRenderPass& renderPass, const vk::UniqueDescriptorSetLayout& descriptorSetLayout) {
+vkx::GraphicsPipeline::GraphicsPipeline(const vkx::Device& device, const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) {
 	layout = createPipelineLayout(device, descriptorSetLayout);
-	pipeline = createPipeline(device, extent, renderPass, layout);
+	pipeline = createPipeline(device, extent, renderPass, *layout);
 }
 
-vk::UniquePipelineLayout vkx::GraphicsPipeline::createPipelineLayout(const vkx::Device& device, const vk::UniqueDescriptorSetLayout& descriptorSetLayout) {
-	vk::PipelineLayoutCreateInfo pipelineLayoutInfo({}, *descriptorSetLayout);
+vk::UniquePipelineLayout vkx::GraphicsPipeline::createPipelineLayout(const vkx::Device& device, vk::DescriptorSetLayout descriptorSetLayout) {
+	vk::PipelineLayoutCreateInfo pipelineLayoutInfo({}, descriptorSetLayout);
 
 	return device->createPipelineLayoutUnique(pipelineLayoutInfo);
 }
@@ -34,7 +34,7 @@ vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(const vkx::Devi
 	return device->createShaderModuleUnique(shaderCreateInfo);
 }
 
-vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(const vkx::Device& device, const vk::Extent2D& extent, const vk::UniqueRenderPass& renderPass, const vk::UniquePipelineLayout& layout) {
+vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(const vkx::Device& device, const vk::Extent2D& extent, vk::RenderPass renderPass, vk::PipelineLayout layout) {
 	const auto vertShaderModule = createShaderModule(device, "shader.vert.spv");
 	const auto fragShaderModule = createShaderModule(device, "shader.frag.spv");
 
@@ -113,8 +113,8 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(const vkx::Device& devi
 	    &depthStencil,
 	    &colorBlending,
 	    nullptr,
-	    *layout,
-	    *renderPass,
+	    layout,
+	    renderPass,
 	    0,
 	    nullptr);
 

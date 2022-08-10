@@ -21,6 +21,7 @@
 #include <vk_mem_alloc.h>
 #include <vkx/vkx.hpp>
 #include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan_enums.hpp>
 
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -49,10 +50,12 @@ int main(void) {
 		vkx::Camera camera({0, 0, 0});
 
 		vkx::RendererBase renderer(window);
-		const auto device = renderer.createDevice();
-		const auto allocator = device->createAllocator();
+		// const auto device = renderer.createDevice();
+		// const auto allocator = device->createAllocator();
 		// const auto swapchain = device->createSwapchain(window, allocator);
-		// const auto graphicsPipeline = {1, 2, 3};
+		// const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat);
+		// const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::AttachmentLoadOp::eLoad);
+		// const auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, {});
 
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
 		chunk.greedy();

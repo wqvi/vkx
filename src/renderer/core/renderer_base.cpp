@@ -129,7 +129,7 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 
 	descriptorSetLayout = (*device)->createDescriptorSetLayoutUnique(layoutInfo);
 
-	graphicsPipeline = GraphicsPipeline(*device, swapchain.extent, renderPass, descriptorSetLayout);
+	graphicsPipeline = GraphicsPipeline(*device, swapchain.extent, *renderPass, *descriptorSetLayout);
 
 	drawCommands = device->createDrawCommands(MAX_FRAMES_IN_FLIGHT);
 
@@ -155,7 +155,7 @@ void vkx::RendererBase::recreateSwapchain() {
 	(*device)->waitIdle();
 
 	createSwapchain();
-	graphicsPipeline = vkx::GraphicsPipeline(*device, swapchain.extent, renderPass, descriptorSetLayout);
+	graphicsPipeline = vkx::GraphicsPipeline(*device, swapchain.extent, *renderPass, *descriptorSetLayout);
 }
 
 void vkx::RendererBase::createDescriptorPool() {
