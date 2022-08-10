@@ -52,12 +52,12 @@ int main(void) {
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
 		chunk.greedy();
 
-		vkx::Model model(renderer.allocateMesh(chunk.vertices, chunk.indices), renderer.allocateTexture("a.jpg"), {glm::vec3(0.2f), 100.0f});
+		vkx::Model model({}, renderer.allocateTexture("a.jpg"), {glm::vec3(0.2f), 100.0f});
 		// model.mesh.indexCount = chunk.vertexCount;
 
 		auto mesh = renderer.allocateMesh(chunk.ve, chunk.in);
 		mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
-
+		
 		auto mvpBuffers = renderer.createBuffers(vkx::MVP{});
 		auto lightBuffers = renderer.createBuffers(vkx::DirectionalLight{});
 		auto materialBuffers = renderer.createBuffers(vkx::Material{});

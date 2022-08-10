@@ -73,11 +73,8 @@ public:
 		}
 	}
 
-	std::vector<vkx::Vertex> vertices;
-	std::vector<std::uint32_t> indices;
-
-	std::array<vkx::Vertex, (size * 4) * 2> ve;
-	std::array<std::uint32_t, (size * 6) * 2> in;
+	std::array<vkx::Vertex, size * size * size * 4> ve;
+	std::array<std::uint32_t, size * size * size * 6> in;
 
 	std::uint32_t vertexCount = 0;
 
@@ -100,13 +97,6 @@ private:
 					glm::i32vec3 deltaAxis2{0};
 					deltaAxis1[axis1] = width;
 					deltaAxis2[axis2] = height;
-
-					// createQuad(
-					//     currentMask, axisMask, width, height,
-					//     chunkItr,
-					//     chunkItr + deltaAxis1,
-					//     chunkItr + deltaAxis2,
-					//     chunkItr + deltaAxis1 + deltaAxis2);
 
 					createQuad(currentMask.normal, axisMask, width, height, chunkItr, axis1, axis2);
 
@@ -134,13 +124,6 @@ private:
 		deltaAxis[axis1] = width;
 		const auto v4 = vkx::Vertex{-(pos + deltaAxis), {width, height}, -maskNormal};
 
-		vertices.push_back(v1);
-		vertices.push_back(v2);
-		vertices.push_back(v3);
-		vertices.push_back(v4);
-
-		SDL_Log("Creating quad! %d", vertexCount / 4);
-
 		*vertexIter = v1;
 		vertexIter++;
 		*vertexIter = v2;
@@ -149,13 +132,6 @@ private:
 		vertexIter++;
 		*vertexIter = v4;
 		vertexIter++;
-
-		indices.push_back(vertexCount);
-		indices.push_back(vertexCount + 2 + normal);
-		indices.push_back(vertexCount + 2 - normal);
-		indices.push_back(vertexCount + 3);
-		indices.push_back(vertexCount + 1 - normal);
-		indices.push_back(vertexCount + 1 + normal);
 
 		*indexIter = vertexCount;
 		indexIter++;
@@ -169,37 +145,6 @@ private:
 		indexIter++;
 		*indexIter = vertexCount + 1 + normal;
 		indexIter++;
-
-		vertexCount += 4;
-	}
-
-	void createQuad(
-	    VoxelMask mask,
-	    const glm::ivec3& axisMask,
-	    const int width,
-	    const int height,
-	    const glm::ivec3& V1,
-	    const glm::ivec3& V2,
-	    const glm::ivec3& V3,
-	    const glm::ivec3& V4) {
-		const auto normal = axisMask * mask.normal;
-
-		const auto v1 = vkx::Vertex{-V1, glm::vec2(0.0f, 0.0f), -normal};
-		const auto v2 = vkx::Vertex{-V2, glm::vec2(width, 0.0f), -normal};
-		const auto v3 = vkx::Vertex{-V3, glm::vec2(0.0f, height), -normal};
-		const auto v4 = vkx::Vertex{-V4, glm::vec2(width, height), -normal};
-
-		vertices.push_back(v1);
-		vertices.push_back(v2);
-		vertices.push_back(v3);
-		vertices.push_back(v4);
-
-		indices.push_back(vertexCount);
-		indices.push_back(vertexCount + 2 + mask.normal);
-		indices.push_back(vertexCount + 2 - mask.normal);
-		indices.push_back(vertexCount + 3);
-		indices.push_back(vertexCount + 1 - mask.normal);
-		indices.push_back(vertexCount + 1 + mask.normal);
 
 		vertexCount += 4;
 	}
