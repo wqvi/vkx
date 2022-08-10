@@ -97,7 +97,7 @@ VmaAllocationCreateInfo vkx::Allocator::createAllocationInfo(VmaAllocationCreate
 }
 
 vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
-    : instance(instance), physicalDevice(physicalDevice), properties(physicalDevice.getProperties()) {
+    : instance(instance), physicalDevice(physicalDevice), maxSamplerAnisotropy(physicalDevice.getProperties().limits.maxSamplerAnisotropy) {
 
 	const QueueConfig queueConfig{physicalDevice, surface};
 	if (!queueConfig.isComplete()) {
@@ -303,7 +303,7 @@ vk::Result vkx::Device::present(vk::SwapchainKHR swapchain, std::uint32_t imageI
 	    vk::SamplerAddressMode::eRepeat,
 	    {},
 	    true,
-	    properties.limits.maxSamplerAnisotropy,
+	    maxSamplerAnisotropy,
 	    false,
 	    vk::CompareOp::eAlways,
 	    {},

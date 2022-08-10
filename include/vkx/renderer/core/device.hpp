@@ -207,7 +207,7 @@ private:
 	vk::PhysicalDevice physicalDevice{};
 	vk::UniqueDevice device{};
 	vk::UniqueCommandPool commandPool{};
-	vk::PhysicalDeviceProperties properties{};
+	float maxSamplerAnisotropy = 0.0f;
 	Queues queues{};
 };
 } // namespace vkx
