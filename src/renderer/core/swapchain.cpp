@@ -5,7 +5,7 @@
 
 vkx::Swapchain::Swapchain() = default;
 
-vkx::Swapchain::Swapchain(const Device& device, const vk::UniqueSurfaceKHR& surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator) {
+vkx::Swapchain::Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator) {
 	const SwapchainInfo info{static_cast<vk::PhysicalDevice>(device), surface};
 	const QueueConfig config{static_cast<vk::PhysicalDevice>(device), surface};
 
@@ -21,7 +21,7 @@ vkx::Swapchain::Swapchain(const Device& device, const vk::UniqueSurfaceKHR& surf
 
 	const vk::SwapchainCreateInfoKHR swapchainCreateInfo(
 	    {},
-	    *surface,
+	    surface,
 	    imageCount,
 	    surfaceFormat.format,
 	    surfaceFormat.colorSpace,

@@ -4,7 +4,7 @@ namespace vkx
 {
     struct SwapchainInfo
     {
-        SwapchainInfo(vk::PhysicalDevice const &physicalDevice, vk::UniqueSurfaceKHR const &surface);
+        SwapchainInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
 
         vk::SurfaceCapabilitiesKHR capabilities;
         std::vector<vk::SurfaceFormatKHR> formats;

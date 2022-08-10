@@ -89,9 +89,9 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 	surface = vk::UniqueSurfaceKHR(cSurface, *instance);
 
 	const auto physicalDevice = getBestPhysicalDevice(instance, surface);
-	device = std::make_unique<vkx::Device>(instance, physicalDevice, surface);
+	device = std::make_unique<vkx::Device>(*instance, physicalDevice, *surface);
 
-	allocator = device->createAllocator(*instance);
+	allocator = device->createAllocator();
 
 	createSwapchain();
 
@@ -138,9 +138,9 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 	createDescriptorPool();
 }
 
-vkx::Device vkx::RendererBase::createDevice() const {
+std::shared_ptr<vkx::Device> vkx::RendererBase::createDevice() const {
 	const auto physicalDevice = getBestPhysicalDevice(instance, surface);
-	return vkx::Device(instance, physicalDevice, surface);
+	return std::make_shared<vkx::Device>(*instance, physicalDevice, *surface);
 }
 
 void vkx::RendererBase::recreateSwapchain() {
@@ -230,7 +230,7 @@ std::uint32_t vkx::RendererBase::getCurrentFrameIndex() const {
 }
 
 void vkx::RendererBase::createSwapchain() {
-	swapchain = vkx::Swapchain(*device, surface, window, allocator);
+	swapchain = vkx::Swapchain(*device, *surface, window, allocator);
 
 	renderPass = createRenderPass();
 
@@ -320,12 +320,12 @@ vk::PhysicalDevice vkx::RendererBase::getBestPhysicalDevice(const vk::UniqueInst
 	for (const auto& pDevice : physicalDevices) {
 		std::uint32_t rating = 0;
 
-		const QueueConfig indices{pDevice, surface};
+		const QueueConfig indices{pDevice, *surface};
 		if (indices.isComplete()) {
 			rating++;
 		}
 
-		const SwapchainInfo info{pDevice, surface};
+		const SwapchainInfo info{pDevice, *surface};
 		if (info.isComplete()) {
 			rating++;
 		}

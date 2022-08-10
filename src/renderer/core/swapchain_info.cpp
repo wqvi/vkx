@@ -2,10 +2,10 @@
 
 namespace vkx
 {
-	SwapchainInfo::SwapchainInfo(vk::PhysicalDevice const &physicalDevice, vk::UniqueSurfaceKHR const &surface)
-			: capabilities(physicalDevice.getSurfaceCapabilitiesKHR(*surface)),
-				formats(physicalDevice.getSurfaceFormatsKHR(*surface)),
-				presentModes(physicalDevice.getSurfacePresentModesKHR(*surface)) {}
+	SwapchainInfo::SwapchainInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
+			: capabilities(physicalDevice.getSurfaceCapabilitiesKHR(surface)),
+				formats(physicalDevice.getSurfaceFormatsKHR(surface)),
+				presentModes(physicalDevice.getSurfacePresentModesKHR(surface)) {}
 
 	vk::SurfaceFormatKHR SwapchainInfo::chooseSurfaceFormat() const
 	{

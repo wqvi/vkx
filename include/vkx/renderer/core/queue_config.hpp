@@ -6,9 +6,9 @@
 
 namespace vkx {
 struct QueueConfig {
-	QueueConfig(const vk::PhysicalDevice& physicalDevice, const vk::UniqueSurfaceKHR& surface);
+	QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
 
-	QueueConfig(const Device& device, const vk::UniqueSurfaceKHR& surface);
+	QueueConfig(const Device& device, vk::SurfaceKHR surface);
 
 	std::optional<std::uint32_t> computeIndex;
 	std::optional<std::uint32_t> graphicsIndex;

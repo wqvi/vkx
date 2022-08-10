@@ -8,7 +8,7 @@ class Swapchain {
 public:
 	Swapchain();
 
-	Swapchain(const Device& device, const vk::UniqueSurfaceKHR& surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator);
+	Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator);
 
 	operator const vk::SwapchainKHR&() const;
 

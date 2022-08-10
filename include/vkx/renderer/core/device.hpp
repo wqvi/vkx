@@ -154,7 +154,7 @@ class Device {
 public:
 	Device() = default;
 
-	explicit Device(const vk::UniqueInstance& instance, const vk::PhysicalDevice& physicalDevice, const vk::UniqueSurfaceKHR& surface);
+	explicit Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
 
 	explicit operator const vk::PhysicalDevice&() const;
 
@@ -192,9 +192,13 @@ public:
 
 	[[nodiscard]] vk::UniqueSampler createTextureSamplerUnique() const;
 
-	std::shared_ptr<Allocator> createAllocator(vk::Instance instance) const;
+	std::shared_ptr<Allocator> createAllocator() const;
+
+	std::shared_ptr<vkx::Swapchain> createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const;
 
 private:
+	vk::Instance instance{};
+	vk::SurfaceKHR surface{};
 	vk::PhysicalDevice physicalDevice{};
 	vk::UniqueDevice device{};
 	vk::UniqueCommandPool commandPool{};

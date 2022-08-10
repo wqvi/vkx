@@ -3,7 +3,7 @@
 
 #include <vkx/renderer/core/device.hpp>
 
-vkx::QueueConfig::QueueConfig(const vk::PhysicalDevice& physicalDevice, const vk::UniqueSurfaceKHR& surface) {
+vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
 	const auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
 	for (std::uint32_t i = 0; i < static_cast<std::uint32_t>(queueFamilies.size()); i++) {
@@ -16,7 +16,7 @@ vkx::QueueConfig::QueueConfig(const vk::PhysicalDevice& physicalDevice, const vk
 			graphicsIndex = i;
 		}
 
-		if (physicalDevice.getSurfaceSupportKHR(i, *surface)) {
+		if (physicalDevice.getSurfaceSupportKHR(i, surface)) {
 			presentIndex = i;
 		}
 
@@ -32,7 +32,7 @@ vkx::QueueConfig::QueueConfig(const vk::PhysicalDevice& physicalDevice, const vk
 	}
 }
 
-vkx::QueueConfig::QueueConfig(const Device& device, const vk::UniqueSurfaceKHR& surface)
+vkx::QueueConfig::QueueConfig(const Device& device, vk::SurfaceKHR surface)
     : QueueConfig(static_cast<vk::PhysicalDevice>(device), surface) {}
 
 bool vkx::QueueConfig::isComplete() const {

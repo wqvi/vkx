@@ -1,20 +1,11 @@
-#include <functional>
-#include <memory>
-#include <stdexcept>
 #include <vkx/renderer/core/device.hpp>
-
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
-#include <vulkan/vulkan_core.h>
-#include <vulkan/vulkan_enums.hpp>
-#include <vulkan/vulkan_handles.hpp>
-#include <vulkan/vulkan_structs.hpp>
+#include <vkx/renderer/core/swapchain.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
-
-#include <iostream>
 
 vkx::Allocator::Allocator(VkPhysicalDevice physicalDevice, VkDevice device, VkInstance instance) {
 	VmaVulkanFunctions vulkanFunctions{};
@@ -101,8 +92,8 @@ VmaAllocationCreateInfo vkx::Allocator::createAllocationInfo(VmaAllocationCreate
 	return VmaAllocationCreateInfo{flags, memoryUsage, 0, 0, 0, pool, nullptr, {}};
 }
 
-vkx::Device::Device(const vk::UniqueInstance& instance, const vk::PhysicalDevice& physicalDevice, const vk::UniqueSurfaceKHR& surface)
-    : physicalDevice(physicalDevice), properties(physicalDevice.getProperties()) {
+vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
+    : instance(instance), physicalDevice(physicalDevice), properties(physicalDevice.getProperties()) {
 
 	const QueueConfig queueConfig{physicalDevice, surface};
 	if (!queueConfig.isComplete()) {
@@ -319,6 +310,10 @@ vk::Result vkx::Device::present(vk::SwapchainKHR swapchain, std::uint32_t imageI
 	return device->createSamplerUnique(samplerInfo);
 }
 
-std::shared_ptr<vkx::Allocator> vkx::Device::createAllocator(vk::Instance instance) const {
+std::shared_ptr<vkx::Allocator> vkx::Device::createAllocator() const {
 	return std::make_shared<vkx::Allocator>(physicalDevice, *device, instance);
+}
+
+std::shared_ptr<vkx::Swapchain> vkx::Device::createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const {
+	return std::make_shared<vkx::Swapchain>(*this, surface, window, allocator);
 }

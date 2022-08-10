@@ -22,7 +22,7 @@ public:
 	explicit RendererBase(SDL_Window* window);
 
 	[[nodiscard]]
-	vkx::Device createDevice() const; 
+	std::shared_ptr<vkx::Device> createDevice() const; 
 
 	void recreateSwapchain();
 
@@ -59,7 +59,7 @@ public:
 		     const std::vector<std::uint32_t>& indices) const;
 
 	template <std::size_t T, std::size_t K>
-	vkx::Mesh allocateMesh(const std::array<Vertex, T>& vertices, const std::array<std::uint32_t, K>& indices) {
+	vkx::Mesh allocateMesh(const std::array<Vertex, T>& vertices, const std::array<std::uint32_t, K>& indices) const {
 		return Mesh{vertices, indices, allocator};
 	}
 

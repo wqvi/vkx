@@ -46,8 +46,13 @@ int main(void) {
 	}
 
 	{
-		vkx::Camera camera({0, 0, -5});
+		vkx::Camera camera({0, 0, 0});
+
 		vkx::RendererBase renderer(window);
+		const auto device = renderer.createDevice();
+		const auto allocator = device->createAllocator();
+		// const auto swapchain = device->createSwapchain(window, allocator);
+		// const auto graphicsPipeline = {1, 2, 3};
 
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
 		chunk.greedy();
