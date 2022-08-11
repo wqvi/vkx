@@ -230,6 +230,10 @@ public:
 
 	void recordDrawCommands(iter begin, iter end, const DrawInfo& drawInfo) const;
 
+	void submitDrawCommands(iter begin, iter end, const SyncObjects& syncObjects) const;
+
+	vk::Result presentToSwapchain(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const;
+
 private:
 	vk::Device device{};
 	vk::UniqueCommandPool commandPool{};

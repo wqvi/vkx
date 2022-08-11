@@ -1,12 +1,14 @@
 #include "vkx/renderer/core/pipeline.hpp"
 #include "vkx/renderer/core/queue_config.hpp"
 #include "vkx/renderer/core/renderer_types.hpp"
+#include <iterator>
 #include <memory>
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
+#include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
@@ -464,4 +466,29 @@ void vkx::CommandSubmitter::recordDrawCommands(iter begin, iter end, const DrawI
 
 		commandBuffer.end();
 	}
+}
+
+void vkx::CommandSubmitter::submitDrawCommands(iter begin, iter end, const SyncObjects& syncObjects) const {
+	constexpr std::array waitStage{vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
+	const vk::SubmitInfo submitInfo(
+	    1,
+	    &*syncObjects.imageAvailableSemaphore,
+	    waitStage.data(),
+	    static_cast<std::uint32_t>(std::distance(begin, end)),
+	    &*begin,
+	    1,
+	    &*syncObjects.renderFinishedSemaphore);
+
+	graphicsQueue.submit(submitInfo, *syncObjects.inFlightFence);
+}
+
+vk::Result vkx::CommandSubmitter::presentToSwapchain(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
+	const vk::PresentInfoKHR presentInfo(
+	    1,
+	    &*syncObjects.renderFinishedSemaphore,
+	    1,
+	    &swapchain,
+	    &imageIndex);
+
+	return presentQueue.presentKHR(&presentInfo);
 }
