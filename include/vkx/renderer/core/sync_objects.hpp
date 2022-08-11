@@ -12,6 +12,8 @@ namespace vkx {
 
         void waitForFence() const;
 
+        void resetFence() const;
+
         vk::Device device;
         vk::UniqueSemaphore imageAvailableSemaphore;
         vk::UniqueSemaphore renderFinishedSemaphore;

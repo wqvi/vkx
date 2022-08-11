@@ -24,3 +24,7 @@ std::vector<vkx::SyncObjects> vkx::SyncObjects::createSyncObjects(vk::Device dev
 void vkx::SyncObjects::waitForFence() const {
 	static_cast<void>(device.waitForFences(*inFlightFence, true, UINT64_MAX));
 }
+
+void vkx::SyncObjects::resetFence() const {
+  device.resetFences(*inFlightFence);
+}

@@ -195,8 +195,7 @@ void vkx::RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer, const Uni
 	if (result == vk::Result::eErrorOutOfDateKHR) {
 		recreateSwapchain();
 		return;
-	} else if (result != vk::Result::eSuccess &&
-		   result != vk::Result::eSuboptimalKHR) {
+	} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 		throw std::runtime_error("Failed to acquire next image.");
 	}
 
@@ -204,7 +203,7 @@ void vkx::RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer, const Uni
 	lightBuffer.mapMemory();
 	materialBuffer.mapMemory();
 
-	(*device)->resetFences(*syncObjects[currentIndexFrame].inFlightFence);
+	syncObject.resetFence();
 
 	drawCommands[currentIndexFrame].record(
 	    *renderPass, *swapchain.framebuffers[imageIndex], swapchain.extent,
