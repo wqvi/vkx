@@ -1,8 +1,10 @@
 #include "vkx/renderer/core/pipeline.hpp"
 #include "vkx/renderer/core/queue_config.hpp"
 #include "vkx/renderer/core/renderer_types.hpp"
+#include <SDL2/SDL_log.h>
 #include <iterator>
 #include <memory>
+#include <stdexcept>
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/swapchain.hpp>
@@ -101,7 +103,19 @@ VmaAllocationCreateInfo vkx::Allocator::createAllocationInfo(VmaAllocationCreate
 }
 
 vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
-    : instance(instance), physicalDevice(physicalDevice), maxSamplerAnisotropy(physicalDevice.getProperties().limits.maxSamplerAnisotropy) {
+    : instance(instance), surface(surface), physicalDevice(physicalDevice), maxSamplerAnisotropy(physicalDevice.getProperties().limits.maxSamplerAnisotropy) {
+
+	if (!static_cast<bool>(instance)) {
+		throw std::invalid_argument("Instance must be a valid handle.");
+	}
+
+	if (!static_cast<bool>(physicalDevice)) {
+		throw std::invalid_argument("Physical device must be a valid handle.");
+	}
+
+	if (!static_cast<bool>(surface)) {
+		throw std::invalid_argument("Surface must be a valid handle.");
+	}
 
 	const QueueConfig queueConfig{physicalDevice, surface};
 	if (!queueConfig.isComplete()) {
@@ -115,8 +129,7 @@ vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk
 	deviceFeatures.samplerAnisotropy = true;
 
 #ifdef DEBUG
-	constexpr std::array layers{
-	    "VK_LAYER_KHRONOS_validation"};
+	constexpr std::array layers{"VK_LAYER_KHRONOS_validation"};
 #elif RELEASE
 	constexpr std::array<const char*, 0> layers{};
 #endif
@@ -132,12 +145,7 @@ vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk
 
 	device = physicalDevice.createDeviceUnique(deviceCreateInfo);
 
-	const vk::CommandPoolCreateInfo commandPoolInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex);
-
-	commandPool = device->createCommandPoolUnique(commandPoolInfo);
-
-	graphicsQueue = device->getQueue(*queueConfig.graphicsIndex, 0);
-	presentQueue = device->getQueue(*queueConfig.presentIndex, 0);
+	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer device.");
 }
 
 vkx::Device::operator const vk::PhysicalDevice&() const {
@@ -148,33 +156,12 @@ vkx::Device::operator const vk::Device&() const {
 	return device.get();
 }
 
-vkx::Device::operator const vk::CommandPool&() const {
-	return commandPool.get();
-}
-
-vkx::Device::operator const vk::UniqueCommandPool&() const {
-	return commandPool;
-}
-
 const vk::Device& vkx::Device::operator*() const {
 	return *device;
 }
 
 const vk::Device* vkx::Device::operator->() const {
 	return &*device;
-}
-
-std::vector<vkx::DrawCommand> vkx::Device::createDrawCommands(std::uint32_t size) const {
-	const vk::CommandBufferAllocateInfo allocInfo(*commandPool, vk::CommandBufferLevel::ePrimary, size);
-
-	const auto commandBuffers = device->allocateCommandBuffers(allocInfo);
-
-	std::vector<DrawCommand> drawCommands;
-	std::transform(commandBuffers.begin(), commandBuffers.end(), std::back_inserter(drawCommands),
-		       [&device = this->device](const auto& commandBuffer) -> DrawCommand {
-			       return vkx::DrawCommand{device, commandBuffer};
-		       });
-	return drawCommands;
 }
 
 vk::Format vkx::Device::findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const {
@@ -200,98 +187,38 @@ vk::UniqueImageView vkx::Device::createImageViewUnique(vk::Image image, vk::Form
 	return device->createImageViewUnique(imageViewInfo);
 }
 
-void vkx::Device::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) const {
-	const SingleTimeCommand singleTimeCommand(*this, graphicsQueue);
+// void vkx::Device::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) const {
+// 	const SingleTimeCommand singleTimeCommand(*this, graphicsQueue);
 
-	const vk::BufferCopy copyRegion(0, 0, size);
+// 	const vk::BufferCopy copyRegion(0, 0, size);
 
-	singleTimeCommand->copyBuffer(srcBuffer, dstBuffer, copyRegion);
-}
+// 	singleTimeCommand->copyBuffer(srcBuffer, dstBuffer, copyRegion);
+// }
 
-void vkx::Device::copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const {
-	const SingleTimeCommand singleTimeCommand{*this, graphicsQueue};
+// void vkx::Device::submit(const std::vector<vk::CommandBuffer>& commandBuffers, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore, vk::Fence flightFence) const {
+// 	constexpr std::array waitStage{vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
+// 	const vk::SubmitInfo submitInfo(
+// 	    1,
+// 	    &waitSemaphore,
+// 	    waitStage.data(),
+// 	    static_cast<std::uint32_t>(commandBuffers.size()),
+// 	    commandBuffers.data(),
+// 	    1,
+// 	    &signalSemaphore);
 
-	const vk::ImageSubresourceLayers subresourceLayer(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
+// 	graphicsQueue.submit(submitInfo, flightFence);
+// }
 
-	const vk::Offset3D imageOffset(0, 0, 0);
+// vk::Result vkx::Device::present(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, vk::Semaphore signalSemaphores) const {
+// 	const vk::PresentInfoKHR presentInfo(
+// 	    1,
+// 	    &signalSemaphores,
+// 	    1,
+// 	    &swapchain,
+// 	    &imageIndex);
 
-	const vk::Extent3D imageExtent(width, height, 1);
-
-	const vk::BufferImageCopy region(
-	    0,
-	    0,
-	    0,
-	    subresourceLayer,
-	    imageOffset,
-	    imageExtent);
-
-	singleTimeCommand->copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
-}
-
-void vkx::Device::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
-	const SingleTimeCommand singleTimeCommand{*this, graphicsQueue};
-
-	const vk::ImageSubresourceRange subresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-	vk::AccessFlags srcAccessMask;
-	vk::AccessFlags dstAccessMask;
-
-	vk::PipelineStageFlags sourceStage;
-	vk::PipelineStageFlags destinationStage;
-
-	if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
-		srcAccessMask = vk::AccessFlagBits::eNone;
-		dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-
-		sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
-		destinationStage = vk::PipelineStageFlagBits::eTransfer;
-	} else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
-		srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-		dstAccessMask = vk::AccessFlagBits::eShaderRead;
-
-		sourceStage = vk::PipelineStageFlagBits::eTransfer;
-		destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
-	} else {
-		throw std::invalid_argument("Unsupported layout transition.");
-	}
-
-	const vk::ImageMemoryBarrier barrier(
-	    srcAccessMask,
-	    dstAccessMask,
-	    oldLayout,
-	    newLayout,
-	    VK_QUEUE_FAMILY_IGNORED,
-	    VK_QUEUE_FAMILY_IGNORED,
-	    image,
-	    subresourceRange);
-
-	singleTimeCommand->pipelineBarrier(sourceStage, destinationStage, {}, {}, {}, barrier);
-}
-
-void vkx::Device::submit(const std::vector<vk::CommandBuffer>& commandBuffers, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore, vk::Fence flightFence) const {
-	constexpr std::array waitStage{vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
-	const vk::SubmitInfo submitInfo(
-	    1,
-	    &waitSemaphore,
-	    waitStage.data(),
-	    static_cast<std::uint32_t>(commandBuffers.size()),
-	    commandBuffers.data(),
-	    1,
-	    &signalSemaphore);
-
-	graphicsQueue.submit(submitInfo, flightFence);
-}
-
-vk::Result vkx::Device::present(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, vk::Semaphore signalSemaphores) const {
-	const vk::PresentInfoKHR presentInfo(
-	    1,
-	    &signalSemaphores,
-	    1,
-	    &swapchain,
-	    &imageIndex);
-
-	return presentQueue.presentKHR(&presentInfo);
-}
+// 	return presentQueue.presentKHR(&presentInfo);
+// }
 
 [[nodiscard]] vk::UniqueImageView vkx::Device::createTextureImageViewUnique(vk::Image image) const {
 	return createImageViewUnique(image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
@@ -397,12 +324,18 @@ std::shared_ptr<vkx::CommandSubmitter> vkx::Device::createCommandSubmitter() con
 	return std::make_shared<vkx::CommandSubmitter>(physicalDevice, *device, surface);
 }
 
-vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface) {
+vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface) 
+	: device(device) {
 	const vkx::QueueConfig queueConfig(physicalDevice, surface);
+
+	graphicsQueue = device.getQueue(*queueConfig.graphicsIndex, 0);
+	presentQueue = device.getQueue(*queueConfig.presentIndex, 0);
 
 	const vk::CommandPoolCreateInfo commandPoolInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex);
 
 	commandPool = device.createCommandPoolUnique(commandPoolInfo);
+
+	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer command submitter.");
 }
 
 void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::CommandBuffer)>& command) const {
@@ -424,6 +357,66 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::Comma
 	graphicsQueue.waitIdle();
 
 	device.freeCommandBuffers(*commandPool, commandBuffer);
+}
+
+void vkx::CommandSubmitter::copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const {
+	const vk::ImageSubresourceLayers subresourceLayer(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
+
+	const vk::Offset3D imageOffset(0, 0, 0);
+
+	const vk::Extent3D imageExtent(width, height, 1);
+
+	const vk::BufferImageCopy region(
+	    0,
+	    0,
+	    0,
+	    subresourceLayer,
+	    imageOffset,
+	    imageExtent);
+
+	submitImmediately([&buffer, &image, &region](vk::CommandBuffer commandBuffer) {
+		commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
+	});
+}
+
+void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
+	const vk::ImageSubresourceRange subresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+	vk::AccessFlags srcAccessMask;
+	vk::AccessFlags dstAccessMask;
+
+	vk::PipelineStageFlags sourceStage;
+	vk::PipelineStageFlags destinationStage;
+
+	if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
+		srcAccessMask = vk::AccessFlagBits::eNone;
+		dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+
+		sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
+		destinationStage = vk::PipelineStageFlagBits::eTransfer;
+	} else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+		srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+		sourceStage = vk::PipelineStageFlagBits::eTransfer;
+		destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+	} else {
+		throw std::invalid_argument("Unsupported layout transition.");
+	}
+
+	const vk::ImageMemoryBarrier barrier(
+	    srcAccessMask,
+	    dstAccessMask,
+	    oldLayout,
+	    newLayout,
+	    VK_QUEUE_FAMILY_IGNORED,
+	    VK_QUEUE_FAMILY_IGNORED,
+	    image,
+	    subresourceRange);
+
+	submitImmediately([&sourceStage, &destinationStage, &barrier](vk::CommandBuffer commandBuffer) {
+		commandBuffer.pipelineBarrier(sourceStage, destinationStage, {}, {}, {}, barrier);
+	});
 }
 
 std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::uint32_t amount) const {

@@ -3,49 +3,54 @@
 static constexpr std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace vkx {
-    class RendererContext;
+class RendererContext;
 
-    class RendererBase;
+class RendererBase;
 
-    struct Vertex;
+struct Vertex;
 
-    template<class T>
-    class Allocable;
+template <class T>
+class Allocable;
 
-    class BufferBase;
+template <class T>
+class Allocation;
 
-    class VertexBuffer;
+class Allocator;
 
-    class IndexBuffer;
+class BufferBase;
 
-    class Image;
+class VertexBuffer;
 
-    template<class T>
-    class UniformBuffer;
+class IndexBuffer;
 
-    class CommandSubmitter;
+class Image;
 
-    class Device;
+template <class T>
+class UniformBuffer;
 
-    class SingleTimeCommand;
+class CommandSubmitter;
 
-    class DrawCommand;
+class Device;
 
-    class Swapchain;
+class SingleTimeCommand;
 
-    class GraphicsPipeline;
+class DrawCommand;
 
-    struct MVP;
+class Swapchain;
 
-    struct DirectionalLight;
+class GraphicsPipeline;
 
-    struct Material;
+struct MVP;
 
-    class Mesh;
+struct DirectionalLight;
 
-    class Texture;
+struct Material;
 
-    class Model;
+class Mesh;
 
-    struct SyncObjects;
-}
+class Texture;
+
+class Model;
+
+struct SyncObjects;
+} // namespace vkx

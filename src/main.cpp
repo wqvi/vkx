@@ -1,4 +1,5 @@
 #include "vkx/camera.hpp"
+#include "vkx/renderer/core/device.hpp"
 #include "vkx/renderer/core/renderer_base.hpp"
 #include "vkx/renderer/core/renderer_types.hpp"
 #include "vkx/renderer/core/sync_objects.hpp"
@@ -23,6 +24,7 @@
 #include <vkx/vkx.hpp>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -50,73 +52,93 @@ int main(void) {
 	{
 		vkx::Camera camera({0, 0, 0});
 
-		vkx::RendererBase renderer(window);
-		// const auto device = renderer.createDevice();
-		// const auto allocator = device->createAllocator();
-		// const auto swapchain = device->createSwapchain(window, allocator);
-		// const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat);
+		const vkx::RendererBase renderer(window);
+		const auto device = renderer.createDevice();
+		const auto allocator = device->createAllocator();
+		auto swapchain = device->createSwapchain(window, allocator);
+		const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat);
 		// const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::AttachmentLoadOp::eLoad);
 
-		// constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
-		//     0,
-		//     vk::DescriptorType::eUniformBuffer,
-		//     1,
-		//     vk::ShaderStageFlagBits::eVertex,
-		//     nullptr);
+		swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
-		// constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding(
-		//     1,
-		//     vk::DescriptorType::eCombinedImageSampler,
-		//     1,
-		//     vk::ShaderStageFlagBits::eFragment,
-		//     nullptr);
+		constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
+		    0,
+		    vk::DescriptorType::eUniformBuffer,
+		    1,
+		    vk::ShaderStageFlagBits::eVertex,
+		    nullptr);
 
-		// constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding(
-		//     2,
-		//     vk::DescriptorType::eUniformBuffer,
-		//     1,
-		//     vk::ShaderStageFlagBits::eFragment,
-		//     nullptr);
+		constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding(
+		    1,
+		    vk::DescriptorType::eCombinedImageSampler,
+		    1,
+		    vk::ShaderStageFlagBits::eFragment,
+		    nullptr);
 
-		// constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding(
-		//     3,
-		//     vk::DescriptorType::eUniformBuffer,
-		//     1,
-		//     vk::ShaderStageFlagBits::eFragment,
-		//     nullptr);
+		constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding(
+		    2,
+		    vk::DescriptorType::eUniformBuffer,
+		    1,
+		    vk::ShaderStageFlagBits::eFragment,
+		    nullptr);
 
-		// constexpr std::array bindings{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
+		constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding(
+		    3,
+		    vk::DescriptorType::eUniformBuffer,
+		    1,
+		    vk::ShaderStageFlagBits::eFragment,
+		    nullptr);
 
-		// const vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
-		// const auto descriptorSetLayout = (*device)->createDescriptorSetLayoutUnique(layoutInfo);
+		constexpr std::array bindings{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 
-		// constexpr vk::DescriptorPoolSize uniformBufferDescriptor(vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT);
-		// constexpr vk::DescriptorPoolSize samplerBufferDescriptor(vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT);
+		const vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
+		const auto descriptorSetLayout = (*device)->createDescriptorSetLayoutUnique(layoutInfo);
 
-		// constexpr std::array poolSizes{uniformBufferDescriptor, samplerBufferDescriptor, uniformBufferDescriptor, uniformBufferDescriptor};
+		constexpr vk::DescriptorPoolSize uniformBufferDescriptor(vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT);
+		constexpr vk::DescriptorPoolSize samplerBufferDescriptor(vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT);
 
-		// const vk::DescriptorPoolCreateInfo poolInfo({}, MAX_FRAMES_IN_FLIGHT, poolSizes);
+		constexpr std::array poolSizes{uniformBufferDescriptor, samplerBufferDescriptor, uniformBufferDescriptor, uniformBufferDescriptor};
 
-		// const auto descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
+		const vk::DescriptorPoolCreateInfo poolInfo({}, MAX_FRAMES_IN_FLIGHT, poolSizes);
 
-		// const auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, descriptorSetLayout);
-		// const auto commandSubmitter = device->createCommandSubmitter();
-		// const auto drawCommands = commandSubmitter->allocateDrawCommands(1);
-		// const auto syncObjects = vkx::SyncObjects::createSyncObjects(device);
+		const auto descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
+
+		auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
+		const auto commandSubmitter = device->createCommandSubmitter();
+		const auto drawCommands = commandSubmitter->allocateDrawCommands(1);
+		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
 
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
 		chunk.greedy();
 
-		vkx::Model model({}, renderer.allocateTexture("a.jpg"), {glm::vec3(0.2f), 100.0f});
+		// vkx::Model model({}, renderer.allocateTexture("a.jpg"), {glm::vec3(0.2f), 100.0f});
 		// model.mesh.indexCount = chunk.vertexCount;
 
-		auto mesh = renderer.allocateMesh(chunk.ve, chunk.in);
+		vkx::Mesh mesh(chunk.ve, chunk.in, allocator);
 		mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
 
-		auto mvpBuffers = renderer.createBuffers(vkx::MVP{});
-		auto lightBuffers = renderer.createBuffers(vkx::DirectionalLight{});
-		auto materialBuffers = renderer.createBuffers(vkx::Material{});
-		renderer.createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, model.texture);
+		const vkx::Texture texture("a.jpg", *device, allocator, commandSubmitter);
+
+		auto mvpBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
+		auto lightBuffers = allocator->allocateUniformBuffers(vkx::DirectionalLight{});
+		auto materialBuffers = allocator->allocateUniformBuffers(vkx::Material{});
+		// renderer.createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, model.texture);
+
+		const std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
+		const vk::DescriptorSetAllocateInfo allocInfo(*descriptorPool, layouts);
+
+		const auto descriptorSets = (*device)->allocateDescriptorSets(allocInfo);
+
+		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+			const std::array descriptorWrites{
+			    mvpBuffers[i].createWriteDescriptorSet(descriptorSets[i], 0),
+			    texture.createWriteDescriptorSet(descriptorSets[i], 1),
+			    lightBuffers[i].createWriteDescriptorSet(descriptorSets[i], 2),
+			    materialBuffers[i].createWriteDescriptorSet(descriptorSets[i], 3),
+			};
+
+			(*device)->updateDescriptorSets(descriptorWrites, {});
+		}
 
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 		proj[1][1] *= -1.0f;
@@ -124,14 +146,13 @@ int main(void) {
 		std::uint32_t currentFrame = 0;
 		SDL_Event event{};
 		bool isRunning = true;
+		bool framebufferResized = false;
 		SDL_ShowWindow(window);
 		while (isRunning) {
-			currentFrame = renderer.getCurrentFrameIndex();
-
 			camera.position += camera.direction * 0.0001f;
 
 			auto& mvpBuffer = mvpBuffers[currentFrame];
-			mvpBuffer->model = model.getModelMatrix();
+			mvpBuffer->model = glm::mat4(1.0f);
 			mvpBuffer->view = camera.viewMatrix();
 			mvpBuffer->proj = proj;
 
@@ -146,14 +167,86 @@ int main(void) {
 			lightBuffer->quadratic = 0.032f;
 
 			auto& materialBuffer = materialBuffers[currentFrame];
-			materialBuffer->specularColor = model.material.specularColor;
-			materialBuffer->shininess = model.material.shininess;
+			materialBuffer->specularColor = glm::vec3(0.2f);
+			materialBuffer->shininess = 100.0f;
 
 			// TODO whatever this is lol
-			renderer.drawFrame(mvpBuffer, lightBuffer, materialBuffer,
-					   mesh.vertex->object, mesh.index->object,
-					   static_cast<std::uint32_t>(mesh.indexCount),
-					   currentFrame);
+			// renderer.drawFrame(mvpBuffer, lightBuffer, materialBuffer,
+			// 		   mesh.vertex->object, mesh.index->object,
+			// 		   static_cast<std::uint32_t>(mesh.indexCount),
+			// 		   currentFrame);
+
+			const auto& syncObject = syncObjects[currentFrame];
+			syncObject.waitForFence();
+			auto [result, imageIndex] = swapchain->acquireNextImage(static_cast<vk::Device>(*device), syncObject);
+
+			if (result == vk::Result::eErrorOutOfDateKHR) {
+				int width;
+				int height;
+				SDL_Vulkan_GetDrawableSize(window, &width, &height);
+				while (width == 0 || height == 0) {
+					SDL_Vulkan_GetDrawableSize(window, &width, &height);
+					SDL_WaitEvent(nullptr);
+				}
+
+				(*device)->waitIdle();
+
+				swapchain = device->createSwapchain(window, allocator);
+
+				swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
+
+				graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
+				continue;
+			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+				throw std::runtime_error("Failed to acquire next image.");
+			}
+
+			mvpBuffer.mapMemory();
+			lightBuffer.mapMemory();
+			materialBuffer.mapMemory();
+
+			syncObject.resetFence();
+
+			const vkx::DrawInfo drawInfo = {
+			    *clearRenderPass,
+			    *swapchain->framebuffers[imageIndex],
+			    swapchain->extent,
+			    *graphicsPipeline->pipeline,
+			    *graphicsPipeline->layout,
+			    descriptorSets[currentFrame],
+			    mesh.vertex->object,
+			    mesh.index->object,
+			    static_cast<std::uint32_t>(mesh.indexCount)};
+
+			const auto drawCommandsBegin = drawCommands.cbegin();
+			const auto drawCommandsEnd = drawCommandsBegin + 1;
+			commandSubmitter->recordDrawCommands(drawCommandsBegin, drawCommandsEnd, drawInfo);
+
+			commandSubmitter->submitDrawCommands(drawCommandsBegin, drawCommandsEnd, syncObject);
+
+			commandSubmitter->presentToSwapchain(*swapchain->swapchain, imageIndex, syncObject);
+
+			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
+				framebufferResized = false;
+
+				int width;
+				int height;
+				SDL_Vulkan_GetDrawableSize(window, &width, &height);
+				while (width == 0 || height == 0) {
+					SDL_Vulkan_GetDrawableSize(window, &width, &height);
+					SDL_WaitEvent(nullptr);
+				}
+
+				(*device)->waitIdle();
+
+				swapchain = device->createSwapchain(window, allocator);
+
+				swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
+
+				graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
+			} else if (result != vk::Result::eSuccess) {
+				throw std::runtime_error("Failed to present.");
+			}
 
 			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
@@ -162,7 +255,8 @@ int main(void) {
 					break;
 				case SDL_WINDOWEVENT:
 					if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-						renderer.framebufferResized = true;
+						// renderer.framebufferResized = true;
+						framebufferResized = true;
 						proj = glm::perspective(70.0f, static_cast<float>(event.window.data1) / static_cast<float>(event.window.data2), 0.1f, 100.0f);
 						proj[1][1] *= -1.0f;
 					}
@@ -179,9 +273,12 @@ int main(void) {
 					break;
 				}
 			}
+
+			currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 		}
 
-		renderer.waitIdle();
+		// renderer.waitIdle();
+		(*device)->waitIdle();
 	}
 
 	SDL_DestroyWindow(window);

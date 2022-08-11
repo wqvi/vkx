@@ -42,61 +42,61 @@ public:
 		       std::uint32_t indexCount,
 		       std::uint32_t& currentIndexFrame);
 
-	[[nodiscard]] std::uint32_t getCurrentFrameIndex() const;
+	// [[nodiscard]] std::uint32_t getCurrentFrameIndex() const;
 
-	template <class T>
-	std::vector<vkx::UniformBuffer<T>> createBuffers(T const& value = {}) const {
-		std::vector<vkx::UniformBuffer<T>> buffers;
-		buffers.reserve(MAX_FRAMES_IN_FLIGHT);
-		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			buffers.emplace_back(value, allocator);
-		}
-		return buffers;
-	}
+	// template <class T>
+	// std::vector<vkx::UniformBuffer<T>> createBuffers(T const& value = {}) const {
+	// 	std::vector<vkx::UniformBuffer<T>> buffers;
+	// 	buffers.reserve(MAX_FRAMES_IN_FLIGHT);
+	// 	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+	// 		buffers.emplace_back(value, allocator);
+	// 	}
+	// 	return buffers;
+	// }
 
-	[[nodiscard]] Mesh
-	allocateMesh(const std::vector<Vertex>& vertices,
-		     const std::vector<std::uint32_t>& indices) const;
+	// [[nodiscard]] Mesh
+	// allocateMesh(const std::vector<Vertex>& vertices,
+	// 	     const std::vector<std::uint32_t>& indices) const;
 
-	template <std::size_t T, std::size_t K>
-	vkx::Mesh allocateMesh(const std::array<Vertex, T>& vertices, const std::array<std::uint32_t, K>& indices) const {
-		return Mesh{vertices, indices, allocator};
-	}
+	// template <std::size_t T, std::size_t K>
+	// vkx::Mesh allocateMesh(const std::array<Vertex, T>& vertices, const std::array<std::uint32_t, K>& indices) const {
+	// 	return Mesh{vertices, indices, allocator};
+	// }
 
-	[[nodiscard]] Texture allocateTexture(const std::string& textureFile) const;
+	// [[nodiscard]] Texture allocateTexture(const std::string& textureFile) const;
 
-	void waitIdle() const;
+	// void waitIdle() const;
 
-	bool framebufferResized = false;
+	// bool framebufferResized = false;
 
 private:
-	SDL_Window* window;
-	vk::UniqueInstance instance;
-	vk::UniqueSurfaceKHR surface;
-	std::unique_ptr<Device> device;
-	std::shared_ptr<Allocator> allocator{};
+	SDL_Window* window = nullptr;
+	vk::UniqueInstance instance{};
+	vk::UniqueSurfaceKHR surface{};
+	// std::unique_ptr<Device> device;
+	// std::shared_ptr<Allocator> allocator{};
 
-	Swapchain swapchain;
+	// Swapchain swapchain;
 
-	vk::UniqueRenderPass renderPass;
-	vk::UniqueDescriptorSetLayout descriptorSetLayout;
+	// vk::UniqueRenderPass renderPass;
+	// vk::UniqueDescriptorSetLayout descriptorSetLayout;
 
-	GraphicsPipeline graphicsPipeline;
+	// GraphicsPipeline graphicsPipeline;
 
-	vk::UniqueDescriptorPool descriptorPool;
-	std::vector<vk::DescriptorSet> descriptorSets;
+	// vk::UniqueDescriptorPool descriptorPool;
+	// std::vector<vk::DescriptorSet> descriptorSets;
 
-	std::vector<DrawCommand> drawCommands;
+	// std::vector<DrawCommand> drawCommands;
 
-	std::vector<SyncObjects> syncObjects;
+	// std::vector<SyncObjects> syncObjects;
 
-	std::uint32_t currentFrame = 0;
+	// std::uint32_t currentFrame = 0;
 
 	void createSwapchain();
 
-	[[nodiscard]] vk::UniqueRenderPass createRenderPass(
-	    vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
+	// [[nodiscard]] vk::UniqueRenderPass createRenderPass(
+	//     vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
 
-	static vk::PhysicalDevice getBestPhysicalDevice(const vk::UniqueInstance& instance, const vk::UniqueSurfaceKHR& surface);
+	static vk::PhysicalDevice getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface);
 };
 } // namespace vkx

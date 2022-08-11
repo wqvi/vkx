@@ -2,6 +2,7 @@
 // Created by december on 7/7/22.
 //
 
+#include <SDL2/SDL_log.h>
 #include <cstdint>
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
@@ -17,6 +18,8 @@ std::vector<vkx::SyncObjects> vkx::SyncObjects::createSyncObjects(vk::Device dev
 	objs.resize(MAX_FRAMES_IN_FLIGHT);
 
 	std::generate(objs.begin(), objs.end(), [&device]() { return SyncObjects{device}; });
+
+  SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer sync objects.");
 
 	return objs;
 }

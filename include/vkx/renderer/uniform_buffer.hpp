@@ -1,9 +1,8 @@
 #pragma once
 
-#include "vkx/renderer/core/allocable.hpp"
 #include <memory>
 #include <vkx/renderer/core/device.hpp>
-#include <vulkan/vulkan_handles.hpp>
+#include <vkx/renderer/core/allocator.hpp>
 
 namespace vkx {
 template <class T>
@@ -14,9 +13,12 @@ public:
 	UniformBuffer() = default;
 
 	explicit UniformBuffer(const T& value, const std::shared_ptr<Allocator>& allocator) {
-		resource = allocator->allocateBuffer(value, vk::BufferUsageFlagBits::eUniformBuffer);
-		uniformObject = value;
+		// resource = allocator->allocateBuffer(value, vk::BufferUsageFlagBits::eUniformBuffer);
+		// uniformObject = value;
 	}
+
+	explicit UniformBuffer(const T& value, std::shared_ptr<vkx::Allocation<vk::Buffer>> resource)
+		: resource(resource), uniformObject(value) {}
 
 	T* operator->() {
 		return &uniformObject;

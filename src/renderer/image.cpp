@@ -8,7 +8,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-vkx::Image::Image(const std::string& file, const Device& device, const std::shared_ptr<vkx::Allocator>& allocator) {
+vkx::Image::Image(const std::string& file, const Device& device, const std::shared_ptr<vkx::Allocator>& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter) {
 	int texWidth;
 	int texHeight;
 	int texChannels;
@@ -23,9 +23,9 @@ vkx::Image::Image(const std::string& file, const Device& device, const std::shar
 	std::memcpy(stagingResource->allocationInfo.pMappedData, pixels, stagingResource->allocationInfo.size);
 	resource = allocator->allocateImage(texWidth, texHeight, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
 
-	device.transitionImageLayout(resource->object, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-	device.copyBufferToImage(stagingResource->object, resource->object, texWidth, texHeight);
-	device.transitionImageLayout(resource->object, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+	commandSubmitter->transitionImageLayout(resource->object, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+	commandSubmitter->copyBufferToImage(stagingResource->object, resource->object, texWidth, texHeight);
+	commandSubmitter->transitionImageLayout(resource->object, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 
 	stbi_image_free(pixels);
 }

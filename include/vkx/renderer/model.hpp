@@ -1,6 +1,5 @@
 #pragma once
 
-#include "vkx/renderer/core/allocable.hpp"
 #include "vkx/renderer/core/device.hpp"
 #include "vkx/renderer/core/vertex.hpp"
 #include <array>
@@ -27,7 +26,7 @@ class Texture {
 public:
 	Texture() = default;
 
-	Texture(const std::string& file, const Device& device, const std::shared_ptr<Allocator>& allocator);
+	Texture(const std::string& file, const Device& device, const std::shared_ptr<vkx::Allocator>& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter);
 
 	[[nodiscard]] vk::WriteDescriptorSet createWriteDescriptorSet(const vk::DescriptorSet& descriptorSet, std::uint32_t dstBinding) const;
 

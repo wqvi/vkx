@@ -1,6 +1,5 @@
 #pragma once
 
-#include "vkx/renderer/core/allocable.hpp"
 #include "vkx/renderer/core/device.hpp"
 #include <vulkan/vulkan_handles.hpp>
 
@@ -11,6 +10,6 @@ public:
 
 	Image() = default;
 
-	explicit Image(const std::string& file, const Device& device, const std::shared_ptr<Allocator>& allocator);
+	explicit Image(const std::string& file, const Device& device, const std::shared_ptr<vkx::Allocator>& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter);
 };
 } // namespace vkx

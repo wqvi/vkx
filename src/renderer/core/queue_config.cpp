@@ -4,6 +4,14 @@
 #include <vkx/renderer/core/device.hpp>
 
 vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
+	if (!static_cast<bool>(physicalDevice)) {
+		throw std::invalid_argument("Physical device must be a valid handle.");
+	}
+
+	if (!static_cast<bool>(surface)) {
+		throw std::invalid_argument("Surface must be a valid handle.");
+	}
+
 	const auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
 	for (std::uint32_t i = 0; i < static_cast<std::uint32_t>(queueFamilies.size()); i++) {

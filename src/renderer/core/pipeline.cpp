@@ -1,4 +1,5 @@
 #include "vkx/renderer/core/device.hpp"
+#include <SDL2/SDL_log.h>
 #include <stdexcept>
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vulkan/vulkan_core.h>
@@ -8,6 +9,8 @@
 vkx::GraphicsPipeline::GraphicsPipeline(const vkx::Device& device, const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) {
 	layout = createPipelineLayout(device, descriptorSetLayout);
 	pipeline = createPipeline(device, extent, renderPass, *layout);
+
+	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer graphics pipeline.");
 }
 
 vk::UniquePipelineLayout vkx::GraphicsPipeline::createPipelineLayout(const vkx::Device& device, vk::DescriptorSetLayout descriptorSetLayout) {

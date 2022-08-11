@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vkx/renderer/core/sync_objects.hpp"
 #include <vkx/renderer/core/device.hpp>
 #include <vulkan/vulkan_handles.hpp>
 
@@ -16,7 +17,11 @@ public:
 
 	void createFramebuffers(const Device& device, const vk::UniqueRenderPass& renderPass);
 
+	void createFramebuffers(vk::Device device, vk::RenderPass renderPass);
+
 	vk::ResultValue<std::uint32_t> acquireNextImage(const Device& device, const vk::UniqueSemaphore& semaphore) const;
+
+	vk::ResultValue<std::uint32_t> acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const;
 
 	vk::UniqueSwapchainKHR swapchain;
 	vk::Format imageFormat;

@@ -6,8 +6,8 @@ namespace vkx {
 Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const Device& device, const std::shared_ptr<Allocator>& allocator)
     : vertex(allocator->allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator->allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
-Texture::Texture(const std::string& file, const Device& device, const std::shared_ptr<Allocator>& allocator)
-    : image(file, device, allocator),
+Texture::Texture(const std::string& file, const Device& device, const std::shared_ptr<vkx::Allocator>& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter)
+    : image(file, device, allocator, commandSubmitter),
       view(device.createTextureImageViewUnique(image.resource->object)),
       sampler(device.createTextureSamplerUnique()) {
 }
