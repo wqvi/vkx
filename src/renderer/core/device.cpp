@@ -134,7 +134,7 @@ vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk
 	commandPool = device->createCommandPoolUnique(commandPoolInfo);
 
 	graphicsQueue = device->getQueue(*queueConfig.graphicsIndex, 0);
-    presentQueue = device->getQueue(*queueConfig.presentIndex, 0);
+	presentQueue = device->getQueue(*queueConfig.presentIndex, 0);
 }
 
 vkx::Device::operator const vk::PhysicalDevice&() const {
@@ -396,4 +396,25 @@ vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::D
 	const vk::CommandPoolCreateInfo commandPoolInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex);
 
 	commandPool = device.createCommandPoolUnique(commandPoolInfo);
+}
+
+void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::CommandBuffer)>& command) const {
+	const vk::CommandBufferAllocateInfo allocInfo(*commandPool, vk::CommandBufferLevel::ePrimary, 1);
+
+	auto commandBuffer = device.allocateCommandBuffers(allocInfo)[0];
+
+	constexpr vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit, {}, nullptr);
+
+	commandBuffer.begin(beginInfo);
+
+	command(commandBuffer);
+
+	commandBuffer.end();
+
+	const vk::SubmitInfo submitInfo({}, {}, commandBuffer, {});
+
+	static_cast<void>(graphicsQueue.submit(1, &submitInfo, {}));
+	graphicsQueue.waitIdle();
+
+	device.freeCommandBuffers(*commandPool, commandBuffer);
 }

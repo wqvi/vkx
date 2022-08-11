@@ -6,6 +6,7 @@
 #include "vk_mem_alloc.h"
 #include "vkx/renderer/core/commands.hpp"
 #include "vkx/renderer/core/pipeline.hpp"
+#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
 template <class T>
@@ -208,6 +209,8 @@ private:
 class CommandSubmitter {
 public:
 	explicit CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface);
+
+	void submitImmediately(const std::function<void(vk::CommandBuffer)>& command) const;
 
 private:
 	vk::Device device{};
