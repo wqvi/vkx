@@ -1,5 +1,6 @@
 #include "vkx/renderer/core/pipeline.hpp"
 #include "vkx/renderer/core/queue_config.hpp"
+#include "vkx/renderer/core/renderer_types.hpp"
 #include <memory>
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/device.hpp>
@@ -390,6 +391,10 @@ std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(const
 	return std::make_shared<vkx::GraphicsPipeline>(*this, extent, renderPass, descriptorSetLayout);
 }
 
+std::shared_ptr<vkx::CommandSubmitter> vkx::Device::createCommandSubmitter() const {
+	return std::make_shared<vkx::CommandSubmitter>(physicalDevice, *device, surface);
+}
+
 vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface) {
 	const vkx::QueueConfig queueConfig(physicalDevice, surface);
 
@@ -417,6 +422,12 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::Comma
 	graphicsQueue.waitIdle();
 
 	device.freeCommandBuffers(*commandPool, commandBuffer);
+}
+
+std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::uint32_t amount) const {
+	const vk::CommandBufferAllocateInfo allocInfo(*commandPool, vk::CommandBufferLevel::ePrimary, amount * MAX_FRAMES_IN_FLIGHT);
+
+	return device.allocateCommandBuffers(allocInfo);
 }
 
 void vkx::CommandSubmitter::recordDrawCommands(iter begin, iter end, const DrawInfo& drawInfo) const {

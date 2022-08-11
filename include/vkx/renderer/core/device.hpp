@@ -193,7 +193,7 @@ public:
 
 	std::shared_ptr<vkx::GraphicsPipeline> createGraphicsPipeline(const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) const;
 
-	std::shared_ptr<vkx::CommandSubmitter> createCommandSubmitter();
+	std::shared_ptr<vkx::CommandSubmitter> createCommandSubmitter() const;
 
 private:
 	vk::Instance instance{};
@@ -225,6 +225,8 @@ public:
 	explicit CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface);
 
 	void submitImmediately(const std::function<void(vk::CommandBuffer)>& command) const;
+
+	std::vector<vk::CommandBuffer> allocateDrawCommands(std::uint32_t amount) const;
 
 	void recordDrawCommands(iter begin, iter end, const DrawInfo& drawInfo) const;
 

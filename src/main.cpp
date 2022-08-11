@@ -56,6 +56,8 @@ int main(void) {
 		// const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat);
 		// const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::AttachmentLoadOp::eLoad);
 		// const auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, {});
+		// const auto commandSubmitter = device->createCommandSubmitter();
+		// const auto drawCommands = commandSubmitter->allocateDrawCommands(1);
 
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
 		chunk.greedy();
