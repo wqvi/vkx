@@ -133,7 +133,7 @@ vkx::RendererBase::RendererBase(SDL_Window* window) : window(window) {
 
 	drawCommands = device->createDrawCommands(MAX_FRAMES_IN_FLIGHT);
 
-	syncObjects = SyncObjects::createSyncObjects(*device);
+	syncObjects = SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
 
 	createDescriptorPool();
 }
@@ -188,7 +188,8 @@ void vkx::RendererBase::createDescriptorSets(const std::vector<UniformBuffer<MVP
 }
 
 void vkx::RendererBase::drawFrame(const UniformBuffer<MVP>& mvpBuffer, const UniformBuffer<DirectionalLight>& lightBuffer, const UniformBuffer<Material>& materialBuffer, vk::Buffer vertexBuffer, vk::Buffer indexBuffer, std::uint32_t indexCount, std::uint32_t& currentIndexFrame) {
-	static_cast<void>((*device)->waitForFences(*syncObjects[currentIndexFrame].inFlightFence, true, UINT64_MAX));
+	const auto& syncObject = syncObjects[currentIndexFrame];
+	syncObject.waitForFence();
 	auto [result, imageIndex] = swapchain.acquireNextImage(*device, syncObjects[currentIndexFrame].imageAvailableSemaphore);
 
 	if (result == vk::Result::eErrorOutOfDateKHR) {

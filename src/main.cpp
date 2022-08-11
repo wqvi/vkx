@@ -121,11 +121,12 @@ int main(void) {
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 		proj[1][1] *= -1.0f;
 
+		std::uint32_t currentFrame = 0;
 		SDL_Event event{};
 		bool isRunning = true;
 		SDL_ShowWindow(window);
 		while (isRunning) {
-			auto currentFrame = renderer.getCurrentFrameIndex();
+			currentFrame = renderer.getCurrentFrameIndex();
 
 			camera.position += camera.direction * 0.0001f;
 
@@ -173,7 +174,7 @@ int main(void) {
 					camera.updateKey(event.key.keysym.sym);
 					break;
 				case SDL_KEYUP:
-					camera.updateKey(0);
+					camera.direction = glm::vec3(0);
 				default:
 					break;
 				}
