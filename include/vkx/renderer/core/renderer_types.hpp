@@ -23,7 +23,7 @@ namespace vkx {
     template<class T>
     class UniformBuffer;
 
-    class PhysicalDevice;
+    class CommandSubmitter;
 
     class Device;
 
