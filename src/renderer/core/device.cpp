@@ -1,4 +1,5 @@
 #include "vkx/renderer/core/pipeline.hpp"
+#include "vkx/renderer/core/queue_config.hpp"
 #include <memory>
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/device.hpp>
@@ -387,4 +388,12 @@ vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::Attach
 
 std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) const {
 	return std::make_shared<vkx::GraphicsPipeline>(*this, extent, renderPass, descriptorSetLayout);
+}
+
+vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface) {
+	const vkx::QueueConfig queueConfig(physicalDevice, surface);
+
+	const vk::CommandPoolCreateInfo commandPoolInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex);
+
+	commandPool = device.createCommandPoolUnique(commandPoolInfo);
 }

@@ -4,17 +4,8 @@
 #include "renderer_types.hpp"
 #include "vertex.hpp"
 #include "vk_mem_alloc.h"
+#include "vkx/renderer/core/commands.hpp"
 #include "vkx/renderer/core/pipeline.hpp"
-#include <SDL2/SDL_log.h>
-#include <cstddef>
-#include <cstring>
-#include <memory>
-#include <stdexcept>
-#include <vector>
-#include <vulkan/vulkan_core.h>
-#include <vulkan/vulkan_enums.hpp>
-#include <vulkan/vulkan_handles.hpp>
-#include <vulkan/vulkan_structs.hpp>
 
 namespace vkx {
 template <class T>
@@ -201,6 +192,8 @@ public:
 
 	std::shared_ptr<vkx::GraphicsPipeline> createGraphicsPipeline(const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) const;
 
+	std::shared_ptr<vkx::CommandSubmitter> createCommandSubmitter();
+
 private:
 	vk::Instance instance{};
 	vk::SurfaceKHR surface{};
@@ -208,6 +201,17 @@ private:
 	vk::UniqueDevice device{};
 	vk::UniqueCommandPool commandPool{};
 	float maxSamplerAnisotropy = 0.0f;
+	vk::Queue graphicsQueue{};
+	vk::Queue presentQueue{};
+};
+
+class CommandSubmitter {
+public:
+	explicit CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface);
+
+private:
+	vk::Device device{};
+	vk::UniqueCommandPool commandPool{};
 	vk::Queue graphicsQueue{};
 	vk::Queue presentQueue{};
 };
