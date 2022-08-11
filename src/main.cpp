@@ -1,6 +1,7 @@
 #include "vkx/camera.hpp"
 #include "vkx/renderer/core/renderer_base.hpp"
 #include "vkx/renderer/core/renderer_types.hpp"
+#include "vkx/renderer/core/sync_objects.hpp"
 #include "vkx/renderer/core/vertex.hpp"
 #include "vkx/renderer/model.hpp"
 #include "vkx/renderer/uniform_buffer.hpp"
@@ -55,9 +56,53 @@ int main(void) {
 		// const auto swapchain = device->createSwapchain(window, allocator);
 		// const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat);
 		// const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::AttachmentLoadOp::eLoad);
-		// const auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, {});
+
+		// constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
+		//     0,
+		//     vk::DescriptorType::eUniformBuffer,
+		//     1,
+		//     vk::ShaderStageFlagBits::eVertex,
+		//     nullptr);
+
+		// constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding(
+		//     1,
+		//     vk::DescriptorType::eCombinedImageSampler,
+		//     1,
+		//     vk::ShaderStageFlagBits::eFragment,
+		//     nullptr);
+
+		// constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding(
+		//     2,
+		//     vk::DescriptorType::eUniformBuffer,
+		//     1,
+		//     vk::ShaderStageFlagBits::eFragment,
+		//     nullptr);
+
+		// constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding(
+		//     3,
+		//     vk::DescriptorType::eUniformBuffer,
+		//     1,
+		//     vk::ShaderStageFlagBits::eFragment,
+		//     nullptr);
+
+		// constexpr std::array bindings{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
+
+		// const vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
+		// const auto descriptorSetLayout = (*device)->createDescriptorSetLayoutUnique(layoutInfo);
+
+		// constexpr vk::DescriptorPoolSize uniformBufferDescriptor(vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT);
+		// constexpr vk::DescriptorPoolSize samplerBufferDescriptor(vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT);
+
+		// constexpr std::array poolSizes{uniformBufferDescriptor, samplerBufferDescriptor, uniformBufferDescriptor, uniformBufferDescriptor};
+
+		// const vk::DescriptorPoolCreateInfo poolInfo({}, MAX_FRAMES_IN_FLIGHT, poolSizes);
+
+		// const auto descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
+
+		// const auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, descriptorSetLayout);
 		// const auto commandSubmitter = device->createCommandSubmitter();
 		// const auto drawCommands = commandSubmitter->allocateDrawCommands(1);
+		// const auto syncObjects = vkx::SyncObjects::createSyncObjects(device);
 
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
 		chunk.greedy();
@@ -67,7 +112,7 @@ int main(void) {
 
 		auto mesh = renderer.allocateMesh(chunk.ve, chunk.in);
 		mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
-		
+
 		auto mvpBuffers = renderer.createBuffers(vkx::MVP{});
 		auto lightBuffers = renderer.createBuffers(vkx::DirectionalLight{});
 		auto materialBuffers = renderer.createBuffers(vkx::Material{});
