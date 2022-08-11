@@ -418,3 +418,39 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::Comma
 
 	device.freeCommandBuffers(*commandPool, commandBuffer);
 }
+
+void vkx::CommandSubmitter::recordDrawCommands(iter begin, iter end, const DrawInfo& drawInfo) const {
+	for (; begin != end; begin++) {
+		const auto commandBuffer = *begin;
+
+		commandBuffer.reset({});
+		const vk::CommandBufferBeginInfo beginInfo{};
+		static_cast<void>(commandBuffer.begin(beginInfo));
+
+		constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
+		constexpr vk::ClearColorValue clearColor(clearColorValue);
+		constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
+
+		constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
+
+		const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
+
+		const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
+
+		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
+
+		commandBuffer.bindVertexBuffers(0, drawInfo.vertexBuffer, {0});
+
+		commandBuffer.bindIndexBuffer(drawInfo.indexBuffer, 0, vk::IndexType::eUint32);
+
+		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
+
+		commandBuffer.drawIndexed(drawInfo.indexCount, 1, 0, 0, 0);
+
+		commandBuffer.endRenderPass();
+
+		commandBuffer.end();
+	}
+}

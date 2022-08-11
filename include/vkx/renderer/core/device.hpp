@@ -206,11 +206,27 @@ private:
 	vk::Queue presentQueue{};
 };
 
+struct DrawInfo {
+	vk::RenderPass renderPass;
+	vk::Framebuffer framebuffer;
+	vk::Extent2D extent;
+	vk::Pipeline graphicsPipeline;
+	vk::PipelineLayout graphicsPipelineLayout;
+	vk::DescriptorSet descriptorSet;
+	vk::Buffer vertexBuffer;
+	vk::Buffer indexBuffer;
+	std::uint32_t indexCount;
+};
+
 class CommandSubmitter {
+	using iter = std::vector<vk::CommandBuffer>::const_iterator;
+
 public:
 	explicit CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface);
 
 	void submitImmediately(const std::function<void(vk::CommandBuffer)>& command) const;
+
+	void recordDrawCommands(iter begin, iter end, const DrawInfo& drawInfo) const;
 
 private:
 	vk::Device device{};
