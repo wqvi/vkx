@@ -1,5 +1,6 @@
 target_sources(vkx
 	PRIVATE
+		"${CMAKE_CURRENT_SOURCE_DIR}/allocator.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/bootstrap.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/device.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/pipeline.cpp"
