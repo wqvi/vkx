@@ -123,7 +123,7 @@ int main(void) {
 		bool framebufferResized = false;
 		SDL_ShowWindow(window);
 		while (isRunning) {
-			camera.position += camera.direction * 0.0001f;
+			camera.position += camera.direction * 0.001f;
 
 			auto& mvpBuffer = mvpBuffers[currentFrame];
 			mvpBuffer->model = glm::mat4(1.0f);
