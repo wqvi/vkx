@@ -12,6 +12,6 @@ namespace vkx
 
     ~VoxelMatrix() final = default;
 
-    [[nodiscard]] Voxel const &at(glm::i32vec3 const &location) const;
+    [[nodiscard]] Voxel at(glm::i32vec3 const &location) const;
   };
 }

@@ -7,7 +7,7 @@ namespace vkx
 {
   struct VoxelMask
   {
-    Voxel voxel = VoxelType::None;
+    Voxel voxel = Voxel::Air;
     std::int32_t normal = 0;
 
     constexpr VoxelMask() = default;

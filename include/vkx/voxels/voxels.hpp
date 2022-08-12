@@ -13,34 +13,18 @@ public:
 	static_assert(size % 8 == 0, "Size must be a multiple of 8");
 	explicit VoxelChunk(const glm::vec3& chunkPosition)
 	    : chunkPosition(chunkPosition), voxels(size, size, size) {
-
-		for (std::int32_t x = 0; x < size; x++) {
-			for (std::int32_t y = 0; y < size; y++) {
-				for (std::int32_t z = 0; z < size / 2; z++) {
-					voxels.set(x, y, z, Voxel{VoxelType::Stone});
-				}
+		std::fill(voxels.begin(), voxels.end(), Voxel::Stone);
+		for (std::int32_t i = 0; i < size; i++) {
+			if (i % 3 == 0) {
+				voxels.set(i, 0, 0, Voxel::Air);
 			}
 		}
 
 		for (std::int32_t i = 0; i < size; i++) {
-			voxels.set(i, 2, 2, Voxel{VoxelType::Stone});
-		}
-
-		for (std::int32_t i = 0; i < size; i++) {
-			voxels.set(0, 0, i, Voxel{VoxelType::Stone});
-		}
-
-		for (std::int32_t i = 0; i < size; i++) {
-			for (std::int32_t j = size - size / 2; j < size; j++) {
-				voxels.set(0, j, i, Voxel{VoxelType::Stone});
+			if (i % 3 == 0) {
+				voxels.set(i, size - 1, 0, Voxel::Air);
 			}
 		}
-
-		for (std::int32_t i = 0; i < size; i++) {
-			voxels.set(i, 0, 0, Voxel{VoxelType::Air, false});
-		}
-
-		voxels.set(1, 1, 1, Voxel(VoxelType::Stone));
 	}
 
 	void greedy() {
@@ -84,14 +68,14 @@ private:
 	void calculateMask(Mask& mask, std::int32_t axis1, std::int32_t axis2, glm::ivec3& chunkItr, const glm::ivec3& axisMask) {
 		for (chunkItr[axis2] = 0; chunkItr[axis2] < size; ++chunkItr[axis2]) {
 			for (chunkItr[axis1] = 0; chunkItr[axis1] < size; ++chunkItr[axis1]) {
-				const Voxel currentVoxel = voxels.at(chunkItr);
-				const Voxel compareVoxel = voxels.at(chunkItr + axisMask);
+				const auto currentVoxel = voxels.at(chunkItr);
+				const auto compareVoxel = voxels.at(chunkItr + axisMask);
 
-				const bool currentVoxelOpaque = currentVoxel.visible;
-				const bool compareVoxelOpaque = compareVoxel.visible;
+				const bool currentVoxelOpaque = currentVoxel != Voxel::Air;
+				const bool compareVoxelOpaque = compareVoxel != Voxel::Air;
 
 				if (currentVoxelOpaque == compareVoxelOpaque) {
-					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask(Voxel{VoxelType::None}, 0);
+					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask(Voxel::Air, 0);
 				} else if (currentVoxelOpaque) {
 					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask(currentVoxel, 1);
 				} else {
@@ -107,7 +91,7 @@ private:
 				const auto y = j + l;
 				const auto x = i + k;
 				const auto index = y * size + x;
-				mask[index] = VoxelMask(Voxel{VoxelType::None}, 0);
+				mask[index] = VoxelMask(Voxel::Air, 0);
 			}
 		}
 	}
