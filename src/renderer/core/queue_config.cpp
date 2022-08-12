@@ -1,7 +1,4 @@
-#include <cstdint>
 #include <vkx/renderer/core/queue_config.hpp>
-
-#include <vkx/renderer/core/device.hpp>
 
 vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
 	if (!static_cast<bool>(physicalDevice)) {
@@ -35,9 +32,6 @@ vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR 
 		std::copy(uniqueIndices.begin(), uniqueIndices.end(), std::back_inserter(indices));
 	}
 }
-
-vkx::QueueConfig::QueueConfig(const Device& device, vk::SurfaceKHR surface)
-    : QueueConfig(static_cast<vk::PhysicalDevice>(device), surface) {}
 
 bool vkx::QueueConfig::isComplete() const {
 	return graphicsIndex.has_value() && presentIndex.has_value();
