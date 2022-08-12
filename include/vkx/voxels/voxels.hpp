@@ -1,10 +1,6 @@
 #pragma once
 
-#include "vkx/renderer/core/vertex.hpp"
-#include <SDL2/SDL_log.h>
-#include <array>
-#include <cstdint>
-#include <vkx/renderer/core/bootstrap.hpp>
+#include <vkx/renderer/core/vertex.hpp>
 #include <vkx/voxels/greedy_mask.hpp>
 #include <vkx/voxels/voxel_matrix.hpp>
 
@@ -13,7 +9,6 @@ template <std::int32_t size>
 class VoxelChunk {
 public:
 	static_assert(size % 8 == 0, "Size must be a multiple of 8");
-
 	explicit VoxelChunk(const glm::vec3& chunkPosition)
 	    : chunkPosition(chunkPosition), voxels(size, size, size) {
 
