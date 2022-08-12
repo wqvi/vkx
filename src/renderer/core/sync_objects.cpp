@@ -1,11 +1,5 @@
-//
-// Created by december on 7/7/22.
-//
-
-#include <SDL2/SDL_log.h>
-#include <cstdint>
-#include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
+#include <vkx/renderer/core/renderer_types.hpp>
 
 vkx::SyncObjects::SyncObjects(vk::Device device)
     : device(device),
@@ -19,7 +13,7 @@ std::vector<vkx::SyncObjects> vkx::SyncObjects::createSyncObjects(vk::Device dev
 
 	std::generate(objs.begin(), objs.end(), [&device]() { return SyncObjects{device}; });
 
-  SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer sync objects.");
+	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer sync objects.");
 
 	return objs;
 }
@@ -29,5 +23,5 @@ void vkx::SyncObjects::waitForFence() const {
 }
 
 void vkx::SyncObjects::resetFence() const {
-  device.resetFences(*inFlightFence);
+	device.resetFences(*inFlightFence);
 }
