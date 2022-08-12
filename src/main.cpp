@@ -238,6 +238,10 @@ int main(void) {
 					break;
 				case SDL_KEYUP:
 					camera.direction = glm::vec3(0);
+					break;
+				case SDL_MOUSEBUTTONDOWN:
+					chunk.raycast(camera);
+					break;
 				default:
 					break;
 				}
