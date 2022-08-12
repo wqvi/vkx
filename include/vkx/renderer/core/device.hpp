@@ -8,6 +8,7 @@
 #include "vkx/renderer/core/pipeline.hpp"
 #include "vkx/renderer/uniform_buffer.hpp"
 #include <vulkan/vulkan_handles.hpp>
+#include <vkx/renderer/core/swapchain.hpp>
 
 namespace vkx {
 class Device {
