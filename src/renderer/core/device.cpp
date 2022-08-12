@@ -255,6 +255,11 @@ std::shared_ptr<vkx::Swapchain> vkx::Device::createSwapchain(SDL_Window* window,
 }
 
 vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::AttachmentLoadOp loadOp) const {
+	vk::ImageLayout colorLayout = vk::ImageLayout::eUndefined;
+	if (loadOp == vk::AttachmentLoadOp::eLoad) {
+		colorLayout = vk::ImageLayout::eColorAttachmentOptimal;
+	}
+
 	const vk::AttachmentDescription colorAttachment(
 	    {},
 	    format,
@@ -263,7 +268,7 @@ vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::Attach
 	    vk::AttachmentStoreOp::eStore,
 	    vk::AttachmentLoadOp::eDontCare,
 	    vk::AttachmentStoreOp::eDontCare,
-	    vk::ImageLayout::eUndefined,
+	    colorLayout,
 	    vk::ImageLayout::ePresentSrcKHR);
 
 	const vk::AttachmentReference colorAttachmentRef(

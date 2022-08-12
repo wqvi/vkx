@@ -57,7 +57,7 @@ int main(void) {
 		const auto allocator = device->createAllocator();
 		auto swapchain = device->createSwapchain(window, allocator);
 		const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat);
-		// const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::AttachmentLoadOp::eLoad);
+		const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::AttachmentLoadOp::eLoad);
 
 		swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
