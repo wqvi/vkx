@@ -1,4 +1,3 @@
-#include <stdexcept>
 #include <vkx/renderer/core/swapchain_info.hpp>
 
 vkx::SwapchainInfo::SwapchainInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
@@ -13,11 +12,11 @@ vk::SurfaceFormatKHR vkx::SwapchainInfo::chooseSurfaceFormat() const {
 		}
 	}
 
-	return formats.at(0);
+	return formats[0];
 }
 
 vk::PresentModeKHR vkx::SwapchainInfo::choosePresentMode() const {
-	for (const auto& presentMode : presentModes) {
+	for (const auto presentMode : presentModes) {
 		if (presentMode == vk::PresentModeKHR::eMailbox) {
 			return presentMode;
 		}
@@ -31,10 +30,7 @@ vk::Extent2D vkx::SwapchainInfo::chooseExtent(int width, int height) const {
 		return capabilities.currentExtent;
 	}
 
-	vk::Extent2D extent{
-	    static_cast<std::uint32_t>(width), // width
-	    static_cast<std::uint32_t>(height) // height
-	};
+	vk::Extent2D extent(static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height));
 
 	extent.width = glm::clamp(extent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
 	extent.height = glm::clamp(extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
