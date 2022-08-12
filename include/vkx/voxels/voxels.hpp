@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vkx/voxels/voxel_mask.hpp"
+#include <glm/fwd.hpp>
 #include <vkx/renderer/core/vertex.hpp>
 #include <vkx/voxels/greedy_mask.hpp>
 #include <vkx/voxels/voxel_matrix.hpp>
@@ -7,6 +9,8 @@
 namespace vkx {
 template <std::int32_t size>
 class VoxelChunk {
+	using Mask = std::array<VoxelMask, size * size>;
+
 public:
 	static_assert(size % 8 == 0, "Size must be a multiple of 8");
 	explicit VoxelChunk(const glm::vec3& chunkPosition)
@@ -47,6 +51,8 @@ public:
 
 		GreedyMask mask{size, size};
 
+		Mask voxelMask;
+
 		for (std::int32_t axis = 0; axis < 3; axis++) {
 			const auto axis1 = (axis + 1) % 3;
 			const auto axis2 = (axis + 2) % 3;
@@ -78,6 +84,65 @@ public:
 	std::uint32_t* indexIter;
 
 private:
+	void calculateMask(Mask& mask, std::int32_t axis1, std::int32_t axis2, glm::ivec3& chunkItr, const glm::ivec3& axisMask) {
+		for (chunkItr[axis2] = 0; chunkItr[axis2] < size; ++chunkItr[axis2]) {
+			for (chunkItr[axis1] = 0; chunkItr[axis1] < size; ++chunkItr[axis1]) {
+				const Voxel currentVoxel = voxels.at(chunkItr);
+				const Voxel compareVoxel = voxels.at(chunkItr + axisMask);
+
+				const bool currentVoxelOpaque = currentVoxel.visible;
+				const bool compareVoxelOpaque = compareVoxel.visible;
+
+				if (currentVoxelOpaque == compareVoxelOpaque) {
+					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask{Voxel{VoxelType::None}, 0};
+				} else if (currentVoxelOpaque) {
+					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask{currentVoxel, 1};
+				} else {
+					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask{compareVoxel, -1};
+				}
+			}
+		}
+	}
+
+	void clear(Mask& mask, std::int32_t i, std::int32_t j, std::int32_t width, std::int32_t height) {
+		for (std::int32_t l = 0; l < height; l++) {
+			for (std::int32_t k = 0; k < width; k++) {
+				const auto y = j + l;
+				const auto x = i + k;
+				const auto index = y * size + x;
+				mask[index] = VoxelMask{Voxel{VoxelType::None}, 0};
+			}
+		}
+	}
+
+	auto calculateQuadWidth(const Mask& mask, const VoxelMask& currentMask, std::int32_t i, std::int32_t j) {
+		std::int32_t width = 1;
+		while (i + width < size) {
+			const auto& quadMask = mask[j * size + i];
+			if (quadMask == currentMask) {
+				break;
+			}
+			width++;
+		}
+		return width;
+	}
+
+	auto calculateQuadHeight(const Mask& mask, const VoxelMask& currentMask, std::int32_t quadWidth, std::int32_t width, std::int32_t i, std::int32_t j) {
+		std::int32_t height = 1;
+		while (j + height < size) {
+			for (std::int32_t k = 0; k < quadWidth; k++) {
+				const auto index = j * size + i;
+				const auto offset = k + height * size;
+				const auto& quadMask = mask[index + offset];
+				if (quadMask == currentMask) {
+					return height;
+				}
+			}
+			height++;
+		}
+		return height;
+	}
+
 	void generateMesh(GreedyMask& mask, std::int32_t axis1, std::int32_t axis2, const glm::i32vec3& axisMask, glm::i32vec3& chunkItr) {
 		for (int j = 0; j < size; ++j) {
 			for (int i = 0; i < size;) {
