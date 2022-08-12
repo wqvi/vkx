@@ -1,7 +1,8 @@
 #pragma once
 
-#include "device.hpp"
-#include <vulkan/vulkan_handles.hpp>
+#include <vkx/renderer/core/renderer_types.hpp>
+#include <vkx/renderer/core/device.hpp>
+#include <vkx/renderer/core/vertex.hpp>
 
 namespace vkx {
 class GraphicsPipeline {
@@ -11,13 +12,13 @@ public:
 
 	GraphicsPipeline() = default;
 
-	GraphicsPipeline(const vkx::Device& device, const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout);
+	GraphicsPipeline(vk::Device device, const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout);
 
 private:
-	static vk::UniquePipelineLayout createPipelineLayout(const vkx::Device& device, vk::DescriptorSetLayout descriptorSetLayout);
+	static vk::UniquePipelineLayout createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout);
 
-	static vk::UniqueShaderModule createShaderModule(const vkx::Device& device, const std::string& filename);
+	static vk::UniqueShaderModule createShaderModule(vk::Device device, const std::string& filename);
 
-	static vk::UniquePipeline createPipeline(const vkx::Device& device, const vk::Extent2D& extent, vk::RenderPass renderPass, vk::PipelineLayout layout);
+	static vk::UniquePipeline createPipeline(vk::Device device, const vk::Extent2D& extent, vk::RenderPass renderPass, vk::PipelineLayout layout);
 };
 } // namespace vkx
