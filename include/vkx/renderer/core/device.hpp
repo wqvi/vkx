@@ -19,8 +19,6 @@ public:
 
 	const vk::Device* operator->() const;
 
-	[[nodiscard]] std::vector<DrawCommand> createDrawCommands(std::uint32_t size) const;
-
 	[[nodiscard]] vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const;
 
 	[[nodiscard]] inline vk::Format findDepthFormat() const {

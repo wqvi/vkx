@@ -1,17 +1,5 @@
-#include "vkx/renderer/core/pipeline.hpp"
-#include "vkx/renderer/core/queue_config.hpp"
-#include "vkx/renderer/core/renderer_types.hpp"
-#include <SDL2/SDL_log.h>
-#include <iterator>
-#include <memory>
-#include <stdexcept>
 #include <vkx/renderer/core/device.hpp>
-#include <vkx/renderer/core/swapchain.hpp>
-#include <vkx/renderer/core/swapchain_info.hpp>
-#include <vkx/renderer/core/sync_objects.hpp>
-#include <vulkan/vulkan_enums.hpp>
-#include <vulkan/vulkan_handles.hpp>
-#include <vulkan/vulkan_structs.hpp>
+#include <vkx/renderer/core/queue_config.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
