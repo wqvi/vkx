@@ -289,7 +289,7 @@ vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::Attach
 }
 
 std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) const {
-	return std::make_shared<vkx::GraphicsPipeline>(*this, extent, renderPass, descriptorSetLayout);
+	return std::make_shared<vkx::GraphicsPipeline>(*device, extent, renderPass, descriptorSetLayout);
 }
 
 std::shared_ptr<vkx::CommandSubmitter> vkx::Device::createCommandSubmitter() const {
