@@ -1,6 +1,5 @@
 target_sources(vkx
 	PRIVATE
-		"${CMAKE_CURRENT_SOURCE_DIR}/commands.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/device.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/pipeline.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/queue_config.cpp"
