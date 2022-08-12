@@ -4,3 +4,4 @@
 #include <vkx/renderer/core/bootstrap.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 #include <vkx/renderer/model.hpp>
+#include <vkx/camera.hpp>

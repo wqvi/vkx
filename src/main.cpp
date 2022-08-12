@@ -1,29 +1,4 @@
-#include "vkx/camera.hpp"
-#include "vkx/renderer/core/device.hpp"
-#include "vkx/renderer/core/renderer_types.hpp"
-#include "vkx/renderer/core/sync_objects.hpp"
-#include "vkx/renderer/core/vertex.hpp"
-#include "vkx/renderer/model.hpp"
-#include "vkx/renderer/uniform_buffer.hpp"
-#include "vkx/voxels/voxels.hpp"
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_mouse.h>
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_video.h>
-#include <cstddef>
-#include <cstdint>
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/fwd.hpp>
-#include <iostream>
-#include <iterator>
-#include <stdexcept>
-#include <vk_mem_alloc.h>
 #include <vkx/vkx.hpp>
-#include <vulkan/vulkan_core.h>
-#include <vulkan/vulkan_enums.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
