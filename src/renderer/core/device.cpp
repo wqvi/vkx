@@ -5,7 +5,6 @@
 #include <iterator>
 #include <memory>
 #include <stdexcept>
-#include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
