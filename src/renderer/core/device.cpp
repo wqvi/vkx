@@ -324,8 +324,8 @@ std::shared_ptr<vkx::CommandSubmitter> vkx::Device::createCommandSubmitter() con
 	return std::make_shared<vkx::CommandSubmitter>(physicalDevice, *device, surface);
 }
 
-vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface) 
-	: device(device) {
+vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface)
+    : device(device) {
 	const vkx::QueueConfig queueConfig(physicalDevice, surface);
 
 	graphicsQueue = device.getQueue(*queueConfig.graphicsIndex, 0);
@@ -426,39 +426,70 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::
 }
 
 void vkx::CommandSubmitter::recordDrawCommands(iter begin, iter end, const DrawInfo& drawInfo) const {
-	for (; begin != end; begin++) {
-		const auto commandBuffer = *begin;
+	const auto commandBuffer = *begin;
 
-		commandBuffer.reset({});
-		const vk::CommandBufferBeginInfo beginInfo{};
-		static_cast<void>(commandBuffer.begin(beginInfo));
+	commandBuffer.reset({});
+	const vk::CommandBufferBeginInfo beginInfo{};
+	static_cast<void>(commandBuffer.begin(beginInfo));
 
-		constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
-		constexpr vk::ClearColorValue clearColor(clearColorValue);
-		constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
+	constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
+	constexpr vk::ClearColorValue clearColor(clearColorValue);
+	constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
 
-		constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
+	constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
 
-		const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
+	const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
 
-		const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
+	const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
 
-		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+	commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
-		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
+	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
 
-		commandBuffer.bindVertexBuffers(0, drawInfo.vertexBuffer, {0});
+	commandBuffer.bindVertexBuffers(0, drawInfo.vertexBuffer, {0});
 
-		commandBuffer.bindIndexBuffer(drawInfo.indexBuffer, 0, vk::IndexType::eUint32);
+	commandBuffer.bindIndexBuffer(drawInfo.indexBuffer, 0, vk::IndexType::eUint32);
 
-		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
+	commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
 
-		commandBuffer.drawIndexed(drawInfo.indexCount, 1, 0, 0, 0);
+	commandBuffer.drawIndexed(drawInfo.indexCount, 1, 0, 0, 0);
 
-		commandBuffer.endRenderPass();
+	commandBuffer.endRenderPass();
 
-		commandBuffer.end();
-	}
+	commandBuffer.end();
+	// 	for (; begin != end; begin++) {
+	// 		const auto commandBuffer = *begin;
+
+	// 		commandBuffer.reset({});
+	// 		const vk::CommandBufferBeginInfo beginInfo{};
+	// 		static_cast<void>(commandBuffer.begin(beginInfo));
+
+	// 		constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
+	// 		constexpr vk::ClearColorValue clearColor(clearColorValue);
+	// 		constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
+
+	// 		constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
+
+	// 		const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
+
+	// 		const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
+
+	// 		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+	// 		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
+
+	// 		commandBuffer.bindVertexBuffers(0, drawInfo.vertexBuffer, {0});
+
+	// 		commandBuffer.bindIndexBuffer(drawInfo.indexBuffer, 0, vk::IndexType::eUint32);
+
+	// 		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
+
+	// 		commandBuffer.drawIndexed(drawInfo.indexCount, 1, 0, 0, 0);
+
+	// 		commandBuffer.endRenderPass();
+
+	// 		commandBuffer.end();
+	// 	}
 }
 
 void vkx::CommandSubmitter::submitDrawCommands(iter begin, iter end, const SyncObjects& syncObjects) const {

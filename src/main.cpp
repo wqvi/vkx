@@ -170,12 +170,6 @@ int main(void) {
 			materialBuffer->specularColor = glm::vec3(0.2f);
 			materialBuffer->shininess = 100.0f;
 
-			// TODO whatever this is lol
-			// renderer.drawFrame(mvpBuffer, lightBuffer, materialBuffer,
-			// 		   mesh.vertex->object, mesh.index->object,
-			// 		   static_cast<std::uint32_t>(mesh.indexCount),
-			// 		   currentFrame);
-
 			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
 			auto [result, imageIndex] = swapchain->acquireNextImage(static_cast<vk::Device>(*device), syncObject);
@@ -218,8 +212,10 @@ int main(void) {
 			    mesh.index->object,
 			    static_cast<std::uint32_t>(mesh.indexCount)};
 
-			const auto drawCommandsBegin = drawCommands.cbegin();
-			const auto drawCommandsEnd = drawCommandsBegin + 1;
+			auto drawCommandsBegin = drawCommands.cbegin();
+			std::advance(drawCommandsBegin, currentFrame);
+			auto drawCommandsEnd = drawCommandsBegin;
+			std::advance(drawCommandsEnd, 1);
 			commandSubmitter->recordDrawCommands(drawCommandsBegin, drawCommandsEnd, drawInfo);
 
 			commandSubmitter->submitDrawCommands(drawCommandsBegin, drawCommandsEnd, syncObject);
