@@ -6,16 +6,16 @@ struct Vertex {
 	glm::vec2 uv;
 	glm::vec3 normal;
 
-	static std::array<vk::VertexInputBindingDescription, 1> getBindingDescription() {
-		vk::VertexInputBindingDescription bindingDescription{};
-		bindingDescription.binding = 0;
-		bindingDescription.stride = sizeof(Vertex);
-		bindingDescription.inputRate = vk::VertexInputRate::eVertex;
+	static constexpr auto getBindingDescription() noexcept {
+		std::array<vk::VertexInputBindingDescription, 1> bindingDescriptions{};
+		bindingDescriptions[0].binding = 0;
+		bindingDescriptions[0].stride = sizeof(Vertex);
+		bindingDescriptions[0].inputRate = vk::VertexInputRate::eVertex;
 
-		return {bindingDescription};
+		return bindingDescriptions;
 	}
 
-	static std::array<vk::VertexInputAttributeDescription, 3> getAttributeDescriptions() {
+	static constexpr auto getAttributeDescriptions() noexcept {
 		std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions{};
 
 		attributeDescriptions[0].binding = 0;
