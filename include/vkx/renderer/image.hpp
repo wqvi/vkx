@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vkx/renderer/core/allocator.hpp>
-#include <vkx/renderer/core/device.hpp>
+#include <vkx/renderer/core/commands.hpp>
 
 namespace vkx {
 class Image {
