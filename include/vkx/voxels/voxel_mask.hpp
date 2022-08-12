@@ -21,5 +21,9 @@ namespace vkx
     bool operator==(const VoxelMask &other) const {
       return voxel == other.voxel && normal == other.normal;
     }
+
+    bool operator!=(const VoxelMask &other) const {
+      return voxel != other.voxel && normal != other.normal;
+    }
   };
 }

@@ -40,5 +40,9 @@ namespace vkx
     bool operator==(Voxel const &other) const {
       return type == other.type && visible == other.visible;
     }
+    
+    bool operator!=(Voxel const &other) const {
+      return type != other.type && visible != other.visible;
+    }
   };
 }

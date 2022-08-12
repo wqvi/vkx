@@ -49,9 +49,9 @@ public:
 		vertexIter = ve.begin();
 		indexIter = in.begin();
 
-		GreedyMask mask{size, size};
+		// GreedyMask mask{size, size};
 
-		Mask voxelMask;
+		Mask mask;
 
 		for (std::int32_t axis = 0; axis < 3; axis++) {
 			const auto axis1 = (axis + 1) % 3;
@@ -65,7 +65,8 @@ public:
 			// Check each slice of the chunk
 			for (chunkItr[axis] = -1; chunkItr[axis] < size;) {
 				// Compute Mask
-				mask.calculate(voxels, chunkItr, axis1, axis2, axisMask);
+				// mask.calculate(voxels, chunkItr, axis1, axis2, axisMask);
+				calculateMask(mask, axis1, axis2, chunkItr, axisMask);
 
 				chunkItr[axis]++;
 
@@ -118,23 +119,23 @@ private:
 	auto calculateQuadWidth(const Mask& mask, const VoxelMask& currentMask, std::int32_t i, std::int32_t j) {
 		std::int32_t width = 1;
 		while (i + width < size) {
-			const auto& quadMask = mask[j * size + i];
-			if (quadMask == currentMask) {
-				break;
+			const auto& quadMask = mask[(j * size + i) + width];
+			if (quadMask != currentMask) {
+				return width;
 			}
 			width++;
 		}
 		return width;
 	}
 
-	auto calculateQuadHeight(const Mask& mask, const VoxelMask& currentMask, std::int32_t quadWidth, std::int32_t width, std::int32_t i, std::int32_t j) {
+	auto calculateQuadHeight(const Mask& mask, const VoxelMask& currentMask, std::int32_t quadWidth, std::int32_t i, std::int32_t j) {
 		std::int32_t height = 1;
 		while (j + height < size) {
 			for (std::int32_t k = 0; k < quadWidth; k++) {
 				const auto index = j * size + i;
 				const auto offset = k + height * size;
 				const auto& quadMask = mask[index + offset];
-				if (quadMask == currentMask) {
+				if (quadMask != currentMask) {
 					return height;
 				}
 			}
@@ -143,16 +144,20 @@ private:
 		return height;
 	}
 
-	void generateMesh(GreedyMask& mask, std::int32_t axis1, std::int32_t axis2, const glm::i32vec3& axisMask, glm::i32vec3& chunkItr) {
+	void generateMesh(Mask& mask, std::int32_t axis1, std::int32_t axis2, const glm::i32vec3& axisMask, glm::i32vec3& chunkItr) {
 		for (int j = 0; j < size; ++j) {
 			for (int i = 0; i < size;) {
-				const auto& currentMask = mask.at(i, j);
+				// const auto& currentMask = mask.at(i, j);
+				const auto& currentMask = mask[j * size + i];
 				if (currentMask.normal != 0) {
 					chunkItr[axis1] = i;
 					chunkItr[axis2] = j;
 
-					const auto width = mask.calculateQuadWidth(currentMask, i, j);
-					const auto height = mask.calculateQuadHeight(currentMask, width, i, j);
+					// const auto width = mask.calculateQuadWidth(currentMask, i, j);
+					// const auto height = mask.calculateQuadHeight(currentMask, width, i, j);
+
+					const auto width = calculateQuadWidth(mask, currentMask, i, j);
+					const auto height = calculateQuadHeight(mask, currentMask, width, i, j);
 
 					glm::i32vec3 deltaAxis1{0};
 					glm::i32vec3 deltaAxis2{0};
@@ -161,7 +166,8 @@ private:
 
 					createQuad(currentMask.normal, axisMask, width, height, chunkItr, axis1, axis2);
 
-					mask.clear(i, j, width, height);
+					// mask.clear(i, j, width, height);
+					clear(mask, i, j, width, height);
 
 					i += width;
 				} else {
