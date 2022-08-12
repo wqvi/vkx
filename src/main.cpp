@@ -1,6 +1,5 @@
 #include "vkx/camera.hpp"
 #include "vkx/renderer/core/device.hpp"
-#include "vkx/renderer/core/renderer_base.hpp"
 #include "vkx/renderer/core/renderer_types.hpp"
 #include "vkx/renderer/core/sync_objects.hpp"
 #include "vkx/renderer/core/vertex.hpp"
@@ -52,7 +51,7 @@ int main(void) {
 	{
 		vkx::Camera camera({0, 0, 0});
 
-		const vkx::RendererBase renderer(window);
+		const vkx::RendererBootstrap renderer(window);
 		const auto device = renderer.createDevice();
 		const auto allocator = device->createAllocator();
 		auto swapchain = device->createSwapchain(window, allocator);

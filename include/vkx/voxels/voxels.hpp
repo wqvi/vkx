@@ -4,7 +4,7 @@
 #include <SDL2/SDL_log.h>
 #include <array>
 #include <cstdint>
-#include <vkx/renderer/core/renderer_base.hpp>
+#include <vkx/renderer/core/bootstrap.hpp>
 #include <vkx/voxels/greedy_mask.hpp>
 #include <vkx/voxels/voxel_matrix.hpp>
 

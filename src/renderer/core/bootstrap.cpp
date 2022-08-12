@@ -1,5 +1,5 @@
 #include <vkx/renderer/core/queue_config.hpp>
-#include <vkx/renderer/core/renderer_base.hpp>
+#include <vkx/renderer/core/bootstrap.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 
 #ifdef DEBUG
@@ -25,7 +25,7 @@ static VkBool32 vkDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSe
 }
 #endif
 
-vkx::RendererBase::RendererBase(SDL_Window* window) {
+vkx::RendererBootstrap::RendererBootstrap(SDL_Window* window) {
 	constexpr vk::ApplicationInfo applicationInfo(
 	    "Star explorer",
 	    VK_MAKE_VERSION(0, 0, 1),
@@ -90,12 +90,12 @@ vkx::RendererBase::RendererBase(SDL_Window* window) {
 	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer bootstrap.");
 }
 
-std::shared_ptr<vkx::Device> vkx::RendererBase::createDevice() const {
+std::shared_ptr<vkx::Device> vkx::RendererBootstrap::createDevice() const {
 	const auto physicalDevice = getBestPhysicalDevice(*instance, *surface);
 	return std::make_shared<vkx::Device>(*instance, physicalDevice, *surface);
 }
 
-vk::PhysicalDevice vkx::RendererBase::getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface) {
+vk::PhysicalDevice vkx::RendererBootstrap::getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface) {
 	if (!static_cast<bool>(instance)) {
 		throw std::invalid_argument("Instance must be a valid handle.");
 	}

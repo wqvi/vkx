@@ -3,9 +3,9 @@
 #include <vkx/renderer/core/device.hpp>
 
 namespace vkx {
-class RendererBase {
+class RendererBootstrap {
 public:
-	explicit RendererBase(SDL_Window* window);
+	explicit RendererBootstrap(SDL_Window* window);
 
 	[[nodiscard]]
 	std::shared_ptr<vkx::Device> createDevice() const; 
