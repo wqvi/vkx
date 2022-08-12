@@ -1,14 +1,9 @@
-#include "vkx/renderer/core/device.hpp"
-#include <cstring>
-#include <stdexcept>
-#include <vk_mem_alloc.h>
 #include <vkx/renderer/image.hpp>
-#include <vulkan/vulkan_enums.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-vkx::Image::Image(const std::string& file, const Device& device, const std::shared_ptr<vkx::Allocator>& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter) {
+vkx::Image::Image(const std::string& file, const std::shared_ptr<vkx::Allocator>& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter) {
 	int texWidth;
 	int texHeight;
 	int texChannels;
