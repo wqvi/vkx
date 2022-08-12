@@ -1,13 +1,7 @@
 #pragma once
 
-#include "queue_config.hpp"
-#include "renderer_types.hpp"
-#include "vertex.hpp"
-#include "vk_mem_alloc.h"
-#include "vkx/renderer/core/commands.hpp"
-#include "vkx/renderer/core/pipeline.hpp"
-#include "vkx/renderer/uniform_buffer.hpp"
-#include <vulkan/vulkan_handles.hpp>
+#include <vkx/renderer/core/allocator.hpp>
+#include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/core/swapchain.hpp>
 
 namespace vkx {
@@ -34,16 +28,6 @@ public:
 	}
 
 	[[nodiscard]] vk::UniqueImageView createImageViewUnique(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
-
-	// void copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) const;
-
-	// void copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const;
-
-	// void transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const;
-
-	// void submit(const std::vector<vk::CommandBuffer>& commandBuffers, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore, vk::Fence flightFence) const;
-
-	// [[nodiscard]] vk::Result present(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, vk::Semaphore signalSemaphores) const;
 
 	[[nodiscard]] vk::UniqueImageView createTextureImageViewUnique(vk::Image image) const;
 

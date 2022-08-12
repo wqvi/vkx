@@ -187,44 +187,11 @@ vk::UniqueImageView vkx::Device::createImageViewUnique(vk::Image image, vk::Form
 	return device->createImageViewUnique(imageViewInfo);
 }
 
-// void vkx::Device::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) const {
-// 	const SingleTimeCommand singleTimeCommand(*this, graphicsQueue);
-
-// 	const vk::BufferCopy copyRegion(0, 0, size);
-
-// 	singleTimeCommand->copyBuffer(srcBuffer, dstBuffer, copyRegion);
-// }
-
-// void vkx::Device::submit(const std::vector<vk::CommandBuffer>& commandBuffers, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore, vk::Fence flightFence) const {
-// 	constexpr std::array waitStage{vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
-// 	const vk::SubmitInfo submitInfo(
-// 	    1,
-// 	    &waitSemaphore,
-// 	    waitStage.data(),
-// 	    static_cast<std::uint32_t>(commandBuffers.size()),
-// 	    commandBuffers.data(),
-// 	    1,
-// 	    &signalSemaphore);
-
-// 	graphicsQueue.submit(submitInfo, flightFence);
-// }
-
-// vk::Result vkx::Device::present(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, vk::Semaphore signalSemaphores) const {
-// 	const vk::PresentInfoKHR presentInfo(
-// 	    1,
-// 	    &signalSemaphores,
-// 	    1,
-// 	    &swapchain,
-// 	    &imageIndex);
-
-// 	return presentQueue.presentKHR(&presentInfo);
-// }
-
-[[nodiscard]] vk::UniqueImageView vkx::Device::createTextureImageViewUnique(vk::Image image) const {
+vk::UniqueImageView vkx::Device::createTextureImageViewUnique(vk::Image image) const {
 	return createImageViewUnique(image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
 }
 
-[[nodiscard]] vk::UniqueSampler vkx::Device::createTextureSamplerUnique() const {
+vk::UniqueSampler vkx::Device::createTextureSamplerUnique() const {
 	const vk::SamplerCreateInfo samplerInfo(
 	    {},
 	    vk::Filter::eLinear,
@@ -431,70 +398,39 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::
 }
 
 void vkx::CommandSubmitter::recordDrawCommands(iter begin, iter end, const DrawInfo& drawInfo) const {
-	const auto commandBuffer = *begin;
+	for (; begin != end; begin++) {
+		const auto commandBuffer = *begin;
 
-	commandBuffer.reset({});
-	const vk::CommandBufferBeginInfo beginInfo{};
-	static_cast<void>(commandBuffer.begin(beginInfo));
+		commandBuffer.reset({});
+		const vk::CommandBufferBeginInfo beginInfo{};
+		static_cast<void>(commandBuffer.begin(beginInfo));
 
-	constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
-	constexpr vk::ClearColorValue clearColor(clearColorValue);
-	constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
+		constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
+		constexpr vk::ClearColorValue clearColor(clearColorValue);
+		constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
 
-	constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
+		constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
 
-	const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
+		const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
 
-	const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
+		const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
 
-	commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
-	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
+		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
 
-	commandBuffer.bindVertexBuffers(0, drawInfo.vertexBuffer, {0});
+		commandBuffer.bindVertexBuffers(0, drawInfo.vertexBuffer, {0});
 
-	commandBuffer.bindIndexBuffer(drawInfo.indexBuffer, 0, vk::IndexType::eUint32);
+		commandBuffer.bindIndexBuffer(drawInfo.indexBuffer, 0, vk::IndexType::eUint32);
 
-	commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
+		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
 
-	commandBuffer.drawIndexed(drawInfo.indexCount, 1, 0, 0, 0);
+		commandBuffer.drawIndexed(drawInfo.indexCount, 1, 0, 0, 0);
 
-	commandBuffer.endRenderPass();
+		commandBuffer.endRenderPass();
 
-	commandBuffer.end();
-	// 	for (; begin != end; begin++) {
-	// 		const auto commandBuffer = *begin;
-
-	// 		commandBuffer.reset({});
-	// 		const vk::CommandBufferBeginInfo beginInfo{};
-	// 		static_cast<void>(commandBuffer.begin(beginInfo));
-
-	// 		constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
-	// 		constexpr vk::ClearColorValue clearColor(clearColorValue);
-	// 		constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
-
-	// 		constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
-
-	// 		const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
-
-	// 		const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
-
-	// 		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-
-	// 		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
-
-	// 		commandBuffer.bindVertexBuffers(0, drawInfo.vertexBuffer, {0});
-
-	// 		commandBuffer.bindIndexBuffer(drawInfo.indexBuffer, 0, vk::IndexType::eUint32);
-
-	// 		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
-
-	// 		commandBuffer.drawIndexed(drawInfo.indexCount, 1, 0, 0, 0);
-
-	// 		commandBuffer.endRenderPass();
-
-	// 		commandBuffer.end();
-	// 	}
+		commandBuffer.end();
+	}
 }
 
 void vkx::CommandSubmitter::submitDrawCommands(iter begin, iter end, const SyncObjects& syncObjects) const {
