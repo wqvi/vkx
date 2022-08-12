@@ -1,9 +1,7 @@
 #pragma once
 
-#include "vkx/voxels/voxel_mask.hpp"
-#include <glm/fwd.hpp>
+#include <vkx/voxels/voxel_mask.hpp>
 #include <vkx/renderer/core/vertex.hpp>
-#include <vkx/voxels/greedy_mask.hpp>
 #include <vkx/voxels/voxel_matrix.hpp>
 
 namespace vkx {
@@ -49,8 +47,6 @@ public:
 		vertexIter = ve.begin();
 		indexIter = in.begin();
 
-		// GreedyMask mask{size, size};
-
 		Mask mask;
 
 		for (std::int32_t axis = 0; axis < 3; axis++) {
@@ -95,28 +91,28 @@ private:
 				const bool compareVoxelOpaque = compareVoxel.visible;
 
 				if (currentVoxelOpaque == compareVoxelOpaque) {
-					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask{Voxel{VoxelType::None}, 0};
+					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask(Voxel{VoxelType::None}, 0);
 				} else if (currentVoxelOpaque) {
-					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask{currentVoxel, 1};
+					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask(currentVoxel, 1);
 				} else {
-					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask{compareVoxel, -1};
+					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask(compareVoxel, -1);
 				}
 			}
 		}
 	}
 
-	void clear(Mask& mask, std::int32_t i, std::int32_t j, std::int32_t width, std::int32_t height) {
+	static void clear(Mask& mask, std::int32_t i, std::int32_t j, std::int32_t width, std::int32_t height) {
 		for (std::int32_t l = 0; l < height; l++) {
 			for (std::int32_t k = 0; k < width; k++) {
 				const auto y = j + l;
 				const auto x = i + k;
 				const auto index = y * size + x;
-				mask[index] = VoxelMask{Voxel{VoxelType::None}, 0};
+				mask[index] = VoxelMask(Voxel{VoxelType::None}, 0);
 			}
 		}
 	}
 
-	auto calculateQuadWidth(const Mask& mask, const VoxelMask& currentMask, std::int32_t i, std::int32_t j) {
+	static auto calculateQuadWidth(const Mask& mask, const VoxelMask& currentMask, std::int32_t i, std::int32_t j) {
 		std::int32_t width = 1;
 		while (i + width < size) {
 			const auto& quadMask = mask[(j * size + i) + width];
@@ -128,7 +124,7 @@ private:
 		return width;
 	}
 
-	auto calculateQuadHeight(const Mask& mask, const VoxelMask& currentMask, std::int32_t quadWidth, std::int32_t i, std::int32_t j) {
+	static auto calculateQuadHeight(const Mask& mask, const VoxelMask& currentMask, std::int32_t quadWidth, std::int32_t i, std::int32_t j) {
 		std::int32_t height = 1;
 		while (j + height < size) {
 			for (std::int32_t k = 0; k < quadWidth; k++) {
