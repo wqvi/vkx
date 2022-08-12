@@ -1,13 +1,12 @@
 #pragma once
 
-#include "vkx/renderer/core/sync_objects.hpp"
+#include <vkx/renderer/core/sync_objects.hpp>
 #include <vkx/renderer/core/device.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
 class Swapchain {
 public:
-	Swapchain();
+	Swapchain() = default;
 
 	Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator);
 
@@ -15,11 +14,7 @@ public:
 
 	operator const vk::UniqueSwapchainKHR&() const;
 
-	void createFramebuffers(const Device& device, const vk::UniqueRenderPass& renderPass);
-
 	void createFramebuffers(vk::Device device, vk::RenderPass renderPass);
-
-	vk::ResultValue<std::uint32_t> acquireNextImage(const Device& device, const vk::UniqueSemaphore& semaphore) const;
 
 	vk::ResultValue<std::uint32_t> acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const;
 

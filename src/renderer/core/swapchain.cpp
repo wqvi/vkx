@@ -1,12 +1,6 @@
-#include "vkx/renderer/core/bootstrap.hpp"
-#include <SDL2/SDL_log.h>
 #include <vkx/renderer/core/swapchain.hpp>
-
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
-#include <vulkan/vulkan_handles.hpp>
-
-vkx::Swapchain::Swapchain() = default;
 
 vkx::Swapchain::Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator) {
 	if (!static_cast<bool>(surface)) {
@@ -64,24 +58,6 @@ vkx::Swapchain::operator const vk::SwapchainKHR&() const { return *swapchain; }
 
 vkx::Swapchain::operator const vk::UniqueSwapchainKHR&() const { return swapchain; }
 
-void vkx::Swapchain::createFramebuffers(const Device& device, const vk::UniqueRenderPass& renderPass) {
-	framebuffers.resize(imageViews.size());
-
-	for (std::size_t i = 0; i < imageViews.size(); i++) {
-		const std::array framebufferAttachments{*imageViews[i], *depthImageView};
-
-		const vk::FramebufferCreateInfo framebufferInfo(
-		    {},
-		    *renderPass,
-		    framebufferAttachments,
-		    extent.width,
-		    extent.height,
-		    1);
-
-		framebuffers[i] = device->createFramebufferUnique(framebufferInfo);
-	}
-}
-
 void vkx::Swapchain::createFramebuffers(vk::Device device, vk::RenderPass renderPass) {
 	framebuffers.resize(imageViews.size());
 
@@ -98,13 +74,6 @@ void vkx::Swapchain::createFramebuffers(vk::Device device, vk::RenderPass render
 
 		framebuffers[i] = device.createFramebufferUnique(framebufferInfo);
 	}
-}
-
-vk::ResultValue<std::uint32_t> vkx::Swapchain::acquireNextImage(const Device& device, const vk::UniqueSemaphore& semaphore) const {
-	std::uint32_t imageIndex = 0;
-	const auto result = device->acquireNextImageKHR(*swapchain, UINT64_MAX, *semaphore, {}, &imageIndex);
-
-	return {result, imageIndex};
 }
 
 vk::ResultValue<std::uint32_t> vkx::Swapchain::acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const {
