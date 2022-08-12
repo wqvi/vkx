@@ -1,4 +1,3 @@
-#include <vkx/debug.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/renderer_base.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
