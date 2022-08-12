@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vkx/renderer/core/renderer_types.hpp>
-#include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/vertex.hpp>
 
 namespace vkx {
