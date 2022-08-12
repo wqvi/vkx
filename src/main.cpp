@@ -105,7 +105,8 @@ int main(void) {
 
 		auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
 		const auto commandSubmitter = device->createCommandSubmitter();
-		const auto drawCommands = commandSubmitter->allocateDrawCommands(1);
+		constexpr auto drawCommandAmount = 1;
+		const auto drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
 		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
 
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
@@ -215,7 +216,7 @@ int main(void) {
 			auto drawCommandsBegin = drawCommands.cbegin();
 			std::advance(drawCommandsBegin, currentFrame);
 			auto drawCommandsEnd = drawCommandsBegin;
-			std::advance(drawCommandsEnd, 1);
+			std::advance(drawCommandsEnd, drawCommandAmount);
 			commandSubmitter->recordDrawCommands(drawCommandsBegin, drawCommandsEnd, drawInfo);
 
 			commandSubmitter->submitDrawCommands(drawCommandsBegin, drawCommandsEnd, syncObject);
