@@ -112,8 +112,8 @@ int main(void) {
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
 		chunk.greedy();
 
-		// vkx::Model model({}, renderer.allocateTexture("a.jpg"), {glm::vec3(0.2f), 100.0f});
-		// model.mesh.indexCount = chunk.vertexCount;
+		vkx::VoxelChunk<16> chunk1({1, 0, 0});
+		chunk1.greedy();
 
 		vkx::Mesh mesh(chunk.ve, chunk.in, allocator);
 		mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
@@ -123,7 +123,6 @@ int main(void) {
 		auto mvpBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
 		auto lightBuffers = allocator->allocateUniformBuffers(vkx::DirectionalLight{});
 		auto materialBuffers = allocator->allocateUniformBuffers(vkx::Material{});
-		// renderer.createDescriptorSets(mvpBuffers, lightBuffers, materialBuffers, model.texture);
 
 		const std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
 		const vk::DescriptorSetAllocateInfo allocInfo(*descriptorPool, layouts);
@@ -252,7 +251,6 @@ int main(void) {
 					break;
 				case SDL_WINDOWEVENT:
 					if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-						// renderer.framebufferResized = true;
 						framebufferResized = true;
 						proj = glm::perspective(70.0f, static_cast<float>(event.window.data1) / static_cast<float>(event.window.data2), 0.1f, 100.0f);
 						proj[1][1] *= -1.0f;
@@ -274,7 +272,6 @@ int main(void) {
 			currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 		}
 
-		// renderer.waitIdle();
 		(*device)->waitIdle();
 	}
 

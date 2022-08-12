@@ -3,19 +3,19 @@
 #include "vkx/renderer/core/vertex.hpp"
 #include <SDL2/SDL_log.h>
 #include <array>
-#include <glm/fwd.hpp>
+#include <cstdint>
 #include <vkx/renderer/core/renderer_base.hpp>
 #include <vkx/voxels/greedy_mask.hpp>
 #include <vkx/voxels/voxel_matrix.hpp>
 
 namespace vkx {
-template <std::size_t size>
+template <std::int32_t size>
 class VoxelChunk {
 public:
 	static_assert(size % 8 == 0, "Size must be a multiple of 8");
 
-	explicit VoxelChunk(const glm::vec3& worldPosition)
-	    : worldPosition(worldPosition), voxels(size, size, size), axisLimit(size) {
+	explicit VoxelChunk(const glm::vec3& chunkPosition)
+	    : chunkPosition(chunkPosition), voxels(size, size, size) {
 
 		for (std::int32_t x = 0; x < size; x++) {
 			for (std::int32_t y = 0; y < size; y++) {
@@ -49,6 +49,9 @@ public:
 	void greedy() {
 		vertexIter = ve.begin();
 		indexIter = in.begin();
+
+		GreedyMask mask{size, size};
+
 		for (std::int32_t axis = 0; axis < 3; axis++) {
 			const auto axis1 = (axis + 1) % 3;
 			const auto axis2 = (axis + 2) % 3;
@@ -58,10 +61,8 @@ public:
 
 			axisMask[axis] = 1;
 
-			GreedyMask mask{axisLimit, axisLimit};
-
 			// Check each slice of the chunk
-			for (chunkItr[axis] = -1; chunkItr[axis] < axisLimit;) {
+			for (chunkItr[axis] = -1; chunkItr[axis] < size;) {
 				// Compute Mask
 				mask.calculate(voxels, chunkItr, axis1, axis2, axisMask);
 
@@ -83,8 +84,8 @@ public:
 
 private:
 	void generateMesh(GreedyMask& mask, std::int32_t axis1, std::int32_t axis2, const glm::i32vec3& axisMask, glm::i32vec3& chunkItr) {
-		for (int j = 0; j < axisLimit; ++j) {
-			for (int i = 0; i < axisLimit;) {
+		for (int j = 0; j < size; ++j) {
+			for (int i = 0; i < size;) {
 				const auto& currentMask = mask.at(i, j);
 				if (currentMask.normal != 0) {
 					chunkItr[axis1] = i;
@@ -116,13 +117,13 @@ private:
 		glm::ivec3 deltaAxis(0, 0, 0);
 		deltaAxis[axis1] = width;
 
-		const auto v1 = vkx::Vertex{-pos, {0.0f, 0.0f}, -maskNormal};
-		const auto v2 = vkx::Vertex{-(pos + deltaAxis), {width, 0.0f}, -maskNormal};
+		const auto v1 = vkx::Vertex{normalizedPosition + -pos, {0.0f, 0.0f}, -maskNormal};
+		const auto v2 = vkx::Vertex{normalizedPosition + -(pos + deltaAxis), {width, 0.0f}, -maskNormal};
 		deltaAxis[axis1] = 0;
 		deltaAxis[axis2] = height;
-		const auto v3 = vkx::Vertex{-(pos + deltaAxis), {0.0f, height}, -maskNormal};
+		const auto v3 = vkx::Vertex{normalizedPosition + -(pos + deltaAxis), {0.0f, height}, -maskNormal};
 		deltaAxis[axis1] = width;
-		const auto v4 = vkx::Vertex{-(pos + deltaAxis), {width, height}, -maskNormal};
+		const auto v4 = vkx::Vertex{normalizedPosition + -(pos + deltaAxis), {width, height}, -maskNormal};
 
 		*vertexIter = v1;
 		vertexIter++;
@@ -149,8 +150,8 @@ private:
 		vertexCount += 4;
 	}
 
-	const std::int32_t axisLimit = 16;
 	VoxelMatrix voxels;
-	glm::vec3 worldPosition = glm::vec3(0);
+	glm::ivec3 chunkPosition = glm::vec3(0);
+	const glm::ivec3 normalizedPosition = chunkPosition * static_cast<std::int32_t>(size);
 };
 } // namespace vkx

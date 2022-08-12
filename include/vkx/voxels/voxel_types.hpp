@@ -6,7 +6,7 @@ namespace vkx
   struct VoxelMask;
   class VoxelMatrix;
   class GreedyMask;
-  template <std::size_t size>
+  template <std::int32_t size>
   class VoxelChunk;
   
   enum class VoxelType : std::uint32_t
