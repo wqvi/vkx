@@ -29,12 +29,32 @@ public:
 		}
 	}
 
+	void printQuat(const glm::quat& quat) {
+		std::cout << "Printing Quaternion.\n";
+		std::cout << '[' << quat.x << ',' << quat.y << ',' << quat.z << ',' << quat.w << "]\n";
+	}
+
+	void printVec(const glm::vec3& vec) {
+		std::cout << "Printing vector.\n";
+		std::cout << '[' << vec.x << ',' << vec.y << ',' << vec.z << "]\n";
+	}
+
 	void raycast(const vkx::Camera& camera) {
-		std::cout << '(' << camera.position.x << ',' << camera.position.y << ',' << camera.position.z << ")\n";
-		const auto viewMatrix = camera.viewMatrix();
-		for (glm::vec3 foobar = glm::vec3(0); glm::all(glm::lessThan(foobar, glm::vec3(4))); foobar++) {
-			const auto newPosition = glm::vec3(viewMatrix * glm::vec4(foobar + camera.position, 1.0f));
-			std::cout << '(' << newPosition.x << ',' << newPosition.y << ',' << newPosition.z << ")\n";
+		const auto viewRotation = glm::mat4_cast(glm::conjugate(camera.yawOrientation * camera.pitchOrientation));
+
+		glm::vec3 location = glm::vec3(viewRotation * glm::vec4(-camera.position, 1.0f));
+
+		for (int i = 0; i < 4; i++) {
+			const auto lookingAt = voxels.at(glm::ivec3(location));
+
+			if (lookingAt != Voxel::Air) {
+				break;
+			}
+
+			std::cout << static_cast<int>(lookingAt) << '\n';
+
+			printVec(location);
+			location += location;
 		}
 	}
 
