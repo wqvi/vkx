@@ -4,15 +4,15 @@
 
 namespace vkx {
 struct DrawInfo {
-	vk::RenderPass renderPass;
+	std::vector<vk::RenderPass> renderPass;
 	vk::Framebuffer framebuffer;
 	vk::Extent2D extent;
 	vk::Pipeline graphicsPipeline;
 	vk::PipelineLayout graphicsPipelineLayout;
 	vk::DescriptorSet descriptorSet;
-	vk::Buffer vertexBuffer;
-	vk::Buffer indexBuffer;
-	std::uint32_t indexCount;
+	std::vector<vk::Buffer> vertexBuffers;
+	std::vector<vk::Buffer> indexBuffers;
+	std::vector<std::uint32_t> indexCount;
 };
 
 class CommandSubmitter {
@@ -29,9 +29,9 @@ public:
 
 	std::vector<vk::CommandBuffer> allocateDrawCommands(std::uint32_t amount) const;
 
-	void recordDrawCommands(iter begin, iter end, const DrawInfo& drawInfo) const;
+	void recordDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const;
 
-	void submitDrawCommands(iter begin, iter end, const SyncObjects& syncObjects) const;
+	void submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const;
 
 	vk::Result presentToSwapchain(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const;
 

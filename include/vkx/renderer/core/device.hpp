@@ -36,7 +36,7 @@ public:
 
 	std::shared_ptr<vkx::Swapchain> createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const;
 
-	vk::UniqueRenderPass createRenderPass(vk::Format format, vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
+	vk::UniqueRenderPass createRenderPass(vk::Format format, vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
 
 	std::shared_ptr<vkx::GraphicsPipeline> createGraphicsPipeline(const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) const;
 

@@ -103,9 +103,13 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::
 	return device.allocateCommandBuffers(allocInfo);
 }
 
-void vkx::CommandSubmitter::recordDrawCommands(iter begin, iter end, const DrawInfo& drawInfo) const {
-	for (; begin != end; begin++) {
-		const auto commandBuffer = *begin;
+void vkx::CommandSubmitter::recordDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
+	for (std::uint32_t i = 0; i < size; i++) {
+		const auto commandBuffer = begin[i];
+		const auto renderPass = drawInfo.renderPass[i];
+		const auto vertexBuffer = drawInfo.vertexBuffers[i];
+		const auto indexBuffer = drawInfo.indexBuffers[i];
+		const auto indexCount = drawInfo.indexCount[i];
 
 		commandBuffer.reset({});
 		const vk::CommandBufferBeginInfo beginInfo{};
@@ -119,19 +123,19 @@ void vkx::CommandSubmitter::recordDrawCommands(iter begin, iter end, const DrawI
 
 		const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
 
-		const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
+		const vk::RenderPassBeginInfo renderPassInfo(renderPass, drawInfo.framebuffer, renderArea, clearValues);
 
 		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
 		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
 
-		commandBuffer.bindVertexBuffers(0, drawInfo.vertexBuffer, {0});
+		commandBuffer.bindVertexBuffers(0, vertexBuffer, {0});
 
-		commandBuffer.bindIndexBuffer(drawInfo.indexBuffer, 0, vk::IndexType::eUint32);
+		commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
 
 		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
 
-		commandBuffer.drawIndexed(drawInfo.indexCount, 1, 0, 0, 0);
+		commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 
 		commandBuffer.endRenderPass();
 
@@ -139,14 +143,14 @@ void vkx::CommandSubmitter::recordDrawCommands(iter begin, iter end, const DrawI
 	}
 }
 
-void vkx::CommandSubmitter::submitDrawCommands(iter begin, iter end, const SyncObjects& syncObjects) const {
+void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const {
 	constexpr std::array waitStage{vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
 	const vk::SubmitInfo submitInfo(
 	    1,
 	    &*syncObjects.imageAvailableSemaphore,
 	    waitStage.data(),
-	    static_cast<std::uint32_t>(std::distance(begin, end)),
-	    &*begin,
+	    size,
+	    begin,
 	    1,
 	    &*syncObjects.renderFinishedSemaphore);
 

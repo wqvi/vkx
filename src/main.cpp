@@ -33,8 +33,8 @@ int main(void) {
 		const auto device = renderer.createDevice();
 		const auto allocator = device->createAllocator();
 		auto swapchain = device->createSwapchain(window, allocator);
-		const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat);
-		const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::AttachmentLoadOp::eLoad);
+		const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
+		const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
 		swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
@@ -82,7 +82,7 @@ int main(void) {
 
 		auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
 		const auto commandSubmitter = device->createCommandSubmitter();
-		constexpr auto drawCommandAmount = 1;
+		constexpr std::uint32_t drawCommandAmount = 2;
 		const auto drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
 		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
 
@@ -94,6 +94,9 @@ int main(void) {
 
 		vkx::Mesh mesh(chunk.ve, chunk.in, allocator);
 		mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
+
+		vkx::Mesh mesh1(chunk1.ve, chunk1.in, allocator);
+		mesh1.indexCount = std::distance(chunk1.in.begin(), chunk1.indexIter);
 
 		const vkx::Texture texture("a.jpg", *device, allocator, commandSubmitter);
 
@@ -179,23 +182,21 @@ int main(void) {
 			syncObject.resetFence();
 
 			const vkx::DrawInfo drawInfo = {
-			    *clearRenderPass,
+			    {*clearRenderPass, *loadRenderPass},
 			    *swapchain->framebuffers[imageIndex],
 			    swapchain->extent,
 			    *graphicsPipeline->pipeline,
 			    *graphicsPipeline->layout,
 			    descriptorSets[currentFrame],
-			    mesh.vertex->object,
-			    mesh.index->object,
-			    static_cast<std::uint32_t>(mesh.indexCount)};
+				{mesh.vertex->object, mesh1.vertex->object},
+			    {mesh.index->object, mesh1.index->object},
+			    {static_cast<std::uint32_t>(mesh.indexCount), static_cast<std::uint32_t>(mesh1.indexCount)}};
 
-			auto drawCommandsBegin = drawCommands.cbegin();
-			std::advance(drawCommandsBegin, currentFrame);
-			auto drawCommandsEnd = drawCommandsBegin;
-			std::advance(drawCommandsEnd, drawCommandAmount);
-			commandSubmitter->recordDrawCommands(drawCommandsBegin, drawCommandsEnd, drawInfo);
+			const vk::CommandBuffer* begin = &drawCommands[currentFrame * drawCommandAmount];
 
-			commandSubmitter->submitDrawCommands(drawCommandsBegin, drawCommandsEnd, syncObject);
+			commandSubmitter->recordDrawCommands(begin, drawCommandAmount, drawInfo);
+
+			commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
 
 			commandSubmitter->presentToSwapchain(*swapchain->swapchain, imageIndex, syncObject);
 
