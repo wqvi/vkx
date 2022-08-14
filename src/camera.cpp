@@ -27,19 +27,21 @@ void vkx::Camera::updateKey(SDL_Keycode key) {
 
 	// TODO fix this monstrosity
 	if (key == SDLK_w) {
-		direction = front;
+		direction = glm::normalize(front);
+		return;
 	}
 	if (key == SDLK_s) {
-		direction = -front;
+		direction = glm::normalize(-front);
+		return;
 	}
 	if (key == SDLK_a) {
-		direction = -right;
+		direction = glm::normalize(-right);
+		return;
 	}
 	if (key == SDLK_d) {
-		direction = right;
+		direction = glm::normalize(right);
+		return;
 	}
-
-	direction = glm::normalize(direction);
 }
 
 [[nodiscard]] glm::mat4 vkx::Camera::viewMatrix() const {
