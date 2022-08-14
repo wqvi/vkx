@@ -6,9 +6,12 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
+	int width = 640;
+	int height = 480;
+
 	const auto windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
 
-	SDL_Window* const window = SDL_CreateWindow("Jewelry", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, windowFlags);
+	SDL_Window* const window = SDL_CreateWindow("Jewelry", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, windowFlags);
 
 	if (window == nullptr) {
 		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2 window: %s", SDL_GetError());
@@ -149,11 +152,11 @@ int main(void) {
 			auto [result, imageIndex] = swapchain->acquireNextImage(static_cast<vk::Device>(*device), syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR) {
-				int width;
-				int height;
-				SDL_Vulkan_GetDrawableSize(window, &width, &height);
-				while (width == 0 || height == 0) {
-					SDL_Vulkan_GetDrawableSize(window, &width, &height);
+				int newWidth;
+				int newHeight;
+				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
+				while (newWidth == 0 || newHeight == 0) {
+					SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 					SDL_WaitEvent(nullptr);
 				}
 
@@ -199,11 +202,11 @@ int main(void) {
 			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 				framebufferResized = false;
 
-				int width;
-				int height;
-				SDL_Vulkan_GetDrawableSize(window, &width, &height);
-				while (width == 0 || height == 0) {
-					SDL_Vulkan_GetDrawableSize(window, &width, &height);
+				int newWidth;
+				int newHeight;
+				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
+				while (newWidth == 0 || newHeight == 0) {
+					SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 					SDL_WaitEvent(nullptr);
 				}
 
@@ -226,7 +229,9 @@ int main(void) {
 				case SDL_WINDOWEVENT:
 					if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
 						framebufferResized = true;
-						proj = glm::perspective(70.0f, static_cast<float>(event.window.data1) / static_cast<float>(event.window.data2), 0.1f, 100.0f);
+						width = event.window.data1;
+						height = event.window.data2;
+						proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
 						proj[1][1] *= -1.0f;
 					}
 					break;
@@ -240,7 +245,7 @@ int main(void) {
 					camera.direction = glm::vec3(0);
 					break;
 				case SDL_MOUSEBUTTONDOWN:
-					chunk.raycast(camera);
+					chunk.raycast(camera, width, height);
 					break;
 				default:
 					break;
