@@ -40,12 +40,12 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 
 	const auto shaderStages = {vertShaderStageInfo, fragShaderStageInfo};
 
-	const auto bindingDescription = Vertex::getBindingDescription();
-	const auto attributeDescriptions = Vertex::getAttributeDescriptions();
+	constexpr auto bindingDescription = Vertex::getBindingDescription();
+	constexpr auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
 	const vk::PipelineVertexInputStateCreateInfo vertexInputInfo({}, bindingDescription, attributeDescriptions);
 
-	const vk::PipelineInputAssemblyStateCreateInfo inputAssembly({}, vk::PrimitiveTopology::eTriangleList, false);
+	constexpr vk::PipelineInputAssemblyStateCreateInfo inputAssembly({}, vk::PrimitiveTopology::eTriangleList, false);
 
 	const vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(extent.width), static_cast<float>(extent.height), 0.0f, 1.0f);
 
@@ -53,7 +53,7 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 
 	const vk::PipelineViewportStateCreateInfo viewportState({}, viewport, scissor);
 
-	const vk::PipelineRasterizationStateCreateInfo rasterizer(
+	constexpr vk::PipelineRasterizationStateCreateInfo rasterizer(
 	    {},
 	    false,
 	    false,
@@ -66,12 +66,12 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 	    {},
 	    1.0f);
 
-	const vk::PipelineMultisampleStateCreateInfo multisampling(
+	constexpr vk::PipelineMultisampleStateCreateInfo multisampling(
 	    {},
 	    vk::SampleCountFlagBits::e1,
 	    false);
 
-	const vk::PipelineDepthStencilStateCreateInfo depthStencil(
+	constexpr vk::PipelineDepthStencilStateCreateInfo depthStencil(
 	    {},
 	    true,
 	    true,
@@ -80,7 +80,7 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 	    false);
 
 	constexpr auto mask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-	vk::PipelineColorBlendAttachmentState colorBlendAttachment(
+	constexpr vk::PipelineColorBlendAttachmentState colorBlendAttachment(
 	    false,
 	    vk::BlendFactor::eZero,
 	    vk::BlendFactor::eZero,
