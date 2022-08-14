@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <glm/common.hpp>
+#include <glm/fwd.hpp>
 #include <vkx/voxels/voxel_mask.hpp>
 #include <vkx/renderer/core/vertex.hpp>
 #include <vkx/voxels/voxel_matrix.hpp>
@@ -31,82 +32,30 @@ public:
 		}
 	}
 
+	void printVec3(const glm::vec3 a) {
+		std::cout << '[' << a.x << ',' << a.y << ',' << a.z << "]\n";
+	}
+
 	void raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
 		constexpr float nearZ = 0.1f;
 		constexpr float rayLength = 4.0f;
 
 		const auto rotationMatrix = glm::mat4_cast(glm::conjugate(camera.yawOrientation * camera.pitchOrientation));
-		const auto startPosition = camera.position;
+		const auto startPosition = camera.position + glm::vec3(chunkPosition * 16);
 
 		const auto center = glm::vec2(width / 2, height / 2);
-		const auto transformedCenter = glm::vec2(rotationMatrix * glm::vec4(center, 1.0f, 1.0f));
+		const auto transformedCenter = glm::mat2(rotationMatrix) * center;
 
 		const auto localNormal = glm::vec3(((transformedCenter.x / width) * 2.0 - 1.0) * center.x, ((1.0 - (transformedCenter.y / height)) * 2.0 - 1.0) * center.y, -nearZ);
 		const auto rayNormal = glm::vec3(rotationMatrix * glm::vec4(glm::normalize(localNormal), 1.0f));
 
 		const auto endPosition = startPosition + rayNormal * rayLength;
 
-		const auto rayUnitX = glm::sqrt(1.0f + (endPosition.y / endPosition.x) * (endPosition.y / endPosition.x));
-		const auto rayUnitY = glm::sqrt(1.0f + (endPosition.x / endPosition.y) * (endPosition.x / endPosition.y));
-		const auto rayUnitZ = glm::sqrt(1.0f + (endPosition.x / endPosition.z) * (endPosition.x / endPosition.z));
+		printVec3(startPosition);
+		printVec3(endPosition);
+		std::cout << "Distance=" << glm::distance(endPosition, startPosition) << '\n';
 
-		const auto rayUnit = glm::vec3(rayUnitX, rayUnitY, rayUnitZ);
-
-		auto step = glm::vec3(0.0f);
-		auto length = glm::vec3(0.0f);
-
-		if (endPosition.x < 0.0f) {
-			step.x = -1.0f;
-			const float truncated = startPosition.x - static_cast<float>(static_cast<int>(startPosition.x));
-			length.x = truncated * rayUnit.x;
-		} else {
-			step.x = 1.0f;
-			const float truncated = static_cast<float>(static_cast<int>(startPosition.x + 1)) - startPosition.x;
-			length.x = truncated * rayUnit.x;
-		}
-
-		if (endPosition.y < 0.0f) {
-			step.y = -1.0f;
-			const float truncated = startPosition.y - static_cast<float>(static_cast<int>(startPosition.y));
-			length.y = truncated * rayUnit.y;
-		} else {
-			step.y = 1.0f;
-			const float truncated = static_cast<float>(static_cast<int>(startPosition.y + 1)) - startPosition.y;
-			length.y = truncated * rayUnit.y;
-		}
-
-		if (endPosition.z < 0.0f) {
-			step.z = -1.0f;
-			const float truncated = startPosition.z - static_cast<float>(static_cast<int>(startPosition.z));
-			length.z = truncated * rayUnit.z;
-		} else {
-			step.z = 1.0f;
-			const float truncated = static_cast<float>(static_cast<int>(startPosition.z + 1)) - startPosition.z;
-			length.z = truncated * rayUnit.z;
-		}
-
-		glm::ivec3 map = glm::ivec3(startPosition);
-		Voxel typeAt = Voxel::Air;
-		float distance = 0.0f;
-		while (typeAt == Voxel::Air && distance < rayLength) {
-			if (length.x < length.y) {
-				map.x += step.x;
-				distance = length.x;
-				length.x += rayUnit.x;
-			} else if (length.y < length.z) {
-				map.y += step.y;
-				distance = length.y;
-				length.y += rayUnit.y;
-			} else {
-				map.z += step.z;
-				distance = length.z;
-				length.z += rayUnit.z;
-			}
-
-			typeAt = voxels.at(map);
-
-			std::cout << static_cast<int>(typeAt) << '\n';
-		}
+		
 	}
 
 	void greedy() {
@@ -209,14 +158,10 @@ private:
 	void generateMesh(Mask& mask, std::int32_t axis1, std::int32_t axis2, const glm::i32vec3& axisMask, glm::i32vec3& chunkItr) {
 		for (int j = 0; j < size; ++j) {
 			for (int i = 0; i < size;) {
-				// const auto& currentMask = mask.at(i, j);
 				const auto& currentMask = mask[j * size + i];
 				if (currentMask.normal != 0) {
 					chunkItr[axis1] = i;
 					chunkItr[axis2] = j;
-
-					// const auto width = mask.calculateQuadWidth(currentMask, i, j);
-					// const auto height = mask.calculateQuadHeight(currentMask, width, i, j);
 
 					const auto width = calculateQuadWidth(mask, currentMask, i, j);
 					const auto height = calculateQuadHeight(mask, currentMask, width, i, j);
