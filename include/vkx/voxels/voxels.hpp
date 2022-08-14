@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <glm/common.hpp>
-#include <glm/ext/scalar_common.hpp>
 #include <vkx/voxels/voxel_mask.hpp>
 #include <vkx/renderer/core/vertex.hpp>
 #include <vkx/voxels/voxel_matrix.hpp>
@@ -36,16 +35,37 @@ public:
 		std::cout << '[' << quat.x << ',' << quat.y << ',' << quat.z << ',' << quat.w << "]\n";
 	}
 
-	void printVec(const glm::vec3& vec) {
+	void printVec2(const glm::vec2& vec) {
+		std::cout << '[' << vec.x << ',' << vec.y << "]\n";
+	} 
+
+	void printVec3(const glm::vec3& vec) {
 		std::cout << '[' << vec.x << ',' << vec.y << ',' << vec.z << "]\n";
 	}
 
-	void raycast(const vkx::Camera& camera) {
+	void printMat4(const glm::mat4& mat) {
+		for (int y = 0; y < 4; y++) {
+			for (int x = 0; x < 4; x++) {
+				printf("[%0.2f]\t", mat[y][x]);
+			}
+			std::cout << '\n';
+		}
+	}
+
+	void raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
+		constexpr float nearZ = 0.1f;
 		constexpr float rayLength = 4.0f;
+
 		const auto rotationMatrix = glm::mat4_cast(glm::conjugate(camera.yawOrientation * camera.pitchOrientation));
 		const auto startPosition = camera.position;
-		const auto normal = glm::normalize(glm::vec3(rotationMatrix * glm::vec4(1.0f)));
-		const auto endPosition = startPosition + normal * rayLength;
+
+		const auto center = glm::vec2(width / 2, height / 2);
+		const auto transformedCenter = glm::vec2(rotationMatrix * glm::vec4(center, 1.0f, 1.0f));
+
+		const auto localNormal = glm::vec3(((transformedCenter.x / width) * 2.0 - 1.0) * center.x, ((1.0 - (transformedCenter.y / height)) * 2.0 - 1.0) * center.y, -nearZ);
+		const auto rayNormal = glm::vec3(rotationMatrix * glm::vec4(glm::normalize(localNormal), 1.0f));
+
+		const auto endPosition = startPosition + rayNormal * rayLength;
 
 		const auto rayUnitX = glm::sqrt(1.0f + (endPosition.y / endPosition.x) * (endPosition.y / endPosition.x));
 		const auto rayUnitY = glm::sqrt(1.0f + (endPosition.x / endPosition.y) * (endPosition.x / endPosition.y));
@@ -86,10 +106,13 @@ public:
 			length.z = truncated * rayUnit.z;
 		}
 
+		std::cout << "startPosition=";
+		printVec3(startPosition);
+
 		glm::ivec3 map = glm::ivec3(startPosition);
-		bool tileFound = false;
+		Voxel typeAt = Voxel::Air;
 		float distance = 0.0f;
-		while (!tileFound && distance < rayLength) {
+		while (typeAt == Voxel::Air && distance < rayLength) {
 			if (length.x < length.y) {
 				map.x += step.x;
 				distance = length.x;
@@ -103,7 +126,9 @@ public:
 				distance = length.z;
 				length.z += rayUnit.z;
 			}
-			const auto typeAt = voxels.at(map);
+
+			typeAt = voxels.at(map);
+
 			std::cout << static_cast<int>(typeAt) << '\n';
 		}
 	}
