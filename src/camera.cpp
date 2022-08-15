@@ -27,11 +27,11 @@ void vkx::Camera::updateKey(SDL_Keycode key) {
 
 	// TODO fix this monstrosity
 	if (key == SDLK_w) {
-		direction = glm::normalize(front);
+		direction = glm::normalize(-front);
 		return;
 	}
 	if (key == SDLK_s) {
-		direction = glm::normalize(-front);
+		direction = glm::normalize(front);
 		return;
 	}
 	if (key == SDLK_a) {

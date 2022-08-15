@@ -89,6 +89,13 @@ int main(void) {
 		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
 
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
+		for (int j = 0; j < 10; j++) {
+			for (int k = 0; k < 4; k++) {
+				for (int i = 0; i < 14; i++) {
+					chunk.voxels.set(j, k, i, vkx::Voxel::Air);
+				}
+			}
+		}
 		chunk.greedy();
 
 		vkx::VoxelChunk<16> chunk1({1, 0, 0});
@@ -135,7 +142,7 @@ int main(void) {
 		}
 
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
-		proj[1][1] *= -1.0f;
+		// proj[1][1] *= -1.0f;
 
 		std::uint32_t currentFrame = 0;
 		SDL_Event event{};
@@ -249,11 +256,11 @@ int main(void) {
 						width = event.window.data1;
 						height = event.window.data2;
 						proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
-						proj[1][1] *= -1.0f;
+						// proj[1][1] *= -1.0f;
 					}
 					break;
 				case SDL_MOUSEMOTION:
-					camera.updateMouse({event.motion.xrel, -event.motion.yrel});
+					camera.updateMouse({-event.motion.xrel, -event.motion.yrel});
 					break;
 				case SDL_KEYDOWN:
 					camera.updateKey(event.key.keysym.sym);
@@ -263,6 +270,9 @@ int main(void) {
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					chunk.raycast(camera, width, height);
+					// chunk1.raycast(camera, width, height);
+					// chunk2.raycast(camera, width, height);
+					// chunk3.raycast(camera, width, height);
 					break;
 				default:
 					break;

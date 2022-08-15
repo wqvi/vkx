@@ -41,13 +41,13 @@ public:
 		constexpr float rayLength = 4.0f;
 
 		const auto rotationMatrix = glm::mat4_cast(glm::conjugate(camera.yawOrientation * camera.pitchOrientation));
-		const auto startPosition = camera.position + glm::vec3(chunkPosition * 16);
+		const auto startPosition = glm::vec3(normalizedPosition) + camera.position;
 
-		const auto center = glm::vec2(width / 2, height / 2);
+		const glm::vec2 center(width / 2, height / 2);
 		const auto transformedCenter = glm::mat2(rotationMatrix) * center;
 
-		const auto localNormal = glm::vec3(((transformedCenter.x / width) * 2.0 - 1.0) * center.x, ((1.0 - (transformedCenter.y / height)) * 2.0 - 1.0) * center.y, -nearZ);
-		const auto rayNormal = glm::vec3(rotationMatrix * glm::vec4(glm::normalize(localNormal), 1.0f));
+		const glm::vec3 localNormal(((transformedCenter.x / width) * 2.0 - 1.0) * center.x, ((1.0 - (transformedCenter.y / height)) * 2.0 - 1.0) * center.y, -nearZ);
+		const glm::vec3 rayNormal(rotationMatrix * glm::vec4(glm::normalize(localNormal), 1.0f));
 
 		const auto endPosition = startPosition + rayNormal * rayLength;
 
@@ -94,6 +94,10 @@ public:
 
 	vkx::Vertex* vertexIter;
 	std::uint32_t* indexIter;
+
+	VoxelMatrix voxels;
+	const glm::ivec3 chunkPosition = glm::vec3(0);
+	const glm::ivec3 normalizedPosition = chunkPosition * static_cast<std::int32_t>(size);
 
 private:
 	void calculateMask(Mask& mask, std::int32_t axis1, std::int32_t axis2, glm::ivec3& chunkItr, const glm::ivec3& axisMask) {
@@ -222,9 +226,5 @@ private:
 
 		vertexCount += 4;
 	}
-
-	VoxelMatrix voxels;
-	const glm::ivec3 chunkPosition = glm::vec3(0);
-	const glm::ivec3 normalizedPosition = chunkPosition * static_cast<std::int32_t>(size);
 };
 } // namespace vkx
