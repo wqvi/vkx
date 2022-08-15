@@ -96,6 +96,7 @@ int main(void) {
 				}
 			}
 		}
+
 		chunk.greedy();
 
 		vkx::VoxelChunk<16> chunk1({1, 0, 0});
@@ -142,7 +143,6 @@ int main(void) {
 		}
 
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
-		// proj[1][1] *= -1.0f;
 
 		std::uint32_t currentFrame = 0;
 		SDL_Event event{};
@@ -256,7 +256,6 @@ int main(void) {
 						width = event.window.data1;
 						height = event.window.data2;
 						proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
-						// proj[1][1] *= -1.0f;
 					}
 					break;
 				case SDL_MOUSEMOTION:
@@ -270,10 +269,11 @@ int main(void) {
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					if (chunk.raycast(camera, width, height)) {
+						chunk.voxels.set(8, 8, 8, vkx::Voxel::Air);
 						chunk.greedy();
 						mesh.vertex->mapMemory(chunk.ve);
 						mesh.index->mapMemory(chunk.in);
-						mesh.indexCount = mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
+						mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
 					}
 					// chunk1.raycast(camera, width, height);
 					// chunk2.raycast(camera, width, height);

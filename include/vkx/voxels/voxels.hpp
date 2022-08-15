@@ -30,10 +30,6 @@ public:
 		}
 	}
 
-	void printVec3(const glm::vec3 a) {
-		std::cout << '[' << a.x << ',' << a.y << ',' << a.z << "]\n";
-	}
-
 	bool raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
 		constexpr float nearZ = 0.1f;
 		constexpr float rayLength = 4.0f;
@@ -106,12 +102,12 @@ public:
 			voxel = voxels.at(mapCheck);
 		}
 
-		voxels.set(8, 8, 8, Voxel::Air);
-
 		return true;
 	}
 
 	void greedy() {
+		vertexCount = 0;
+
 		vertexIter = ve.begin();
 		indexIter = in.begin();
 
@@ -129,7 +125,6 @@ public:
 			// Check each slice of the chunk
 			for (chunkItr[axis] = -1; chunkItr[axis] < size;) {
 				// Compute Mask
-				// mask.calculate(voxels, chunkItr, axis1, axis2, axisMask);
 				calculateMask(mask, axis1, axis2, chunkItr, axisMask);
 
 				chunkItr[axis]++;
@@ -149,8 +144,8 @@ public:
 	std::uint32_t* indexIter;
 
 	VoxelMatrix voxels;
-	const glm::ivec3 chunkPosition = glm::vec3(0);
-	const glm::ivec3 normalizedPosition = chunkPosition * static_cast<std::int32_t>(size);
+	glm::ivec3 chunkPosition = glm::vec3(0);
+	glm::ivec3 normalizedPosition = chunkPosition * static_cast<std::int32_t>(size);
 
 private:
 	void calculateMask(Mask& mask, std::int32_t axis1, std::int32_t axis2, glm::ivec3& chunkItr, const glm::ivec3& axisMask) {
@@ -223,14 +218,8 @@ private:
 					const auto width = calculateQuadWidth(mask, currentMask, i, j);
 					const auto height = calculateQuadHeight(mask, currentMask, width, i, j);
 
-					glm::i32vec3 deltaAxis1{0};
-					glm::i32vec3 deltaAxis2{0};
-					deltaAxis1[axis1] = width;
-					deltaAxis2[axis2] = height;
-
 					createQuad(currentMask.normal, axisMask, width, height, chunkItr, axis1, axis2);
 
-					// mask.clear(i, j, width, height);
 					clear(mask, i, j, width, height);
 
 					i += width;
