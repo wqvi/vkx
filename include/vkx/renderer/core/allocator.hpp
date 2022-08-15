@@ -67,16 +67,6 @@ struct Allocation {
 
 	template <class K, std::size_t size>
 	void mapMemory(const std::array<K, size>& memory) const {
-#ifdef DEBUG
-		// Ensure memory size in bytes is equal to the mapped memory's size in bytes
-		// const auto memorySize = size * sizeof(K);
-		// if (size < allocationInfo.size) {
-		// 	throw std::invalid_argument("Provided memory is too small to be mapped.");
-		// }
-		// if (size > allocationInfo.size) {
-		// 	throw std::invalid_argument("Provided memory is too large to be mapped.");
-		// }
-#endif
 		std::memcpy(allocationInfo.pMappedData, memory.data(), allocationInfo.size);
 	}
 };
