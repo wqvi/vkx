@@ -83,7 +83,7 @@ int main(void) {
 		auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
 		const auto commandSubmitter = device->createCommandSubmitter();
 		constexpr std::uint32_t drawCommandAmount = 1;
-		constexpr std::uint32_t secondaryDrawCommandAmount = 2;
+		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
 		const auto drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
 		const auto secondaryDrawCommands = commandSubmitter->allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
@@ -94,11 +94,23 @@ int main(void) {
 		vkx::VoxelChunk<16> chunk1({1, 0, 0});
 		chunk1.greedy();
 
+		vkx::VoxelChunk<16> chunk2({0, 0, 1});
+		chunk2.greedy();
+
+		vkx::VoxelChunk<16> chunk3({1, 0, 1});
+		chunk3.greedy();
+
 		vkx::Mesh mesh(chunk.ve, chunk.in, allocator);
 		mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
 
 		vkx::Mesh mesh1(chunk1.ve, chunk1.in, allocator);
 		mesh1.indexCount = std::distance(chunk1.in.begin(), chunk1.indexIter);
+
+		vkx::Mesh mesh2(chunk2.ve, chunk2.in, allocator);
+		mesh2.indexCount = std::distance(chunk2.in.begin(), chunk2.indexIter);
+
+		vkx::Mesh mesh3(chunk3.ve, chunk3.in, allocator);
+		mesh3.indexCount = std::distance(chunk3.in.begin(), chunk3.indexIter);
 
 		const vkx::Texture texture("a.jpg", *device, allocator, commandSubmitter);
 
@@ -190,9 +202,9 @@ int main(void) {
 			    *graphicsPipeline->pipeline,
 			    *graphicsPipeline->layout,
 			    descriptorSets[currentFrame],
-				{mesh.vertex->object, mesh1.vertex->object},
-			    {mesh.index->object, mesh1.index->object},
-			    {static_cast<std::uint32_t>(mesh.indexCount), static_cast<std::uint32_t>(mesh1.indexCount)}};
+				{mesh.vertex->object, mesh1.vertex->object, mesh2.vertex->object, mesh3.vertex->object},
+			    {mesh.index->object, mesh1.index->object, mesh2.index->object, mesh3.index->object},
+			    {static_cast<std::uint32_t>(mesh.indexCount), static_cast<std::uint32_t>(mesh1.indexCount), static_cast<std::uint32_t>(mesh2.indexCount), static_cast<std::uint32_t>(mesh3.indexCount)}};
 
 			const vk::CommandBuffer* begin = &drawCommands[currentFrame * drawCommandAmount];
 
