@@ -85,7 +85,7 @@ int main(void) {
 		constexpr std::uint32_t drawCommandAmount = 1;
 		constexpr std::uint32_t secondaryDrawCommandAmount = 2;
 		const auto drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
-		const auto secondaryDrawCommands = commandSubmitter->allocateDrawCommands(secondaryDrawCommandAmount);
+		const auto secondaryDrawCommands = commandSubmitter->allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
 
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
@@ -184,7 +184,7 @@ int main(void) {
 			syncObject.resetFence();
 
 			const vkx::DrawInfo drawInfo = {
-			    {*clearRenderPass},
+			    *clearRenderPass,
 			    *swapchain->framebuffers[imageIndex],
 			    swapchain->extent,
 			    *graphicsPipeline->pipeline,

@@ -116,22 +116,19 @@ void vkx::CommandSubmitter::recordDrawCommands(const vk::CommandBuffer* begin, s
 	constexpr vk::CommandBufferBeginInfo beginInfo{};
 	const vk::CommandBufferInheritanceInfo secondaryInheritanceInfo(drawInfo.renderPass, 0, drawInfo.framebuffer);
 	const vk::CommandBufferBeginInfo secondaryBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &secondaryInheritanceInfo);
+	
+	constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
+	constexpr vk::ClearColorValue clearColor(clearColorValue);
+	constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
+	constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
+	const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
+	const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
 
 	for (std::uint32_t i = 0; i < size; i++) {
 		const auto commandBuffer = begin[i];
 
 		commandBuffer.reset({});
 		static_cast<void>(commandBuffer.begin(beginInfo));
-
-		constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
-		constexpr vk::ClearColorValue clearColor(clearColorValue);
-		constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
-
-		constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
-
-		const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
-
-		const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
 
 		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
 
