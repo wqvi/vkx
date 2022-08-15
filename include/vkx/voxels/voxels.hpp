@@ -1,13 +1,11 @@
 #pragma once
 
-#include <algorithm>
-#include <glm/common.hpp>
-#include <glm/fwd.hpp>
-#include <vkx/voxels/voxel_mask.hpp>
-#include <vkx/renderer/core/vertex.hpp>
-#include <vkx/voxels/voxel_matrix.hpp>
-#include <vkx/camera.hpp>
+#include "vkx/voxels/voxel_types.hpp"
 #include <iostream>
+#include <vkx/camera.hpp>
+#include <vkx/renderer/core/vertex.hpp>
+#include <vkx/voxels/voxel_mask.hpp>
+#include <vkx/voxels/voxel_matrix.hpp>
 
 namespace vkx {
 template <std::int32_t size>
@@ -36,12 +34,14 @@ public:
 		std::cout << '[' << a.x << ',' << a.y << ',' << a.z << "]\n";
 	}
 
-	void raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
+	bool raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
 		constexpr float nearZ = 0.1f;
 		constexpr float rayLength = 4.0f;
 
+		// Rotation of the camera
 		const auto rotationMatrix = glm::mat4_cast(glm::conjugate(camera.yawOrientation * camera.pitchOrientation));
-		const auto startPosition = glm::vec3(normalizedPosition) + camera.position;
+		// Start position relative to chunk's (0, 0, 0) position
+		const auto startPosition = glm::vec3(normalizedPosition) - camera.position;
 
 		const glm::vec2 center(width / 2, height / 2);
 		const auto transformedCenter = glm::mat2(rotationMatrix) * center;
@@ -51,11 +51,64 @@ public:
 
 		const auto endPosition = startPosition + rayNormal * rayLength;
 
-		printVec3(startPosition);
-		printVec3(endPosition);
-		std::cout << "Distance=" << glm::distance(endPosition, startPosition) << '\n';
+		const glm::vec3 rayUnitStepSize(
+		    glm::sqrt(1 + (endPosition.y / endPosition.x) * (endPosition.y / endPosition.x)),
+		    glm::sqrt(1 + (endPosition.x / endPosition.y) * (endPosition.x / endPosition.y)),
+		    glm::sqrt(1 + (endPosition.x / endPosition.z) * (endPosition.x / endPosition.z)));
 
-		
+		glm::ivec3 mapCheck(startPosition);
+
+		glm::vec3 rayLengthDirection(0.0f);
+
+		glm::ivec3 step;
+
+		if (endPosition.x < 0) {
+			step.x = -1;
+			rayLengthDirection.x = (startPosition.x - static_cast<float>(mapCheck.x) * rayUnitStepSize.x);
+		} else {
+			step.x = 1;
+			rayLengthDirection.x = (static_cast<float>(mapCheck.x + 1) - startPosition.x) * rayUnitStepSize.x;
+		}
+
+		if (endPosition.y < 0) {
+			step.y = -1;
+			rayLengthDirection.y = (startPosition.y - static_cast<float>(mapCheck.y) * rayUnitStepSize.y);
+		} else {
+			step.y = 1;
+			rayLengthDirection.y = (static_cast<float>(mapCheck.y + 1) - startPosition.y) * rayUnitStepSize.y;
+		}
+
+		if (endPosition.z < 0) {
+			step.z = -1;
+			rayLengthDirection.z = (startPosition.z - static_cast<float>(mapCheck.z) * rayUnitStepSize.z);
+		} else {
+			step.z = 1;
+			rayLengthDirection.z = (static_cast<float>(mapCheck.z + 1) - startPosition.z) * rayUnitStepSize.z;
+		}
+
+		Voxel voxel = Voxel::Air;
+		float distance = 0.0f;
+		while (voxel == Voxel::Air && distance < rayLength) {
+			if (rayLengthDirection.x < rayLengthDirection.y) {
+				mapCheck.x += step.x;
+				distance = rayLengthDirection.x;
+				rayLengthDirection.x += rayUnitStepSize.x;
+			} else if (rayLengthDirection.y < rayLengthDirection.z) {
+				mapCheck.y += step.y;
+				distance = rayLengthDirection.y;
+				rayLengthDirection.y += rayUnitStepSize.y;
+			} else {
+				mapCheck.z += step.z;
+				distance = rayLengthDirection.z;
+				rayLengthDirection.z += rayUnitStepSize.z;
+			}
+
+			voxel = voxels.at(mapCheck);
+		}
+
+		voxels.set(8, 8, 8, Voxel::Air);
+
+		return true;
 	}
 
 	void greedy() {

@@ -269,7 +269,12 @@ int main(void) {
 					camera.direction = glm::vec3(0);
 					break;
 				case SDL_MOUSEBUTTONDOWN:
-					chunk.raycast(camera, width, height);
+					if (chunk.raycast(camera, width, height)) {
+						chunk.greedy();
+						mesh.vertex->mapMemory(chunk.ve);
+						mesh.index->mapMemory(chunk.in);
+						mesh.indexCount = mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
+					}
 					// chunk1.raycast(camera, width, height);
 					// chunk2.raycast(camera, width, height);
 					// chunk3.raycast(camera, width, height);
