@@ -33,8 +33,8 @@ int main(void) {
 		const auto device = renderer.createDevice();
 		const auto allocator = device->createAllocator();
 		auto swapchain = device->createSwapchain(window, allocator);
-		const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
-		const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
+		const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eClear);
+		// const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
 		swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
@@ -182,7 +182,7 @@ int main(void) {
 			syncObject.resetFence();
 
 			const vkx::DrawInfo drawInfo = {
-			    {*clearRenderPass, *loadRenderPass},
+			    {*clearRenderPass, *clearRenderPass},
 			    *swapchain->framebuffers[imageIndex],
 			    swapchain->extent,
 			    *graphicsPipeline->pipeline,
