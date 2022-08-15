@@ -103,6 +103,12 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::
 	return device.allocateCommandBuffers(allocInfo);
 }
 
+std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawCommands(std::uint32_t amount) const {
+	const vk::CommandBufferAllocateInfo allocInfo(*commandPool, vk::CommandBufferLevel::eSecondary, amount * MAX_FRAMES_IN_FLIGHT);
+
+	return device.allocateCommandBuffers(allocInfo);
+}
+
 void vkx::CommandSubmitter::recordDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
 	for (std::uint32_t i = 0; i < size; i++) {
 		const auto commandBuffer = begin[i];
