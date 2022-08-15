@@ -82,8 +82,10 @@ int main(void) {
 
 		auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
 		const auto commandSubmitter = device->createCommandSubmitter();
-		constexpr std::uint32_t drawCommandAmount = 2;
+		constexpr std::uint32_t drawCommandAmount = 1;
+		constexpr std::uint32_t secondaryDrawCommandAmount = 2;
 		const auto drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
+		const auto secondaryDrawCommands = commandSubmitter->allocateDrawCommands(secondaryDrawCommandAmount);
 		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
 
 		vkx::VoxelChunk<16> chunk({0, 0, 0});
@@ -182,7 +184,7 @@ int main(void) {
 			syncObject.resetFence();
 
 			const vkx::DrawInfo drawInfo = {
-			    {*clearRenderPass, *clearRenderPass},
+			    {*clearRenderPass},
 			    *swapchain->framebuffers[imageIndex],
 			    swapchain->extent,
 			    *graphicsPipeline->pipeline,
@@ -194,7 +196,9 @@ int main(void) {
 
 			const vk::CommandBuffer* begin = &drawCommands[currentFrame * drawCommandAmount];
 
-			commandSubmitter->recordDrawCommands(begin, drawCommandAmount, drawInfo);
+			const vk::CommandBuffer* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
+
+			commandSubmitter->recordDrawCommands(begin, drawCommandAmount, secondaryBegin, secondaryDrawCommandAmount, drawInfo);
 
 			commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
 

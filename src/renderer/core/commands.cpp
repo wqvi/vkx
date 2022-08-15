@@ -1,6 +1,9 @@
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/renderer_types.hpp>
+#include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan_handles.hpp>
+#include <vulkan/vulkan_structs.hpp>
 
 vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface)
     : device(device) {
@@ -109,16 +112,15 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawComma
 	return device.allocateCommandBuffers(allocInfo);
 }
 
-void vkx::CommandSubmitter::recordDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
+void vkx::CommandSubmitter::recordDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vk::CommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const {
+	constexpr vk::CommandBufferBeginInfo beginInfo{};
+	const vk::CommandBufferInheritanceInfo secondaryInheritanceInfo(drawInfo.renderPass, 0, drawInfo.framebuffer);
+	const vk::CommandBufferBeginInfo secondaryBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &secondaryInheritanceInfo);
+
 	for (std::uint32_t i = 0; i < size; i++) {
 		const auto commandBuffer = begin[i];
-		const auto renderPass = drawInfo.renderPass[i];
-		const auto vertexBuffer = drawInfo.vertexBuffers[i];
-		const auto indexBuffer = drawInfo.indexBuffers[i];
-		const auto indexCount = drawInfo.indexCount[i];
 
 		commandBuffer.reset({});
-		const vk::CommandBufferBeginInfo beginInfo{};
 		static_cast<void>(commandBuffer.begin(beginInfo));
 
 		constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
@@ -129,19 +131,34 @@ void vkx::CommandSubmitter::recordDrawCommands(const vk::CommandBuffer* begin, s
 
 		const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
 
-		const vk::RenderPassBeginInfo renderPassInfo(renderPass, drawInfo.framebuffer, renderArea, clearValues);
+		const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
 
-		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
 
-		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
+		// commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
 
-		commandBuffer.bindVertexBuffers(0, vertexBuffer, {0});
+		for (std::uint32_t j = 0; j < secondarySize; j++) {
+			const auto secondaryCommandBuffer = secondaryBegin[j];
+			const auto vertexBuffer = drawInfo.vertexBuffers[j];
+			const auto indexBuffer = drawInfo.indexBuffers[j];
+			const auto indexCount = drawInfo.indexCount[j];
 
-		commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
+			static_cast<void>(secondaryCommandBuffer.begin(secondaryBeginInfo));
 
-		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
+			secondaryCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
 
-		commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
+			secondaryCommandBuffer.bindVertexBuffers(0, vertexBuffer, {0});
+
+			secondaryCommandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
+
+			secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
+
+			secondaryCommandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
+
+			secondaryCommandBuffer.end();
+		}
+
+		commandBuffer.executeCommands(secondarySize, secondaryBegin);
 
 		commandBuffer.endRenderPass();
 

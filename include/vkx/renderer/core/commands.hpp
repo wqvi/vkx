@@ -5,7 +5,7 @@
 
 namespace vkx {
 struct DrawInfo {
-	std::vector<vk::RenderPass> renderPass;
+	vk::RenderPass renderPass;
 	vk::Framebuffer framebuffer;
 	vk::Extent2D extent;
 	vk::Pipeline graphicsPipeline;
@@ -32,7 +32,7 @@ public:
 
 	std::vector<vk::CommandBuffer> allocateSecondaryDrawCommands(std::uint32_t amount) const;
 
-	void recordDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const;
+	void recordDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vk::CommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const;
 
 	void submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const;
 
