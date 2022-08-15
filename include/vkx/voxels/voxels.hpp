@@ -2,6 +2,7 @@
 
 #include "vkx/voxels/voxel_types.hpp"
 #include <iostream>
+#include <utility>
 #include <vkx/camera.hpp>
 #include <vkx/renderer/core/vertex.hpp>
 #include <vkx/voxels/voxel_mask.hpp>
@@ -30,7 +31,7 @@ public:
 		}
 	}
 
-	bool raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
+	std::pair<bool, glm::ivec3> raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
 		constexpr float nearZ = 0.1f;
 		constexpr float rayLength = 4.0f;
 
@@ -102,7 +103,11 @@ public:
 			voxel = voxels.at(mapCheck);
 		}
 
-		return true;
+		if (voxel != Voxel::Air) {
+			return std::make_pair(true, mapCheck);
+		}
+
+		return std::make_pair(false, glm::ivec3(0));
 	}
 
 	void greedy() {

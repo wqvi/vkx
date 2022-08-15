@@ -245,6 +245,10 @@ int main(void) {
 				throw std::runtime_error("Failed to present.");
 			}
 
+			currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+			bool valid = false;
+			glm::ivec3 location(0, 0, 0);
 			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
 				case SDL_QUIT:
@@ -268,8 +272,9 @@ int main(void) {
 					camera.direction = glm::vec3(0);
 					break;
 				case SDL_MOUSEBUTTONDOWN:
-					if (chunk.raycast(camera, width, height)) {
-						chunk.voxels.set(8, 8, 8, vkx::Voxel::Air);
+					std::tie(valid, location) = chunk.raycast(camera, width, height);
+					if (valid) {
+						chunk.voxels.set(location.x, location.y, location.z, vkx::Voxel::Air);
 						chunk.greedy();
 						mesh.vertex->mapMemory(chunk.ve);
 						mesh.index->mapMemory(chunk.in);
@@ -283,8 +288,6 @@ int main(void) {
 					break;
 				}
 			}
-
-			currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 		}
 
 		(*device)->waitIdle();
