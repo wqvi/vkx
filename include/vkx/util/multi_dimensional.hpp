@@ -100,7 +100,7 @@ namespace vkx
       return std::vector<T>::operator[](index(x, y, z));
     }
 
-    void set(std::int32_t x, std::int32_t y, std::int32_t z, T const &data)
+    void set(std::int32_t x, std::int32_t y, std::int32_t z, T data)
     {
       std::vector<T>::operator[](index(x, y, z)) = data;
     }
