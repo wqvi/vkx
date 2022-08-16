@@ -1,8 +1,8 @@
 #include <vkx/renderer/core/pipeline.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(const GraphicsPipelineInformation& info) {
-	layout = createPipelineLayout(info.device, info.descriptorSetLayout);
-	pipeline = createPipeline(info, *layout);
+vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info) {
+	layout = createPipelineLayout(device, info.descriptorSetLayout);
+	pipeline = createPipeline(device, info, *layout);
 
 	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer graphics pipeline.");
 }
@@ -31,19 +31,16 @@ vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device devi
 	return device.createShaderModuleUnique(shaderCreateInfo);
 }
 
-vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout) {
-	const auto vertShaderModule = createShaderModule(info.device, info.vertexFile);
-	const auto fragShaderModule = createShaderModule(info.device, info.fragmentFile);
+vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout) {
+	const auto vertShaderModule = createShaderModule(device, info.vertexFile);
+	const auto fragShaderModule = createShaderModule(device, info.fragmentFile);
 
 	const vk::PipelineShaderStageCreateInfo vertShaderStageInfo({}, vk::ShaderStageFlagBits::eVertex, *vertShaderModule, "main");
 	const vk::PipelineShaderStageCreateInfo fragShaderStageInfo({}, vk::ShaderStageFlagBits::eFragment, *fragShaderModule, "main");
 
 	const auto shaderStages = {vertShaderStageInfo, fragShaderStageInfo};
 
-	constexpr auto bindingDescription = Vertex::getBindingDescription();
-	constexpr auto attributeDescriptions = Vertex::getAttributeDescriptions();
-
-	const vk::PipelineVertexInputStateCreateInfo vertexInputInfo({}, bindingDescription, attributeDescriptions);
+	const vk::PipelineVertexInputStateCreateInfo vertexInputInfo({}, info.bindingDescriptions, info.attributeDescriptions);
 
 	constexpr vk::PipelineInputAssemblyStateCreateInfo inputAssembly({}, vk::PrimitiveTopology::eTriangleList, false);
 
@@ -118,12 +115,12 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(const GraphicsPipelineI
 	// Use Vulkan C api to create pipeline as the C++ bindings returns an array
 
 	VkPipeline cPipeline = nullptr;
-	const auto result = vkCreateGraphicsPipelines(info.device, nullptr, 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo*>(&pipelineInfo), nullptr, &cPipeline);
+	const auto result = vkCreateGraphicsPipelines(device, nullptr, 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo*>(&pipelineInfo), nullptr, &cPipeline);
 	if (result == VK_PIPELINE_COMPILE_REQUIRED_EXT) {
 		throw std::runtime_error("Failed to create graphics pipeline. Compile is required.");
 	} else if (result != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create graphics pipeline. Unknown error.");
 	}
 
-	return vk::UniquePipeline(cPipeline, info.device);
+	return vk::UniquePipeline(cPipeline, device);
 }

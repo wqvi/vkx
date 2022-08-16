@@ -183,7 +183,7 @@ vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageL
 }
 
 std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(const vkx::GraphicsPipelineInformation& info) const {
-	return std::make_shared<vkx::GraphicsPipeline>(info);
+	return std::make_shared<vkx::GraphicsPipeline>(*device, info);
 }
 
 std::shared_ptr<vkx::CommandSubmitter> vkx::Device::createCommandSubmitter() const {
