@@ -46,10 +46,6 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 
 	constexpr vk::PipelineInputAssemblyStateCreateInfo inputAssembly({}, vk::PrimitiveTopology::eTriangleList, false);
 
-	// const vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(info.extent.width), static_cast<float>(info.extent.height), 0.0f, 1.0f);
-
-	// const vk::Rect2D scissor({0, 0}, info.extent);
-
 	const vk::PipelineViewportStateCreateInfo viewportState({}, 1, nullptr, 1, nullptr);
 
 	constexpr vk::PipelineRasterizationStateCreateInfo rasterizer(
