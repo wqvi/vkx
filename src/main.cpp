@@ -249,16 +249,16 @@ int main(void) {
 
 				swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
-				graphicsPipelineInformation = {
-				    "shader.vert.spv",
-				    "shader.frag.spv",
-				    swapchain->extent,
-				    *clearRenderPass,
-				    *descriptorSetLayout,
-				    vkx::Vertex::getBindingDescription(),
-				    vkx::Vertex::getAttributeDescriptions()};
+				// graphicsPipelineInformation = {
+				//     "shader.vert.spv",
+				//     "shader.frag.spv",
+				//     swapchain->extent,
+				//     *clearRenderPass,
+				//     *descriptorSetLayout,
+				//     vkx::Vertex::getBindingDescription(),
+				//     vkx::Vertex::getAttributeDescriptions()};
 
-				graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
+				// graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 				throw std::runtime_error("Failed to acquire next image.");
@@ -308,16 +308,16 @@ int main(void) {
 
 				swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
-				graphicsPipelineInformation = {
-				    "shader.vert.spv",
-				    "shader.frag.spv",
-				    swapchain->extent,
-				    *clearRenderPass,
-				    *descriptorSetLayout,
-				    vkx::Vertex::getBindingDescription(),
-				    vkx::Vertex::getAttributeDescriptions()};
+				// graphicsPipelineInformation = {
+				//     "shader.vert.spv",
+				//     "shader.frag.spv",
+				//     swapchain->extent,
+				//     *clearRenderPass,
+				//     *descriptorSetLayout,
+				//     vkx::Vertex::getBindingDescription(),
+				//     vkx::Vertex::getAttributeDescriptions()};
 
-				graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
+				// graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
 			}
