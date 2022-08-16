@@ -1,7 +1,6 @@
 #include "vkx/renderer/core/pipeline.hpp"
 #include "vkx/renderer/core/vertex.hpp"
 #include <vkx/vkx.hpp>
-#include <vulkan/vulkan_structs.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
@@ -50,6 +49,22 @@ auto createHighlightDescriptorSetLayout(vk::Device device) {
 
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
 	return device.createDescriptorSetLayoutUnique(layoutInfo);
+}
+
+auto getBindingDescription() noexcept {
+	std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
+
+	bindingDescriptions.push_back({0, sizeof(glm::vec3), vk::VertexInputRate::eVertex});
+
+	return bindingDescriptions;
+}
+
+auto getAttributeDescriptions() noexcept {
+	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
+
+	attributeDescriptions.push_back({0, 0, vk::Format::eR32G32B32Sfloat, 0});
+
+	return attributeDescriptions;
 }
 
 int main(void) {
@@ -101,7 +116,7 @@ int main(void) {
 
 		const auto descriptorSetLayout = createShaderDescriptorSetLayout(static_cast<vk::Device>(*device));
 
-		// const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(static_cast<vk::Device>(*device));
+		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(static_cast<vk::Device>(*device));
 
 		vkx::GraphicsPipelineInformation graphicsPipelineInformation = {
 		    "shader.vert.spv",
@@ -109,11 +124,22 @@ int main(void) {
 		    swapchain->extent,
 		    *clearRenderPass,
 		    *descriptorSetLayout,
-			vkx::Vertex::getBindingDescription(),
-			vkx::Vertex::getAttributeDescriptions()};
+		    vkx::Vertex::getBindingDescription(),
+		    vkx::Vertex::getAttributeDescriptions()};
 
 		auto graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
-		// auto highlightGraphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
+
+		vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation = {
+		    "highlight.vert.spv",
+		    "highlight.frag.spv",
+		    swapchain->extent,
+		    *clearRenderPass,
+		    *descriptorSetLayout,
+			getBindingDescription(),
+			getAttributeDescriptions()
+		};
+
+		auto highlightGraphicsPipeline = device->createGraphicsPipeline(highlightGraphicsPipelineInformation);
 		const auto commandSubmitter = device->createCommandSubmitter();
 		constexpr std::uint32_t drawCommandAmount = 1;
 		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
@@ -229,8 +255,8 @@ int main(void) {
 				    swapchain->extent,
 				    *clearRenderPass,
 				    *descriptorSetLayout,
-					vkx::Vertex::getBindingDescription(),
-					vkx::Vertex::getAttributeDescriptions()};
+				    vkx::Vertex::getBindingDescription(),
+				    vkx::Vertex::getAttributeDescriptions()};
 
 				graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 				continue;
@@ -288,8 +314,8 @@ int main(void) {
 				    swapchain->extent,
 				    *clearRenderPass,
 				    *descriptorSetLayout,
-					vkx::Vertex::getBindingDescription(),
-					vkx::Vertex::getAttributeDescriptions()};
+				    vkx::Vertex::getBindingDescription(),
+				    vkx::Vertex::getAttributeDescriptions()};
 
 				graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 			} else if (result != vk::Result::eSuccess) {
