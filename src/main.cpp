@@ -1,4 +1,44 @@
+#include "vkx/renderer/core/pipeline.hpp"
 #include <vkx/vkx.hpp>
+
+auto createShaderDescriptorSetLayout(vk::Device device) {
+	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
+	    0,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eVertex,
+	    nullptr);
+
+	constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding(
+	    1,
+	    vk::DescriptorType::eCombinedImageSampler,
+	    1,
+	    vk::ShaderStageFlagBits::eFragment,
+	    nullptr);
+
+	constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding(
+	    2,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eFragment,
+	    nullptr);
+
+	constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding(
+	    3,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eFragment,
+	    nullptr);
+
+	constexpr std::array bindings{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
+
+	const vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
+	return device.createDescriptorSetLayoutUnique(layoutInfo);
+};
+
+auto createHighlightDescriptorSetLayout() {
+	
+}
 
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -38,39 +78,6 @@ int main(void) {
 
 		swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
-		constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
-		    0,
-		    vk::DescriptorType::eUniformBuffer,
-		    1,
-		    vk::ShaderStageFlagBits::eVertex,
-		    nullptr);
-
-		constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding(
-		    1,
-		    vk::DescriptorType::eCombinedImageSampler,
-		    1,
-		    vk::ShaderStageFlagBits::eFragment,
-		    nullptr);
-
-		constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding(
-		    2,
-		    vk::DescriptorType::eUniformBuffer,
-		    1,
-		    vk::ShaderStageFlagBits::eFragment,
-		    nullptr);
-
-		constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding(
-		    3,
-		    vk::DescriptorType::eUniformBuffer,
-		    1,
-		    vk::ShaderStageFlagBits::eFragment,
-		    nullptr);
-
-		constexpr std::array bindings{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
-
-		const vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
-		const auto descriptorSetLayout = (*device)->createDescriptorSetLayoutUnique(layoutInfo);
-
 		constexpr vk::DescriptorPoolSize uniformBufferDescriptor(vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT);
 		constexpr vk::DescriptorPoolSize samplerBufferDescriptor(vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT);
 
@@ -80,7 +87,18 @@ int main(void) {
 
 		const auto descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
 
-		auto graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
+		const auto descriptorSetLayout = createShaderDescriptorSetLayout(static_cast<vk::Device>(*device));
+
+		vkx::GraphicsPipelineInformation graphicsPipelineInformation = {
+		    "shader.vert.spv",
+		    "shader.frag.spv",
+		    static_cast<vk::Device>(*device),
+		    swapchain->extent,
+		    *clearRenderPass,
+		    *descriptorSetLayout};
+
+		auto graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
+		// auto highlightGraphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
 		const auto commandSubmitter = device->createCommandSubmitter();
 		constexpr std::uint32_t drawCommandAmount = 1;
 		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
@@ -190,7 +208,15 @@ int main(void) {
 
 				swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
-				graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
+				graphicsPipelineInformation = {
+				    "shader.vert.spv",
+				    "shader.frag.spv",
+				    static_cast<vk::Device>(*device),
+				    swapchain->extent,
+				    *clearRenderPass,
+				    *descriptorSetLayout};
+
+				graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 				throw std::runtime_error("Failed to acquire next image.");
@@ -209,7 +235,7 @@ int main(void) {
 			    *graphicsPipeline->pipeline,
 			    *graphicsPipeline->layout,
 			    descriptorSets[currentFrame],
-				{mesh.vertex->object, mesh1.vertex->object, mesh2.vertex->object, mesh3.vertex->object},
+			    {mesh.vertex->object, mesh1.vertex->object, mesh2.vertex->object, mesh3.vertex->object},
 			    {mesh.index->object, mesh1.index->object, mesh2.index->object, mesh3.index->object},
 			    {static_cast<std::uint32_t>(mesh.indexCount), static_cast<std::uint32_t>(mesh1.indexCount), static_cast<std::uint32_t>(mesh2.indexCount), static_cast<std::uint32_t>(mesh3.indexCount)}};
 
@@ -240,7 +266,15 @@ int main(void) {
 
 				swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
-				graphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
+				graphicsPipelineInformation = {
+				    "shader.vert.spv",
+				    "shader.frag.spv",
+				    static_cast<vk::Device>(*device),
+				    swapchain->extent,
+				    *clearRenderPass,
+				    *descriptorSetLayout};
+
+				graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
 			}
