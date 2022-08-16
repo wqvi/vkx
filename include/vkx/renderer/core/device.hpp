@@ -38,7 +38,7 @@ public:
 
 	vk::UniqueRenderPass createRenderPass(vk::Format format, vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
 
-	std::shared_ptr<vkx::GraphicsPipeline> createGraphicsPipeline(const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) const;
+	std::shared_ptr<vkx::GraphicsPipeline> createGraphicsPipeline(const vkx::GraphicsPipelineInformation& info) const;
 
 	std::shared_ptr<vkx::CommandSubmitter> createCommandSubmitter() const;
 

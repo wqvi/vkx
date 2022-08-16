@@ -1,8 +1,8 @@
 #include <vkx/renderer/core/pipeline.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) {
-	layout = createPipelineLayout(device, descriptorSetLayout);
-	pipeline = createPipeline(device, extent, renderPass, *layout);
+vkx::GraphicsPipeline::GraphicsPipeline(const GraphicsPipelineInformation& info) {
+	layout = createPipelineLayout(info.device, info.descriptorSetLayout);
+	pipeline = createPipeline(info, *layout);
 
 	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer graphics pipeline.");
 }
@@ -31,9 +31,9 @@ vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device devi
 	return device.createShaderModuleUnique(shaderCreateInfo);
 }
 
-vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, const vk::Extent2D& extent, vk::RenderPass renderPass, vk::PipelineLayout layout) {
-	const auto vertShaderModule = createShaderModule(device, "shader.vert.spv");
-	const auto fragShaderModule = createShaderModule(device, "shader.frag.spv");
+vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout) {
+	const auto vertShaderModule = createShaderModule(info.device, info.vertexFile);
+	const auto fragShaderModule = createShaderModule(info.device, info.fragmentFile);
 
 	const vk::PipelineShaderStageCreateInfo vertShaderStageInfo({}, vk::ShaderStageFlagBits::eVertex, *vertShaderModule, "main");
 	const vk::PipelineShaderStageCreateInfo fragShaderStageInfo({}, vk::ShaderStageFlagBits::eFragment, *fragShaderModule, "main");
@@ -47,9 +47,9 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 
 	constexpr vk::PipelineInputAssemblyStateCreateInfo inputAssembly({}, vk::PrimitiveTopology::eTriangleList, false);
 
-	const vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(extent.width), static_cast<float>(extent.height), 0.0f, 1.0f);
+	const vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(info.extent.width), static_cast<float>(info.extent.height), 0.0f, 1.0f);
 
-	const vk::Rect2D scissor({0, 0}, extent);
+	const vk::Rect2D scissor({0, 0}, info.extent);
 
 	const vk::PipelineViewportStateCreateInfo viewportState({}, viewport, scissor);
 
@@ -110,20 +110,20 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 	    &depthStencil,
 	    &colorBlending,
 	    nullptr,
-	    layout,
-	    renderPass,
+	    pipelineLayout,
+	    info.renderPass,
 	    0,
 	    nullptr);
 
 	// Use Vulkan C api to create pipeline as the C++ bindings returns an array
 
 	VkPipeline cPipeline = nullptr;
-	const auto result = vkCreateGraphicsPipelines(device, nullptr, 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo*>(&pipelineInfo), nullptr, &cPipeline);
+	const auto result = vkCreateGraphicsPipelines(info.device, nullptr, 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo*>(&pipelineInfo), nullptr, &cPipeline);
 	if (result == VK_PIPELINE_COMPILE_REQUIRED_EXT) {
 		throw std::runtime_error("Failed to create graphics pipeline. Compile is required.");
 	} else if (result != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create graphics pipeline. Unknown error.");
 	}
 
-	return vk::UniquePipeline(cPipeline, device);
+	return vk::UniquePipeline(cPipeline, info.device);
 }

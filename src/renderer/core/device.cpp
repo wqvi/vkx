@@ -182,8 +182,8 @@ vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageL
 	return device->createRenderPassUnique(renderPassInfo);
 }
 
-std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(const vk::Extent2D& extent, vk::RenderPass renderPass, vk::DescriptorSetLayout descriptorSetLayout) const {
-	return std::make_shared<vkx::GraphicsPipeline>(*device, extent, renderPass, descriptorSetLayout);
+std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(const vkx::GraphicsPipelineInformation& info) const {
+	return std::make_shared<vkx::GraphicsPipeline>(info);
 }
 
 std::shared_ptr<vkx::CommandSubmitter> vkx::Device::createCommandSubmitter() const {
