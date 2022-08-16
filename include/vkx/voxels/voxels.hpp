@@ -1,6 +1,8 @@
 #pragma once
 
 #include "vkx/voxels/voxel_types.hpp"
+#include <glm/common.hpp>
+#include <glm/fwd.hpp>
 #include <iostream>
 #include <utility>
 #include <vkx/camera.hpp>
@@ -31,13 +33,15 @@ public:
 		}
 	}
 
+	static void printVec3(const glm::vec3& v) {
+		std::cout << '[' << v.x << ',' << v.y << ',' << v.z << ']';
+	}
+
 	std::pair<bool, glm::ivec3> raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
 		constexpr float nearZ = 0.1f;
 		constexpr float rayLength = 4.0f;
 
-		// Rotation of the camera
 		const auto rotationMatrix = glm::mat4_cast(glm::conjugate(camera.yawOrientation * camera.pitchOrientation));
-		// Start position relative to chunk's (0, 0, 0) position
 		const auto startPosition = glm::vec3(normalizedPosition) - camera.position;
 
 		const glm::vec2 center(width / 2, height / 2);
@@ -48,63 +52,59 @@ public:
 
 		const auto endPosition = startPosition + rayNormal * rayLength;
 
-		const glm::vec3 rayUnitStepSize(
-		    glm::sqrt(1 + (endPosition.y / endPosition.x) * (endPosition.y / endPosition.x)),
-		    glm::sqrt(1 + (endPosition.x / endPosition.y) * (endPosition.x / endPosition.y)),
-		    glm::sqrt(1 + (endPosition.x / endPosition.z) * (endPosition.x / endPosition.z)));
-
-		glm::ivec3 mapCheck(startPosition);
-
-		glm::vec3 rayLengthDirection(0.0f);
+		glm::vec3 truncatedStart(
+		    static_cast<int>(std::floor(startPosition.z)) | 0,
+			static_cast<int>(std::floor(startPosition.z)) | 0,
+			static_cast<int>(std::floor(startPosition.z)) | 0);
 
 		glm::ivec3 step;
 
+		glm::vec3 distance;
+
+		const glm::vec3 delta(
+		    glm::abs(1 / endPosition.x),
+		    glm::abs(1 / endPosition.y),
+		    glm::abs(1 / endPosition.z));
+
 		if (endPosition.x < 0) {
 			step.x = -1;
-			rayLengthDirection.x = (startPosition.x - static_cast<float>(mapCheck.x) * rayUnitStepSize.x);
+			distance.x = truncatedStart.x + 1.0f - startPosition.x;
 		} else {
 			step.x = 1;
-			rayLengthDirection.x = (static_cast<float>(mapCheck.x + 1) - startPosition.x) * rayUnitStepSize.x;
+			distance.x = startPosition.x - truncatedStart.x;
 		}
 
 		if (endPosition.y < 0) {
 			step.y = -1;
-			rayLengthDirection.y = (startPosition.y - static_cast<float>(mapCheck.y) * rayUnitStepSize.y);
+			distance.x = truncatedStart.y + 1.0f - startPosition.y;
 		} else {
 			step.y = 1;
-			rayLengthDirection.y = (static_cast<float>(mapCheck.y + 1) - startPosition.y) * rayUnitStepSize.y;
+			distance.y = startPosition.y - truncatedStart.y;
 		}
 
 		if (endPosition.z < 0) {
 			step.z = -1;
-			rayLengthDirection.z = (startPosition.z - static_cast<float>(mapCheck.z) * rayUnitStepSize.z);
+			distance.z = truncatedStart.z + 1.0f - startPosition.z;
 		} else {
 			step.z = 1;
-			rayLengthDirection.z = (static_cast<float>(mapCheck.z + 1) - startPosition.z) * rayUnitStepSize.z;
+			distance.z = startPosition.z - truncatedStart.z;
 		}
 
-		Voxel voxel = Voxel::Air;
-		float distance = 0.0f;
-		while (voxel == Voxel::Air && distance < rayLength) {
-			if (rayLengthDirection.x < rayLengthDirection.y) {
-				mapCheck.x += step.x;
-				distance = rayLengthDirection.x;
-				rayLengthDirection.x += rayUnitStepSize.x;
-			} else if (rayLengthDirection.y < rayLengthDirection.z) {
-				mapCheck.y += step.y;
-				distance = rayLengthDirection.y;
-				rayLengthDirection.y += rayUnitStepSize.y;
-			} else {
-				mapCheck.z += step.z;
-				distance = rayLengthDirection.z;
-				rayLengthDirection.z += rayUnitStepSize.z;
-			}
+		const glm::vec3 max(
+			delta.x * distance.x,
+			delta.y * distance.y,
+			delta.z * distance.z);
 
-			voxel = voxels.at(mapCheck);
+		Voxel voxel = Voxel::Air;
+		float length = 0.0f;
+		while (voxel != Voxel::Air && length < rayLength) {
+			voxel = voxels.at(truncatedStart);
+			length += 1.0f;
+			std::cout << length << '\n';
 		}
 
 		if (voxel != Voxel::Air) {
-			return std::make_pair(true, mapCheck);
+			return std::make_pair(true, glm::ivec3(0));
 		}
 
 		return std::make_pair(false, glm::ivec3(0));
