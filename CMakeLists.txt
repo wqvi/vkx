@@ -103,22 +103,22 @@ add_custom_command(TARGET vkx POST_BUILD
 
 # Compile vertex shader to SPIR-V
 add_custom_command(TARGET vkx PRE_BUILD
-        COMMAND glslc "${CMAKE_CURRENT_SOURCE_DIR}/shaders/src/shader2D.vert" -o "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader2D.vert.spv"
+        COMMAND glslc "${CMAKE_CURRENT_SOURCE_DIR}/shaders/src/highlight.vert" -o "${CMAKE_CURRENT_SOURCE_DIR}/shaders/highlight.vert.spv"
         )
 
 # Compile fragment shader to SPIR-V
 add_custom_command(TARGET vkx PRE_BUILD
-        COMMAND glslc "${CMAKE_CURRENT_SOURCE_DIR}/shaders/src/shader2D.frag" -o "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader2D.frag.spv"
+        COMMAND glslc "${CMAKE_CURRENT_SOURCE_DIR}/shaders/src/highlight.frag" -o "${CMAKE_CURRENT_SOURCE_DIR}/shaders/highlight.frag.spv"
         )
 
 # Move compiled vertex shader SPIR-V to build directory
 add_custom_command(TARGET vkx POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader2D.vert.spv"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/highlight.vert.spv"
         $<TARGET_FILE_DIR:vkx>
         )
 
 # Move compiled fragment shader SPIR-V to build directory
 add_custom_command(TARGET vkx POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader2D.frag.spv"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/highlight.frag.spv"
         $<TARGET_FILE_DIR:vkx>
         )
