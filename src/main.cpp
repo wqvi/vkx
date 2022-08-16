@@ -1,5 +1,7 @@
 #include "vkx/renderer/core/pipeline.hpp"
+#include "vkx/renderer/core/vertex.hpp"
 #include <vkx/vkx.hpp>
+#include <vulkan/vulkan_structs.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
@@ -36,8 +38,18 @@ auto createShaderDescriptorSetLayout(vk::Device device) {
 	return device.createDescriptorSetLayoutUnique(layoutInfo);
 };
 
-auto createHighlightDescriptorSetLayout() {
-	
+auto createHighlightDescriptorSetLayout(vk::Device device) {
+	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
+	    0,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eVertex,
+	    nullptr);
+
+	constexpr std::array bindings{uboLayoutBinding};
+
+	const vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
+	return device.createDescriptorSetLayoutUnique(layoutInfo);
 }
 
 int main(void) {
@@ -89,13 +101,16 @@ int main(void) {
 
 		const auto descriptorSetLayout = createShaderDescriptorSetLayout(static_cast<vk::Device>(*device));
 
+		// const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(static_cast<vk::Device>(*device));
+
 		vkx::GraphicsPipelineInformation graphicsPipelineInformation = {
 		    "shader.vert.spv",
 		    "shader.frag.spv",
-		    static_cast<vk::Device>(*device),
 		    swapchain->extent,
 		    *clearRenderPass,
-		    *descriptorSetLayout};
+		    *descriptorSetLayout,
+			vkx::Vertex::getBindingDescription(),
+			vkx::Vertex::getAttributeDescriptions()};
 
 		auto graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 		// auto highlightGraphicsPipeline = device->createGraphicsPipeline(swapchain->extent, *clearRenderPass, *descriptorSetLayout);
@@ -211,10 +226,11 @@ int main(void) {
 				graphicsPipelineInformation = {
 				    "shader.vert.spv",
 				    "shader.frag.spv",
-				    static_cast<vk::Device>(*device),
 				    swapchain->extent,
 				    *clearRenderPass,
-				    *descriptorSetLayout};
+				    *descriptorSetLayout,
+					vkx::Vertex::getBindingDescription(),
+					vkx::Vertex::getAttributeDescriptions()};
 
 				graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 				continue;
@@ -269,10 +285,11 @@ int main(void) {
 				graphicsPipelineInformation = {
 				    "shader.vert.spv",
 				    "shader.frag.spv",
-				    static_cast<vk::Device>(*device),
 				    swapchain->extent,
 				    *clearRenderPass,
-				    *descriptorSetLayout};
+				    *descriptorSetLayout,
+					vkx::Vertex::getBindingDescription(),
+					vkx::Vertex::getAttributeDescriptions()};
 
 				graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 			} else if (result != vk::Result::eSuccess) {
