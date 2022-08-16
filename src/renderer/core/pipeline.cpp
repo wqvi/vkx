@@ -1,4 +1,6 @@
 #include <vkx/renderer/core/pipeline.hpp>
+#include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan_structs.hpp>
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info) {
 	layout = createPipelineLayout(device, info.descriptorSetLayout);
@@ -44,11 +46,11 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 
 	constexpr vk::PipelineInputAssemblyStateCreateInfo inputAssembly({}, vk::PrimitiveTopology::eTriangleList, false);
 
-	const vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(info.extent.width), static_cast<float>(info.extent.height), 0.0f, 1.0f);
+	// const vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(info.extent.width), static_cast<float>(info.extent.height), 0.0f, 1.0f);
 
-	const vk::Rect2D scissor({0, 0}, info.extent);
+	// const vk::Rect2D scissor({0, 0}, info.extent);
 
-	const vk::PipelineViewportStateCreateInfo viewportState({}, viewport, scissor);
+	const vk::PipelineViewportStateCreateInfo viewportState({}, 1, nullptr, 1, nullptr);
 
 	constexpr vk::PipelineRasterizationStateCreateInfo rasterizer(
 	    {},
@@ -95,6 +97,10 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 	    colorBlendAttachment,
 	    blendConstants);
 
+	constexpr std::array dynamicStates = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+
+	const vk::PipelineDynamicStateCreateInfo dynamicStateInfo({}, dynamicStates);
+
 	const vk::GraphicsPipelineCreateInfo pipelineInfo(
 	    {},
 	    shaderStages,
@@ -106,7 +112,7 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 	    &multisampling,
 	    &depthStencil,
 	    &colorBlending,
-	    nullptr,
+	    &dynamicStateInfo,
 	    pipelineLayout,
 	    info.renderPass,
 	    0,

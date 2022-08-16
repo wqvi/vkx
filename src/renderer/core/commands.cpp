@@ -124,6 +124,10 @@ void vkx::CommandSubmitter::recordDrawCommands(const vk::CommandBuffer* begin, s
 	const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
 	const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
 
+	const vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(drawInfo.extent.width), static_cast<float>(drawInfo.extent.height), 0.0f, 1.0f);
+
+	const vk::Rect2D scissor({0, 0}, drawInfo.extent);
+
 	for (std::uint32_t i = 0; i < size; i++) {
 		const auto commandBuffer = begin[i];
 
@@ -131,8 +135,6 @@ void vkx::CommandSubmitter::recordDrawCommands(const vk::CommandBuffer* begin, s
 		static_cast<void>(commandBuffer.begin(beginInfo));
 
 		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
-
-		// commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
 
 		for (std::uint32_t j = 0; j < secondarySize; j++) {
 			const auto secondaryCommandBuffer = secondaryBegin[j];
@@ -143,6 +145,10 @@ void vkx::CommandSubmitter::recordDrawCommands(const vk::CommandBuffer* begin, s
 			static_cast<void>(secondaryCommandBuffer.begin(secondaryBeginInfo));
 
 			secondaryCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
+
+			secondaryCommandBuffer.setViewport(0, viewport);
+
+			secondaryCommandBuffer.setScissor(0, scissor);
 
 			secondaryCommandBuffer.bindVertexBuffers(0, vertexBuffer, {0});
 
