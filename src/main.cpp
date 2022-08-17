@@ -1,6 +1,9 @@
 #include "vkx/renderer/core/pipeline.hpp"
 #include "vkx/renderer/core/vertex.hpp"
+#include "vkx/renderer/uniform_buffer.hpp"
+#include <cstdint>
 #include <vkx/vkx.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
@@ -141,8 +144,12 @@ int main(void) {
 
 		auto highlightGraphicsPipeline = device->createGraphicsPipeline(highlightGraphicsPipelineInformation);
 		const auto commandSubmitter = device->createCommandSubmitter();
-		constexpr std::uint32_t drawCommandAmount = 1;
-		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
+		constexpr std::uint32_t chunkDrawCommandAmount = 1;
+		constexpr std::uint32_t highlightDrawCommandAmount = 1;
+		constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount + highlightDrawCommandAmount;
+		constexpr std::uint32_t chunkSecondaryDrawCommandAmount = 4;
+		constexpr std::uint32_t highlightSecondaryDrawCommandAmount = 1;
+		constexpr std::uint32_t secondaryDrawCommandAmount = chunkSecondaryDrawCommandAmount + highlightSecondaryDrawCommandAmount;
 		const auto drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
 		const auto secondaryDrawCommands = commandSubmitter->allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
@@ -184,6 +191,8 @@ int main(void) {
 		auto mvpBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
 		auto lightBuffers = allocator->allocateUniformBuffers(vkx::DirectionalLight{});
 		auto materialBuffers = allocator->allocateUniformBuffers(vkx::Material{});
+
+		auto highlightMVPBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
 
 		const std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
 		const vk::DescriptorSetAllocateInfo allocInfo(*descriptorPool, layouts);
@@ -259,7 +268,7 @@ int main(void) {
 
 			syncObject.resetFence();
 
-			const vkx::DrawInfo drawInfo = {
+			const vkx::DrawInfo chunkDrawInfo = {
 			    *clearRenderPass,
 			    *swapchain->framebuffers[imageIndex],
 			    swapchain->extent,
@@ -270,13 +279,33 @@ int main(void) {
 			    {mesh.index->object, mesh1.index->object, mesh2.index->object, mesh3.index->object},
 			    {static_cast<std::uint32_t>(mesh.indexCount), static_cast<std::uint32_t>(mesh1.indexCount), static_cast<std::uint32_t>(mesh2.indexCount), static_cast<std::uint32_t>(mesh3.indexCount)}};
 
+			const vkx::DrawInfo highlightDrawInfo = {
+			    *clearRenderPass,
+			    *swapchain->framebuffers[imageIndex],
+			    swapchain->extent,
+			    *highlightGraphicsPipeline->pipeline,
+			    *highlightGraphicsPipeline->layout,
+			    descriptorSets[currentFrame],
+			    {mesh.vertex->object},
+			    {mesh.index->object},
+			    {static_cast<std::uint32_t>(mesh.indexCount)}};
+
+
 			const vk::CommandBuffer* begin = &drawCommands[currentFrame * drawCommandAmount];
+
+			const vk::CommandBuffer* chunkBegin = begin;
+
+			const vk::CommandBuffer* highlightBegin = chunkBegin + chunkDrawCommandAmount;
 
 			const vk::CommandBuffer* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
-			commandSubmitter->recordDrawCommands(begin, drawCommandAmount, secondaryBegin, secondaryDrawCommandAmount, drawInfo);
+			const vk::CommandBuffer* chunkSecondaryBegin = secondaryBegin;
 
-			commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
+			const vk::CommandBuffer* highlightSecondaryBegin = chunkSecondaryBegin + chunkSecondaryDrawCommandAmount;
+
+			commandSubmitter->recordDrawCommands(chunkBegin, chunkDrawCommandAmount, chunkSecondaryBegin, chunkDrawCommandAmount, chunkDrawInfo);
+
+			commandSubmitter->submitDrawCommands(begin, chunkDrawCommandAmount, syncObject);
 
 			commandSubmitter->presentToSwapchain(*swapchain->swapchain, imageIndex, syncObject);
 
@@ -325,6 +354,10 @@ int main(void) {
 					break;
 				case SDL_KEYUP:
 					camera.direction = glm::vec3(0);
+					std::tie(valid, location) = chunk.raycast(camera, width, height);
+					if (valid) {
+						
+					}
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					std::tie(valid, location) = chunk.raycast(camera, width, height);
