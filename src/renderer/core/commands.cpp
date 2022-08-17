@@ -114,9 +114,7 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawComma
 
 void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
 	constexpr vk::CommandBufferBeginInfo beginInfo{};
-	const vk::CommandBufferInheritanceInfo secondaryInheritanceInfo(drawInfo.renderPass, 0, drawInfo.framebuffer);
-	const vk::CommandBufferBeginInfo secondaryBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &secondaryInheritanceInfo);
-
+	
 	constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
 	constexpr vk::ClearColorValue clearColor(clearColorValue);
 	constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
@@ -137,7 +135,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 		commandBuffer.reset({});
 		static_cast<void>(commandBuffer.begin(beginInfo));
 
-		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
+		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
 		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
 
