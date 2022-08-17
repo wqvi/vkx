@@ -106,7 +106,7 @@ int main(void) {
 		const auto device = renderer.createDevice();
 		const auto allocator = device->createAllocator();
 		auto swapchain = device->createSwapchain(window, allocator);
-		const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eClear);
+		const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
 		const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
 		swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
@@ -155,10 +155,9 @@ int main(void) {
 		const auto commandSubmitter = device->createCommandSubmitter();
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
+
 		constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount + highlightDrawCommandAmount;
-		constexpr std::uint32_t chunkSecondaryDrawCommandAmount = 4;
-		constexpr std::uint32_t highlightSecondaryDrawCommandAmount = 1;
-		constexpr std::uint32_t secondaryDrawCommandAmount = chunkSecondaryDrawCommandAmount + highlightSecondaryDrawCommandAmount;
+		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
 		const auto drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
 		const auto secondaryDrawCommands = commandSubmitter->allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
@@ -201,11 +200,17 @@ int main(void) {
 			{0.0f, 0.0f, 0.0f},
 			{0.0f, 1.0f, 0.0f},
 			{1.0f, 1.0f, 0.0f},
-			{1.0f, 0.0f, 0.0f}
+			{1.0f, 0.0f, 0.0f},
+
+			{0.0f, 0.0f, 0.0f},
+			{0.0f, 1.0f, 1.0f},
+			{1.0f, 1.0f, 1.0f},
+			{1.0f, 0.0f, 0.0f},
 		};
 
 		std::vector<std::uint32_t> indices {
-			0, 1, 2, 2, 3, 0
+			0, 1, 2, 2, 3, 0,
+			4, 5, 6, 6, 7, 4,
 		};
 
 		vkx::Mesh highlightMesh(vertices, indices, allocator);
@@ -278,8 +283,8 @@ int main(void) {
 			glm::mat4 rotated = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 			glm::mat4 scaled = glm::scale(rotated, glm::vec3(5.0f));
 			highlightMVPBuffer->model = scaled;
-			highlightMVPBuffer->view = camera.viewMatrix();
-			highlightMVPBuffer->proj = proj;
+			highlightMVPBuffer->view = mvpBuffer->view;
+			highlightMVPBuffer->proj = mvpBuffer->proj;
 
 			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
@@ -342,15 +347,11 @@ int main(void) {
 
 			const vk::CommandBuffer* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
-			const vk::CommandBuffer* chunkSecondaryBegin = secondaryBegin;
+			commandSubmitter->recordSecondaryDrawCommands(chunkBegin, chunkDrawCommandAmount, secondaryBegin, secondaryDrawCommandAmount, chunkDrawInfo);
 
-			const vk::CommandBuffer* highlightSecondaryBegin = chunkSecondaryBegin + chunkSecondaryDrawCommandAmount;
+			commandSubmitter->recordPrimaryDrawCommands(highlightBegin, highlightDrawCommandAmount, highlightDrawInfo);
 
-			commandSubmitter->recordDrawCommands(chunkBegin, chunkDrawCommandAmount, chunkSecondaryBegin, chunkSecondaryDrawCommandAmount, chunkDrawInfo);
-
-			commandSubmitter->recordDrawCommands(highlightBegin, highlightDrawCommandAmount, highlightSecondaryBegin, highlightSecondaryDrawCommandAmount, highlightDrawInfo);
-
-			commandSubmitter->submitDrawCommands(begin, chunkDrawCommandAmount, syncObject);
+			commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
 
 			commandSubmitter->presentToSwapchain(*swapchain->swapchain, imageIndex, syncObject);
 
