@@ -2,6 +2,9 @@
 #include "vkx/renderer/core/vertex.hpp"
 #include "vkx/renderer/uniform_buffer.hpp"
 #include <cstdint>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/fwd.hpp>
+#include <glm/trigonometric.hpp>
 #include <vkx/vkx.hpp>
 #include <vulkan/vulkan_handles.hpp>
 
@@ -104,7 +107,7 @@ int main(void) {
 		const auto allocator = device->createAllocator();
 		auto swapchain = device->createSwapchain(window, allocator);
 		const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eClear);
-		// const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
+		const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
 		swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
@@ -116,6 +119,12 @@ int main(void) {
 		const vk::DescriptorPoolCreateInfo poolInfo({}, MAX_FRAMES_IN_FLIGHT, poolSizes);
 
 		const auto descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
+
+		constexpr std::array highlightPoolSizes{uniformBufferDescriptor};
+
+		const vk::DescriptorPoolCreateInfo highlightPoolInfo({}, MAX_FRAMES_IN_FLIGHT, highlightPoolSizes);
+
+		const auto highlightDescriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
 
 		const auto descriptorSetLayout = createShaderDescriptorSetLayout(static_cast<vk::Device>(*device));
 
@@ -137,7 +146,7 @@ int main(void) {
 		    "highlight.frag.spv",
 		    swapchain->extent,
 		    *clearRenderPass,
-		    *descriptorSetLayout,
+		    *highlightDescriptorSetLayout,
 			getBindingDescription(),
 			getAttributeDescriptions()
 		};
@@ -188,6 +197,19 @@ int main(void) {
 
 		const vkx::Texture texture("a.jpg", *device, allocator, commandSubmitter);
 
+		std::vector<glm::vec3> vertices {
+			{0.0f, 0.0f, 0.0f},
+			{0.0f, 1.0f, 0.0f},
+			{1.0f, 1.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f}
+		};
+
+		std::vector<std::uint32_t> indices {
+			0, 1, 2, 2, 3, 0
+		};
+
+		vkx::Mesh highlightMesh(vertices, indices, allocator);
+
 		auto mvpBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
 		auto lightBuffers = allocator->allocateUniformBuffers(vkx::DirectionalLight{});
 		auto materialBuffers = allocator->allocateUniformBuffers(vkx::Material{});
@@ -205,6 +227,19 @@ int main(void) {
 			    texture.createWriteDescriptorSet(descriptorSets[i], 1),
 			    lightBuffers[i].createWriteDescriptorSet(descriptorSets[i], 2),
 			    materialBuffers[i].createWriteDescriptorSet(descriptorSets[i], 3),
+			};
+
+			(*device)->updateDescriptorSets(descriptorWrites, {});
+		}
+
+		const std::vector<vk::DescriptorSetLayout> highlightLayouts(MAX_FRAMES_IN_FLIGHT, *highlightDescriptorSetLayout);
+		const vk::DescriptorSetAllocateInfo highlightAllocInfo(*highlightDescriptorPool, highlightLayouts);
+
+		const auto highlightDescriptorSets = (*device)->allocateDescriptorSets(highlightAllocInfo);
+
+		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+			const std::array descriptorWrites{
+			    highlightMVPBuffers[i].createWriteDescriptorSet(highlightDescriptorSets[i], 0),
 			};
 
 			(*device)->updateDescriptorSets(descriptorWrites, {});
@@ -239,6 +274,13 @@ int main(void) {
 			materialBuffer->specularColor = glm::vec3(0.2f);
 			materialBuffer->shininess = 100.0f;
 
+			auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
+			glm::mat4 rotated = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			glm::mat4 scaled = glm::scale(rotated, glm::vec3(5.0f));
+			highlightMVPBuffer->model = scaled;
+			highlightMVPBuffer->view = camera.viewMatrix();
+			highlightMVPBuffer->proj = proj;
+
 			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
 			auto [result, imageIndex] = swapchain->acquireNextImage(static_cast<vk::Device>(*device), syncObject);
@@ -265,6 +307,7 @@ int main(void) {
 			mvpBuffer.mapMemory();
 			lightBuffer.mapMemory();
 			materialBuffer.mapMemory();
+			highlightMVPBuffer.mapMemory();
 
 			syncObject.resetFence();
 
@@ -280,15 +323,15 @@ int main(void) {
 			    {static_cast<std::uint32_t>(mesh.indexCount), static_cast<std::uint32_t>(mesh1.indexCount), static_cast<std::uint32_t>(mesh2.indexCount), static_cast<std::uint32_t>(mesh3.indexCount)}};
 
 			const vkx::DrawInfo highlightDrawInfo = {
-			    *clearRenderPass,
+			    *loadRenderPass,
 			    *swapchain->framebuffers[imageIndex],
 			    swapchain->extent,
 			    *highlightGraphicsPipeline->pipeline,
 			    *highlightGraphicsPipeline->layout,
-			    descriptorSets[currentFrame],
-			    {mesh.vertex->object},
-			    {mesh.index->object},
-			    {static_cast<std::uint32_t>(mesh.indexCount)}};
+			    highlightDescriptorSets[currentFrame],
+			    {highlightMesh.vertex->object},
+			    {highlightMesh.index->object},
+			    {static_cast<std::uint32_t>(highlightMesh.indexCount)}};
 
 
 			const vk::CommandBuffer* begin = &drawCommands[currentFrame * drawCommandAmount];
@@ -303,7 +346,9 @@ int main(void) {
 
 			const vk::CommandBuffer* highlightSecondaryBegin = chunkSecondaryBegin + chunkSecondaryDrawCommandAmount;
 
-			commandSubmitter->recordDrawCommands(chunkBegin, chunkDrawCommandAmount, chunkSecondaryBegin, chunkDrawCommandAmount, chunkDrawInfo);
+			commandSubmitter->recordDrawCommands(chunkBegin, chunkDrawCommandAmount, chunkSecondaryBegin, chunkSecondaryDrawCommandAmount, chunkDrawInfo);
+
+			commandSubmitter->recordDrawCommands(highlightBegin, highlightDrawCommandAmount, highlightSecondaryBegin, highlightSecondaryDrawCommandAmount, highlightDrawInfo);
 
 			commandSubmitter->submitDrawCommands(begin, chunkDrawCommandAmount, syncObject);
 

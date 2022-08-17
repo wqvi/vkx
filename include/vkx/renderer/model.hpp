@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <vkx/renderer/image.hpp>
 
 namespace vkx {
@@ -12,6 +13,10 @@ public:
 	template <std::size_t T, std::size_t K>
 	explicit Mesh(const std::array<Vertex, T>& vertices, const std::array<std::uint32_t, K>& indices, const std::shared_ptr<Allocator>& allocator)
 		: vertex(allocator->allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator->allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(K) {}
+
+	template <class T, class K>
+	explicit Mesh(const std::vector<T>& vertices, const std::vector<K>& indices, const std::shared_ptr<Allocator>& allocator)
+		: vertex(allocator->allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator->allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
 	std::shared_ptr<Allocation<vk::Buffer>> vertex;
 	std::shared_ptr<Allocation<vk::Buffer>> index;
