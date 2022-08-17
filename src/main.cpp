@@ -202,15 +202,39 @@ int main(void) {
 			{1.0f, 1.0f, 0.0f},
 			{1.0f, 0.0f, 0.0f},
 
+			{1.0f, 0.0f, 0.0f},
+			{1.0f, 1.0f, 0.0f},
+			{1.0f, 1.0f, 1.0f},
+			{1.0f, 0.0f, 1.0f},
+
+			{1.0f, 0.0f, 1.0f},
+			{1.0f, 1.0f, 1.0f},
+			{0.0f, 1.0f, 1.0f},
+			{0.0f, 0.0f, 1.0f},
+
+			{0.0f, 0.0f, 1.0f},
+			{0.0f, 1.0f, 1.0f},
+			{0.0f, 1.0f, 0.0f},
 			{0.0f, 0.0f, 0.0f},
+
+			{0.0f, 0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f},
+			{1.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f, 1.0f},
+
+			{0.0f, 1.0f, 0.0f},
 			{0.0f, 1.0f, 1.0f},
 			{1.0f, 1.0f, 1.0f},
-			{1.0f, 0.0f, 0.0f},
+			{1.0f, 1.0f, 0.0f},
 		};
 
 		std::vector<std::uint32_t> indices {
 			0, 1, 2, 2, 3, 0,
 			4, 5, 6, 6, 7, 4,
+			8, 9, 10, 10, 11, 8,
+			12, 13, 14, 14, 15, 12,
+			16, 17, 18, 18, 19, 16,
+			20, 21, 22, 22, 23, 20
 		};
 
 		vkx::Mesh highlightMesh(vertices, indices, allocator);
@@ -252,6 +276,8 @@ int main(void) {
 
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
+		auto highlightModel = glm::mat4(1.0f);
+
 		std::uint32_t currentFrame = 0;
 		SDL_Event event{};
 		bool isRunning = true;
@@ -280,9 +306,7 @@ int main(void) {
 			materialBuffer->shininess = 100.0f;
 
 			auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
-			glm::mat4 rotated = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			glm::mat4 scaled = glm::scale(rotated, glm::vec3(5.0f));
-			highlightMVPBuffer->model = scaled;
+			highlightMVPBuffer->model = highlightModel;
 			highlightMVPBuffer->view = mvpBuffer->view;
 			highlightMVPBuffer->proj = mvpBuffer->proj;
 
@@ -394,16 +418,16 @@ int main(void) {
 					break;
 				case SDL_MOUSEMOTION:
 					camera.updateMouse({-event.motion.xrel, -event.motion.yrel});
+					std::tie(valid, location) = chunk.raycast(camera, width, height);
+					if (valid) {
+						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - location) + glm::vec3(-1.0f));
+					}
 					break;
 				case SDL_KEYDOWN:
 					camera.updateKey(event.key.keysym.sym);
 					break;
 				case SDL_KEYUP:
 					camera.direction = glm::vec3(0);
-					std::tie(valid, location) = chunk.raycast(camera, width, height);
-					if (valid) {
-						
-					}
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					std::tie(valid, location) = chunk.raycast(camera, width, height);
