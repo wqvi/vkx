@@ -112,11 +112,58 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawComma
 	return device.allocateCommandBuffers(allocInfo);
 }
 
-void vkx::CommandSubmitter::recordDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vk::CommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const {
+void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
 	constexpr vk::CommandBufferBeginInfo beginInfo{};
 	const vk::CommandBufferInheritanceInfo secondaryInheritanceInfo(drawInfo.renderPass, 0, drawInfo.framebuffer);
 	const vk::CommandBufferBeginInfo secondaryBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &secondaryInheritanceInfo);
-	
+
+	constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
+	constexpr vk::ClearColorValue clearColor(clearColorValue);
+	constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
+	constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
+	const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
+	const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
+
+	const vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(drawInfo.extent.width), static_cast<float>(drawInfo.extent.height), 0.0f, 1.0f);
+
+	const vk::Rect2D scissor({0, 0}, drawInfo.extent);
+
+	for (std::uint32_t i = 0; i < size; i++) {
+		const auto commandBuffer = begin[i];
+		const auto vertexBuffer = drawInfo.vertexBuffers[i];
+		const auto indexBuffer = drawInfo.indexBuffers[i];
+		const auto indexCount = drawInfo.indexCount[i];
+
+		commandBuffer.reset({});
+		static_cast<void>(commandBuffer.begin(beginInfo));
+
+		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
+
+		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline);
+
+		commandBuffer.setViewport(0, viewport);
+
+		commandBuffer.setScissor(0, scissor);
+
+		commandBuffer.bindVertexBuffers(0, vertexBuffer, {0});
+
+		commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
+
+		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipelineLayout, 0, drawInfo.descriptorSet, {});
+
+		commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
+
+		commandBuffer.endRenderPass();
+
+		commandBuffer.end();
+	}
+}
+
+void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vk::CommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const {
+	constexpr vk::CommandBufferBeginInfo beginInfo{};
+	const vk::CommandBufferInheritanceInfo secondaryInheritanceInfo(drawInfo.renderPass, 0, drawInfo.framebuffer);
+	const vk::CommandBufferBeginInfo secondaryBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &secondaryInheritanceInfo);
+
 	constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
 	constexpr vk::ClearColorValue clearColor(clearColorValue);
 	constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
