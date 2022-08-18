@@ -425,6 +425,10 @@ int main(void) {
 					break;
 				case SDL_KEYDOWN:
 					camera.updateKey(event.key.keysym.sym);
+					std::tie(valid, location) = chunk.raycast(camera, width, height);
+					if (valid) {
+						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - location) + glm::vec3(-1.0f));
+					}
 					break;
 				case SDL_KEYUP:
 					camera.direction = glm::vec3(0);
