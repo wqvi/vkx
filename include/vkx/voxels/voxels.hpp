@@ -3,9 +3,11 @@
 #include "vkx/voxels/voxel_types.hpp"
 #include <cmath>
 #include <glm/common.hpp>
+#include <glm/exponential.hpp>
 #include <glm/fwd.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <iostream>
+#include <utility>
 #include <vkx/camera.hpp>
 #include <vkx/renderer/core/vertex.hpp>
 #include <vkx/voxels/voxel_mask.hpp>
@@ -35,12 +37,104 @@ public:
 	}
 
 	auto raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
-		constexpr float nearZ = 0.1f;
 		constexpr float rayLength = 4.0f;
 
-		const auto startPosition = glm::vec3(normalizedPosition) - camera.position;
+		const auto rayOrigin = glm::vec3(normalizedPosition) - camera.position;
 
-		return std::make_pair(false, glm::ivec3(0));
+		const glm::vec3 rayDirection(0.0f, 0.0f, 1.0f);
+
+		glm::ivec3 hitPos = glm::floor(rayOrigin);
+
+		auto hitPrevPos = hitPos;
+
+		const int xStep = rayDirection.x > 0 ? 1 : rayDirection.x < 0 ? -1 : 0;
+		const int yStep = rayDirection.y > 0 ? 1 : rayDirection.y < 0 ? -1 : 0;
+		const int zStep = rayDirection.z > 0 ? 1 : rayDirection.z < 0 ? -1 : 0;
+
+		const auto xDelta = xStep != 0 ? 1.0f / glm::abs(rayDirection.x) : INFINITY;
+		const auto yDelta = yStep != 0 ? 1.0f / glm::abs(rayDirection.y) : INFINITY;
+		const auto zDelta = zStep != 0 ? 1.0f / glm::abs(rayDirection.z) : INFINITY;
+
+		float xCross;
+		float yCross;
+		float zCross;
+
+		if (xStep != 0) {
+			if (xStep == 1) {
+				xCross = (glm::ceil(rayOrigin.x) - rayOrigin.x) * xDelta;
+			} else {
+				xCross = (rayOrigin.x - glm::floor(rayOrigin.x)) * xDelta;
+			}
+		} else {
+			xCross = INFINITY;
+		}
+
+		if (yStep != 0) {
+			if (yStep == 1) {
+				yCross = (glm::ceil(rayOrigin.y) - rayOrigin.y) * yDelta;
+			} else {
+				yCross = (rayOrigin.y - glm::floor(rayOrigin.y)) * yDelta;
+			}
+		} else {
+			yCross = INFINITY;
+		}
+
+		if (zStep != 0) {
+			if (zStep == 1) {
+				zCross = (glm::ceil(rayOrigin.z) - rayOrigin.z) * zDelta;
+			} else {
+				zCross = (rayOrigin.z - glm::floor(rayOrigin.z)) * zDelta;
+			}
+		} else {
+			zCross = INFINITY;
+		}
+
+		Voxel voxel = Voxel::Air;
+		while (voxel == Voxel::Air) {
+			hitPrevPos = hitPos;
+
+			if (xCross < yCross) {
+				if (xCross < zCross) {
+					hitPos.x += xStep;
+
+					if (xCross > rayLength) {
+						return std::make_pair(false, glm::ivec3(0));
+					}
+
+					xCross += xDelta;
+				} else {
+					hitPos.z += zStep;
+					
+					if (zCross > rayLength) {
+						return std::make_pair(false, glm::ivec3(0));
+					}
+
+					zCross += zDelta;
+				}
+			} else {
+				if (yCross < zCross) {
+					hitPos.y += yStep;
+
+					if (yCross > rayLength) {
+						return std::make_pair(false, glm::ivec3(0));
+					}
+
+					yCross += yDelta;
+				} else {
+					hitPos.z += zStep;
+					
+					if (zCross > rayLength) {
+						return std::make_pair(false, glm::ivec3(0));
+					}
+
+					zCross += zDelta;
+				}
+			}
+
+			voxel = voxels.at(hitPos);
+		}
+
+		return std::make_pair(true, hitPos);
 	}
 
 	void greedy() {
