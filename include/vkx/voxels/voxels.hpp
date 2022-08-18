@@ -1,11 +1,11 @@
 #pragma once
 
 #include "vkx/voxels/voxel_types.hpp"
+#include <cmath>
 #include <glm/common.hpp>
-#include <glm/exponential.hpp>
 #include <glm/fwd.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <iostream>
-#include <utility>
 #include <vkx/camera.hpp>
 #include <vkx/renderer/core/vertex.hpp>
 #include <vkx/voxels/voxel_mask.hpp>
@@ -34,92 +34,11 @@ public:
 		}
 	}
 
-	static void printVec3(const glm::vec3& v) {
-		std::cout << '[' << v.x << ',' << v.y << ',' << v.z << ']';
-	}
-
-	std::pair<bool, glm::ivec3> raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
+	auto raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
 		constexpr float nearZ = 0.1f;
 		constexpr float rayLength = 4.0f;
 
-		const auto rotationMatrix = glm::mat4_cast(glm::conjugate(camera.yawOrientation * camera.pitchOrientation));
 		const auto startPosition = glm::vec3(normalizedPosition) - camera.position;
-
-		const glm::vec2 center(width / 2, height / 2);
-		const auto transformedCenter = glm::mat2(rotationMatrix) * center;
-
-		const glm::vec3 localNormal(((transformedCenter.x / width) * 2.0 - 1.0) * center.x, ((1.0 - (transformedCenter.y / height)) * 2.0 - 1.0) * center.y, -nearZ);
-		// const glm::vec3 rayNormal(rotationMatrix * glm::vec4(glm::normalize(localNormal), 1.0f));
-
-		const glm::vec3 rayNormal(0, 0, 1);
-
-		const auto endPosition = startPosition + rayNormal * rayLength;
-
-		const glm::vec3 delta(glm::abs(glm::vec3(1) / endPosition));
-
-		glm::ivec3 mapPosition(startPosition);
-
-		glm::ivec3 step;
-		
-		glm::vec3 sideDistance;
-
-		if (endPosition.x < 0) {
-			step.x = -1;
-			sideDistance.x = (startPosition.x - static_cast<float>(mapPosition.x)) * delta.x;
-		} else {
-			step.x = 1;
-			sideDistance.x = (static_cast<float>(mapPosition.x) + 1.0f - startPosition.x) * delta.x;
-		}
-
-		if (endPosition.y < 0) {
-			step.y = -1;
-			sideDistance.y = (startPosition.y - static_cast<float>(mapPosition.y)) * delta.y;
-		} else {
-			step.y = 1;
-			sideDistance.y = (static_cast<float>(mapPosition.y) + 1.0f - startPosition.y) * delta.y;
-		}
-
-		if (endPosition.z < 0) {
-			step.z = -1;
-			sideDistance.z = (startPosition.z - static_cast<float>(mapPosition.z)) * delta.z;
-		} else {
-			step.z = 1;
-			sideDistance.z = (static_cast<float>(mapPosition.z) + 1.0f - startPosition.z) * delta.z;
-		}
-
-		Voxel voxel = Voxel::Air;
-		float length = 0.0f;
-		while (voxel == Voxel::Air && length < rayLength) {
-			if (sideDistance.x < sideDistance.y) {
-				if (sideDistance.x < sideDistance.z) {
-					sideDistance.x += delta.x;
-					mapPosition.x += step.x;
-					length = sideDistance.x;
-				} else {
-					sideDistance.z += delta.z;
-					mapPosition.z += step.z;
-					length = sideDistance.z;
-				}
-			} else {
-				if (sideDistance.y < sideDistance.z) {
-					sideDistance.y += delta.y;
-					mapPosition.y += step.y;
-					length = sideDistance.y;
-				} else {
-					sideDistance.z += delta.z;
-					mapPosition.z += step.z;
-					length = sideDistance.z;
-				}
-			}
-
-			voxel = voxels.at(mapPosition);
-
-			std::cout << static_cast<int>(voxel) << '\n';
-		}
-
-		if (voxel != Voxel::Air) {
-			return std::make_pair(true, mapPosition);
-		}
 
 		return std::make_pair(false, glm::ivec3(0));
 	}
