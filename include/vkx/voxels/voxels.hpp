@@ -44,14 +44,9 @@ public:
 
 		const auto rayOrigin = glm::vec3(normalizedPosition) - camera.position;
 
-		const auto pitch = glm::radians(camera.pitch);
-		const auto yaw = glm::radians(camera.yaw);
-
-		const glm::vec3 rayDirection = glm::normalize(glm::vec3(
-			glm::cos(pitch) * glm::sin(yaw),
-			glm::sin(pitch),
-			glm::cos(pitch) * glm::cos(yaw)
-		));
+		const auto orientation = camera.yawOrientation * camera.pitchOrientation;
+		const auto front = orientation * glm::quat(0.0f, 0.0f, 0.0f, -1.0f) * glm::conjugate(orientation);
+		const glm::vec3 rayDirection(front.x, front.y, -front.z);
 
 		glm::ivec3 hitPos = glm::floor(rayOrigin);
 
@@ -114,7 +109,7 @@ public:
 					xCross += xDelta;
 				} else {
 					hitPos.z += zStep;
-					
+
 					if (zCross > rayLength) {
 						return std::make_pair(false, glm::ivec3(0));
 					}
@@ -132,7 +127,7 @@ public:
 					yCross += yDelta;
 				} else {
 					hitPos.z += zStep;
-					
+
 					if (zCross > rayLength) {
 						return std::make_pair(false, glm::ivec3(0));
 					}
