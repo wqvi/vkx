@@ -1,3 +1,4 @@
+#include "vkx/raycast.hpp"
 #include "vkx/renderer/core/pipeline.hpp"
 #include "vkx/renderer/core/vertex.hpp"
 #include "vkx/renderer/uniform_buffer.hpp"
@@ -418,14 +419,16 @@ int main(void) {
 					break;
 				case SDL_MOUSEMOTION:
 					camera.updateMouse({-event.motion.xrel, -event.motion.yrel});
-					std::tie(valid, location) = chunk.raycast(camera);
+					std::tie(valid, location) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
+					// std::tie(valid, location) = chunk.raycast(camera);
 					if (valid) {
 						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - location) + glm::vec3(-1.0f));
 					}
 					break;
 				case SDL_KEYDOWN:
 					camera.updateKey(event.key.keysym.sym);
-					std::tie(valid, location) = chunk.raycast(camera);
+					std::tie(valid, location) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
+					// std::tie(valid, location) = chunk.raycast(camera);
 					if (valid) {
 						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - location) + glm::vec3(-1.0f));
 					}
@@ -434,7 +437,8 @@ int main(void) {
 					camera.direction = glm::vec3(0);
 					break;
 				case SDL_MOUSEBUTTONDOWN:
-					std::tie(valid, location) = chunk.raycast(camera);
+					std::tie(valid, location) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
+					// std::tie(valid, location) = chunk.raycast(camera);
 					if (valid) {
 						chunk.voxels.set(location.x, location.y, location.z, vkx::Voxel::Air);
 						chunk.greedy();
