@@ -39,7 +39,7 @@ public:
 		}
 	}
 
-	auto raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
+	auto raycast(const vkx::Camera& camera) {
 		constexpr float rayLength = 4.0f;
 
 		const auto rayOrigin = glm::vec3(normalizedPosition) - camera.position;
