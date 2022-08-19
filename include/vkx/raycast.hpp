@@ -4,5 +4,5 @@
 #include <vkx/camera.hpp>
 
 namespace vkx {
-std::pair<bool, glm::ivec3> raycast(const glm::vec3& chunkPosition, const Camera& camera, const VoxelMatrix& voxels);
+std::tuple<bool, glm::ivec3, glm::ivec3> raycast(const glm::vec3& chunkPosition, const Camera& camera, const VoxelMatrix& voxels);
 }

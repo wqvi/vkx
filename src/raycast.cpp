@@ -1,7 +1,3 @@
-#include "vkx/voxels/voxel_matrix.hpp"
-#include "vkx/voxels/voxel_types.hpp"
-#include <glm/common.hpp>
-#include <glm/fwd.hpp>
 #include <vkx/raycast.hpp>
 
 template <auto I, auto J>
@@ -57,31 +53,30 @@ static constexpr glm::vec3 derriveCross(const glm::ivec3& step, const glm::vec3&
 	};
 }
 
-static auto dda(const glm::vec3& origin, const glm::vec3& direction, const vkx::VoxelMatrix& voxels) {
+static std::tuple<bool, glm::ivec3, glm::ivec3> dda(const glm::vec3& origin, const glm::vec3& direction, const vkx::VoxelMatrix& voxels) {
 	constexpr float rayLength = 4.0f;
-
-	glm::ivec3 hitPos = glm::floor(origin);
 
 	const auto step = derriveStep(direction);
 	const auto delta = derriveDelta(step, direction);
 	auto cross = derriveCross(step, origin, delta);
+	glm::ivec3 hitPos = glm::floor(origin);
+	glm::ivec3 previousHitPos = hitPos;
+    float length = 0.0f;
 
 	do {
+		previousHitPos = hitPos;
+
 		if (cross.x < cross.y) {
 			if (cross.x < cross.z) {
 				hitPos.x += step.x;
 
-				if (cross.x > rayLength) {
-					return std::make_pair(false, glm::ivec3(0));
-				}
+                length = cross.x;
 
 				cross.x += delta.x;
 			} else {
 				hitPos.z += step.z;
 
-				if (cross.z > rayLength) {
-					return std::make_pair(false, glm::ivec3(0));
-				}
+                length = cross.z;
 
 				cross.z += delta.z;
 			}
@@ -89,28 +84,27 @@ static auto dda(const glm::vec3& origin, const glm::vec3& direction, const vkx::
 			if (cross.y < cross.z) {
 				hitPos.y += step.y;
 
-				if (cross.y > rayLength) {
-					return std::make_pair(false, glm::ivec3(0));
-				}
+                length = cross.y;
 
 				cross.y += delta.y;
 			} else {
 				hitPos.z += step.z;
 
-				if (cross.z > rayLength) {
-					return std::make_pair(false, glm::ivec3(0));
-				}
+                length = cross.z;
 
 				cross.z += delta.z;
 			}
 		}
 
+        if (length > rayLength) {
+            return std::make_tuple(false, glm::ivec3{0}, glm::ivec3{0});
+        }
 	} while (voxels.at(hitPos) == vkx::Voxel::Air);
 
-	return std::make_pair(true, hitPos);
+	return std::make_tuple(true, hitPos, previousHitPos);
 }
 
-std::pair<bool, glm::ivec3> vkx::raycast(const glm::vec3& chunkPosition, const Camera& camera, const VoxelMatrix& voxels) {
+std::tuple<bool, glm::ivec3, glm::ivec3> vkx::raycast(const glm::vec3& chunkPosition, const Camera& camera, const VoxelMatrix& voxels) {
 	const auto origin = glm::vec3(chunkPosition) - camera.position;
 
 	const auto orientation = camera.yawOrientation * camera.pitchOrientation;
