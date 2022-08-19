@@ -22,12 +22,12 @@ void vkx::Camera::updateMouse(const glm::vec2& relative) {
 
 void vkx::Camera::updateKey(SDL_Keycode key) {
 	// FPS Camera
-	// glm::quat orientation = yawOrientation * glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
+	// const auto orientation = yawOrientation * glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
 	// Free Camera
-	glm::quat orientation = yawOrientation * pitchOrientation;
-	glm::quat quaternionFront = orientation * glm::quat(0.0f, 0.0f, 0.0f, -1.0f) * glm::conjugate(orientation);
-	glm::vec3 front(quaternionFront.x, quaternionFront.y, quaternionFront.z);
-	glm::vec3 right = glm::normalize(glm::cross(front, vkx::UP));
+	const auto orientation = yawOrientation * pitchOrientation;
+	const auto quaternionFront = orientation * glm::quat(0.0f, 0.0f, 0.0f, -1.0f) * glm::conjugate(orientation);
+	const glm::vec3 front{quaternionFront.x, quaternionFront.y, quaternionFront.z};
+	const glm::vec3 right = glm::normalize(glm::cross(front, vkx::UP));
 
 	// TODO fix this monstrosity
 	if (key == SDLK_w) {
@@ -49,7 +49,7 @@ void vkx::Camera::updateKey(SDL_Keycode key) {
 }
 
 [[nodiscard]] glm::mat4 vkx::Camera::viewMatrix() const {
-	glm::mat4 viewRotation = glm::mat4_cast(glm::conjugate(yawOrientation * pitchOrientation));
-	glm::mat4 viewTranslation = glm::translate(glm::mat4(1.0f), -position);
+	const auto viewRotation = glm::mat4_cast(glm::conjugate(yawOrientation * pitchOrientation));
+	const auto viewTranslation = glm::translate(glm::mat4(1.0f), -position);
 	return viewRotation * viewTranslation;
 }
