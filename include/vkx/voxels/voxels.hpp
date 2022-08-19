@@ -4,8 +4,11 @@
 #include <cmath>
 #include <glm/common.hpp>
 #include <glm/exponential.hpp>
+#include <glm/ext/quaternion_common.hpp>
+#include <glm/ext/quaternion_trigonometric.hpp>
 #include <glm/fwd.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/trigonometric.hpp>
 #include <iostream>
 #include <utility>
 #include <vkx/camera.hpp>
@@ -36,12 +39,27 @@ public:
 		}
 	}
 
+	void printVec3(const glm::vec3& v) {
+		std::cout << '[' << v.x << ',' << v.y << ',' << v.z << "]\n";
+	}
+
 	auto raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
 		constexpr float rayLength = 4.0f;
 
 		const auto rayOrigin = glm::vec3(normalizedPosition) - camera.position;
 
-		const glm::vec3 rayDirection(0.0f, 0.0f, 1.0f);
+		const auto pitch = glm::radians(camera.pitch);
+		const auto yaw = glm::radians(-camera.yaw);
+
+		const glm::vec3 rayDirection = glm::normalize(glm::vec3(
+			glm::cos(yaw) * glm::cos(pitch),
+			glm::sin(pitch),
+			glm::sin(yaw) * glm::cos(pitch)
+		));
+
+		// const glm::vec3 rayDirection = glm::vec3(0.0f, 1.0f, 0.0f);
+
+		printVec3(rayDirection);
 
 		glm::ivec3 hitPos = glm::floor(rayOrigin);
 

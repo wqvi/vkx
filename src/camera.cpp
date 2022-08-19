@@ -1,4 +1,5 @@
 #include <glm/ext/quaternion_geometric.hpp>
+#include <glm/trigonometric.hpp>
 #include <vkx/camera.hpp>
 
 #include <SDL2/SDL_keycode.h>
@@ -7,13 +8,16 @@ vkx::Camera::Camera(const glm::vec3& position)
     : position(position) {}
 
 void vkx::Camera::updateMouse(const glm::vec2& relative) {
-	rotation.x += relative.y * sensitivity.x;
-	rotation.y += relative.x * sensitivity.y;
-	rotation.x = glm::clamp(rotation.x, -89.0f, 89.0f);
-	rotation.y = glm::mod(rotation.y, 360.0f);
+	pitch += relative.y * sensitivity.x;
+	yaw += relative.x * sensitivity.y;
+	pitch = glm::clamp(rotation.x, -89.0f, 89.0f);
+	yaw = glm::mod(rotation.y, 360.0f);
 
-	yawOrientation = glm::angleAxis(glm::radians(-rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	pitchOrientation = glm::angleAxis(glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	const auto pitchRadians = glm::radians(pitch);
+	const auto yawRadians = glm::radians(-yaw);
+
+	pitchOrientation = glm::angleAxis(pitchRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+	yawOrientation = glm::angleAxis(yawRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void vkx::Camera::updateKey(SDL_Keycode key) {

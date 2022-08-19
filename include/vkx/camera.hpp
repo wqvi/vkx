@@ -30,7 +30,13 @@ public:
 	glm::quat yawOrientation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
 	glm::quat pitchOrientation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
 	glm::vec2 sensitivity = glm::vec2(0.1f, 0.1f);
-	glm::vec2 rotation = glm::vec2(0.0f, 0.0f);
+	union {
+		glm::vec2 rotation = glm::vec2(0.0f, 0.0f);
+		struct {
+			float pitch;
+			float yaw;
+		};
+	};
 	glm::vec3 direction = glm::vec3(0.0f, 0.0f, 0.0f);
 };
 } // namespace vkx
