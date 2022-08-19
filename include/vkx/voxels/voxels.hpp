@@ -39,10 +39,6 @@ public:
 		}
 	}
 
-	void printVec3(const glm::vec3& v) {
-		std::cout << '[' << v.x << ',' << v.y << ',' << v.z << "]\n";
-	}
-
 	auto raycast(const vkx::Camera& camera, std::int32_t width, std::int32_t height) {
 		constexpr float rayLength = 4.0f;
 
@@ -56,10 +52,6 @@ public:
 			glm::sin(pitch),
 			glm::cos(pitch) * glm::cos(yaw)
 		));
-
-		// const glm::vec3 rayDirection = glm::vec3(0.0f, 0.0f, 0.0f);
-
-		printVec3(rayDirection);
 
 		glm::ivec3 hitPos = glm::floor(rayOrigin);
 
