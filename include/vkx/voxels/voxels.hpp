@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vkx/voxels/voxel_types.hpp"
+#include <glm/fwd.hpp>
 #include <iostream>
 #include <vkx/camera.hpp>
 #include <vkx/renderer/core/vertex.hpp>
@@ -30,6 +31,96 @@ public:
 		}
 	}
 
+	void computeMask(Mask& mask, glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
+		int n = 0;
+		for (chunkItr[axis2] = 0; chunkItr[axis2] < size; chunkItr[axis2]++) {
+			for (chunkItr[axis1] = 0; chunkItr[axis1] < size; ++chunkItr[axis1]) {
+				const auto currentVoxel = voxels.at(chunkItr);
+				const auto compareVoxel = voxels.at(chunkItr + axisMask);
+
+				const bool currentVoxelOpaque = currentVoxel != Voxel::Air;
+				const bool compareVoxelOpaque = compareVoxel != Voxel::Air;
+
+				if (currentVoxelOpaque == compareVoxelOpaque) {
+					mask[n++] = VoxelMask{Voxel::Air, 0};
+				} else if (currentVoxelOpaque) {
+					mask[n++] = VoxelMask{currentVoxel, 1};
+				} else {
+					mask[n++] = VoxelMask{compareVoxel, -1};
+				}
+			}
+		}
+	}
+
+	auto computeWidth(const Mask& mask, const VoxelMask& currentMask, int i, int n) {
+		int width = 1;
+
+		while (i + width < size && mask[n + width] == currentMask) {
+			width++;
+		}
+
+		return width;
+	}
+
+	auto computeHeight(const Mask& mask, const VoxelMask& currentMask, int j, int n, int width) {
+		int height = 1;
+		bool done = false;
+
+		while (j + height < size) {
+			for (int k = 0; k < width; k++) {
+				if (mask[n + k + height * size] == currentMask) {
+					continue;
+				}
+
+				done = true;
+				break;
+			}
+
+			if (done) {
+				break;
+			}
+
+			height++;
+		}
+
+		return height;
+	}
+
+	void clear(Mask& mask, int width, int height, int n) {
+		for (int l = 0; l < height; ++l) {
+			for (int k = 0; k < width; ++k) {
+				mask[n + k + l * size] = VoxelMask{Voxel::Air, 0};
+			}
+		}
+	}
+
+	void computeMesh(Mask& mask, glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
+		int n = 0;
+		for (int j = 0; j < size; ++j) {
+			for (int i = 0; i < size;) {
+				const auto& currentMask = mask[n];
+				if (currentMask.normal != 0) {
+					chunkItr[axis1] = i;
+					chunkItr[axis2] = j;
+
+					const int width = computeWidth(mask, currentMask, i, n);
+
+					const int height = computeHeight(mask, currentMask, j, n, width);
+
+					createQuad(currentMask.normal, axisMask, width, height, chunkItr, axis1, axis2);
+
+					clear(mask, width, height, n);
+
+					i += width;
+					n += width;
+				} else {
+					i++;
+					n++;
+				}
+			}
+		}
+	}
+
 	void greedy() {
 		vertexCount = 0;
 
@@ -38,24 +129,22 @@ public:
 
 		Mask mask;
 
-		for (std::int32_t axis = 0; axis < 3; axis++) {
-			const auto axis1 = (axis + 1) % 3;
-			const auto axis2 = (axis + 2) % 3;
+		for (int axis = 0; axis < 3; ++axis) {
+			const int axis1 = (axis + 1) % 3;
+			const int axis2 = (axis + 2) % 3;
 
-			glm::i32vec3 chunkItr(0, 0, 0);
-			glm::i32vec3 axisMask(0, 0, 0);
+			glm::ivec3 chunkItr{0};
+			glm::ivec3 axisMask{0};
 
 			axisMask[axis] = 1;
+			chunkItr[axis] = -1;
 
-			// Check each slice of the chunk
-			for (chunkItr[axis] = -1; chunkItr[axis] < size;) {
-				// Compute Mask
-				calculateMask(mask, axis1, axis2, chunkItr, axisMask);
+			while (chunkItr[axis] < size) {
+				computeMask(mask, chunkItr, axisMask, axis1, axis2);
 
 				chunkItr[axis]++;
 
-				// Generate Mesh From Mask
-				generateMesh(mask, axis1, axis2, axisMask, chunkItr);
+				computeMesh(mask, chunkItr, axisMask, axis1, axis2);
 			}
 		}
 	}
@@ -73,88 +162,6 @@ public:
 	glm::ivec3 normalizedPosition = chunkPosition * static_cast<std::int32_t>(size);
 
 private:
-	void calculateMask(Mask& mask, std::int32_t axis1, std::int32_t axis2, glm::ivec3& chunkItr, const glm::ivec3& axisMask) {
-		for (chunkItr[axis2] = 0; chunkItr[axis2] < size; ++chunkItr[axis2]) {
-			for (chunkItr[axis1] = 0; chunkItr[axis1] < size; ++chunkItr[axis1]) {
-				const auto currentVoxel = voxels.at(chunkItr);
-				const auto compareVoxel = voxels.at(chunkItr + axisMask);
-
-				const bool currentVoxelOpaque = currentVoxel != Voxel::Air;
-				const bool compareVoxelOpaque = compareVoxel != Voxel::Air;
-
-				if (currentVoxelOpaque == compareVoxelOpaque) {
-					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask(Voxel::Air, 0);
-				} else if (currentVoxelOpaque) {
-					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask(currentVoxel, 1);
-				} else {
-					mask[chunkItr[axis2] * size + chunkItr[axis1]] = VoxelMask(compareVoxel, -1);
-				}
-			}
-		}
-	}
-
-	static void clear(Mask& mask, std::int32_t i, std::int32_t j, std::int32_t width, std::int32_t height) {
-		for (std::int32_t l = 0; l < height; l++) {
-			for (std::int32_t k = 0; k < width; k++) {
-				const auto y = j + l;
-				const auto x = i + k;
-				const auto index = y * size + x;
-				mask[index] = VoxelMask(Voxel::Air, 0);
-			}
-		}
-	}
-
-	static auto calculateQuadWidth(const Mask& mask, const VoxelMask& currentMask, std::int32_t i, std::int32_t j) {
-		std::int32_t width = 1;
-		while (i + width < size) {
-			const auto& quadMask = mask[(j * size + i) + width];
-			if (quadMask != currentMask) {
-				return width;
-			}
-			width++;
-		}
-		return width;
-	}
-
-	static auto calculateQuadHeight(const Mask& mask, const VoxelMask& currentMask, std::int32_t quadWidth, std::int32_t i, std::int32_t j) {
-		std::int32_t height = 1;
-		while (j + height < size) {
-			for (std::int32_t k = 0; k < quadWidth; k++) {
-				const auto index = j * size + i;
-				const auto offset = k + height * size;
-				const auto& quadMask = mask[index + offset];
-				if (quadMask != currentMask) {
-					return height;
-				}
-			}
-			height++;
-		}
-		return height;
-	}
-
-	void generateMesh(Mask& mask, std::int32_t axis1, std::int32_t axis2, const glm::i32vec3& axisMask, glm::i32vec3& chunkItr) {
-		for (int j = 0; j < size; ++j) {
-			for (int i = 0; i < size;) {
-				const auto& currentMask = mask[j * size + i];
-				if (currentMask.normal != 0) {
-					chunkItr[axis1] = i;
-					chunkItr[axis2] = j;
-
-					const auto width = calculateQuadWidth(mask, currentMask, i, j);
-					const auto height = calculateQuadHeight(mask, currentMask, width, i, j);
-
-					createQuad(currentMask.normal, axisMask, width, height, chunkItr, axis1, axis2);
-
-					clear(mask, i, j, width, height);
-
-					i += width;
-				} else {
-					i++;
-				}
-			}
-		}
-	}
-
 	void createQuad(int normal, const glm::ivec3& axisMask, int width, int height, const glm::ivec3& pos, std::int32_t axis1, std::int32_t axis2) {
 		const auto maskNormal = axisMask * normal;
 
