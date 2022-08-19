@@ -1,16 +1,7 @@
 #pragma once
 
 #include "vkx/voxels/voxel_types.hpp"
-#include <cmath>
-#include <glm/common.hpp>
-#include <glm/exponential.hpp>
-#include <glm/ext/quaternion_common.hpp>
-#include <glm/ext/quaternion_trigonometric.hpp>
-#include <glm/fwd.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/trigonometric.hpp>
 #include <iostream>
-#include <utility>
 #include <vkx/camera.hpp>
 #include <vkx/renderer/core/vertex.hpp>
 #include <vkx/voxels/voxel_mask.hpp>
