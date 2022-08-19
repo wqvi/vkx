@@ -49,15 +49,15 @@ public:
 		const auto rayOrigin = glm::vec3(normalizedPosition) - camera.position;
 
 		const auto pitch = glm::radians(camera.pitch);
-		const auto yaw = glm::radians(-camera.yaw);
+		const auto yaw = glm::radians(camera.yaw);
 
 		const glm::vec3 rayDirection = glm::normalize(glm::vec3(
-			glm::cos(yaw) * glm::cos(pitch),
+			glm::cos(pitch) * glm::sin(yaw),
 			glm::sin(pitch),
-			glm::sin(yaw) * glm::cos(pitch)
+			glm::cos(pitch) * glm::cos(yaw)
 		));
 
-		// const glm::vec3 rayDirection = glm::vec3(0.0f, 1.0f, 0.0f);
+		// const glm::vec3 rayDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 
 		printVec3(rayDirection);
 
@@ -67,7 +67,7 @@ public:
 
 		const int xStep = rayDirection.x > 0 ? 1 : rayDirection.x < 0 ? -1 : 0;
 		const int yStep = rayDirection.y > 0 ? 1 : rayDirection.y < 0 ? -1 : 0;
-		const int zStep = rayDirection.z > 0 ? 1 : rayDirection.z < 0 ? -1 : 0;
+		const int zStep = rayDirection.z > 0 ? -1 : rayDirection.z < 0 ? 1 : 0;
 
 		const auto xDelta = xStep != 0 ? 1.0f / glm::abs(rayDirection.x) : INFINITY;
 		const auto yDelta = yStep != 0 ? 1.0f / glm::abs(rayDirection.y) : INFINITY;
