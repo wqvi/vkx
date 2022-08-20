@@ -18,6 +18,10 @@ void vkx::Camera::updateMouse(const glm::vec2& relative) {
 
 	pitchOrientation = glm::angleAxis(pitchRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 	yawOrientation = glm::angleAxis(yawRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+
+	const auto orientation = yawOrientation * pitchOrientation;
+	const auto quaternionFront = orientation * glm::quat(0.0f, 0.0f, 0.0f, -1.0f) * glm::conjugate(orientation);
+	front = glm::normalize(glm::vec3{quaternionFront.x, quaternionFront.y, -quaternionFront.z});
 }
 
 void vkx::Camera::updateKey(SDL_Keycode key) {
@@ -26,26 +30,28 @@ void vkx::Camera::updateKey(SDL_Keycode key) {
 	// Free Camera
 	const auto orientation = yawOrientation * pitchOrientation;
 	const auto quaternionFront = orientation * glm::quat(0.0f, 0.0f, 0.0f, -1.0f) * glm::conjugate(orientation);
-	const glm::vec3 front{quaternionFront.x, quaternionFront.y, quaternionFront.z};
+	front = glm::normalize(glm::vec3{quaternionFront.x, quaternionFront.y, quaternionFront.z});
 	const glm::vec3 right = glm::normalize(glm::cross(front, vkx::UP));
 
 	// TODO fix this monstrosity
 	if (key == SDLK_w) {
-		direction = glm::normalize(-front);
+		direction = -front;
 		return;
 	}
 	if (key == SDLK_s) {
-		direction = glm::normalize(front);
+		direction = front;
 		return;
 	}
 	if (key == SDLK_a) {
-		direction = glm::normalize(-right);
+		direction = -right;
 		return;
 	}
 	if (key == SDLK_d) {
-		direction = glm::normalize(right);
+		direction = right;
 		return;
 	}
+
+	front.z = -front.z;
 }
 
 [[nodiscard]] glm::mat4 vkx::Camera::viewMatrix() const {

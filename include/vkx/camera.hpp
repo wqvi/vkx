@@ -37,6 +37,7 @@ public:
 			float yaw;
 		};
 	};
+	glm::vec3 front = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 direction = glm::vec3(0.0f, 0.0f, 0.0f);
 };
 } // namespace vkx
