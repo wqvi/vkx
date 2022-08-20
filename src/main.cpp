@@ -1,3 +1,4 @@
+#include "vkx/raycast.hpp"
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
@@ -393,9 +394,7 @@ int main(void) {
 
 			currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
-			bool valid = false;
-			glm::ivec3 location{0, 0, 0};
-			glm::ivec3 previousLocation{0, 0, 0};
+			vkx::RaycastResult raycastResult{};
 			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
 				case SDL_QUIT:
@@ -421,16 +420,16 @@ int main(void) {
 					};
 
 					const glm::vec3 direction{front.x, front.y, -front.z};
-					std::tie(valid, location, previousLocation) = vkx::raycast(origin, direction, a);
-					if (valid) {
-						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - location) + glm::vec3(-1.0f));
+					raycastResult = vkx::raycast(origin, direction, 4.0f, a);
+					if (raycastResult.success) {
+						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
 					}
 				} break;
 				case SDL_KEYDOWN:
 					camera.updateKey(event.key.keysym.sym);
 					// std::tie(valid, location, previousLocation) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
-					if (valid) {
-						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - location) + glm::vec3(-1.0f));
+					if (raycastResult.success) {
+						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
 					}
 					break;
 				case SDL_KEYUP:
@@ -438,8 +437,8 @@ int main(void) {
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					// std::tie(valid, location, previousLocation) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
-					if (valid) {
-						chunk.voxels.set(location.x, location.y, location.z, vkx::Voxel::Air);
+					if (raycastResult.success) {
+						chunk.voxels.set(raycastResult.hitPos.x, raycastResult.hitPos.y, raycastResult.hitPos.z, vkx::Voxel::Air);
 						chunk.greedy();
 						mesh.vertex->mapMemory(chunk.vertices);
 						mesh.index->mapMemory(chunk.indices);
