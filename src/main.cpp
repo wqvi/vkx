@@ -184,17 +184,17 @@ int main(void) {
 		vkx::VoxelChunk<16> chunk3({1, 0, 1});
 		chunk3.greedy();
 
-		vkx::Mesh mesh(chunk.ve, chunk.in, allocator);
-		mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
+		vkx::Mesh mesh(chunk.vertices, chunk.indices, allocator);
+		mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
 
-		vkx::Mesh mesh1(chunk1.ve, chunk1.in, allocator);
-		mesh1.indexCount = std::distance(chunk1.in.begin(), chunk1.indexIter);
+		vkx::Mesh mesh1(chunk1.vertices, chunk1.indices, allocator);
+		mesh1.indexCount = std::distance(chunk1.indices.begin(), chunk1.indexIter);
 
-		vkx::Mesh mesh2(chunk2.ve, chunk2.in, allocator);
-		mesh2.indexCount = std::distance(chunk2.in.begin(), chunk2.indexIter);
+		vkx::Mesh mesh2(chunk2.vertices, chunk2.indices, allocator);
+		mesh2.indexCount = std::distance(chunk2.indices.begin(), chunk2.indexIter);
 
-		vkx::Mesh mesh3(chunk3.ve, chunk3.in, allocator);
-		mesh3.indexCount = std::distance(chunk3.in.begin(), chunk3.indexIter);
+		vkx::Mesh mesh3(chunk3.vertices, chunk3.indices, allocator);
+		mesh3.indexCount = std::distance(chunk3.indices.begin(), chunk3.indexIter);
 
 		const vkx::Texture texture("a.jpg", *device, allocator, commandSubmitter);
 
@@ -441,9 +441,9 @@ int main(void) {
 					if (valid) {
 						chunk.voxels.set(location.x, location.y, location.z, vkx::Voxel::Air);
 						chunk.greedy();
-						mesh.vertex->mapMemory(chunk.ve);
-						mesh.index->mapMemory(chunk.in);
-						mesh.indexCount = std::distance(chunk.in.begin(), chunk.indexIter);
+						mesh.vertex->mapMemory(chunk.vertices);
+						mesh.index->mapMemory(chunk.indices);
+						mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
 					}
 					break;
 				default:

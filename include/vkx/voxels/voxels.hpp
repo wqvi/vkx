@@ -34,8 +34,8 @@ public:
 	void greedy() {
 		vertexCount = 0;
 
-		vertexIter = ve.begin();
-		indexIter = in.begin();
+		vertexIter = vertices.begin();
+		indexIter = indices.begin();
 
 		Mask mask;
 
@@ -59,8 +59,8 @@ public:
 		}
 	}
 
-	std::array<vkx::Vertex, size * size * size * 4> ve;
-	std::array<std::uint32_t, size * size * size * 6> in;
+	std::array<vkx::Vertex, size * size * size * 4> vertices;
+	std::array<std::uint32_t, size * size * size * 6> indices;
 
 	std::uint32_t vertexCount = 0;
 
