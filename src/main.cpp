@@ -135,7 +135,7 @@ int main(void) {
 		    vkx::Vertex::getBindingDescription(),
 		    vkx::Vertex::getAttributeDescriptions()};
 
-		auto graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
+		const auto graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 
 		vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation = {
 		    "highlight.vert.spv",
@@ -146,7 +146,7 @@ int main(void) {
 		    getBindingDescription(),
 		    getAttributeDescriptions()};
 
-		auto highlightGraphicsPipeline = device->createGraphicsPipeline(highlightGraphicsPipelineInformation);
+		const auto highlightGraphicsPipeline = device->createGraphicsPipeline(highlightGraphicsPipelineInformation);
 		const auto commandSubmitter = device->createCommandSubmitter();
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
@@ -395,6 +395,9 @@ int main(void) {
 			currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 			vkx::RaycastResult raycastResult{};
+			auto a = [&chunk](const auto& b) {
+				return chunk.voxels.at(b) != vkx::Voxel::Air;
+			};
 			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
 				case SDL_QUIT:
@@ -412,10 +415,6 @@ int main(void) {
 					camera.updateMouse({-event.motion.xrel, -event.motion.yrel});
 					const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
 
-					auto a = [&chunk](const auto& b) {
-						return chunk.voxels.at(b) != vkx::Voxel::Air;
-					};
-
 					raycastResult = vkx::raycast(origin, camera.front, 4.0f, a);
 					if (raycastResult.success) {
 						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
@@ -431,8 +430,9 @@ int main(void) {
 				case SDL_KEYUP:
 					camera.direction = glm::vec3(0);
 					break;
-				case SDL_MOUSEBUTTONDOWN:
-					// std::tie(valid, location, previousLocation) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
+				case SDL_MOUSEBUTTONDOWN: {
+					const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
+					raycastResult = vkx::raycast(origin, camera.front, 4.0f, a);
 					if (raycastResult.success) {
 						chunk.voxels.set(raycastResult.hitPos.x, raycastResult.hitPos.y, raycastResult.hitPos.z, vkx::Voxel::Air);
 						chunk.greedy();
@@ -440,7 +440,7 @@ int main(void) {
 						mesh.index->mapMemory(chunk.indices);
 						mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
 					}
-					break;
+				} break;
 				default:
 					break;
 				}
