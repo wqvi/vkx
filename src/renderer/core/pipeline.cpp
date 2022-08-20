@@ -1,6 +1,4 @@
 #include <vkx/renderer/core/pipeline.hpp>
-#include <vulkan/vulkan_enums.hpp>
-#include <vulkan/vulkan_structs.hpp>
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info) {
 	layout = createPipelineLayout(device, info.descriptorSetLayout);
@@ -76,12 +74,12 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 
 	constexpr auto mask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 	constexpr vk::PipelineColorBlendAttachmentState colorBlendAttachment(
-	    false,
-	    vk::BlendFactor::eZero,
-	    vk::BlendFactor::eZero,
+	    true,
+	    vk::BlendFactor::eSrcAlpha,
+	    vk::BlendFactor::eOneMinusSrcAlpha,
 	    vk::BlendOp::eAdd,
-	    vk::BlendFactor::eZero,
-	    vk::BlendFactor::eZero,
+	    vk::BlendFactor::eSrcAlpha,
+	    vk::BlendFactor::eOneMinusSrcAlpha,
 	    vk::BlendOp::eAdd,
 	    mask);
 
