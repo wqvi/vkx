@@ -9,6 +9,26 @@
 #include <vkx/voxels/voxel_matrix.hpp>
 
 namespace vkx {
+template <class T>
+constexpr auto at(T array, std::size_t index) {
+	return array[index];
+}
+
+template <class T, class K>
+constexpr void set(T array, K object, std::size_t index) {
+	array[index] = object;
+}
+
+template <class T>
+constexpr auto index3D(T x, T y, T z, std::size_t size) noexcept {
+	return static_cast<std::size_t>(z * size * size + y * size + x);
+}
+
+template <class T>
+constexpr auto index2D(T x, T y, std::size_t size) noexcept {
+	return static_cast<std::size_t>(y * size + x);
+}
+
 template <std::int32_t size>
 class VoxelChunk {
 	using Mask = std::array<VoxelMask, size * size>;
@@ -16,19 +36,44 @@ class VoxelChunk {
 public:
 	static_assert(size % 8 == 0, "Size must be a multiple of 8");
 	explicit VoxelChunk(const glm::vec3& chunkPosition)
-	    : chunkPosition(chunkPosition), voxels(size, size, size) {
+	    : chunkPosition(chunkPosition) {
 		std::fill(voxels.begin(), voxels.end(), Voxel::Stone);
 		for (std::int32_t i = 0; i < size; i++) {
 			if (i % 3 == 0) {
-				voxels.set(i, 0, 0, Voxel::Air);
+				set(i, 0, 0, Voxel::Air);
 			}
 		}
 
 		for (std::int32_t i = 0; i < size; i++) {
 			if (i % 3 == 0) {
-				voxels.set(i, size - 1, 0, Voxel::Air);
+				set(i, size - 1, 0, Voxel::Air);
 			}
 		}
+	}
+
+	constexpr auto at(const glm::ivec3& position) {
+		if (!validLocation(position.x, position.y, position.z)) {
+			return Voxel::Air;
+		}
+
+		return voxels[index3D(position.x, position.y, position.z, size)];
+	}
+
+	constexpr void set(const glm::ivec3& position, Voxel voxel) {
+		if (!validLocation(position.x, position.y, position.z)) {
+			return;
+		}
+
+		voxels[index3D(position.x, position.y, position.z, size)] = voxel;
+	}
+
+	template<class T>
+	constexpr void set(T x, T y, T z, Voxel voxel) {
+		if (!validLocation(x, y, z)) {
+			return;
+		}
+
+		voxels[index3D(x, y, z, size)] = voxel;
 	}
 
 	void greedy() {
@@ -50,7 +95,7 @@ public:
 			chunkItr[axis] = -1;
 
 			while (chunkItr[axis] < size) {
-				computeMask(mask, chunkItr, axisMask, axis1, axis2, voxels);
+				computeMask(mask, chunkItr, axisMask, axis1, axis2);
 
 				chunkItr[axis]++;
 
@@ -67,17 +112,21 @@ public:
 	vkx::Vertex* vertexIter;
 	std::uint32_t* indexIter;
 
-	VoxelMatrix voxels;
+	std::array<Voxel, size * size * size> voxels;
 	glm::ivec3 chunkPosition = glm::vec3(0);
 	glm::ivec3 normalizedPosition = chunkPosition * static_cast<std::int32_t>(size);
 
 private:
-	static void computeMask(Mask& mask, glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2, const VoxelMatrix& voxels) {
+	static constexpr bool validLocation(std::int32_t x, std::int32_t y, std::int32_t z) {
+		return x >= 0 && x < size && y >= 0 && y < size && z >= 0 && z < size;
+	}
+
+	void computeMask(Mask& mask, glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
 		int n = 0;
 		for (chunkItr[axis2] = 0; chunkItr[axis2] < size; chunkItr[axis2]++) {
 			for (chunkItr[axis1] = 0; chunkItr[axis1] < size; chunkItr[axis1]++) {
-				const auto currentVoxel = voxels.at(chunkItr);
-				const auto compareVoxel = voxels.at(chunkItr + axisMask);
+				const auto currentVoxel = at(chunkItr);
+				const auto compareVoxel = at(chunkItr + axisMask);
 
 				const bool currentVoxelOpaque = currentVoxel != Voxel::Air;
 				const bool compareVoxelOpaque = compareVoxel != Voxel::Air;
@@ -199,16 +248,6 @@ private:
 		indexIter++;
 
 		vertexCount += 4;
-	}
-
-	template <class T>
-	static constexpr T index3D(T x, T y, T z) {
-		return z * size * size + y * size + x;
-	}
-
-	template <class T>
-	static constexpr T index2D(T x, T y) {
-		return y * size + x;
 	}
 };
 } // namespace vkx

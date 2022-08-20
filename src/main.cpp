@@ -161,7 +161,7 @@ int main(void) {
 		for (int j = 0; j < 10; j++) {
 			for (int k = 0; k < 4; k++) {
 				for (int i = 0; i < 14; i++) {
-					chunk.voxels.set(j, k, i, vkx::Voxel::Air);
+					chunk.set(j, k, i, vkx::Voxel::Air);
 				}
 			}
 		}
@@ -396,7 +396,7 @@ int main(void) {
 
 			vkx::RaycastResult raycastResult{};
 			auto a = [&chunk](const auto& b) {
-				return chunk.voxels.at(b) != vkx::Voxel::Air;
+				return chunk.at(b) != vkx::Voxel::Air;
 			};
 			while (SDL_PollEvent(&event)) {
 				switch (event.type) {
@@ -434,7 +434,7 @@ int main(void) {
 					const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
 					raycastResult = vkx::raycast(origin, camera.front, 4.0f, a);
 					if (raycastResult.success) {
-						chunk.voxels.set(raycastResult.hitPos.x, raycastResult.hitPos.y, raycastResult.hitPos.z, vkx::Voxel::Air);
+						chunk.set(raycastResult.hitPos, vkx::Voxel::Air);
 						chunk.greedy();
 						mesh.vertex->mapMemory(chunk.vertices);
 						mesh.index->mapMemory(chunk.indices);
