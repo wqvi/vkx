@@ -1,24 +1,20 @@
 #pragma once
 
 #include <memory>
-#include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/allocator.hpp>
+#include <vkx/renderer/core/device.hpp>
 
 namespace vkx {
 template <class T>
 class UniformBuffer {
 public:
 	std::shared_ptr<Allocation<vk::Buffer>> resource;
+	T uniformObject;
 
 	UniformBuffer() = default;
 
-	explicit UniformBuffer(const T& value, const std::shared_ptr<Allocator>& allocator) {
-		// resource = allocator->allocateBuffer(value, vk::BufferUsageFlagBits::eUniformBuffer);
-		// uniformObject = value;
-	}
-
 	explicit UniformBuffer(const T& value, std::shared_ptr<vkx::Allocation<vk::Buffer>> resource)
-		: resource(resource), uniformObject(value) {}
+	    : resource(resource), uniformObject(value) {}
 
 	T* operator->() {
 		return &uniformObject;
@@ -41,27 +37,22 @@ public:
 		static vk::DescriptorBufferInfo info{};
 
 		info = vk::DescriptorBufferInfo{
-		    resource->object, // buffer
-		    0,		      // offset
-		    sizeof(T)	      // range
-		};
+		    resource->object,
+		    0,
+		    sizeof(T)};
 
 		static vk::WriteDescriptorSet set{};
 
 		set = vk::WriteDescriptorSet{
-		    descriptorSet,			// dstSet
-		    dstBinding,				// dstBinding
-		    0,					// dstArrayElement
-		    1,					// descriptorCount
-		    vk::DescriptorType::eUniformBuffer, // descriptorType
-		    nullptr,				// pImageInfo
-		    &info				// pBufferInfo
-		};
+		    descriptorSet,
+		    dstBinding,
+		    0,
+		    1,
+		    vk::DescriptorType::eUniformBuffer,
+		    nullptr,
+		    &info};
 		return set;
 	}
-
-private:
-	T uniformObject;
 };
 
 struct MVP {
