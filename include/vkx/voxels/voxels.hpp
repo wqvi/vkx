@@ -34,7 +34,7 @@ public:
 	void computeMask(Mask& mask, glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
 		int n = 0;
 		for (chunkItr[axis2] = 0; chunkItr[axis2] < size; chunkItr[axis2]++) {
-			for (chunkItr[axis1] = 0; chunkItr[axis1] < size; ++chunkItr[axis1]) {
+			for (chunkItr[axis1] = 0; chunkItr[axis1] < size; chunkItr[axis1]++) {
 				const auto currentVoxel = voxels.at(chunkItr);
 				const auto compareVoxel = voxels.at(chunkItr + axisMask);
 
@@ -96,7 +96,7 @@ public:
 
 	void computeMesh(Mask& mask, glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
 		int n = 0;
-		for (int j = 0; j < size; ++j) {
+		for (int j = 0; j < size; j++) {
 			for (int i = 0; i < size;) {
 				const auto& currentMask = mask[n];
 				if (currentMask.normal != 0) {
@@ -129,7 +129,7 @@ public:
 
 		Mask mask;
 
-		for (int axis = 0; axis < 3; ++axis) {
+		for (int axis = 0; axis < 3; axis++) {
 			const int axis1 = (axis + 1) % 3;
 			const int axis2 = (axis + 2) % 3;
 
