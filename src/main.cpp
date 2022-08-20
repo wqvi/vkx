@@ -2,51 +2,51 @@
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
-	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
+	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
 	    vk::DescriptorType::eUniformBuffer,
 	    1,
 	    vk::ShaderStageFlagBits::eVertex,
-	    nullptr);
+	    nullptr};
 
-	constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding(
+	constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding{
 	    1,
 	    vk::DescriptorType::eCombinedImageSampler,
 	    1,
 	    vk::ShaderStageFlagBits::eFragment,
-	    nullptr);
+	    nullptr};
 
-	constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding(
+	constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding{
 	    2,
 	    vk::DescriptorType::eUniformBuffer,
 	    1,
 	    vk::ShaderStageFlagBits::eFragment,
-	    nullptr);
+	    nullptr};
 
-	constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding(
+	constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding{
 	    3,
 	    vk::DescriptorType::eUniformBuffer,
 	    1,
 	    vk::ShaderStageFlagBits::eFragment,
-	    nullptr);
+	    nullptr};
 
-	constexpr std::array bindings{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
+	constexpr std::array bindings = {uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 
-	const vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
+	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
 	return device.createDescriptorSetLayoutUnique(layoutInfo);
 };
 
 auto createHighlightDescriptorSetLayout(vk::Device device) {
-	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
+	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
 	    vk::DescriptorType::eUniformBuffer,
 	    1,
 	    vk::ShaderStageFlagBits::eVertex,
-	    nullptr);
+	    nullptr};
 
-	constexpr std::array bindings{uboLayoutBinding};
+	constexpr std::array bindings = {uboLayoutBinding};
 
-	const vk::DescriptorSetLayoutCreateInfo layoutInfo({}, bindings);
+	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
 	return device.createDescriptorSetLayoutUnique(layoutInfo);
 }
 
@@ -107,18 +107,18 @@ int main(void) {
 
 		swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
-		constexpr vk::DescriptorPoolSize uniformBufferDescriptor(vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT);
-		constexpr vk::DescriptorPoolSize samplerBufferDescriptor(vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT);
+		constexpr vk::DescriptorPoolSize uniformBufferDescriptor{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
+		constexpr vk::DescriptorPoolSize samplerBufferDescriptor{vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT};
 
-		constexpr std::array poolSizes{uniformBufferDescriptor, samplerBufferDescriptor, uniformBufferDescriptor, uniformBufferDescriptor};
+		constexpr std::array poolSizes = {uniformBufferDescriptor, samplerBufferDescriptor, uniformBufferDescriptor, uniformBufferDescriptor};
 
-		const vk::DescriptorPoolCreateInfo poolInfo({}, MAX_FRAMES_IN_FLIGHT, poolSizes);
+		const vk::DescriptorPoolCreateInfo poolInfo{{}, MAX_FRAMES_IN_FLIGHT, poolSizes};
 
 		const auto descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
 
-		constexpr std::array highlightPoolSizes{uniformBufferDescriptor};
+		constexpr std::array highlightPoolSizes = {uniformBufferDescriptor};
 
-		const vk::DescriptorPoolCreateInfo highlightPoolInfo({}, MAX_FRAMES_IN_FLIGHT, highlightPoolSizes);
+		const vk::DescriptorPoolCreateInfo highlightPoolInfo{{}, MAX_FRAMES_IN_FLIGHT, highlightPoolSizes};
 
 		const auto highlightDescriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
 
@@ -126,7 +126,7 @@ int main(void) {
 
 		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(static_cast<vk::Device>(*device));
 
-		vkx::GraphicsPipelineInformation graphicsPipelineInformation = {
+		vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 		    "shader.vert.spv",
 		    "shader.frag.spv",
 		    swapchain->extent,
@@ -137,7 +137,7 @@ int main(void) {
 
 		const auto graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
 
-		vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation = {
+		vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
 		    "highlight.frag.spv",
 		    swapchain->extent,
@@ -157,7 +157,7 @@ int main(void) {
 		const auto secondaryDrawCommands = commandSubmitter->allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
 
-		vkx::VoxelChunk<16> chunk({0, 0, 0});
+		vkx::VoxelChunk<16> chunk{{0, 0, 0}};
 		for (int j = 0; j < 10; j++) {
 			for (int k = 0; k < 4; k++) {
 				for (int i = 0; i < 14; i++) {
@@ -168,30 +168,30 @@ int main(void) {
 
 		chunk.greedy();
 
-		vkx::VoxelChunk<16> chunk1({1, 0, 0});
+		vkx::VoxelChunk<16> chunk1{{1, 0, 0}};
 		chunk1.greedy();
 
-		vkx::VoxelChunk<16> chunk2({0, 0, 1});
+		vkx::VoxelChunk<16> chunk2{{0, 0, 1}};
 		chunk2.greedy();
 
-		vkx::VoxelChunk<16> chunk3({1, 0, 1});
+		vkx::VoxelChunk<16> chunk3{{1, 0, 1}};
 		chunk3.greedy();
 
-		vkx::Mesh mesh(chunk.vertices, chunk.indices, allocator);
+		vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
 		mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
 
-		vkx::Mesh mesh1(chunk1.vertices, chunk1.indices, allocator);
+		vkx::Mesh mesh1{chunk1.vertices, chunk1.indices, allocator};
 		mesh1.indexCount = std::distance(chunk1.indices.begin(), chunk1.indexIter);
 
-		vkx::Mesh mesh2(chunk2.vertices, chunk2.indices, allocator);
+		vkx::Mesh mesh2{chunk2.vertices, chunk2.indices, allocator};
 		mesh2.indexCount = std::distance(chunk2.indices.begin(), chunk2.indexIter);
 
-		vkx::Mesh mesh3(chunk3.vertices, chunk3.indices, allocator);
+		vkx::Mesh mesh3{chunk3.vertices, chunk3.indices, allocator};
 		mesh3.indexCount = std::distance(chunk3.indices.begin(), chunk3.indexIter);
 
-		const vkx::Texture texture("a.jpg", *device, allocator, commandSubmitter);
+		const vkx::Texture texture{"a.jpg", *device, allocator, commandSubmitter};
 
-		std::vector<glm::vec3> vertices{
+		std::vector<glm::vec3> vertices = {
 		    {0.0f, 0.0f, 0.0f},
 		    {0.0f, 1.0f, 0.0f},
 		    {1.0f, 1.0f, 0.0f},
@@ -223,7 +223,7 @@ int main(void) {
 		    {1.0f, 1.0f, 0.0f},
 		};
 
-		std::vector<std::uint32_t> indices{
+		std::vector<std::uint32_t> indices = {
 		    0, 1, 2, 2, 3, 0,
 		    4, 5, 6, 6, 7, 4,
 		    8, 9, 10, 10, 11, 8,
@@ -245,7 +245,7 @@ int main(void) {
 		const auto descriptorSets = (*device)->allocateDescriptorSets(allocInfo);
 
 		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			const std::array descriptorWrites{
+			const std::array descriptorWrites = {
 			    mvpBuffers[i].createWriteDescriptorSet(descriptorSets[i], 0),
 			    texture.createWriteDescriptorSet(descriptorSets[i], 1),
 			    lightBuffers[i].createWriteDescriptorSet(descriptorSets[i], 2),
@@ -261,7 +261,7 @@ int main(void) {
 		const auto highlightDescriptorSets = (*device)->allocateDescriptorSets(highlightAllocInfo);
 
 		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			const std::array descriptorWrites{
+			const std::array descriptorWrites = {
 			    highlightMVPBuffers[i].createWriteDescriptorSet(highlightDescriptorSets[i], 0),
 			};
 
