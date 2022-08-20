@@ -13,12 +13,6 @@ struct VoxelMask {
 	Voxel voxel = Voxel::Air;
 	std::int32_t normal = 0;
 
-	constexpr VoxelMask() = default;
-
-	constexpr VoxelMask(const Voxel& voxel, std::int32_t normal)
-	    : voxel(voxel),
-	      normal(normal) {}
-
 	bool operator==(const VoxelMask& other) const {
 		return voxel == other.voxel && normal == other.normal;
 	}
