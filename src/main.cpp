@@ -412,15 +412,11 @@ int main(void) {
 					camera.updateMouse({-event.motion.xrel, -event.motion.yrel});
 					const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
 
-					const auto orientation = camera.yawOrientation * camera.pitchOrientation;
-					const auto front = orientation * glm::quat(0.0f, 0.0f, 0.0f, -1.0f) * glm::conjugate(orientation);
-
 					auto a = [&chunk](const auto& b) {
 						return chunk.voxels.at(b) != vkx::Voxel::Air;
 					};
 
-					const glm::vec3 direction{front.x, front.y, -front.z};
-					raycastResult = vkx::raycast(origin, direction, 4.0f, a);
+					raycastResult = vkx::raycast(origin, camera.front, 4.0f, a);
 					if (raycastResult.success) {
 						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
 					}
