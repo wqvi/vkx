@@ -3,5 +3,12 @@
 namespace vkx {
 using RaycastPredicate = std::function<bool(const glm::ivec3&)>;
 
-std::tuple<bool, glm::ivec3, glm::ivec3> raycast(const glm::vec3& origin, const glm::vec3& direction, RaycastPredicate predicate);
+struct RaycastResult {
+    bool success = false;
+    glm::ivec3 hitPos = glm::ivec3{0};
+    glm::ivec3 previousHitPos = glm::ivec3{0};
+    float length = 0.0f;
+};
+
+RaycastResult raycast(const glm::vec3& origin, const glm::vec3& direction, float maxLength, RaycastPredicate predicate);
 }

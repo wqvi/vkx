@@ -53,9 +53,7 @@ static constexpr glm::vec3 derriveCross(const glm::ivec3& step, const glm::vec3&
 	};
 }
 
-static std::tuple<bool, glm::ivec3, glm::ivec3> dda(const glm::vec3& origin, const glm::vec3& direction, vkx::RaycastPredicate predicate) {
-	constexpr float rayLength = 4.0f;
-
+static vkx::RaycastResult dda(const glm::vec3& origin, const glm::vec3& direction, float maxLength, vkx::RaycastPredicate predicate) {
 	const auto step = derriveStep(direction);
 	const auto delta = derriveDelta(step, direction);
 	auto cross = derriveCross(step, origin, delta);
@@ -96,14 +94,14 @@ static std::tuple<bool, glm::ivec3, glm::ivec3> dda(const glm::vec3& origin, con
 			}
 		}
 
-        if (length > rayLength) {
-            return std::make_tuple(false, glm::ivec3{0}, glm::ivec3{0});
+        if (length > maxLength) {
+            return vkx::RaycastResult{false, glm::ivec3{0}, glm::ivec3{0}, length};
         }
 	} while (!predicate(hitPos));
 
-	return std::make_tuple(true, hitPos, previousHitPos);
+	return vkx::RaycastResult{true, hitPos, previousHitPos, length};
 }
 
-std::tuple<bool, glm::ivec3, glm::ivec3> vkx::raycast(const glm::vec3& origin, const glm::vec3& direction, RaycastPredicate predicate) {
-	return dda(origin, direction, predicate);
+vkx::RaycastResult vkx::raycast(const glm::vec3& origin, const glm::vec3& direction, float maxLength, RaycastPredicate predicate) {
+	return dda(origin, direction, maxLength, predicate);
 }
