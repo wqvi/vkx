@@ -1,14 +1,4 @@
-#include "vkx/raycast.hpp"
-#include "vkx/renderer/core/pipeline.hpp"
-#include "vkx/renderer/core/vertex.hpp"
-#include "vkx/renderer/uniform_buffer.hpp"
-#include <SDL2/SDL_events.h>
-#include <cstdint>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/fwd.hpp>
-#include <glm/trigonometric.hpp>
 #include <vkx/vkx.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding(
@@ -73,6 +63,9 @@ auto getAttributeDescriptions() noexcept {
 	attributeDescriptions.push_back({0, 0, vk::Format::eR32G32B32Sfloat, 0});
 
 	return attributeDescriptions;
+}
+
+void mouseMotionEvent(const SDL_MouseMotionEvent& event) {
 }
 
 int main(void) {
@@ -149,9 +142,8 @@ int main(void) {
 		    swapchain->extent,
 		    *clearRenderPass,
 		    *highlightDescriptorSetLayout,
-			getBindingDescription(),
-			getAttributeDescriptions()
-		};
+		    getBindingDescription(),
+		    getAttributeDescriptions()};
 
 		auto highlightGraphicsPipeline = device->createGraphicsPipeline(highlightGraphicsPipelineInformation);
 		const auto commandSubmitter = device->createCommandSubmitter();
@@ -198,46 +190,45 @@ int main(void) {
 
 		const vkx::Texture texture("a.jpg", *device, allocator, commandSubmitter);
 
-		std::vector<glm::vec3> vertices {
-			{0.0f, 0.0f, 0.0f},
-			{0.0f, 1.0f, 0.0f},
-			{1.0f, 1.0f, 0.0f},
-			{1.0f, 0.0f, 0.0f},
+		std::vector<glm::vec3> vertices{
+		    {0.0f, 0.0f, 0.0f},
+		    {0.0f, 1.0f, 0.0f},
+		    {1.0f, 1.0f, 0.0f},
+		    {1.0f, 0.0f, 0.0f},
 
-			{1.0f, 0.0f, 0.0f},
-			{1.0f, 1.0f, 0.0f},
-			{1.0f, 1.0f, 1.0f},
-			{1.0f, 0.0f, 1.0f},
+		    {1.0f, 0.0f, 0.0f},
+		    {1.0f, 1.0f, 0.0f},
+		    {1.0f, 1.0f, 1.0f},
+		    {1.0f, 0.0f, 1.0f},
 
-			{1.0f, 0.0f, 1.0f},
-			{1.0f, 1.0f, 1.0f},
-			{0.0f, 1.0f, 1.0f},
-			{0.0f, 0.0f, 1.0f},
+		    {1.0f, 0.0f, 1.0f},
+		    {1.0f, 1.0f, 1.0f},
+		    {0.0f, 1.0f, 1.0f},
+		    {0.0f, 0.0f, 1.0f},
 
-			{0.0f, 0.0f, 1.0f},
-			{0.0f, 1.0f, 1.0f},
-			{0.0f, 1.0f, 0.0f},
-			{0.0f, 0.0f, 0.0f},
+		    {0.0f, 0.0f, 1.0f},
+		    {0.0f, 1.0f, 1.0f},
+		    {0.0f, 1.0f, 0.0f},
+		    {0.0f, 0.0f, 0.0f},
 
-			{0.0f, 0.0f, 0.0f},
-			{1.0f, 0.0f, 0.0f},
-			{1.0f, 0.0f, 1.0f},
-			{0.0f, 0.0f, 1.0f},
+		    {0.0f, 0.0f, 0.0f},
+		    {1.0f, 0.0f, 0.0f},
+		    {1.0f, 0.0f, 1.0f},
+		    {0.0f, 0.0f, 1.0f},
 
-			{0.0f, 1.0f, 0.0f},
-			{0.0f, 1.0f, 1.0f},
-			{1.0f, 1.0f, 1.0f},
-			{1.0f, 1.0f, 0.0f},
+		    {0.0f, 1.0f, 0.0f},
+		    {0.0f, 1.0f, 1.0f},
+		    {1.0f, 1.0f, 1.0f},
+		    {1.0f, 1.0f, 0.0f},
 		};
 
-		std::vector<std::uint32_t> indices {
-			0, 1, 2, 2, 3, 0,
-			4, 5, 6, 6, 7, 4,
-			8, 9, 10, 10, 11, 8,
-			12, 13, 14, 14, 15, 12,
-			16, 17, 18, 18, 19, 16,
-			20, 21, 22, 22, 23, 20
-		};
+		std::vector<std::uint32_t> indices{
+		    0, 1, 2, 2, 3, 0,
+		    4, 5, 6, 6, 7, 4,
+		    8, 9, 10, 10, 11, 8,
+		    12, 13, 14, 14, 15, 12,
+		    16, 17, 18, 18, 19, 16,
+		    20, 21, 22, 22, 23, 20};
 
 		vkx::Mesh highlightMesh(vertices, indices, allocator);
 
@@ -364,7 +355,6 @@ int main(void) {
 			    {highlightMesh.index->object},
 			    {static_cast<std::uint32_t>(highlightMesh.indexCount)}};
 
-
 			const vk::CommandBuffer* begin = &drawCommands[currentFrame * drawCommandAmount];
 
 			const vk::CommandBuffer* chunkBegin = begin;
@@ -419,16 +409,26 @@ int main(void) {
 						proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
 					}
 					break;
-				case SDL_MOUSEMOTION:
+				case SDL_MOUSEMOTION: {
 					camera.updateMouse({-event.motion.xrel, -event.motion.yrel});
-					std::tie(valid, location, previousLocation) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
+					const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
+
+					const auto orientation = camera.yawOrientation * camera.pitchOrientation;
+					const auto front = orientation * glm::quat(0.0f, 0.0f, 0.0f, -1.0f) * glm::conjugate(orientation);
+
+					auto a = [&chunk](const auto& b) {
+						return chunk.voxels.at(b) != vkx::Voxel::Air;
+					};
+
+					const glm::vec3 direction{front.x, front.y, -front.z};
+					std::tie(valid, location, previousLocation) = vkx::raycast(origin, direction, a);
 					if (valid) {
 						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - location) + glm::vec3(-1.0f));
 					}
-					break;
+				} break;
 				case SDL_KEYDOWN:
 					camera.updateKey(event.key.keysym.sym);
-					std::tie(valid, location, previousLocation) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
+					// std::tie(valid, location, previousLocation) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
 					if (valid) {
 						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - location) + glm::vec3(-1.0f));
 					}
@@ -437,7 +437,7 @@ int main(void) {
 					camera.direction = glm::vec3(0);
 					break;
 				case SDL_MOUSEBUTTONDOWN:
-					std::tie(valid, location, previousLocation) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
+					// std::tie(valid, location, previousLocation) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
 					if (valid) {
 						chunk.voxels.set(location.x, location.y, location.z, vkx::Voxel::Air);
 						chunk.greedy();
