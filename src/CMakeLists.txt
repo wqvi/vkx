@@ -5,4 +5,3 @@ target_sources(vkx
 )
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/renderer")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/voxels")

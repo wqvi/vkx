@@ -1,14 +1,33 @@
 #pragma once
 
-#include "vkx/voxels/voxel_types.hpp"
-#include <glm/fwd.hpp>
-#include <iostream>
 #include <vkx/camera.hpp>
 #include <vkx/renderer/core/vertex.hpp>
-#include <vkx/voxels/voxel_mask.hpp>
-#include <vkx/voxels/voxel_matrix.hpp>
 
 namespace vkx {
+enum class Voxel : std::uint32_t {
+	Air,
+	Stone
+};
+
+struct VoxelMask {
+	Voxel voxel = Voxel::Air;
+	std::int32_t normal = 0;
+
+	constexpr VoxelMask() = default;
+
+	constexpr VoxelMask(const Voxel& voxel, std::int32_t normal)
+	    : voxel(voxel),
+	      normal(normal) {}
+
+	bool operator==(const VoxelMask& other) const {
+		return voxel == other.voxel && normal == other.normal;
+	}
+
+	bool operator!=(const VoxelMask& other) const {
+		return voxel != other.voxel && normal != other.normal;
+	}
+};
+
 template <class T>
 constexpr auto at(T array, std::size_t index) {
 	return array[index];
@@ -67,7 +86,7 @@ public:
 		voxels[index3D(position.x, position.y, position.z, size)] = voxel;
 	}
 
-	template<class T>
+	template <class T>
 	constexpr void set(T x, T y, T z, Voxel voxel) {
 		if (!validLocation(x, y, z)) {
 			return;
