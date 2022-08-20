@@ -53,7 +53,7 @@ static constexpr glm::vec3 derriveCross(const glm::ivec3& step, const glm::vec3&
 	};
 }
 
-static std::tuple<bool, glm::ivec3, glm::ivec3> dda(const glm::vec3& origin, const glm::vec3& direction, const vkx::VoxelMatrix& voxels) {
+static std::tuple<bool, glm::ivec3, glm::ivec3> dda(const glm::vec3& origin, const glm::vec3& direction, vkx::RaycastPredicate predicate) {
 	constexpr float rayLength = 4.0f;
 
 	const auto step = derriveStep(direction);
@@ -99,18 +99,11 @@ static std::tuple<bool, glm::ivec3, glm::ivec3> dda(const glm::vec3& origin, con
         if (length > rayLength) {
             return std::make_tuple(false, glm::ivec3{0}, glm::ivec3{0});
         }
-	} while (voxels.at(hitPos) == vkx::Voxel::Air);
+	} while (!predicate(hitPos));
 
 	return std::make_tuple(true, hitPos, previousHitPos);
 }
 
-std::tuple<bool, glm::ivec3, glm::ivec3> vkx::raycast(const glm::vec3& chunkPosition, const Camera& camera, const VoxelMatrix& voxels) {
-	const auto origin = glm::vec3(chunkPosition) - camera.position;
-
-	const auto orientation = camera.yawOrientation * camera.pitchOrientation;
-	const auto front = orientation * glm::quat(0.0f, 0.0f, 0.0f, -1.0f) * glm::conjugate(orientation);
-
-	const glm::vec3 direction{front.x, front.y, -front.z};
-
-	return dda(origin, direction, voxels);
+std::tuple<bool, glm::ivec3, glm::ivec3> vkx::raycast(const glm::vec3& origin, const glm::vec3& direction, RaycastPredicate predicate) {
+	return dda(origin, direction, predicate);
 }
