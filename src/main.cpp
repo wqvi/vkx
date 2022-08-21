@@ -1,4 +1,5 @@
 #include "vkx/raycast.hpp"
+#include <glm/common.hpp>
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
@@ -420,13 +421,14 @@ int main(void) {
 						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
 					}
 				} break;
-				case SDL_KEYDOWN:
+				case SDL_KEYDOWN: {
 					camera.updateKey(event.key.keysym.sym);
-					// std::tie(valid, location, previousLocation) = vkx::raycast(chunk.normalizedPosition, camera, chunk.voxels);
+					const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
+					raycastResult = vkx::raycast(origin, camera.direction, 1.0f, a);
 					if (raycastResult.success) {
-						highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
+						camera.position = chunk.normalizedPosition - raycastResult.previousHitPos;
 					}
-					break;
+				} break;
 				case SDL_KEYUP:
 					camera.direction = glm::vec3(0);
 					break;
