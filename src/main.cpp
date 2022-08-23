@@ -1,3 +1,4 @@
+#include "vkx/aabb.hpp"
 #include "vkx/raycast.hpp"
 #include <glm/common.hpp>
 #include <vkx/vkx.hpp>

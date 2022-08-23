@@ -23,7 +23,7 @@ static constexpr auto derriveDelta(int step, float direction) noexcept {
 		return 1.0f / glm::abs(direction);
 	}
 
-	return INFINITY;
+	return std::numeric_limits<float>::infinity();
 }
 
 static constexpr glm::vec3 derriveDelta(const glm::ivec3& step, const glm::vec3& direction) noexcept {
@@ -42,7 +42,7 @@ static constexpr auto derriveCross(int step, float origin, float delta) noexcept
 		}
 	}
 
-	return INFINITY;
+	return std::numeric_limits<float>::infinity();
 }
 
 static constexpr glm::vec3 derriveCross(const glm::ivec3& step, const glm::vec3& origin, const glm::vec3& delta) noexcept {
@@ -59,7 +59,7 @@ static vkx::RaycastResult dda(const glm::vec3& origin, const glm::vec3& directio
 	auto cross = derriveCross(step, origin, delta);
 	glm::ivec3 hitPos = glm::floor(origin);
 	glm::ivec3 previousHitPos = hitPos;
-    float length = 0.0f;
+	float length = 0.0f;
 
 	do {
 		previousHitPos = hitPos;
@@ -68,13 +68,13 @@ static vkx::RaycastResult dda(const glm::vec3& origin, const glm::vec3& directio
 			if (cross.x < cross.z) {
 				hitPos.x += step.x;
 
-                length = cross.x;
+				length = cross.x;
 
 				cross.x += delta.x;
 			} else {
 				hitPos.z += step.z;
 
-                length = cross.z;
+				length = cross.z;
 
 				cross.z += delta.z;
 			}
@@ -82,21 +82,21 @@ static vkx::RaycastResult dda(const glm::vec3& origin, const glm::vec3& directio
 			if (cross.y < cross.z) {
 				hitPos.y += step.y;
 
-                length = cross.y;
+				length = cross.y;
 
 				cross.y += delta.y;
 			} else {
 				hitPos.z += step.z;
 
-                length = cross.z;
+				length = cross.z;
 
 				cross.z += delta.z;
 			}
 		}
 
-        if (length > maxLength) {
-            return vkx::RaycastResult{false, glm::ivec3{0}, glm::ivec3{0}, length};
-        }
+		if (length > maxLength) {
+			return vkx::RaycastResult{false, glm::ivec3{0}, glm::ivec3{0}, length};
+		}
 	} while (!predicate(hitPos));
 
 	return vkx::RaycastResult{true, hitPos, previousHitPos, length};
@@ -106,6 +106,7 @@ vkx::RaycastResult vkx::raycast(const glm::vec3& origin, const glm::vec3& direct
 	return dda(origin, direction, maxLength, predicate);
 }
 
-vkx::RaycastResult vkx::raycastAABB(const glm::vec3 &origin, const glm::vec3 &direction, float maxLength, RaycastPredicate predicate) {
-	
+vkx::RaycastResult vkx::raycastAABB(const glm::vec3& origin, const glm::vec3& direction, float maxLength, RaycastPredicate predicate) {
+	throw std::runtime_error("Not implemented");
+	return dda(origin, direction, maxLength, predicate);
 }
