@@ -1,18 +1,19 @@
 #pragma once
 
 namespace vkx {
-template <class T>
 class AABB {
 public:
-	AABB(const T& min, const T& max)
+	AABB() = default;
+	
+	AABB(const glm::vec3& min, const glm::vec3& max)
 		: min(min), max(max) {}
 
-	bool intersects(const T& point) {
+	bool intersects(const glm::vec3& point) {
 		return glm::all(glm::lessThan(min, point)) && glm::all(glm::greaterThan(max, point));
 	}
 
 private:
-	T min;
-	T max;
+	glm::vec3 min = glm::vec3(0, 0, 0);
+	glm::vec3 max = glm::vec3(-1, -1, -1);
 };
 }
