@@ -11,4 +11,6 @@ struct RaycastResult {
 };
 
 RaycastResult raycast(const glm::vec3& origin, const glm::vec3& direction, float maxLength, RaycastPredicate predicate);
+
+RaycastResult raycastAABB(const glm::vec3& origin, const glm::vec3& direction, float maxLength, RaycastPredicate predicate);
 }

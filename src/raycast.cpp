@@ -105,3 +105,7 @@ static vkx::RaycastResult dda(const glm::vec3& origin, const glm::vec3& directio
 vkx::RaycastResult vkx::raycast(const glm::vec3& origin, const glm::vec3& direction, float maxLength, RaycastPredicate predicate) {
 	return dda(origin, direction, maxLength, predicate);
 }
+
+vkx::RaycastResult vkx::raycastAABB(const glm::vec3 &origin, const glm::vec3 &direction, float maxLength, RaycastPredicate predicate) {
+	
+}
