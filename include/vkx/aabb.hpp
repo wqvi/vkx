@@ -5,12 +5,11 @@ class AABB {
 public:
 	AABB() = default;
 	
-	AABB(const glm::vec3& min, const glm::vec3& max)
-		: min(min), max(max) {}
+	AABB(const glm::vec3& min, const glm::vec3& max) noexcept;
 
-	bool intersects(const glm::vec3& point) {
-		return glm::all(glm::lessThan(min, point)) && glm::all(glm::greaterThan(max, point));
-	}
+	bool intersects(const glm::vec3& point) const noexcept;
+
+	bool intersects(const glm::ivec3& point) const noexcept;
 
 private:
 	glm::vec3 min = glm::vec3(0, 0, 0);
