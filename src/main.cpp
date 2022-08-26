@@ -65,9 +65,6 @@ auto getAttributeDescriptions() noexcept {
 	return attributeDescriptions;
 }
 
-void mouseMotionEvent(const SDL_MouseMotionEvent& event) {
-}
-
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2: %s", SDL_GetError());
@@ -99,10 +96,10 @@ int main(void) {
 
 		const vkx::RendererBootstrap renderer(window);
 		const auto device = renderer.createDevice();
-		const auto allocator = device->createAllocator();
-		auto swapchain = device->createSwapchain(window, allocator);
-		const auto clearRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
-		const auto loadRenderPass = device->createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
+		const auto allocator = device.createAllocator();
+		auto swapchain = device.createSwapchain(window, allocator);
+		const auto clearRenderPass = device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
+		const auto loadRenderPass = device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
 		swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 
@@ -113,13 +110,13 @@ int main(void) {
 
 		const vk::DescriptorPoolCreateInfo poolInfo{{}, MAX_FRAMES_IN_FLIGHT, poolSizes};
 
-		const auto descriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
+		const auto descriptorPool = device->createDescriptorPoolUnique(poolInfo);
 
 		constexpr std::array highlightPoolSizes = {uniformBufferDescriptor};
 
 		const vk::DescriptorPoolCreateInfo highlightPoolInfo{{}, MAX_FRAMES_IN_FLIGHT, highlightPoolSizes};
 
-		const auto highlightDescriptorPool = (*device)->createDescriptorPoolUnique(poolInfo);
+		const auto highlightDescriptorPool = device->createDescriptorPoolUnique(poolInfo);
 
 		const auto descriptorSetLayout = createShaderDescriptorSetLayout(static_cast<vk::Device>(*device));
 
@@ -134,7 +131,7 @@ int main(void) {
 		    vkx::Vertex::getBindingDescription(),
 		    vkx::Vertex::getAttributeDescriptions()};
 
-		const auto graphicsPipeline = device->createGraphicsPipeline(graphicsPipelineInformation);
+		const auto graphicsPipeline = device.createGraphicsPipeline(graphicsPipelineInformation);
 
 		vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
@@ -145,8 +142,8 @@ int main(void) {
 		    getBindingDescription(),
 		    getAttributeDescriptions()};
 
-		const auto highlightGraphicsPipeline = device->createGraphicsPipeline(highlightGraphicsPipelineInformation);
-		const auto commandSubmitter = device->createCommandSubmitter();
+		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(highlightGraphicsPipelineInformation);
+		const auto commandSubmitter = device.createCommandSubmitter();
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
 
@@ -188,7 +185,7 @@ int main(void) {
 		vkx::Mesh mesh3{chunk3.vertices, chunk3.indices, allocator};
 		mesh3.indexCount = std::distance(chunk3.indices.begin(), chunk3.indexIter);
 
-		const vkx::Texture texture{"a.jpg", *device, allocator, commandSubmitter};
+		const vkx::Texture texture{"a.jpg", device, allocator, commandSubmitter};
 
 		std::vector<glm::vec3> vertices = {
 		    {0.0f, 0.0f, 0.0f},
@@ -241,7 +238,7 @@ int main(void) {
 		const std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
 		const vk::DescriptorSetAllocateInfo allocInfo(*descriptorPool, layouts);
 
-		const auto descriptorSets = (*device)->allocateDescriptorSets(allocInfo);
+		const auto descriptorSets = device->allocateDescriptorSets(allocInfo);
 
 		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			const std::array descriptorWrites = {
@@ -251,20 +248,20 @@ int main(void) {
 			    materialBuffers[i].createWriteDescriptorSet(descriptorSets[i], 3),
 			};
 
-			(*device)->updateDescriptorSets(descriptorWrites, {});
+			device->updateDescriptorSets(descriptorWrites, {});
 		}
 
 		const std::vector<vk::DescriptorSetLayout> highlightLayouts(MAX_FRAMES_IN_FLIGHT, *highlightDescriptorSetLayout);
 		const vk::DescriptorSetAllocateInfo highlightAllocInfo(*highlightDescriptorPool, highlightLayouts);
 
-		const auto highlightDescriptorSets = (*device)->allocateDescriptorSets(highlightAllocInfo);
+		const auto highlightDescriptorSets = device->allocateDescriptorSets(highlightAllocInfo);
 
 		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			const std::array descriptorWrites = {
 			    highlightMVPBuffers[i].createWriteDescriptorSet(highlightDescriptorSets[i], 0),
 			};
 
-			(*device)->updateDescriptorSets(descriptorWrites, {});
+			device->updateDescriptorSets(descriptorWrites, {});
 		}
 
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
@@ -316,9 +313,9 @@ int main(void) {
 					SDL_WaitEvent(nullptr);
 				}
 
-				(*device)->waitIdle();
+				device->waitIdle();
 
-				swapchain = device->createSwapchain(window, allocator);
+				swapchain = device.createSwapchain(window, allocator);
 
 				swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 				continue;
@@ -382,9 +379,9 @@ int main(void) {
 					SDL_WaitEvent(nullptr);
 				}
 
-				(*device)->waitIdle();
+				device->waitIdle();
 
-				swapchain = device->createSwapchain(window, allocator);
+				swapchain = device.createSwapchain(window, allocator);
 
 				swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 			} else if (result != vk::Result::eSuccess) {
@@ -448,7 +445,7 @@ int main(void) {
 			}
 		}
 
-		(*device)->waitIdle();
+		device->waitIdle();
 	}
 
 	SDL_DestroyWindow(window);
