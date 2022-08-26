@@ -106,7 +106,7 @@ vkx::RaycastResult vkx::raycast(const glm::vec3& origin, const glm::vec3& direct
 	return dda(origin, direction, maxLength, predicate);
 }
 
-vkx::RaycastResult vkx::raycastAABB(const glm::vec3& origin, const glm::vec3& direction, float maxLength, RaycastPredicate predicate) {
-	throw std::runtime_error("Not implemented");
-	return dda(origin, direction, maxLength, predicate);
+bool vkx::handleCollision(const glm::vec3& origin, const glm::vec3& direction, float maxLength, RaycastPredicate predicate) {
+	dda(origin, direction, maxLength, predicate);
+	return false;
 }

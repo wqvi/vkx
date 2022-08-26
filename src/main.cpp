@@ -425,9 +425,8 @@ int main(void) {
 				case SDL_KEYDOWN: {
 					camera.updateKey(event.key.keysym.sym);
 					const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
-					raycastResult = vkx::raycast(origin, camera.direction, 1.0f, a);
-					if (raycastResult.success) {
-						camera.position = chunk.normalizedPosition - raycastResult.previousHitPos;
+					const auto collision = vkx::handleCollision(origin, camera.direction, 1.0f, a);
+					if (collision) {
 					}
 				} break;
 				case SDL_KEYUP:
