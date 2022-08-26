@@ -149,6 +149,14 @@ vkx::Application::~Application() {
 	}
 }
 
+void vkx::Application::setScene(Scene* newScene) {
+    scene.reset(newScene);
+}
+
+void vkx::Application::run() {
+
+}
+
 int vkx::Application::SDLInit() {
 	int state = SDL_Init(SDL_INIT_EVERYTHING);
 

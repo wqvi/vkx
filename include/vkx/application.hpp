@@ -52,6 +52,26 @@ public:
 	explicit operator SDL_Window*() const noexcept;
 };
 
+struct Scene {
+    virtual ~Scene() = default;
+
+    virtual void init(const vkx::Device& device, const std::shared_ptr<vkx::Allocator>& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter) = 0;
+
+    virtual void destroy() = 0;
+
+    virtual void update() = 0;
+
+    virtual void mouseMoved(const SDL_MouseMotionEvent& event) = 0;
+
+    virtual void mousePressed(const SDL_MouseButtonEvent& event) = 0;
+
+    virtual void mouseReleased(const SDL_MouseButtonEvent& event) = 0;
+
+    virtual void keyPressed(const SDL_KeyboardEvent& event) = 0;
+
+    virtual void keyReleased(const SDL_KeyboardEvent& event) = 0;
+};
+
 class Application {
 private:
 	int state = 1;
@@ -59,6 +79,8 @@ private:
 	SDLWindow window;
 
 	Renderer renderer;
+
+    std::unique_ptr<Scene> scene;
 
 public:
 	Application();
@@ -73,9 +95,9 @@ public:
 
 	Application& operator=(Application&&) noexcept = default;
 
-	virtual void init() = 0;
+    void setScene(Scene* newScene);
 
-	virtual void destroy() = 0;
+    void run();
 
 private:
 	static int SDLInit();
