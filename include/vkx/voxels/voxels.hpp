@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vkx/camera.hpp>
 #include <vkx/renderer/core/vertex.hpp>
 
 namespace vkx {
