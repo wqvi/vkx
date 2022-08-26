@@ -6,3 +6,4 @@
 #include <vkx/renderer/model.hpp>
 #include <vkx/camera.hpp>
 #include <vkx/raycast.hpp>
+#include <vkx/application.hpp>
