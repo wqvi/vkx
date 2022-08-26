@@ -72,10 +72,6 @@ add_custom_command(TARGET vkx PRE_BUILD
         COMMAND glslc "${CMAKE_CURRENT_SOURCE_DIR}/shaders/src/shader.frag" -o "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag.spv"
         )
 
-add_custom_command(TARGET vkx PRE_BUILD
-        COMMAND glslc "${CMAKE_CURRENT_SOURCE_DIR}/shaders/src/shader.comp" -o "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.comp.spv"
-        )
-
 # Move compiled vertex shader SPIR-V to build directory
 add_custom_command(TARGET vkx POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert.spv"
@@ -85,11 +81,6 @@ add_custom_command(TARGET vkx POST_BUILD
 # Move compiled fragment shader SPIR-V to build directory
 add_custom_command(TARGET vkx POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag.spv"
-        $<TARGET_FILE_DIR:vkx>
-        )
-
-add_custom_command(TARGET vkx POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.comp.spv"
         $<TARGET_FILE_DIR:vkx>
         )
 
