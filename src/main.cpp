@@ -426,8 +426,9 @@ int main(void) {
 				case SDL_KEYDOWN: {
 					camera.updateKey(event.key.keysym.sym);
 					const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
-					const auto collision = vkx::handleCollision(origin, glm::vec3{0, 1, 0}, 1.0f, a);
-					if (collision) {
+					const vkx::AABB box{glm::vec3{0}, glm::vec3{1}};
+					const auto collision = vkx::handleCollision(box, origin, glm::vec3{0, 1, 0}, 1.0f, a);
+					if (collision.success) {
 						SDL_Log("Colliding");
 					}
 				} break;
