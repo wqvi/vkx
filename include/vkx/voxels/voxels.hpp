@@ -47,6 +47,9 @@ class VoxelChunk {
 
 public:
 	static_assert(size % 8 == 0, "Size must be a multiple of 8");
+	
+	VoxelChunk() = default;
+
 	explicit VoxelChunk(const glm::vec3& chunkPosition)
 	    : chunkPosition(chunkPosition) {
 		std::fill(voxels.begin(), voxels.end(), Voxel::Stone);
