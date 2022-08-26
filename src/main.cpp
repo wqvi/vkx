@@ -1,5 +1,3 @@
-#include "vkx/renderer/core/commands.hpp"
-#include <memory>
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
@@ -133,6 +131,10 @@ struct MyScene : public vkx::Scene {
 };
 
 int main(void) {
+	// vkx::Application application{};
+	// application.setScene(new MyScene{});
+	// application.run();
+
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2: %s", SDL_GetError());
 		return EXIT_FAILURE;
