@@ -53,6 +53,8 @@ public:
 };
 
 struct Scene {
+    Scene() = default;
+
     virtual ~Scene() = default;
 
     virtual void init(const vkx::Device& device, const std::shared_ptr<vkx::Allocator>& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter) = 0;
