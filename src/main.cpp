@@ -1,6 +1,7 @@
 #include "vkx/aabb.hpp"
 #include "vkx/raycast.hpp"
 #include <glm/common.hpp>
+#include <glm/fwd.hpp>
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
@@ -425,8 +426,9 @@ int main(void) {
 				case SDL_KEYDOWN: {
 					camera.updateKey(event.key.keysym.sym);
 					const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
-					const auto collision = vkx::handleCollision(origin, camera.direction, 1.0f, a);
+					const auto collision = vkx::handleCollision(origin, glm::vec3{0, 1, 0}, 1.0f, a);
 					if (collision) {
+						SDL_Log("Colliding");
 					}
 				} break;
 				case SDL_KEYUP:
