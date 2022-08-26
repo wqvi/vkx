@@ -90,9 +90,9 @@ vkx::RendererBootstrap::RendererBootstrap(SDL_Window* window) {
 	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer bootstrap.");
 }
 
-std::shared_ptr<vkx::Device> vkx::RendererBootstrap::createDevice() const {
+vkx::Device vkx::RendererBootstrap::createDevice() const {
 	const auto physicalDevice = getBestPhysicalDevice(*instance, *surface);
-	return std::make_shared<vkx::Device>(*instance, physicalDevice, *surface);
+	return vkx::Device{*instance, physicalDevice, *surface};
 }
 
 vk::PhysicalDevice vkx::RendererBootstrap::getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface) {

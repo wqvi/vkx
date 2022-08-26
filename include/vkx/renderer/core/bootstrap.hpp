@@ -7,8 +7,16 @@ class RendererBootstrap {
 public:
 	explicit RendererBootstrap(SDL_Window* window);
 
+	RendererBootstrap(const RendererBootstrap&) = delete;
+
+	RendererBootstrap(RendererBootstrap&&) noexcept = default;
+
+	RendererBootstrap& operator=(const RendererBootstrap& other) = delete;
+
+	RendererBootstrap& operator=(RendererBootstrap&&) noexcept = default;
+
 	[[nodiscard]]
-	std::shared_ptr<vkx::Device> createDevice() const; 
+	vkx::Device createDevice() const; 
 
 private:
 	vk::UniqueInstance instance{};
