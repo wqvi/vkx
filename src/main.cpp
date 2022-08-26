@@ -1,7 +1,3 @@
-#include "vkx/aabb.hpp"
-#include "vkx/raycast.hpp"
-#include <glm/common.hpp>
-#include <glm/fwd.hpp>
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
