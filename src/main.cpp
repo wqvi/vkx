@@ -199,7 +199,6 @@ int main(void) {
 		vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 		    "shader.vert.spv",
 		    "shader.frag.spv",
-		    swapchain->extent,
 		    *clearRenderPass,
 		    *descriptorSetLayout,
 		    vkx::Vertex::getBindingDescription(),
@@ -210,7 +209,6 @@ int main(void) {
 		vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
 		    "highlight.frag.spv",
-		    swapchain->extent,
 		    *clearRenderPass,
 		    *highlightDescriptorSetLayout,
 		    getBindingDescription(),
