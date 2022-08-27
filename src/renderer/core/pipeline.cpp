@@ -1,32 +1,32 @@
 #include <vkx/renderer/core/pipeline.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info) {
-	layout = createPipelineLayout(device, info.descriptorSetLayout);
-	pipeline = createPipeline(device, info, *layout);
-
+vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info)
+	: layout(createPipelineLayout(device, info.descriptorSetLayout)),
+	pipeline(createPipeline(device, info, *layout)) {
 	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer graphics pipeline.");
 }
 
 vk::UniquePipelineLayout vkx::GraphicsPipeline::createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout) {
-	vk::PipelineLayoutCreateInfo pipelineLayoutInfo({}, descriptorSetLayout);
+	const vk::PipelineLayoutCreateInfo pipelineLayoutInfo{{}, descriptorSetLayout};
 
 	return device.createPipelineLayoutUnique(pipelineLayoutInfo);
 }
 
 vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device device, const std::string& filename) {
-	std::ifstream file(filename, std::ios::ate | std::ios::binary);
+	std::ifstream file{filename, std::ios::ate | std::ios::binary};
 
 	if (!file.is_open()) {
 		throw std::runtime_error("Failed to open file.");
 	}
 
-	std::size_t fileSize = static_cast<std::size_t>(file.tellg());
-	std::vector<char> buffer(fileSize);
+	const std::size_t fileSize = static_cast<std::size_t>(file.tellg());
+	std::vector<char> buffer;
+	buffer.reserve(fileSize);
 
 	file.seekg(0);
 	file.read(buffer.data(), fileSize);
 
-	vk::ShaderModuleCreateInfo shaderCreateInfo({}, static_cast<std::uint32_t>(buffer.size()), reinterpret_cast<const std::uint32_t*>(buffer.data()));
+	const vk::ShaderModuleCreateInfo shaderCreateInfo{{}, static_cast<std::uint32_t>(buffer.size()), reinterpret_cast<const std::uint32_t*>(buffer.data())};
 
 	return device.createShaderModuleUnique(shaderCreateInfo);
 }
@@ -35,18 +35,18 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 	const auto vertShaderModule = createShaderModule(device, info.vertexFile);
 	const auto fragShaderModule = createShaderModule(device, info.fragmentFile);
 
-	const vk::PipelineShaderStageCreateInfo vertShaderStageInfo({}, vk::ShaderStageFlagBits::eVertex, *vertShaderModule, "main");
-	const vk::PipelineShaderStageCreateInfo fragShaderStageInfo({}, vk::ShaderStageFlagBits::eFragment, *fragShaderModule, "main");
+	const vk::PipelineShaderStageCreateInfo vertShaderStageInfo{{}, vk::ShaderStageFlagBits::eVertex, *vertShaderModule, "main"};
+	const vk::PipelineShaderStageCreateInfo fragShaderStageInfo{{}, vk::ShaderStageFlagBits::eFragment, *fragShaderModule, "main"};
 
 	const auto shaderStages = {vertShaderStageInfo, fragShaderStageInfo};
 
-	const vk::PipelineVertexInputStateCreateInfo vertexInputInfo({}, info.bindingDescriptions, info.attributeDescriptions);
+	const vk::PipelineVertexInputStateCreateInfo vertexInputInfo{{}, info.bindingDescriptions, info.attributeDescriptions};
 
-	constexpr vk::PipelineInputAssemblyStateCreateInfo inputAssembly({}, vk::PrimitiveTopology::eTriangleList, false);
+	constexpr vk::PipelineInputAssemblyStateCreateInfo inputAssembly{{}, vk::PrimitiveTopology::eTriangleList, false};
 
-	const vk::PipelineViewportStateCreateInfo viewportState({}, 1, nullptr, 1, nullptr);
+	const vk::PipelineViewportStateCreateInfo viewportState{{}, 1, nullptr, 1, nullptr};
 
-	constexpr vk::PipelineRasterizationStateCreateInfo rasterizer(
+	constexpr vk::PipelineRasterizationStateCreateInfo rasterizer{
 	    {},
 	    false,
 	    false,
@@ -57,23 +57,23 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 	    {},
 	    {},
 	    {},
-	    1.0f);
+	    1.0f};
 
-	constexpr vk::PipelineMultisampleStateCreateInfo multisampling(
+	constexpr vk::PipelineMultisampleStateCreateInfo multisampling{
 	    {},
 	    vk::SampleCountFlagBits::e1,
-	    false);
+	    false};
 
-	constexpr vk::PipelineDepthStencilStateCreateInfo depthStencil(
+	constexpr vk::PipelineDepthStencilStateCreateInfo depthStencil{
 	    {},
 	    true,
 	    true,
 	    vk::CompareOp::eLess,
 	    false,
-	    false);
+	    false};
 
 	constexpr auto mask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-	constexpr vk::PipelineColorBlendAttachmentState colorBlendAttachment(
+	constexpr vk::PipelineColorBlendAttachmentState colorBlendAttachment{
 	    true,
 	    vk::BlendFactor::eSrcAlpha,
 	    vk::BlendFactor::eOneMinusSrcAlpha,
@@ -81,21 +81,21 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 	    vk::BlendFactor::eSrcAlpha,
 	    vk::BlendFactor::eOneMinusSrcAlpha,
 	    vk::BlendOp::eAdd,
-	    mask);
+	    mask};
 
 	constexpr std::array blendConstants{0.0f, 0.0f, 0.0f, 0.0f};
-	const vk::PipelineColorBlendStateCreateInfo colorBlending(
+	const vk::PipelineColorBlendStateCreateInfo colorBlending{
 	    {},
 	    false,
 	    vk::LogicOp::eCopy,
 	    colorBlendAttachment,
-	    blendConstants);
+	    blendConstants};
 
 	constexpr std::array dynamicStates = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 
-	const vk::PipelineDynamicStateCreateInfo dynamicStateInfo({}, dynamicStates);
+	const vk::PipelineDynamicStateCreateInfo dynamicStateInfo{{}, dynamicStates};
 
-	const vk::GraphicsPipelineCreateInfo pipelineInfo(
+	const vk::GraphicsPipelineCreateInfo pipelineInfo{
 	    {},
 	    shaderStages,
 	    &vertexInputInfo,
@@ -110,7 +110,7 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 	    pipelineLayout,
 	    info.renderPass,
 	    0,
-	    nullptr);
+	    nullptr};
 
 	// Use Vulkan C api to create pipeline as the C++ bindings returns an array
 
@@ -122,5 +122,5 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 		throw std::runtime_error("Failed to create graphics pipeline. Unknown error.");
 	}
 
-	return vk::UniquePipeline(cPipeline, device);
+	return vk::UniquePipeline{cPipeline, device};
 }

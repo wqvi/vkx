@@ -6,7 +6,6 @@ namespace vkx {
 struct GraphicsPipelineInformation {
 	std::string vertexFile;
 	std::string fragmentFile;
-	vk::Extent2D extent;
 	vk::RenderPass renderPass;
 	vk::DescriptorSetLayout descriptorSetLayout;
 	std::vector<vk::VertexInputBindingDescription> bindingDescriptions;
