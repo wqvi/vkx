@@ -1,5 +1,10 @@
 #include <vkx/application.hpp>
-#include <vulkan/vulkan_handles.hpp>
+
+constexpr std::uint32_t chunkDrawCommandAmount = 1;
+constexpr std::uint32_t highlightDrawCommandAmount = 1;
+
+constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount + highlightDrawCommandAmount;
+constexpr std::uint32_t secondaryDrawCommandAmount = 4;
 
 vkx::Renderer::Renderer(SDL_Window* window)
     : window(window),
@@ -52,6 +57,27 @@ vkx::Renderer::Renderer(SDL_Window* window)
 	    getAttributeDescriptions()};
 
 	highlightGraphicsPipeline = device.createGraphicsPipeline(highlightGraphicsPipelineInformation);
+
+	syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
+
+	drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
+	secondaryDrawCommands = commandSubmitter->allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
+}
+
+void vkx::Renderer::recreateSwapchain() {
+	int newWidth = 0;
+	int newHeight = 0;
+	SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
+	while (newWidth == 0 || newHeight == 0) {
+		SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
+		SDL_WaitEvent(nullptr);
+	}
+
+	device->waitIdle();
+
+	swapchain = device.createSwapchain(window, allocator);
+
+	swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
 }
 
 vk::UniqueDescriptorSetLayout vkx::Renderer::createShaderDescriptorSetLayout(vk::Device device) {
@@ -150,11 +176,148 @@ vkx::Application::~Application() {
 }
 
 void vkx::Application::setScene(Scene* newScene) {
-    scene.reset(newScene);
+	scene.reset(newScene);
 }
 
 void vkx::Application::run() {
+	std::uint32_t currentFrame = 0;
+	SDL_ShowWindow(static_cast<SDL_Window*>(window));
 
+	while (isRunning) {
+		// Do stuff
+		scene->update();
+
+		// Render
+		const auto& syncObject = renderer.syncObjects[currentFrame];
+		syncObject.waitForFence();
+		auto [result, imageIndex] = renderer.swapchain->acquireNextImage(static_cast<vk::Device>(*renderer.device), syncObject);
+
+		if (result == vk::Result::eErrorOutOfDateKHR) {
+			renderer.recreateSwapchain();
+			continue;
+		} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+			throw std::runtime_error("Failed to acquire next image.");
+		}
+
+		// mvpBuffer.mapMemory();
+		// lightBuffer.mapMemory();
+		// materialBuffer.mapMemory();
+		// highlightMVPBuffer.mapMemory();
+
+		syncObject.resetFence();
+
+		const vkx::DrawInfo chunkDrawInfo = {
+		    *renderer.clearRenderPass,
+		    *renderer.swapchain->framebuffers[imageIndex],
+		    renderer.swapchain->extent,
+		    *renderer.graphicsPipeline->pipeline,
+		    *renderer.graphicsPipeline->layout,
+		    renderer.descriptorSets[currentFrame],
+		    {vertexBuffer},
+		    {indexBuffer},
+		    {indexCount}};
+
+		const vkx::DrawInfo highlightDrawInfo = {
+		    *renderer.loadRenderPass,
+		    *renderer.swapchain->framebuffers[imageIndex],
+		    renderer.swapchain->extent,
+		    *renderer.highlightGraphicsPipeline->pipeline,
+		    *renderer.highlightGraphicsPipeline->layout,
+		    renderer.highlightDescriptorSets[currentFrame],
+		    {highlightVertexBuffer},
+		    {highlightIndexBuffer},
+		    {highlightIndexCount}};
+
+		const vk::CommandBuffer* begin = &renderer.drawCommands[currentFrame * drawCommandAmount];
+
+		const vk::CommandBuffer* chunkBegin = begin;
+
+		const vk::CommandBuffer* highlightBegin = chunkBegin + chunkDrawCommandAmount;
+
+		const vk::CommandBuffer* secondaryBegin = &renderer.secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
+
+		renderer.commandSubmitter->recordSecondaryDrawCommands(chunkBegin, chunkDrawCommandAmount, secondaryBegin, secondaryDrawCommandAmount, chunkDrawInfo);
+
+		renderer.commandSubmitter->recordPrimaryDrawCommands(highlightBegin, highlightDrawCommandAmount, highlightDrawInfo);
+
+		renderer.commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
+
+		renderer.commandSubmitter->presentToSwapchain(*renderer.swapchain->swapchain, imageIndex, syncObject);
+
+		if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
+			renderer.recreateSwapchain();
+		} else if (result != vk::Result::eSuccess) {
+			throw std::runtime_error("Failed to present.");
+		}
+
+		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+		handleEvents();
+	}
+}
+
+void vkx::Application::handleEvents() {
+	while (SDL_PollEvent(&event)) {
+		switch (event.type) {
+		case SDL_QUIT:
+			isRunning = false;
+			break;
+
+		case SDL_WINDOWEVENT:
+			handleWindowEvent(event.window);
+			break;
+
+		case SDL_MOUSEMOTION:
+			handleMouseMovedEvent(event.motion);
+			break;
+
+		case SDL_MOUSEBUTTONDOWN:
+			handleMousePressedEvent(event.button);
+			break;
+
+		case SDL_MOUSEBUTTONUP:
+			handleMouseReleasedEvent(event.button);
+			break;
+
+		case SDL_KEYDOWN:
+			handleKeyPressedEvent(event.key);
+			break;
+
+		case SDL_KEYUP:
+			handleKeyReleasedEvent(event.key);
+			break;
+
+		default:
+			break;
+		}
+	}
+}
+
+void vkx::Application::handleWindowEvent(const SDL_WindowEvent& event) {
+	if (event.event == SDL_WINDOWEVENT_RESIZED) {
+		framebufferResized = true;
+		scene->windowResize(event.data1, event.data2);
+	}
+}
+
+void vkx::Application::handleMouseMovedEvent(const SDL_MouseMotionEvent& event) {
+	scene->mouseMoved(event);
+}
+
+void vkx::Application::handleMousePressedEvent(const SDL_MouseButtonEvent& event) {
+	scene->mousePressed(event);
+}
+
+void vkx::Application::handleMouseReleasedEvent(const SDL_MouseButtonEvent& event) {
+	scene->mouseReleased(event);
+}
+
+void vkx::Application::handleKeyPressedEvent(const SDL_KeyboardEvent& event) {
+	scene->keyPressed(event);
+}
+
+void vkx::Application::handleKeyReleasedEvent(const SDL_KeyboardEvent& event) {
+	scene->keyReleased(event);
 }
 
 int vkx::Application::SDLInit() {

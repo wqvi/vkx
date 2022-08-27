@@ -88,6 +88,11 @@ struct MyScene : public vkx::Scene {
 
 	void update() override {
 		// Do something
+		camera.position += camera.direction * 0.001f;
+	}
+
+	void windowResize(int width, int height) override {
+		
 	}
 
 	void mouseMoved(const SDL_MouseMotionEvent& event) override {
