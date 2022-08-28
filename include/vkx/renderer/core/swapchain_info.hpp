@@ -2,11 +2,11 @@
 
 namespace vkx {
 struct SwapchainInfo {
-	SwapchainInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
-
 	vk::SurfaceCapabilitiesKHR capabilities;
 	std::vector<vk::SurfaceFormatKHR> formats;
 	std::vector<vk::PresentModeKHR> presentModes;
+
+	SwapchainInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
 
 	[[nodiscard]] vk::SurfaceFormatKHR chooseSurfaceFormat() const;
 
