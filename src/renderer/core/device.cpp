@@ -3,7 +3,6 @@
 
 vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
     : instance(instance), surface(surface), physicalDevice(physicalDevice), maxSamplerAnisotropy(physicalDevice.getProperties().limits.maxSamplerAnisotropy) {
-
 	if (!static_cast<bool>(instance)) {
 		throw std::invalid_argument("Instance must be a valid handle.");
 	}
@@ -28,14 +27,14 @@ vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk
 	deviceFeatures.samplerAnisotropy = true;
 
 #ifdef DEBUG
-	constexpr std::array layers{"VK_LAYER_KHRONOS_validation"};
+	constexpr std::array layers = {"VK_LAYER_KHRONOS_validation"};
 #elif RELEASE
-	constexpr std::array<const char*, 0> layers{};
+	constexpr std::array<const char*, 0> layers = {};
 #endif
 
-	constexpr std::array extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+	constexpr std::array extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-	vk::DeviceCreateInfo deviceCreateInfo{
+	const vk::DeviceCreateInfo deviceCreateInfo{
 	    {},
 	    queueCreateInfos,
 	    layers,
@@ -43,8 +42,6 @@ vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk
 	    &deviceFeatures};
 
 	device = physicalDevice.createDeviceUnique(deviceCreateInfo);
-
-	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer device.");
 }
 
 vkx::Device::operator const vk::PhysicalDevice&() const {
@@ -91,7 +88,7 @@ vk::UniqueImageView vkx::Device::createTextureImageViewUnique(vk::Image image) c
 }
 
 vk::UniqueSampler vkx::Device::createTextureSamplerUnique() const {
-	const vk::SamplerCreateInfo samplerInfo(
+	const vk::SamplerCreateInfo samplerInfo{
 	    {},
 	    vk::Filter::eLinear,
 	    vk::Filter::eLinear,
@@ -107,7 +104,7 @@ vk::UniqueSampler vkx::Device::createTextureSamplerUnique() const {
 	    {},
 	    {},
 	    vk::BorderColor::eIntOpaqueBlack,
-	    false);
+	    false};
 
 	return device->createSamplerUnique(samplerInfo);
 }
@@ -121,7 +118,7 @@ std::shared_ptr<vkx::Swapchain> vkx::Device::createSwapchain(SDL_Window* window,
 }
 
 vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp) const {
-	const vk::AttachmentDescription colorAttachment(
+	const vk::AttachmentDescription colorAttachment{
 	    {},
 	    format,
 	    vk::SampleCountFlagBits::e1,
@@ -130,13 +127,13 @@ vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageL
 	    vk::AttachmentLoadOp::eDontCare,
 	    vk::AttachmentStoreOp::eDontCare,
 	    initialLayout,
-	    finalLayout);
+	    finalLayout};
 
-	const vk::AttachmentReference colorAttachmentRef(
+	const vk::AttachmentReference colorAttachmentRef{
 	    0,
-	    vk::ImageLayout::eColorAttachmentOptimal);
+	    vk::ImageLayout::eColorAttachmentOptimal};
 
-	const vk::AttachmentDescription depthAttachment(
+	const vk::AttachmentDescription depthAttachment{
 	    {},
 	    findDepthFormat(),
 	    vk::SampleCountFlagBits::e1,
@@ -145,39 +142,39 @@ vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageL
 	    vk::AttachmentLoadOp::eDontCare,
 	    vk::AttachmentStoreOp::eDontCare,
 	    vk::ImageLayout::eUndefined,
-	    vk::ImageLayout::eDepthStencilAttachmentOptimal);
+	    vk::ImageLayout::eDepthStencilAttachmentOptimal};
 
-	const vk::AttachmentReference depthAttachmentRef(
+	const vk::AttachmentReference depthAttachmentRef{
 	    1,
-	    vk::ImageLayout::eDepthStencilAttachmentOptimal);
+	    vk::ImageLayout::eDepthStencilAttachmentOptimal};
 
-	const vk::SubpassDescription subpass(
+	const vk::SubpassDescription subpass{
 	    {},
 	    vk::PipelineBindPoint::eGraphics,
 	    {},
 	    colorAttachmentRef,
 	    {},
 	    &depthAttachmentRef,
-	    {});
+	    {}};
 
 	constexpr auto dependencyStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
 	constexpr auto dependencyAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 
-	const vk::SubpassDependency dependency(
+	const vk::SubpassDependency dependency{
 	    VK_SUBPASS_EXTERNAL,
 	    0,
 	    dependencyStageMask,
 	    dependencyStageMask,
 	    {},
-	    dependencyAccessMask);
+	    dependencyAccessMask};
 
 	const auto renderPassAttachments = {colorAttachment, depthAttachment};
 
-	const vk::RenderPassCreateInfo renderPassInfo(
+	const vk::RenderPassCreateInfo renderPassInfo{
 	    {},
 	    renderPassAttachments,
 	    subpass,
-	    dependency);
+	    dependency};
 
 	return device->createRenderPassUnique(renderPassInfo);
 }
