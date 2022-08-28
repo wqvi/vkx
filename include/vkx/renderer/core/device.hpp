@@ -12,6 +12,14 @@ public:
 
 	explicit Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
 
+	Device(const Device&) = delete;
+
+	Device(Device&&) noexcept = default;
+
+	Device& operator=(const Device&) = delete;
+
+	Device& operator=(Device&&) noexcept = default;
+
 	explicit operator const vk::PhysicalDevice&() const;
 
 	explicit operator const vk::Device&() const;
