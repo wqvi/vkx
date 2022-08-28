@@ -22,9 +22,9 @@ public:
 
 	Device& operator=(Device&&) noexcept = default;
 
-	explicit operator const vk::Device&() const;
+	// explicit operator const vk::Device&() const;
 
-	const vk::Device& operator*() const;
+	// const vk::Device& operator*() const;
 
 	const vk::Device* operator->() const;
 
@@ -49,6 +49,8 @@ public:
 	std::shared_ptr<vkx::GraphicsPipeline> createGraphicsPipeline(const vkx::GraphicsPipelineInformation& info) const;
 
 	std::shared_ptr<vkx::CommandSubmitter> createCommandSubmitter() const;
+
+	std::vector<SyncObjects> createSyncObjects() const;
 
 private:
 	vk::Instance instance{};

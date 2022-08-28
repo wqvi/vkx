@@ -44,13 +44,13 @@ vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk
 	device = physicalDevice.createDeviceUnique(deviceCreateInfo);
 }
 
-vkx::Device::operator const vk::Device&() const {
-	return device.get();
-}
+// vkx::Device::operator const vk::Device&() const {
+// 	return device.get();
+// }
 
-const vk::Device& vkx::Device::operator*() const {
-	return *device;
-}
+// const vk::Device& vkx::Device::operator*() const {
+// 	return *device;
+// }
 
 const vk::Device* vkx::Device::operator->() const {
 	return &*device;
@@ -192,4 +192,15 @@ std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(const
 
 std::shared_ptr<vkx::CommandSubmitter> vkx::Device::createCommandSubmitter() const {
 	return std::make_shared<vkx::CommandSubmitter>(physicalDevice, *device, surface);
+}
+
+std::vector<vkx::SyncObjects> vkx::Device::createSyncObjects() const {
+	std::vector<vkx::SyncObjects> objs;
+	objs.resize(MAX_FRAMES_IN_FLIGHT);
+
+	std::generate(objs.begin(), objs.end(), [&device = *this->device]() { return SyncObjects{device}; });
+
+	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer sync objects.");
+
+	return objs;
 }
