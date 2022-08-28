@@ -2,9 +2,7 @@
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info)
     : layout(createPipelineLayout(device, info.descriptorSetLayout)),
-      pipeline(createPipeline(device, info, *layout)) {
-	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer graphics pipeline.");
-}
+      pipeline(createPipeline(device, info, *layout)) {}
 
 vk::UniquePipelineLayout vkx::GraphicsPipeline::createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout) {
 	const vk::PipelineLayoutCreateInfo pipelineLayoutInfo{{}, descriptorSetLayout};
