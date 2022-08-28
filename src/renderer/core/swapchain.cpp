@@ -7,8 +7,8 @@ vkx::Swapchain::Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Wind
 		throw std::invalid_argument("Surface must be a valid handle to create a swapchain.");
 	}
 
-	const SwapchainInfo info{static_cast<vk::PhysicalDevice>(device), surface};
-	const QueueConfig config{static_cast<vk::PhysicalDevice>(device), surface};
+	const SwapchainInfo info{device};
+	const QueueConfig config{device};
 
 	int width;
 	int height;
