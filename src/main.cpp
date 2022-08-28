@@ -1,6 +1,6 @@
 #include <vkx/vkx.hpp>
 
-auto createShaderDescriptorSetLayout(vk::Device device) {
+auto createShaderDescriptorSetLayout(const vkx::Device& device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
 	    vk::DescriptorType::eUniformBuffer,
@@ -32,10 +32,10 @@ auto createShaderDescriptorSetLayout(vk::Device device) {
 	constexpr std::array bindings = {uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
-	return device.createDescriptorSetLayoutUnique(layoutInfo);
+	return device->createDescriptorSetLayoutUnique(layoutInfo);
 };
 
-auto createHighlightDescriptorSetLayout(vk::Device device) {
+auto createHighlightDescriptorSetLayout(const vkx::Device& device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
 	    vk::DescriptorType::eUniformBuffer,
@@ -46,7 +46,7 @@ auto createHighlightDescriptorSetLayout(vk::Device device) {
 	constexpr std::array bindings = {uboLayoutBinding};
 
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
-	return device.createDescriptorSetLayoutUnique(layoutInfo);
+	return device->createDescriptorSetLayoutUnique(layoutInfo);
 }
 
 auto getBindingDescription() noexcept {
@@ -175,7 +175,7 @@ int main(void) {
 		const auto clearRenderPass = device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
 		const auto loadRenderPass = device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
-		swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
+		swapchain->createFramebuffers(device, *clearRenderPass);
 
 		constexpr vk::DescriptorPoolSize uniformBufferDescriptor{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
 		constexpr vk::DescriptorPoolSize samplerBufferDescriptor{vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT};
@@ -192,9 +192,9 @@ int main(void) {
 
 		const auto highlightDescriptorPool = device->createDescriptorPoolUnique(poolInfo);
 
-		const auto descriptorSetLayout = createShaderDescriptorSetLayout(static_cast<vk::Device>(*device));
+		const auto descriptorSetLayout = createShaderDescriptorSetLayout(device);
 
-		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(static_cast<vk::Device>(*device));
+		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(device);
 
 		vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 		    "shader.vert.spv",
@@ -223,7 +223,7 @@ int main(void) {
 		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
 		const auto drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
 		const auto secondaryDrawCommands = commandSubmitter->allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
-		const auto syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
+		const auto syncObjects = device.createSyncObjects();
 
 		vkx::VoxelChunk<16> chunk{{0, 0, 0}};
 		for (int j = 0; j < 10; j++) {
@@ -374,7 +374,7 @@ int main(void) {
 
 			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
-			auto [result, imageIndex] = swapchain->acquireNextImage(static_cast<vk::Device>(*device), syncObject);
+			auto [result, imageIndex] = swapchain->acquireNextImage(device, syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR) {
 				int newWidth;
@@ -389,7 +389,7 @@ int main(void) {
 
 				swapchain = device.createSwapchain(window, allocator);
 
-				swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
+				swapchain->createFramebuffers(device, *clearRenderPass);
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 				throw std::runtime_error("Failed to acquire next image.");
@@ -455,7 +455,7 @@ int main(void) {
 
 				swapchain = device.createSwapchain(window, allocator);
 
-				swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
+				swapchain->createFramebuffers(device, *clearRenderPass);
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
 			}
