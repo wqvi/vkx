@@ -8,12 +8,12 @@ struct QueueConfig {
 
 	QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
 
-	[[nodiscard]] bool isComplete() const;
-
-	[[nodiscard]] bool isUniversal() const;
-
 	[[nodiscard]] std::vector<vk::DeviceQueueCreateInfo> createQueueInfos(float queuePriorities) const;
 
 	[[nodiscard]] vk::SharingMode getImageSharingMode() const;
+
+	[[nodiscard]] bool isUniversal() const;
+
+	[[nodiscard]] bool isComplete() const;
 };
 } // namespace vkx
