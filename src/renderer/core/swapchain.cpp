@@ -76,9 +76,9 @@ void vkx::Swapchain::createFramebuffers(const vkx::Device& device, vk::RenderPas
 	}
 }
 
-vk::ResultValue<std::uint32_t> vkx::Swapchain::acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const {
+vk::ResultValue<std::uint32_t> vkx::Swapchain::acquireNextImage(const vkx::Device& device, const vkx::SyncObjects& syncObjects) const {
 	std::uint32_t imageIndex = 0;
-	const auto result = device.acquireNextImageKHR(*swapchain, UINT64_MAX, *syncObjects.imageAvailableSemaphore, {}, &imageIndex);
+	const auto result = device->acquireNextImageKHR(*swapchain, UINT64_MAX, *syncObjects.imageAvailableSemaphore, {}, &imageIndex);
 
 	return {result, imageIndex};
 }

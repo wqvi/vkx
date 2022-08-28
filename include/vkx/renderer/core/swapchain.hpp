@@ -16,7 +16,7 @@ public:
 
 	void createFramebuffers(const Device& device, vk::RenderPass renderPass);
 
-	vk::ResultValue<std::uint32_t> acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const;
+	vk::ResultValue<std::uint32_t> acquireNextImage(const vkx::Device& device, const vkx::SyncObjects& syncObjects) const;
 
 	vk::UniqueSwapchainKHR swapchain;
 	vk::Format imageFormat;
