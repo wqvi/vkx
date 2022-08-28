@@ -7,6 +7,8 @@
 
 namespace vkx {
 class Device {
+	friend class QueueConfig;
+	friend class SwapchainInfo;
 public:
 	Device() = default;
 
@@ -20,7 +22,7 @@ public:
 
 	Device& operator=(Device&&) noexcept = default;
 
-	explicit operator const vk::PhysicalDevice&() const;
+	// explicit operator const vk::PhysicalDevice&() const;
 
 	explicit operator const vk::Device&() const;
 
