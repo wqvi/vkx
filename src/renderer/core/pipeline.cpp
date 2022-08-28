@@ -1,8 +1,8 @@
 #include <vkx/renderer/core/pipeline.hpp>
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info)
-	: layout(createPipelineLayout(device, info.descriptorSetLayout)),
-	pipeline(createPipeline(device, info, *layout)) {
+    : layout(createPipelineLayout(device, info.descriptorSetLayout)),
+      pipeline(createPipeline(device, info, *layout)) {
 	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer graphics pipeline.");
 }
 
