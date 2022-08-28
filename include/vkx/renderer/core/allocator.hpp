@@ -51,6 +51,7 @@ struct Allocation {
 
 	template <class K>
 	void mapMemory(const std::vector<K>& memory) const;
+
 	template <class K, std::size_t size>
 	void mapMemory(const std::array<K, size>& memory) const;
 };
