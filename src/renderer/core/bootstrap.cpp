@@ -26,12 +26,12 @@ static VkBool32 vkDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSe
 #endif
 
 vkx::RendererBootstrap::RendererBootstrap(SDL_Window* window) {
-	constexpr vk::ApplicationInfo applicationInfo(
+	constexpr vk::ApplicationInfo applicationInfo{
 	    "Star explorer",
 	    VK_MAKE_VERSION(0, 0, 1),
 	    "VKX",
 	    VK_MAKE_VERSION(0, 0, 1),
-	    VK_API_VERSION_1_0);
+	    VK_API_VERSION_1_0};
 
 	std::uint32_t count = 0;
 	if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
@@ -49,27 +49,27 @@ vkx::RendererBootstrap::RendererBootstrap(SDL_Window* window) {
 #endif
 
 #ifdef DEBUG
-	constexpr std::array layers{"VK_LAYER_KHRONOS_validation"};
+	constexpr std::array layers = {"VK_LAYER_KHRONOS_validation"};
 #elif RELEASE
-	constexpr std::array<const char*, 0> layers{};
+	constexpr std::array<const char*, 0> layers = {};
 #endif
 
-	const vk::InstanceCreateInfo instanceCreateInfo(
+	const vk::InstanceCreateInfo instanceCreateInfo{
 	    {},
 	    &applicationInfo,
 	    layers,
-	    extensions);
+	    extensions};
 
 #ifdef DEBUG
 	constexpr auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
 	constexpr auto messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
 
-	const vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo(
+	const vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
 	    {},
 	    messageSeverity,
 	    messageType,
 	    vkDebugCallback,
-	    nullptr);
+	    nullptr};
 
 	vk::StructureChain<vk::InstanceCreateInfo, vk::DebugUtilsMessengerCreateInfoEXT> structureChain{
 	    instanceCreateInfo,
@@ -85,9 +85,7 @@ vkx::RendererBootstrap::RendererBootstrap(SDL_Window* window) {
 		throw std::runtime_error(SDL_GetError());
 	}
 
-	surface = vk::UniqueSurfaceKHR(cSurface, *instance);
-
-	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer bootstrap.");
+	surface = vk::UniqueSurfaceKHR{cSurface, *instance};
 }
 
 vkx::Device vkx::RendererBootstrap::createDevice() const {
