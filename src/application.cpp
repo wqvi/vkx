@@ -15,7 +15,7 @@ vkx::Renderer::Renderer(SDL_Window* window)
       swapchain(device.createSwapchain(window, allocator)),
       clearRenderPass(device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear)),
       loadRenderPass(device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad)) {
-	swapchain->createFramebuffers(*device, *clearRenderPass);
+	swapchain->createFramebuffers(device, *clearRenderPass);
 
 	constexpr vk::DescriptorPoolSize uniformBufferDescriptor{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
 	constexpr vk::DescriptorPoolSize samplerBufferDescriptor{vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT};
@@ -32,9 +32,9 @@ vkx::Renderer::Renderer(SDL_Window* window)
 
 	highlightDescriptorPool = device->createDescriptorPoolUnique(poolInfo);
 
-	descriptorSetLayout = createShaderDescriptorSetLayout(static_cast<vk::Device>(*device));
+	descriptorSetLayout = createShaderDescriptorSetLayout(device);
 
-	highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(static_cast<vk::Device>(*device));
+	highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(device);
 
 	vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 	    "shader.vert.spv",
@@ -56,7 +56,7 @@ vkx::Renderer::Renderer(SDL_Window* window)
 
 	highlightGraphicsPipeline = device.createGraphicsPipeline(highlightGraphicsPipelineInformation);
 
-	syncObjects = vkx::SyncObjects::createSyncObjects(static_cast<vk::Device>(*device));
+	syncObjects = device.createSyncObjects();
 
 	drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
 	secondaryDrawCommands = commandSubmitter->allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
@@ -75,10 +75,10 @@ void vkx::Renderer::recreateSwapchain() {
 
 	swapchain = device.createSwapchain(window, allocator);
 
-	swapchain->createFramebuffers(static_cast<vk::Device>(*device), *clearRenderPass);
+	swapchain->createFramebuffers(device, *clearRenderPass);
 }
 
-vk::UniqueDescriptorSetLayout vkx::Renderer::createShaderDescriptorSetLayout(vk::Device device) {
+vk::UniqueDescriptorSetLayout vkx::Renderer::createShaderDescriptorSetLayout(const vkx::Device& device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
 	    vk::DescriptorType::eUniformBuffer,
@@ -110,10 +110,10 @@ vk::UniqueDescriptorSetLayout vkx::Renderer::createShaderDescriptorSetLayout(vk:
 	constexpr std::array bindings = {uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
-	return device.createDescriptorSetLayoutUnique(layoutInfo);
+	return device->createDescriptorSetLayoutUnique(layoutInfo);
 };
 
-vk::UniqueDescriptorSetLayout vkx::Renderer::createHighlightDescriptorSetLayout(vk::Device device) {
+vk::UniqueDescriptorSetLayout vkx::Renderer::createHighlightDescriptorSetLayout(const vkx::Device& device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
 	    vk::DescriptorType::eUniformBuffer,
@@ -124,7 +124,7 @@ vk::UniqueDescriptorSetLayout vkx::Renderer::createHighlightDescriptorSetLayout(
 	constexpr std::array bindings = {uboLayoutBinding};
 
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
-	return device.createDescriptorSetLayoutUnique(layoutInfo);
+	return device->createDescriptorSetLayoutUnique(layoutInfo);
 }
 
 std::vector<vk::VertexInputBindingDescription> vkx::Renderer::getBindingDescription() noexcept {
@@ -188,7 +188,7 @@ void vkx::Application::run() {
 		// Render
 		const auto& syncObject = renderer.syncObjects[currentFrame];
 		syncObject.waitForFence();
-		auto [result, imageIndex] = renderer.swapchain->acquireNextImage(static_cast<vk::Device>(*renderer.device), syncObject);
+		auto [result, imageIndex] = renderer.swapchain->acquireNextImage(renderer.device, syncObject);
 
 		if (result == vk::Result::eErrorOutOfDateKHR) {
 			renderer.recreateSwapchain();

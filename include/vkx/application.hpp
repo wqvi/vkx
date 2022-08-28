@@ -38,9 +38,9 @@ public:
 	void recreateSwapchain();
 
 private:
-	static vk::UniqueDescriptorSetLayout createShaderDescriptorSetLayout(vk::Device device);
+	static vk::UniqueDescriptorSetLayout createShaderDescriptorSetLayout(const vkx::Device& device);
 
-	static vk::UniqueDescriptorSetLayout createHighlightDescriptorSetLayout(vk::Device device);
+	static vk::UniqueDescriptorSetLayout createHighlightDescriptorSetLayout(const vkx::Device& device);
 
 	static std::vector<vk::VertexInputBindingDescription> getBindingDescription() noexcept;
 
