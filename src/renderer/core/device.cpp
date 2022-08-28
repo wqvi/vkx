@@ -44,10 +44,6 @@ vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk
 	device = physicalDevice.createDeviceUnique(deviceCreateInfo);
 }
 
-// vkx::Device::operator const vk::PhysicalDevice&() const {
-// 	return physicalDevice;
-// }
-
 vkx::Device::operator const vk::Device&() const {
 	return device.get();
 }

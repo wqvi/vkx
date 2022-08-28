@@ -22,8 +22,6 @@ public:
 
 	Device& operator=(Device&&) noexcept = default;
 
-	// explicit operator const vk::PhysicalDevice&() const;
-
 	explicit operator const vk::Device&() const;
 
 	const vk::Device& operator*() const;
