@@ -1,3 +1,4 @@
+#include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
 
 vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
@@ -32,6 +33,9 @@ vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR 
 		std::copy(uniqueIndices.begin(), uniqueIndices.end(), std::back_inserter(indices));
 	}
 }
+
+vkx::QueueConfig::QueueConfig(const vkx::Device& device)
+    : vkx::QueueConfig::QueueConfig(device.physicalDevice, device.surface) {}
 
 bool vkx::QueueConfig::isComplete() const {
 	return graphicsIndex.has_value() && presentIndex.has_value();
