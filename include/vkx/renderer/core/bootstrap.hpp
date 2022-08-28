@@ -11,7 +11,7 @@ public:
 
 	RendererBootstrap(RendererBootstrap&&) noexcept = default;
 
-	RendererBootstrap& operator=(const RendererBootstrap& other) = delete;
+	RendererBootstrap& operator=(const RendererBootstrap&) = delete;
 
 	RendererBootstrap& operator=(RendererBootstrap&&) noexcept = default;
 

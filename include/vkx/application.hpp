@@ -118,7 +118,7 @@ public:
 
 	virtual ~Application();
 
-	Application& operator=(const Application& other) = delete;
+	Application& operator=(const Application&) = delete;
 
 	Application& operator=(Application&&) noexcept = default;
 
