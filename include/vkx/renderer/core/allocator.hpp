@@ -51,16 +51,6 @@ struct Allocation {
 
 	template <class K>
 	void mapMemory(const std::vector<K>& memory) const {
-#ifdef DEBUG
-		// Ensure memory size in bytes is equal to the mapped memory's size in bytes
-		const auto size = memory.size() * sizeof(K);
-		if (size < allocationInfo.size) {
-			throw std::invalid_argument("Provided memory is too small to be mapped.");
-		}
-		if (size > allocationInfo.size) {
-			throw std::invalid_argument("Provided memory is too large to be mapped.");
-		}
-#endif
 		std::memcpy(allocationInfo.pMappedData, memory.data(), allocationInfo.size);
 	}
 
@@ -73,17 +63,11 @@ struct Allocation {
 template <>
 inline Allocation<vk::Image>::~Allocation() {
 	vmaDestroyImage(allocator, static_cast<VkImage>(object), allocation);
-#ifdef DEBUG
-	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Freed image resource allocation.");
-#endif
 }
 
 template <>
 inline Allocation<vk::Buffer>::~Allocation() {
 	vmaDestroyBuffer(allocator, static_cast<VkBuffer>(object), allocation);
-#ifdef DEBUG
-	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Freed buffer resource allocation.");
-#endif
 }
 
 template <class T>
