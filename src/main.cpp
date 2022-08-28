@@ -92,7 +92,6 @@ struct MyScene : public vkx::Scene {
 	}
 
 	void windowResize(int width, int height) override {
-		
 	}
 
 	void mouseMoved(const SDL_MouseMotionEvent& event) override {
@@ -145,33 +144,42 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
-	int width = 640;
-	int height = 480;
+	// int width = 640;
+	// int height = 480;
 
-	const auto windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
+	// const auto windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
 
-	SDL_Window* const window = SDL_CreateWindow("Jewelry", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, windowFlags);
+	// SDL_Window* const window = SDL_CreateWindow("Jewelry", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, windowFlags);
 
-	if (window == nullptr) {
-		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2 window: %s", SDL_GetError());
-		SDL_Quit();
-		return EXIT_FAILURE;
-	}
+	// if (window == nullptr) {
+	// 	SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2 window: %s", SDL_GetError());
+	// 	SDL_Quit();
+	// 	return EXIT_FAILURE;
+	// }
 
-	if (SDL_SetRelativeMouseMode(SDL_TRUE)) {
-		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to capture mouse: %s", SDL_GetError());
-		SDL_DestroyWindow(window);
-		SDL_Quit();
-		return EXIT_FAILURE;
-	}
+	// if (SDL_SetRelativeMouseMode(SDL_TRUE)) {
+	// 	SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to capture mouse: %s", SDL_GetError());
+	// 	SDL_DestroyWindow(window);
+	// 	SDL_Quit();
+	// 	return EXIT_FAILURE;
+	// }
 
 	{
+		const vkx::SDLWindow window{"Among Us", 640, 480};
+
+		if (SDL_SetRelativeMouseMode(SDL_TRUE)) {
+			SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to capture mouse: %s", SDL_GetError());
+			SDL_Quit();
+			return EXIT_FAILURE;
+		}
+
 		vkx::Camera camera({0, 0, 0});
 
-		const vkx::RendererBootstrap renderer(window);
+		const vkx::RendererBootstrap renderer(static_cast<SDL_Window*>(window));
 		const auto device = renderer.createDevice();
 		const auto allocator = device.createAllocator();
-		auto swapchain = device.createSwapchain(window, allocator);
+		const auto commandSubmitter = device.createCommandSubmitter();
+		auto swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), allocator);
 		const auto clearRenderPass = device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
 		const auto loadRenderPass = device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
@@ -215,7 +223,6 @@ int main(void) {
 		    getAttributeDescriptions()};
 
 		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(highlightGraphicsPipelineInformation);
-		const auto commandSubmitter = device.createCommandSubmitter();
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
 
@@ -344,7 +351,7 @@ int main(void) {
 		SDL_Event event{};
 		bool isRunning = true;
 		bool framebufferResized = false;
-		SDL_ShowWindow(window);
+		window.show();
 		while (isRunning) {
 			camera.position += camera.direction * 0.001f;
 
@@ -377,17 +384,15 @@ int main(void) {
 			auto [result, imageIndex] = swapchain->acquireNextImage(device, syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR) {
-				int newWidth;
-				int newHeight;
-				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
+				auto [newWidth, newHeight] = window.getSize();
 				while (newWidth == 0 || newHeight == 0) {
-					SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
+					std::tie(newWidth, newHeight) = window.getSize();
 					SDL_WaitEvent(nullptr);
 				}
 
 				device->waitIdle();
 
-				swapchain = device.createSwapchain(window, allocator);
+				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), allocator);
 
 				swapchain->createFramebuffers(device, *clearRenderPass);
 				continue;
@@ -443,17 +448,15 @@ int main(void) {
 			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 				framebufferResized = false;
 
-				int newWidth;
-				int newHeight;
-				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
+				auto [newWidth, newHeight] = window.getSize();
 				while (newWidth == 0 || newHeight == 0) {
-					SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
+					std::tie(newWidth, newHeight) = window.getSize();
 					SDL_WaitEvent(nullptr);
 				}
 
 				device->waitIdle();
 
-				swapchain = device.createSwapchain(window, allocator);
+				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), allocator);
 
 				swapchain->createFramebuffers(device, *clearRenderPass);
 			} else if (result != vk::Result::eSuccess) {
@@ -474,8 +477,8 @@ int main(void) {
 				case SDL_WINDOWEVENT:
 					if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
 						framebufferResized = true;
-						width = event.window.data1;
-						height = event.window.data2;
+						int width = event.window.data1;
+						int height = event.window.data2;
 						proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
 					}
 					break;
@@ -520,7 +523,6 @@ int main(void) {
 		device->waitIdle();
 	}
 
-	SDL_DestroyWindow(window);
 	SDL_Quit();
 
 	return EXIT_SUCCESS;
