@@ -1,3 +1,4 @@
+#include <SDL2/SDL_video.h>
 #include <vkx/application.hpp>
 
 constexpr std::uint32_t chunkDrawCommandAmount = 1;
@@ -158,6 +159,22 @@ vkx::SDLWindow::SDLWindow(const char* title, int width, int height)
 
 vkx::SDLWindow::operator SDL_Window*() const noexcept {
 	return window.get();
+}
+
+void vkx::SDLWindow::show() const {
+	SDL_ShowWindow(window.get());
+}
+
+void vkx::SDLWindow::hide() const {
+	SDL_HideWindow(window.get());
+}
+
+std::pair<int, int> vkx::SDLWindow::getSize() const {
+	int width;
+	int height;
+	SDL_Vulkan_GetDrawableSize(window.get(), &width, &height);
+
+	return std::make_pair(width, height);
 }
 
 vkx::Application::Application()

@@ -59,6 +59,12 @@ public:
 	explicit SDLWindow(const char* title, int width, int height);
 
 	explicit operator SDL_Window*() const noexcept;
+
+	void show() const;
+
+	void hide() const;
+
+	std::pair<int, int> getSize() const;
 };
 
 struct Scene {
