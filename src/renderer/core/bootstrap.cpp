@@ -1,5 +1,5 @@
-#include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/bootstrap.hpp>
+#include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 
 #ifdef DEBUG

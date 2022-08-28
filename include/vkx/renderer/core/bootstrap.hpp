@@ -15,8 +15,7 @@ public:
 
 	RendererBootstrap& operator=(RendererBootstrap&&) noexcept = default;
 
-	[[nodiscard]]
-	vkx::Device createDevice() const; 
+	[[nodiscard]] vkx::Device createDevice() const;
 
 private:
 	vk::UniqueInstance instance{};
