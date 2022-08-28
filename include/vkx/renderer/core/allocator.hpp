@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vkx/renderer/core/renderer_types.hpp>
-#include <vk_mem_alloc.h>
 
 namespace vkx {
 class Allocator {
