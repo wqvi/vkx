@@ -58,7 +58,7 @@ vkx::Swapchain::operator const vk::SwapchainKHR&() const { return *swapchain; }
 
 vkx::Swapchain::operator const vk::UniqueSwapchainKHR&() const { return swapchain; }
 
-void vkx::Swapchain::createFramebuffers(vk::Device device, vk::RenderPass renderPass) {
+void vkx::Swapchain::createFramebuffers(const vkx::Device& device, vk::RenderPass renderPass) {
 	framebuffers.resize(imageViews.size());
 
 	for (std::size_t i = 0; i < imageViews.size(); i++) {
@@ -72,7 +72,7 @@ void vkx::Swapchain::createFramebuffers(vk::Device device, vk::RenderPass render
 		    extent.height,
 		    1);
 
-		framebuffers[i] = device.createFramebufferUnique(framebufferInfo);
+		framebuffers[i] = device->createFramebufferUnique(framebufferInfo);
 	}
 }
 

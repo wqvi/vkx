@@ -14,7 +14,7 @@ public:
 
 	operator const vk::UniqueSwapchainKHR&() const;
 
-	void createFramebuffers(vk::Device device, vk::RenderPass renderPass);
+	void createFramebuffers(const Device& device, vk::RenderPass renderPass);
 
 	vk::ResultValue<std::uint32_t> acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const;
 
