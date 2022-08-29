@@ -22,10 +22,6 @@ public:
 
 	Device& operator=(Device&&) noexcept = default;
 
-	// explicit operator const vk::Device&() const;
-
-	// const vk::Device& operator*() const;
-
 	const vk::Device* operator->() const;
 
 	[[nodiscard]] vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const;
