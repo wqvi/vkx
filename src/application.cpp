@@ -14,8 +14,8 @@ vkx::Renderer::Renderer(SDL_Window* window)
       allocator(device.createAllocator()),
       commandSubmitter(device.createCommandSubmitter()),
       swapchain(device.createSwapchain(window, allocator)),
-      clearRenderPass(device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear)),
-      loadRenderPass(device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad)) {
+      clearRenderPass(device.createRenderPass(swapchain->format(), vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear)),
+      loadRenderPass(device.createRenderPass(swapchain->format(), vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad)) {
 	swapchain->createFramebuffers(device, *clearRenderPass);
 
 	constexpr vk::DescriptorPoolSize uniformBufferDescriptor{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
@@ -223,8 +223,8 @@ void vkx::Application::run() {
 
 		const vkx::DrawInfo chunkDrawInfo = {
 		    *renderer.clearRenderPass,
-		    *renderer.swapchain->framebuffers[imageIndex],
-		    renderer.swapchain->extent,
+		    (*renderer.swapchain)[imageIndex],
+		    renderer.swapchain->extent(),
 		    *renderer.graphicsPipeline->pipeline,
 		    *renderer.graphicsPipeline->layout,
 		    renderer.descriptorSets[currentFrame],
@@ -234,8 +234,8 @@ void vkx::Application::run() {
 
 		const vkx::DrawInfo highlightDrawInfo = {
 		    *renderer.loadRenderPass,
-		    *renderer.swapchain->framebuffers[imageIndex],
-		    renderer.swapchain->extent,
+		    (*renderer.swapchain)[imageIndex],
+		    renderer.swapchain->extent(),
 		    *renderer.highlightGraphicsPipeline->pipeline,
 		    *renderer.highlightGraphicsPipeline->layout,
 		    renderer.highlightDescriptorSets[currentFrame],
@@ -257,7 +257,7 @@ void vkx::Application::run() {
 
 		renderer.commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
 
-		renderer.commandSubmitter->presentToSwapchain(*renderer.swapchain->swapchain, imageIndex, syncObject);
+		renderer.commandSubmitter->presentToSwapchain(*renderer.swapchain, imageIndex, syncObject);
 
 		if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 			renderer.recreateSwapchain();

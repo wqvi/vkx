@@ -180,8 +180,8 @@ int main(void) {
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
 		auto swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), allocator);
-		const auto clearRenderPass = device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
-		const auto loadRenderPass = device.createRenderPass(swapchain->imageFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
+		const auto clearRenderPass = device.createRenderPass(swapchain->format(), vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
+		const auto loadRenderPass = device.createRenderPass(swapchain->format(), vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
 		swapchain->createFramebuffers(device, *clearRenderPass);
 
@@ -409,8 +409,8 @@ int main(void) {
 
 			const vkx::DrawInfo chunkDrawInfo = {
 			    *clearRenderPass,
-			    *swapchain->framebuffers[imageIndex],
-			    swapchain->extent,
+			    (*swapchain)[imageIndex],
+			    swapchain->extent(),
 			    *graphicsPipeline->pipeline,
 			    *graphicsPipeline->layout,
 			    descriptorSets[currentFrame],
@@ -420,8 +420,8 @@ int main(void) {
 
 			const vkx::DrawInfo highlightDrawInfo = {
 			    *loadRenderPass,
-			    *swapchain->framebuffers[imageIndex],
-			    swapchain->extent,
+			    (*swapchain)[imageIndex],
+			    swapchain->extent(),
 			    *highlightGraphicsPipeline->pipeline,
 			    *highlightGraphicsPipeline->layout,
 			    highlightDescriptorSets[currentFrame],
@@ -443,7 +443,7 @@ int main(void) {
 
 			commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
 
-			commandSubmitter->presentToSwapchain(*swapchain->swapchain, imageIndex, syncObject);
+			commandSubmitter->presentToSwapchain(*swapchain, imageIndex, syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 				framebufferResized = false;
