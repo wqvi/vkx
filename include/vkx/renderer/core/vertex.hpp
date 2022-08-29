@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-#include <vulkan/vulkan_enums.hpp>
 namespace vkx {
 struct Vertex {
 	glm::vec3 pos;
