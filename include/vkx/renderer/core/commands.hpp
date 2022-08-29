@@ -1,7 +1,7 @@
 #pragma once
 
+#include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
 struct DrawInfo {
@@ -17,8 +17,6 @@ struct DrawInfo {
 };
 
 class CommandSubmitter {
-	using iter = std::vector<vk::CommandBuffer>::const_iterator;
-
 public:
 	explicit CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface);
 
@@ -38,7 +36,7 @@ public:
 
 	void submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const;
 
-	vk::Result presentToSwapchain(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const;
+	vk::Result presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const;
 
 private:
 	vk::Device device{};

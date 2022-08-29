@@ -1,22 +1,17 @@
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/renderer_types.hpp>
-#include <vulkan/vulkan_enums.hpp>
-#include <vulkan/vulkan_handles.hpp>
-#include <vulkan/vulkan_structs.hpp>
 
 vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface)
     : device(device) {
-	const vkx::QueueConfig queueConfig(physicalDevice, surface);
+	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 
 	graphicsQueue = device.getQueue(*queueConfig.graphicsIndex, 0);
 	presentQueue = device.getQueue(*queueConfig.presentIndex, 0);
 
-	const vk::CommandPoolCreateInfo commandPoolInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex);
+	const vk::CommandPoolCreateInfo commandPoolInfo{vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex};
 
 	commandPool = device.createCommandPoolUnique(commandPoolInfo);
-
-	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer command submitter.");
 }
 
 void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::CommandBuffer)>& command) const {
@@ -24,7 +19,7 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::Comma
 
 	auto commandBuffer = device.allocateCommandBuffers(allocInfo)[0];
 
-	constexpr vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit, {}, nullptr);
+	constexpr vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit, {}, nullptr};
 
 	commandBuffer.begin(beginInfo);
 
@@ -41,19 +36,19 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::Comma
 }
 
 void vkx::CommandSubmitter::copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const {
-	const vk::ImageSubresourceLayers subresourceLayer(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
+	const vk::ImageSubresourceLayers subresourceLayer{vk::ImageAspectFlagBits::eColor, 0, 0, 1};
 
-	const vk::Offset3D imageOffset(0, 0, 0);
+	const vk::Offset3D imageOffset{0, 0, 0};
 
-	const vk::Extent3D imageExtent(width, height, 1);
+	const vk::Extent3D imageExtent{width, height, 1};
 
-	const vk::BufferImageCopy region(
+	const vk::BufferImageCopy region{
 	    0,
 	    0,
 	    0,
 	    subresourceLayer,
 	    imageOffset,
-	    imageExtent);
+	    imageExtent};
 
 	submitImmediately([&buffer, &image, &region](vk::CommandBuffer commandBuffer) {
 		commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
@@ -61,7 +56,7 @@ void vkx::CommandSubmitter::copyBufferToImage(vk::Buffer buffer, vk::Image image
 }
 
 void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
-	const vk::ImageSubresourceRange subresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+	const vk::ImageSubresourceRange subresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1};
 
 	vk::AccessFlags srcAccessMask;
 	vk::AccessFlags dstAccessMask;
@@ -85,7 +80,7 @@ void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayo
 		throw std::invalid_argument("Unsupported layout transition.");
 	}
 
-	const vk::ImageMemoryBarrier barrier(
+	const vk::ImageMemoryBarrier barrier{
 	    srcAccessMask,
 	    dstAccessMask,
 	    oldLayout,
@@ -93,7 +88,7 @@ void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayo
 	    VK_QUEUE_FAMILY_IGNORED,
 	    VK_QUEUE_FAMILY_IGNORED,
 	    image,
-	    subresourceRange);
+	    subresourceRange};
 
 	submitImmediately([&sourceStage, &destinationStage, &barrier](vk::CommandBuffer commandBuffer) {
 		commandBuffer.pipelineBarrier(sourceStage, destinationStage, {}, {}, {}, barrier);
@@ -101,13 +96,13 @@ void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayo
 }
 
 std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::uint32_t amount) const {
-	const vk::CommandBufferAllocateInfo allocInfo(*commandPool, vk::CommandBufferLevel::ePrimary, amount * MAX_FRAMES_IN_FLIGHT);
+	const vk::CommandBufferAllocateInfo allocInfo{*commandPool, vk::CommandBufferLevel::ePrimary, amount * MAX_FRAMES_IN_FLIGHT};
 
 	return device.allocateCommandBuffers(allocInfo);
 }
 
 std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawCommands(std::uint32_t amount) const {
-	const vk::CommandBufferAllocateInfo allocInfo(*commandPool, vk::CommandBufferLevel::eSecondary, amount * MAX_FRAMES_IN_FLIGHT);
+	const vk::CommandBufferAllocateInfo allocInfo{*commandPool, vk::CommandBufferLevel::eSecondary, amount * MAX_FRAMES_IN_FLIGHT};
 
 	return device.allocateCommandBuffers(allocInfo);
 }
@@ -116,11 +111,11 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 	constexpr vk::CommandBufferBeginInfo beginInfo{};
 	
 	constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
-	constexpr vk::ClearColorValue clearColor(clearColorValue);
-	constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
-	constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
-	const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
-	const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
+	constexpr vk::ClearColorValue clearColor{clearColorValue};
+	constexpr vk::ClearDepthStencilValue clearDepthStencil{1.0f, 0};
+	constexpr std::array<vk::ClearValue, 2> clearValues = {clearColor, clearDepthStencil};
+	const vk::Rect2D renderArea{{0, 0}, drawInfo.extent};
+	const vk::RenderPassBeginInfo renderPassInfo{drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues};
 
 	const vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(drawInfo.extent.width), static_cast<float>(drawInfo.extent.height), 0.0f, 1.0f);
 
@@ -159,15 +154,15 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 
 void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vk::CommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const {
 	constexpr vk::CommandBufferBeginInfo beginInfo{};
-	const vk::CommandBufferInheritanceInfo secondaryInheritanceInfo(drawInfo.renderPass, 0, drawInfo.framebuffer);
-	const vk::CommandBufferBeginInfo secondaryBeginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &secondaryInheritanceInfo);
+	const vk::CommandBufferInheritanceInfo secondaryInheritanceInfo{drawInfo.renderPass, 0, drawInfo.framebuffer};
+	const vk::CommandBufferBeginInfo secondaryBeginInfo{vk::CommandBufferUsageFlagBits::eRenderPassContinue, &secondaryInheritanceInfo};
 
-	constexpr std::array clearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
-	constexpr vk::ClearColorValue clearColor(clearColorValue);
-	constexpr vk::ClearDepthStencilValue clearDepthStencil(1.0f, 0);
-	constexpr std::array<vk::ClearValue, 2> clearValues{clearColor, clearDepthStencil};
-	const vk::Rect2D renderArea({0, 0}, drawInfo.extent);
-	const vk::RenderPassBeginInfo renderPassInfo(drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues);
+	constexpr std::array clearColorValue = {0.0f, 0.0f, 0.0f, 1.0f};
+	constexpr vk::ClearColorValue clearColor{clearColorValue};
+	constexpr vk::ClearDepthStencilValue clearDepthStencil{1.0f, 0};
+	constexpr std::array<vk::ClearValue, 2> clearValues = {clearColor, clearDepthStencil};
+	const vk::Rect2D renderArea{{0, 0}, drawInfo.extent};
+	const vk::RenderPassBeginInfo renderPassInfo{drawInfo.renderPass, drawInfo.framebuffer, renderArea, clearValues};
 
 	const vk::Viewport viewport(0.0f, 0.0f, static_cast<float>(drawInfo.extent.width), static_cast<float>(drawInfo.extent.height), 0.0f, 1.0f);
 
@@ -215,26 +210,26 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 }
 
 void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const {
-	constexpr std::array waitStage{vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
-	const vk::SubmitInfo submitInfo(
+	constexpr std::array waitStage = {vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
+	const vk::SubmitInfo submitInfo{
 	    1,
 	    &*syncObjects.imageAvailableSemaphore,
 	    waitStage.data(),
 	    size,
 	    begin,
 	    1,
-	    &*syncObjects.renderFinishedSemaphore);
+	    &*syncObjects.renderFinishedSemaphore};
 
 	graphicsQueue.submit(submitInfo, *syncObjects.inFlightFence);
 }
 
-vk::Result vkx::CommandSubmitter::presentToSwapchain(vk::SwapchainKHR swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
-	const vk::PresentInfoKHR presentInfo(
+vk::Result vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
+	const vk::PresentInfoKHR presentInfo{
 	    1,
 	    &*syncObjects.renderFinishedSemaphore,
 	    1,
-	    &swapchain,
-	    &imageIndex);
+	    &*swapchain.swapchain,
+	    &imageIndex};
 
 	return presentQueue.presentKHR(&presentInfo);
 }
