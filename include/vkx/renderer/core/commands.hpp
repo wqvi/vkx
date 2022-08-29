@@ -1,15 +1,15 @@
 #pragma once
 
+#include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
 
 namespace vkx {
 struct DrawInfo {
+	std::uint32_t imageIndex = 0;
+	std::weak_ptr<vkx::Swapchain> swapchain{};
+	std::weak_ptr<vkx::GraphicsPipeline> graphicsPipeline{};
 	vk::RenderPass renderPass;
-	vk::Framebuffer framebuffer;
-	vk::Extent2D extent;
-	vk::Pipeline graphicsPipeline;
-	vk::PipelineLayout graphicsPipelineLayout;
 	vk::DescriptorSet descriptorSet;
 	std::vector<vk::Buffer> vertexBuffers;
 	std::vector<vk::Buffer> indexBuffers;
