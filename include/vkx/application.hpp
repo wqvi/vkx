@@ -108,14 +108,6 @@ private:
 	SDL_Event event{};
 
 public:
-	vk::Buffer vertexBuffer;
-	vk::Buffer indexBuffer;
-	std::uint32_t indexCount;
-
-	vk::Buffer highlightVertexBuffer;
-	vk::Buffer highlightIndexBuffer;
-	std::uint32_t highlightIndexCount;
-
 	Application();
 
 	Application(const Application&) = delete;
