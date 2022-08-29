@@ -135,34 +135,10 @@ struct MyScene : public vkx::Scene {
 };
 
 int main(void) {
-	// vkx::Application application{};
-	// application.setScene(new MyScene{});
-	// application.run();
-
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2: %s", SDL_GetError());
 		return EXIT_FAILURE;
 	}
-
-	// int width = 640;
-	// int height = 480;
-
-	// const auto windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
-
-	// SDL_Window* const window = SDL_CreateWindow("Jewelry", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, windowFlags);
-
-	// if (window == nullptr) {
-	// 	SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2 window: %s", SDL_GetError());
-	// 	SDL_Quit();
-	// 	return EXIT_FAILURE;
-	// }
-
-	// if (SDL_SetRelativeMouseMode(SDL_TRUE)) {
-	// 	SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to capture mouse: %s", SDL_GetError());
-	// 	SDL_DestroyWindow(window);
-	// 	SDL_Quit();
-	// 	return EXIT_FAILURE;
-	// }
 
 	{
 		const vkx::SDLWindow window{"Among Us", 640, 480};
@@ -408,22 +384,20 @@ int main(void) {
 			syncObject.resetFence();
 
 			const vkx::DrawInfo chunkDrawInfo = {
+			    imageIndex,
+			    swapchain,
+			    graphicsPipeline,
 			    *clearRenderPass,
-			    (*swapchain)[imageIndex],
-			    swapchain->extent(),
-			    *graphicsPipeline->pipeline,
-			    *graphicsPipeline->layout,
 			    descriptorSets[currentFrame],
 			    {mesh.vertex->object, mesh1.vertex->object, mesh2.vertex->object, mesh3.vertex->object},
 			    {mesh.index->object, mesh1.index->object, mesh2.index->object, mesh3.index->object},
 			    {static_cast<std::uint32_t>(mesh.indexCount), static_cast<std::uint32_t>(mesh1.indexCount), static_cast<std::uint32_t>(mesh2.indexCount), static_cast<std::uint32_t>(mesh3.indexCount)}};
 
 			const vkx::DrawInfo highlightDrawInfo = {
+			    imageIndex,
+			    swapchain,
+			    highlightGraphicsPipeline,
 			    *loadRenderPass,
-			    (*swapchain)[imageIndex],
-			    swapchain->extent(),
-			    *highlightGraphicsPipeline->pipeline,
-			    *highlightGraphicsPipeline->layout,
 			    highlightDescriptorSets[currentFrame],
 			    {highlightMesh.vertex->object},
 			    {highlightMesh.index->object},

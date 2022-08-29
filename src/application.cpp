@@ -222,26 +222,24 @@ void vkx::Application::run() {
 		syncObject.resetFence();
 
 		const vkx::DrawInfo chunkDrawInfo = {
+		    imageIndex,
+		    renderer.swapchain,
+		    renderer.graphicsPipeline,
 		    *renderer.clearRenderPass,
-		    (*renderer.swapchain)[imageIndex],
-		    renderer.swapchain->extent(),
-		    *renderer.graphicsPipeline->pipeline,
-		    *renderer.graphicsPipeline->layout,
 		    renderer.descriptorSets[currentFrame],
-		    {vertexBuffer},
-		    {indexBuffer},
-		    {indexCount}};
+		    {},
+		    {},
+		    {}};
 
 		const vkx::DrawInfo highlightDrawInfo = {
+		    imageIndex,
+		    renderer.swapchain,
+		    renderer.highlightGraphicsPipeline,
 		    *renderer.loadRenderPass,
-		    (*renderer.swapchain)[imageIndex],
-		    renderer.swapchain->extent(),
-		    *renderer.highlightGraphicsPipeline->pipeline,
-		    *renderer.highlightGraphicsPipeline->layout,
 		    renderer.highlightDescriptorSets[currentFrame],
-		    {highlightVertexBuffer},
-		    {highlightIndexBuffer},
-		    {highlightIndexCount}};
+		    {},
+		    {},
+		    {}};
 
 		const vk::CommandBuffer* begin = &renderer.drawCommands[currentFrame * drawCommandAmount];
 
