@@ -1,5 +1,5 @@
-#include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
+#include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 
 vkx::Swapchain::Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator) {
@@ -20,7 +20,7 @@ vkx::Swapchain::Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Wind
 	const auto imageCount = info.getImageCount();
 	const auto imageSharingMode = config.getImageSharingMode();
 
-	const vk::SwapchainCreateInfoKHR swapchainCreateInfo(
+	const vk::SwapchainCreateInfoKHR swapchainCreateInfo{
 	    {},
 	    surface,
 	    imageCount,
@@ -34,43 +34,37 @@ vkx::Swapchain::Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Wind
 	    info.capabilities.currentTransform,
 	    vk::CompositeAlphaFlagBitsKHR::eOpaque,
 	    presentMode,
-	    true);
+	    true};
 
 	swapchain = device->createSwapchainKHRUnique(swapchainCreateInfo);
 
 	images = device->getSwapchainImagesKHR(*swapchain);
 
 	imageFormat = surfaceFormat.format;
-	extent = actualExtent;
+	imageExtent = actualExtent;
 
 	for (const auto image : images) {
 		imageViews.push_back(device.createImageViewUnique(image, imageFormat, vk::ImageAspectFlagBits::eColor));
 	}
 
 	const auto depthFormat = device.findDepthFormat();
-	depthResource = allocator->allocateImage(extent.width, extent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+	depthResource = allocator->allocateImage(imageExtent.width, imageExtent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 	depthImageView = device.createImageViewUnique(depthResource->object, depthFormat, vk::ImageAspectFlagBits::eDepth);
-
-	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer swapchain.");
 }
-
-vkx::Swapchain::operator const vk::SwapchainKHR&() const { return *swapchain; }
-
-vkx::Swapchain::operator const vk::UniqueSwapchainKHR&() const { return swapchain; }
 
 void vkx::Swapchain::createFramebuffers(const vkx::Device& device, vk::RenderPass renderPass) {
 	framebuffers.resize(imageViews.size());
 
 	for (std::size_t i = 0; i < imageViews.size(); i++) {
-		const std::array framebufferAttachments{*imageViews[i], *depthImageView};
+		const std::array framebufferAttachments = {*imageViews[i], *depthImageView};
 
-		const vk::FramebufferCreateInfo framebufferInfo(
+		const vk::FramebufferCreateInfo framebufferInfo{
 		    {},
 		    renderPass,
 		    framebufferAttachments,
-		    extent.width,
-		    extent.height,
-		    1);
+		    imageExtent.width,
+		    imageExtent.height,
+		    1};
 
 		framebuffers[i] = device->createFramebufferUnique(framebufferInfo);
 	}
