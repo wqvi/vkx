@@ -145,7 +145,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 
 		commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
 
-		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline.lock()->layout, 0, drawInfo.descriptorSet, {});
+		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline.lock()->layout, 0, drawInfo.graphicsPipeline.lock()->descriptorSets[drawInfo.currentFrame], {});
 
 		commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 
@@ -200,7 +200,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 
 			secondaryCommandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
 
-			secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline.lock()->layout, 0, drawInfo.descriptorSet, {});
+			secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline.lock()->layout, 0, drawInfo.graphicsPipeline.lock()->descriptorSets[drawInfo.currentFrame], {});
 
 			secondaryCommandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 

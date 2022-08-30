@@ -7,13 +7,13 @@
 namespace vkx {
 struct DrawInfo {
 	std::uint32_t imageIndex = 0;
+	std::uint32_t currentFrame = 0;
 	std::weak_ptr<vkx::Swapchain> swapchain{};
 	std::weak_ptr<vkx::GraphicsPipeline> graphicsPipeline{};
-	vk::RenderPass renderPass;
-	vk::DescriptorSet descriptorSet;
-	std::vector<vk::Buffer> vertexBuffers;
-	std::vector<vk::Buffer> indexBuffers;
-	std::vector<std::uint32_t> indexCount;
+	vk::RenderPass renderPass{};
+	std::vector<vk::Buffer> vertexBuffers{};
+	std::vector<vk::Buffer> indexBuffers{};
+	std::vector<std::uint32_t> indexCount{};
 };
 
 class CommandSubmitter {
