@@ -223,20 +223,20 @@ void vkx::Application::run() {
 
 		const vkx::DrawInfo chunkDrawInfo = {
 		    imageIndex,
+		    currentFrame,
 		    renderer.swapchain,
 		    renderer.graphicsPipeline,
 		    *renderer.clearRenderPass,
-		    renderer.descriptorSets[currentFrame],
 		    {},
 		    {},
 		    {}};
 
 		const vkx::DrawInfo highlightDrawInfo = {
 		    imageIndex,
+		    currentFrame,
 		    renderer.swapchain,
 		    renderer.highlightGraphicsPipeline,
 		    *renderer.loadRenderPass,
-		    renderer.highlightDescriptorSets[currentFrame],
 		    {},
 		    {},
 		    {}};

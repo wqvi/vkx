@@ -164,17 +164,9 @@ int main(void) {
 		constexpr vk::DescriptorPoolSize uniformBufferDescriptor{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
 		constexpr vk::DescriptorPoolSize samplerBufferDescriptor{vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT};
 
-		constexpr std::array poolSizes = {uniformBufferDescriptor, samplerBufferDescriptor, uniformBufferDescriptor, uniformBufferDescriptor};
+		const std::vector poolSizes = {uniformBufferDescriptor, samplerBufferDescriptor, uniformBufferDescriptor, uniformBufferDescriptor};
 
-		const vk::DescriptorPoolCreateInfo poolInfo{{}, MAX_FRAMES_IN_FLIGHT, poolSizes};
-
-		const auto descriptorPool = device->createDescriptorPoolUnique(poolInfo);
-
-		constexpr std::array highlightPoolSizes = {uniformBufferDescriptor};
-
-		const vk::DescriptorPoolCreateInfo highlightPoolInfo{{}, MAX_FRAMES_IN_FLIGHT, highlightPoolSizes};
-
-		const auto highlightDescriptorPool = device->createDescriptorPoolUnique(poolInfo);
+		const std::vector highlightPoolSizes = {uniformBufferDescriptor};
 
 		const auto descriptorSetLayout = createShaderDescriptorSetLayout(device);
 
@@ -186,7 +178,8 @@ int main(void) {
 		    *clearRenderPass,
 		    *descriptorSetLayout,
 		    vkx::Vertex::getBindingDescription(),
-		    vkx::Vertex::getAttributeDescriptions()};
+		    vkx::Vertex::getAttributeDescriptions(),
+		    poolSizes};
 
 		const auto graphicsPipeline = device.createGraphicsPipeline(graphicsPipelineInformation);
 
@@ -196,7 +189,8 @@ int main(void) {
 		    *clearRenderPass,
 		    *highlightDescriptorSetLayout,
 		    getBindingDescription(),
-		    getAttributeDescriptions()};
+		    getAttributeDescriptions(),
+		    highlightPoolSizes};
 
 		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(highlightGraphicsPipelineInformation);
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
@@ -290,34 +284,16 @@ int main(void) {
 
 		auto highlightMVPBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
 
-		const std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
-		const vk::DescriptorSetAllocateInfo allocInfo(*descriptorPool, layouts);
+		graphicsPipeline->updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i, vk::DescriptorSet descriptorSet) -> std::vector<vk::WriteDescriptorSet> {
+			return {mvpBuffers[i].createWriteDescriptorSet(descriptorSet, 0),
+				texture.createWriteDescriptorSet(descriptorSet, 1),
+				lightBuffers[i].createWriteDescriptorSet(descriptorSet, 2),
+				materialBuffers[i].createWriteDescriptorSet(descriptorSet, 3)};
+		});
 
-		const auto descriptorSets = device->allocateDescriptorSets(allocInfo);
-
-		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			const std::array descriptorWrites = {
-			    mvpBuffers[i].createWriteDescriptorSet(descriptorSets[i], 0),
-			    texture.createWriteDescriptorSet(descriptorSets[i], 1),
-			    lightBuffers[i].createWriteDescriptorSet(descriptorSets[i], 2),
-			    materialBuffers[i].createWriteDescriptorSet(descriptorSets[i], 3),
-			};
-
-			device->updateDescriptorSets(descriptorWrites, {});
-		}
-
-		const std::vector<vk::DescriptorSetLayout> highlightLayouts(MAX_FRAMES_IN_FLIGHT, *highlightDescriptorSetLayout);
-		const vk::DescriptorSetAllocateInfo highlightAllocInfo(*highlightDescriptorPool, highlightLayouts);
-
-		const auto highlightDescriptorSets = device->allocateDescriptorSets(highlightAllocInfo);
-
-		for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			const std::array descriptorWrites = {
-			    highlightMVPBuffers[i].createWriteDescriptorSet(highlightDescriptorSets[i], 0),
-			};
-
-			device->updateDescriptorSets(descriptorWrites, {});
-		}
+		highlightGraphicsPipeline->updateDescriptorSets([&highlightMVPBuffers](std::size_t i, vk::DescriptorSet descriptorSet) -> std::vector<vk::WriteDescriptorSet> {
+			return {highlightMVPBuffers[i].createWriteDescriptorSet(descriptorSet, 0)};
+		});
 
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
@@ -355,6 +331,11 @@ int main(void) {
 			highlightMVPBuffer->view = mvpBuffer->view;
 			highlightMVPBuffer->proj = mvpBuffer->proj;
 
+			mvpBuffer.mapMemory();
+			lightBuffer.mapMemory();
+			materialBuffer.mapMemory();
+			highlightMVPBuffer.mapMemory();
+
 			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
 			auto [result, imageIndex] = swapchain->acquireNextImage(device, syncObject);
@@ -376,29 +357,24 @@ int main(void) {
 				throw std::runtime_error("Failed to acquire next image.");
 			}
 
-			mvpBuffer.mapMemory();
-			lightBuffer.mapMemory();
-			materialBuffer.mapMemory();
-			highlightMVPBuffer.mapMemory();
-
 			syncObject.resetFence();
 
 			const vkx::DrawInfo chunkDrawInfo = {
 			    imageIndex,
+			    currentFrame,
 			    swapchain,
 			    graphicsPipeline,
 			    *clearRenderPass,
-			    descriptorSets[currentFrame],
 			    {mesh.vertex->object, mesh1.vertex->object, mesh2.vertex->object, mesh3.vertex->object},
 			    {mesh.index->object, mesh1.index->object, mesh2.index->object, mesh3.index->object},
 			    {static_cast<std::uint32_t>(mesh.indexCount), static_cast<std::uint32_t>(mesh1.indexCount), static_cast<std::uint32_t>(mesh2.indexCount), static_cast<std::uint32_t>(mesh3.indexCount)}};
 
 			const vkx::DrawInfo highlightDrawInfo = {
 			    imageIndex,
+			    currentFrame,
 			    swapchain,
 			    highlightGraphicsPipeline,
 			    *loadRenderPass,
-			    highlightDescriptorSets[currentFrame],
 			    {highlightMesh.vertex->object},
 			    {highlightMesh.index->object},
 			    {static_cast<std::uint32_t>(highlightMesh.indexCount)}};
