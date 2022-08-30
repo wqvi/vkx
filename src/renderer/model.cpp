@@ -13,18 +13,21 @@ vkx::Texture::Texture(const std::string& file, const Device& device, const std::
 vk::WriteDescriptorSet vkx::Texture::createWriteDescriptorSet(vk::DescriptorSet descriptorSet, std::uint32_t dstBinding) const {
 	static vk::DescriptorImageInfo info{};
 
-	info = vk::DescriptorImageInfo(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal);
+	info = vk::DescriptorImageInfo{
+		*sampler,
+		*view, 
+		vk::ImageLayout::eShaderReadOnlyOptimal};
 
 	static vk::WriteDescriptorSet set{};
 
-	set = vk::WriteDescriptorSet(
+	set = vk::WriteDescriptorSet{
 	    descriptorSet,
 	    dstBinding,
 	    0,
 	    1,
 	    vk::DescriptorType::eCombinedImageSampler,
 	    &info,
-	    nullptr);
+	    nullptr};
 
 	return set;
 }

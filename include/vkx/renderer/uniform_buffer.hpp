@@ -8,8 +8,8 @@ namespace vkx {
 template <class T>
 class UniformBuffer {
 public:
-	std::shared_ptr<Allocation<vk::Buffer>> resource;
-	T uniformObject;
+	std::shared_ptr<Allocation<vk::Buffer>> resource{};
+	T uniformObject{};
 
 	UniformBuffer() = default;
 
@@ -22,14 +22,6 @@ public:
 
 	void mapMemory() const {
 		std::memcpy(resource->allocationInfo.pMappedData, &uniformObject, resource->allocationInfo.size);
-	}
-
-	void mapMemory(T const& data) const {
-		std::memcpy(resource->allocationInfo.pMappedData, &data, resource->allocationInfo.size);
-	}
-
-	void setObject(T const& value) {
-		uniformObject = value;
 	}
 
 	vk::WriteDescriptorSet createWriteDescriptorSet(const vk::DescriptorSet& descriptorSet, std::uint32_t dstBinding) const {
