@@ -1,8 +1,18 @@
 #include <vkx/renderer/core/pipeline.hpp>
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info)
-    : layout(createPipelineLayout(device, info.descriptorSetLayout)),
-      pipeline(createPipeline(device, info, *layout)) {}
+    : device(device),
+      layout(createPipelineLayout(device, info.descriptorSetLayout)),
+      pipeline(createPipeline(device, info, *layout)),
+      descriptorPool(createDescriptorPool(device, info.poolSizes)),
+      descriptorSets(createDescriptorSets(device, info.descriptorSetLayout, *descriptorPool)) {}
+
+void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunction function) {
+	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		auto writes = function(i, descriptorSets[i]);
+		device.updateDescriptorSets(writes, {});
+	}
+}
 
 vk::UniquePipelineLayout vkx::GraphicsPipeline::createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout) {
 	const vk::PipelineLayoutCreateInfo pipelineLayoutInfo{{}, descriptorSetLayout};
@@ -121,4 +131,17 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, cons
 	}
 
 	return vk::UniquePipeline{cPipeline, device};
+}
+
+vk::UniqueDescriptorPool vkx::GraphicsPipeline::createDescriptorPool(vk::Device device, const std::vector<vk::DescriptorPoolSize>& poolSizes) {
+	const vk::DescriptorPoolCreateInfo poolInfo{{}, MAX_FRAMES_IN_FLIGHT, poolSizes};
+
+	return device.createDescriptorPoolUnique(poolInfo);
+}
+
+std::vector<vk::DescriptorSet> vkx::GraphicsPipeline::createDescriptorSets(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout, vk::DescriptorPool descriptorPool) {
+	const std::vector<vk::DescriptorSetLayout> layouts{MAX_FRAMES_IN_FLIGHT, descriptorSetLayout};
+	const vk::DescriptorSetAllocateInfo allocInfo{descriptorPool, layouts};
+
+	return device.allocateDescriptorSets(allocInfo);
 }

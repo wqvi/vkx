@@ -11,19 +11,27 @@ struct GraphicsPipelineInformation {
 	vk::DescriptorSetLayout descriptorSetLayout{};
 	std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
 	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
+	std::vector<vk::DescriptorPoolSize> poolSizes;
 };
+
+using DescriptorWriteFunction = std::function<std::vector<vk::WriteDescriptorSet>(std::size_t, vk::DescriptorSet)>;
 
 class GraphicsPipeline {
 private:
 	friend class CommandSubmitter;
 
+	vk::Device device{};
 	vk::UniquePipelineLayout layout{};
 	vk::UniquePipeline pipeline{};
+	vk::UniqueDescriptorPool descriptorPool;
+	std::vector<vk::DescriptorSet> descriptorSets{};
 
 public:
 	GraphicsPipeline() = default;
 
 	explicit GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info);
+
+	void updateDescriptorSets(DescriptorWriteFunction function);
 
 private:
 	static vk::UniquePipelineLayout createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout);
@@ -31,5 +39,9 @@ private:
 	static vk::UniqueShaderModule createShaderModule(vk::Device device, const std::string& filename);
 
 	static vk::UniquePipeline createPipeline(vk::Device device, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout);
+
+	static vk::UniqueDescriptorPool createDescriptorPool(vk::Device device, const std::vector<vk::DescriptorPoolSize>& poolSizes);
+
+	static std::vector<vk::DescriptorSet> createDescriptorSets(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout, vk::DescriptorPool descriptorPool);
 };
 } // namespace vkx
