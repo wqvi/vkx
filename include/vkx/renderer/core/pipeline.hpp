@@ -31,7 +31,7 @@ public:
 
 	explicit GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info);
 
-	void updateDescriptorSets(DescriptorWriteFunction function);
+	void updateDescriptorSets(DescriptorWriteFunction function) const;
 
 private:
 	static vk::UniquePipelineLayout createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout);
