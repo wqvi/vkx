@@ -7,3 +7,4 @@
 #include <vkx/camera.hpp>
 #include <vkx/raycast.hpp>
 #include <vkx/application.hpp>
+#include <vkx/renderer/renderer.hpp>
