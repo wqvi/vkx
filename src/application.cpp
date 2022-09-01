@@ -45,7 +45,7 @@ vkx::Renderer::Renderer(SDL_Window* window)
 	    vkx::Vertex::getBindingDescription(),
 	    vkx::Vertex::getAttributeDescriptions()};
 
-	graphicsPipeline = device.createGraphicsPipeline(graphicsPipelineInformation);
+	// graphicsPipeline = device.createGraphicsPipeline(graphicsPipelineInformation);
 
 	vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 	    "highlight.vert.spv",
@@ -55,7 +55,7 @@ vkx::Renderer::Renderer(SDL_Window* window)
 	    getBindingDescription(),
 	    getAttributeDescriptions()};
 
-	highlightGraphicsPipeline = device.createGraphicsPipeline(highlightGraphicsPipelineInformation);
+	// highlightGraphicsPipeline = device.createGraphicsPipeline(highlightGraphicsPipelineInformation);
 
 	syncObjects = device.createSyncObjects();
 
