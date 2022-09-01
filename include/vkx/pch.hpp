@@ -74,4 +74,4 @@ static constexpr std::array<std::uint32_t, 36> CUBE_INDICES = {
     12, 13, 14, 14, 15, 12,
     16, 17, 18, 18, 19, 16,
     20, 21, 22, 22, 23, 20};
-}
+} // namespace vkx
