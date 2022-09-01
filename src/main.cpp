@@ -244,14 +244,14 @@ int main(void) {
 
 		auto highlightMVPBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
 
-		graphicsPipeline->updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
+		graphicsPipeline.updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
 			return {mvpBuffers[i].createDescriptorBufferInfo(),
 				texture.createDescriptorImageInfo(),
 				lightBuffers[i].createDescriptorBufferInfo(),
 				materialBuffers[i].createDescriptorBufferInfo()};
 		});
 
-		highlightGraphicsPipeline->updateDescriptorSets([&highlightMVPBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
+		highlightGraphicsPipeline.updateDescriptorSets([&highlightMVPBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
 			return {highlightMVPBuffers[i].createDescriptorBufferInfo()};
 		});
 
@@ -323,7 +323,7 @@ int main(void) {
 			    imageIndex,
 			    currentFrame,
 			    &swapchain,
-			    graphicsPipeline,
+			    &graphicsPipeline,
 			    *clearRenderPass,
 			    {mesh.vertex->object, mesh1.vertex->object, mesh2.vertex->object, mesh3.vertex->object},
 			    {mesh.index->object, mesh1.index->object, mesh2.index->object, mesh3.index->object},
@@ -333,7 +333,7 @@ int main(void) {
 			    imageIndex,
 			    currentFrame,
 			    &swapchain,
-			    highlightGraphicsPipeline,
+			    &highlightGraphicsPipeline,
 			    *loadRenderPass,
 			    {highlightMesh.vertex->object},
 			    {highlightMesh.index->object},
