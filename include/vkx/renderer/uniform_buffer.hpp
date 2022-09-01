@@ -2,11 +2,10 @@
 
 #include <vkx/renderer/core/allocator.hpp>
 #include <vkx/renderer/core/device.hpp>
-#include <vkx/renderer/core/pipeline.hpp>
 
 namespace vkx {
 template <class T>
-class UniformBuffer : public ShaderDescriptor<vk::DescriptorBufferInfo> {
+class UniformBuffer {
 public:
 	std::shared_ptr<Allocation<vk::Buffer>> resource{};
 	T uniformObject{};
@@ -57,10 +56,6 @@ public:
 	}
 
 	vk::DescriptorBufferInfo createDescriptorBufferInfo() const {
-		return {resource->object, 0, sizeof(T)};
-	}
-
-	vk::DescriptorBufferInfo getInfo() const override {
 		return {resource->object, 0, sizeof(T)};
 	}
 };

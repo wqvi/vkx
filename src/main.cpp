@@ -284,20 +284,15 @@ int main(void) {
 
 		auto highlightMVPBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
 
-		graphicsPipeline->updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i, vk::DescriptorSet descriptorSet) -> std::vector<vk::WriteDescriptorSet> {
-			return {mvpBuffers[i].createWriteDescriptorSet(descriptorSet, 0),
-				texture.createWriteDescriptorSet(descriptorSet, 1),
-				lightBuffers[i].createWriteDescriptorSet(descriptorSet, 2),
-				materialBuffers[i].createWriteDescriptorSet(descriptorSet, 3)};
+		graphicsPipeline->updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
+			return {mvpBuffers[i].createDescriptorBufferInfo(),
+				texture.createDescriptorImageInfo(),
+				lightBuffers[i].createDescriptorBufferInfo(),
+				materialBuffers[i].createDescriptorBufferInfo()};
 		});
 
-		// graphicsPipeline->updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> { return {{},
-		// 																									 {},
-		// 																									 {},
-		// 																									 {}}; });
-
-		highlightGraphicsPipeline->updateDescriptorSets([&highlightMVPBuffers](std::size_t i, vk::DescriptorSet descriptorSet) -> std::vector<vk::WriteDescriptorSet> {
-			return {highlightMVPBuffers[i].createWriteDescriptorSet(descriptorSet, 0)};
+		highlightGraphicsPipeline->updateDescriptorSets([&highlightMVPBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
+			return {highlightMVPBuffers[i].createDescriptorBufferInfo()};
 		});
 
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);

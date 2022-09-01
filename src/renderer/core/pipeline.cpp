@@ -7,18 +7,10 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelin
       descriptorPool(createDescriptorPool(device, info.poolSizes)),
       descriptorSets(createDescriptorSets(device, info.descriptorSetLayout, *descriptorPool)) {}
 
-void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunction function) {
-	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		auto writes = function(i, descriptorSets[i]);
-		device.updateDescriptorSets(writes, {});
-	}
-}
-
 void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunctionTest function) {
 	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		auto descriptorInfos = function(i);
 		std::vector<vk::WriteDescriptorSet> writes;
-		writes.resize(descriptorInfos.size());
 		for (std::uint32_t j = 0; j < descriptorInfos.size(); j++) {
 			const auto& info = descriptorInfos[j];
 
@@ -26,7 +18,6 @@ void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunctionTest fun
 			if (info.index() == 0) {
 				// vk::DescriptorBufferInfo
 				const auto* ptr = &std::get<vk::DescriptorBufferInfo>(info);
-
 				write = {descriptorSets[i],
 					 j,
 					 0,
@@ -34,11 +25,9 @@ void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunctionTest fun
 					 vk::DescriptorType::eUniformBuffer,
 					 nullptr,
 					 ptr};
-
 			} else {
 				// vk::DescriptorImageInfo
 				const auto* ptr = &std::get<vk::DescriptorImageInfo>(info);
-
 				write = {descriptorSets[i],
 					 j,
 					 0,
@@ -47,8 +36,10 @@ void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunctionTest fun
 					 ptr,
 					 nullptr};
 			}
+
+			writes.push_back(write);
 		}
-		device.updateDescriptorSets({}, {});
+		device.updateDescriptorSets(writes, {});
 	}
 }
 

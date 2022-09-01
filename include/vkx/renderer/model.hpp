@@ -23,7 +23,7 @@ public:
 	std::size_t indexCount = 0;
 };
 
-class Texture : public ShaderDescriptor<vk::DescriptorImageInfo> {
+class Texture {
 public:
 	Texture() = default;
 
@@ -34,8 +34,6 @@ public:
 	[[nodiscard]] vk::WriteDescriptorSet createWriteDescriptorSet(vk::DescriptorImageInfo* imageInfo, vk::DescriptorSet descriptorSet, std::uint32_t dstBinding) const;
 
 	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
-
-	vk::DescriptorImageInfo getInfo() const override;
 
 private:
 	Image image;
