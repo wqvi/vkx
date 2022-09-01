@@ -23,38 +23,6 @@ public:
 		std::memcpy(resource->allocationInfo.pMappedData, &uniformObject, resource->allocationInfo.size);
 	}
 
-	vk::WriteDescriptorSet createWriteDescriptorSet(const vk::DescriptorSet& descriptorSet, std::uint32_t dstBinding) const {
-		// This is a type safe uniform buffer. There will only be one info per type of this uniform buffer
-		static vk::DescriptorBufferInfo info{};
-
-		info = vk::DescriptorBufferInfo{
-		    resource->object,
-		    0,
-		    sizeof(T)};
-
-		static vk::WriteDescriptorSet set{};
-
-		set = vk::WriteDescriptorSet{
-		    descriptorSet,
-		    dstBinding,
-		    0,
-		    1,
-		    vk::DescriptorType::eUniformBuffer,
-		    nullptr,
-		    &info};
-		return set;
-	}
-
-	vk::WriteDescriptorSet createWriteDescriptorSet(vk::DescriptorBufferInfo* bufferInfo, vk::DescriptorSet descriptorSet, std::uint32_t dstBinding) const {
-		return {descriptorSet,
-			dstBinding,
-			0,
-			1,
-			vk::DescriptorType::eUniformBuffer,
-			nullptr,
-			bufferInfo};
-	}
-
 	vk::DescriptorBufferInfo createDescriptorBufferInfo() const {
 		return {resource->object, 0, sizeof(T)};
 	}

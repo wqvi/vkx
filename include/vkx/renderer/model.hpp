@@ -29,10 +29,6 @@ public:
 
 	Texture(const std::string& file, const Device& device, const std::shared_ptr<vkx::Allocator>& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter);
 
-	[[nodiscard]] vk::WriteDescriptorSet createWriteDescriptorSet(vk::DescriptorSet descriptorSet, std::uint32_t dstBinding) const;
-
-	[[nodiscard]] vk::WriteDescriptorSet createWriteDescriptorSet(vk::DescriptorImageInfo* imageInfo, vk::DescriptorSet descriptorSet, std::uint32_t dstBinding) const;
-
 	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
 
 private:
