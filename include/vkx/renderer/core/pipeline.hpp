@@ -14,6 +14,14 @@ struct GraphicsPipelineInformation {
 	std::vector<vk::DescriptorPoolSize> poolSizes;
 };
 
+template<class T>
+class ShaderDescriptor {
+public:
+	virtual ~ShaderDescriptor() = default;
+
+	virtual T getInfo() const = 0;
+};
+
 using DescriptorWriteFunction = std::function<std::vector<vk::WriteDescriptorSet>(std::size_t, vk::DescriptorSet)>;
 
 using DescriptorWriteFunctionTest = std::function<std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>>(std::size_t)>;

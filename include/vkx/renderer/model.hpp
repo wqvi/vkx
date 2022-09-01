@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/image.hpp>
 
 namespace vkx {
@@ -22,7 +23,7 @@ public:
 	std::size_t indexCount = 0;
 };
 
-class Texture {
+class Texture : public ShaderDescriptor<vk::DescriptorImageInfo> {
 public:
 	Texture() = default;
 
@@ -33,6 +34,8 @@ public:
 	[[nodiscard]] vk::WriteDescriptorSet createWriteDescriptorSet(vk::DescriptorImageInfo* imageInfo, vk::DescriptorSet descriptorSet, std::uint32_t dstBinding) const;
 
 	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
+
+	vk::DescriptorImageInfo getInfo() const override;
 
 private:
 	Image image;

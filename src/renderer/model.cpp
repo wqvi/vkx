@@ -45,3 +45,7 @@ vk::WriteDescriptorSet vkx::Texture::createWriteDescriptorSet(vk::DescriptorImag
 vk::DescriptorImageInfo vkx::Texture::createDescriptorImageInfo() const {
 	return {*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal};
 }
+
+vk::DescriptorImageInfo vkx::Texture::getInfo() const {
+	return {*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal};
+}
