@@ -8,19 +8,19 @@ class Mesh {
 public:
 	Mesh() = default;
 
-	explicit Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const std::shared_ptr<Allocator>& allocator);
+	explicit Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const Allocator& allocator);
 
 	template <std::size_t T, std::size_t K>
-	explicit Mesh(const std::array<Vertex, T>& vertices, const std::array<std::uint32_t, K>& indices, const std::shared_ptr<Allocator>& allocator)
-	    : vertex(allocator->allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator->allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(K) {}
+	explicit Mesh(const std::array<Vertex, T>& vertices, const std::array<std::uint32_t, K>& indices, const Allocator& allocator)
+	    : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(K) {}
 
 	template <class T, class K>
-	explicit Mesh(const std::vector<T>& vertices, const std::vector<K>& indices, const std::shared_ptr<Allocator>& allocator)
-	    : vertex(allocator->allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator->allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
+	explicit Mesh(const std::vector<T>& vertices, const std::vector<K>& indices, const Allocator& allocator)
+	    : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
 	template <class T, std::size_t K, class U, std::size_t Y>
-	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, const std::shared_ptr<Allocator>& allocator)
-	    : vertex(allocator->allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator->allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
+	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, const Allocator& allocator)
+	    : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
 
 	std::shared_ptr<Allocation<vk::Buffer>> vertex;
