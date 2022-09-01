@@ -13,7 +13,7 @@ vkx::Renderer::Renderer(SDL_Window* window)
       device(bootstrap.createDevice()),
       allocator(device.createAllocator()),
       commandSubmitter(device.createCommandSubmitter()),
-      swapchain(device.createSwapchain(window, allocator)),
+    //   swapchain(device.createSwapchain(window, allocator)),
       clearRenderPass(device.createRenderPass(swapchain->format(), vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear)),
       loadRenderPass(device.createRenderPass(swapchain->format(), vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad)) {
 	swapchain->createFramebuffers(device, *clearRenderPass);
@@ -74,9 +74,9 @@ void vkx::Renderer::recreateSwapchain() {
 
 	device->waitIdle();
 
-	swapchain = device.createSwapchain(window, allocator);
+	// swapchain = device.createSwapchain(window, allocator);
 
-	swapchain->createFramebuffers(device, *clearRenderPass);
+	// swapchain->createFramebuffers(device, *clearRenderPass);
 }
 
 vk::UniqueDescriptorSetLayout vkx::Renderer::createShaderDescriptorSetLayout(const vkx::Device& device) {
@@ -200,72 +200,72 @@ void vkx::Application::run() {
 
 	while (isRunning) {
 		// Do stuff
-		scene->update();
+		// scene->update();
 
-		// Render
-		const auto& syncObject = renderer.syncObjects[currentFrame];
-		syncObject.waitForFence();
-		auto [result, imageIndex] = renderer.swapchain->acquireNextImage(renderer.device, syncObject);
+		// // Render
+		// const auto& syncObject = renderer.syncObjects[currentFrame];
+		// syncObject.waitForFence();
+		// auto [result, imageIndex] = renderer.swapchain->acquireNextImage(renderer.device, syncObject);
 
-		if (result == vk::Result::eErrorOutOfDateKHR) {
-			renderer.recreateSwapchain();
-			continue;
-		} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
-			throw std::runtime_error("Failed to acquire next image.");
-		}
+		// if (result == vk::Result::eErrorOutOfDateKHR) {
+		// 	renderer.recreateSwapchain();
+		// 	continue;
+		// } else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+		// 	throw std::runtime_error("Failed to acquire next image.");
+		// }
 
-		// mvpBuffer.mapMemory();
-		// lightBuffer.mapMemory();
-		// materialBuffer.mapMemory();
-		// highlightMVPBuffer.mapMemory();
+		// // mvpBuffer.mapMemory();
+		// // lightBuffer.mapMemory();
+		// // materialBuffer.mapMemory();
+		// // highlightMVPBuffer.mapMemory();
 
-		syncObject.resetFence();
+		// syncObject.resetFence();
 
-		const vkx::DrawInfo chunkDrawInfo = {
-		    imageIndex,
-		    currentFrame,
-		    renderer.swapchain,
-		    renderer.graphicsPipeline,
-		    *renderer.clearRenderPass,
-		    {},
-		    {},
-		    {}};
+		// const vkx::DrawInfo chunkDrawInfo = {
+		//     imageIndex,
+		//     currentFrame,
+		//     renderer.swapchain,
+		//     renderer.graphicsPipeline,
+		//     *renderer.clearRenderPass,
+		//     {},
+		//     {},
+		//     {}};
 
-		const vkx::DrawInfo highlightDrawInfo = {
-		    imageIndex,
-		    currentFrame,
-		    renderer.swapchain,
-		    renderer.highlightGraphicsPipeline,
-		    *renderer.loadRenderPass,
-		    {},
-		    {},
-		    {}};
+		// const vkx::DrawInfo highlightDrawInfo = {
+		//     imageIndex,
+		//     currentFrame,
+		//     renderer.swapchain,
+		//     renderer.highlightGraphicsPipeline,
+		//     *renderer.loadRenderPass,
+		//     {},
+		//     {},
+		//     {}};
 
-		const vk::CommandBuffer* begin = &renderer.drawCommands[currentFrame * drawCommandAmount];
+		// const vk::CommandBuffer* begin = &renderer.drawCommands[currentFrame * drawCommandAmount];
 
-		const vk::CommandBuffer* chunkBegin = begin;
+		// const vk::CommandBuffer* chunkBegin = begin;
 
-		const vk::CommandBuffer* highlightBegin = chunkBegin + chunkDrawCommandAmount;
+		// const vk::CommandBuffer* highlightBegin = chunkBegin + chunkDrawCommandAmount;
 
-		const vk::CommandBuffer* secondaryBegin = &renderer.secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
+		// const vk::CommandBuffer* secondaryBegin = &renderer.secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
-		renderer.commandSubmitter->recordSecondaryDrawCommands(chunkBegin, chunkDrawCommandAmount, secondaryBegin, secondaryDrawCommandAmount, chunkDrawInfo);
+		// renderer.commandSubmitter->recordSecondaryDrawCommands(chunkBegin, chunkDrawCommandAmount, secondaryBegin, secondaryDrawCommandAmount, chunkDrawInfo);
 
-		renderer.commandSubmitter->recordPrimaryDrawCommands(highlightBegin, highlightDrawCommandAmount, highlightDrawInfo);
+		// renderer.commandSubmitter->recordPrimaryDrawCommands(highlightBegin, highlightDrawCommandAmount, highlightDrawInfo);
 
-		renderer.commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
+		// renderer.commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
 
-		renderer.commandSubmitter->presentToSwapchain(*renderer.swapchain, imageIndex, syncObject);
+		// renderer.commandSubmitter->presentToSwapchain(*renderer.swapchain, imageIndex, syncObject);
 
-		if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
-			renderer.recreateSwapchain();
-		} else if (result != vk::Result::eSuccess) {
-			throw std::runtime_error("Failed to present.");
-		}
+		// if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
+		// 	renderer.recreateSwapchain();
+		// } else if (result != vk::Result::eSuccess) {
+		// 	throw std::runtime_error("Failed to present.");
+		// }
 
-		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+		// currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
-		handleEvents();
+		// handleEvents();
 	}
 }
 
