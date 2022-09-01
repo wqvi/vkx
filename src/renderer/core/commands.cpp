@@ -108,8 +108,8 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawComma
 }
 
 void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
-	const auto extent = drawInfo.swapchain.lock()->extent();
-	const auto framebuffer = (*drawInfo.swapchain.lock())[drawInfo.imageIndex];
+	const auto extent = drawInfo.swapchain->extent();
+	const auto framebuffer = (*drawInfo.swapchain)[drawInfo.imageIndex];
 	
 	constexpr vk::CommandBufferBeginInfo beginInfo{};
 	
@@ -156,8 +156,8 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 }
 
 void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vk::CommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const {
-	const auto extent = drawInfo.swapchain.lock()->extent();
-	const auto framebuffer = (*drawInfo.swapchain.lock())[drawInfo.imageIndex];
+	const auto extent = drawInfo.swapchain->extent();
+	const auto framebuffer = (*drawInfo.swapchain)[drawInfo.imageIndex];
 
 	constexpr vk::CommandBufferBeginInfo beginInfo{};
 	const vk::CommandBufferInheritanceInfo secondaryInheritanceInfo{drawInfo.renderPass, 0, framebuffer};
