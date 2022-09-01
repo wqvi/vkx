@@ -4,7 +4,7 @@
 vkx::Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const vkx::Allocator& allocator)
     : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
-vkx::Texture::Texture(const std::string& file, const Device& device, const vkx::Allocator& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter)
+vkx::Texture::Texture(const std::string& file, const Device& device, const vkx::Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter)
     : image(file, allocator, commandSubmitter),
       view(device.createTextureImageViewUnique(image.resource->object)),
       sampler(device.createTextureSamplerUnique()) {
