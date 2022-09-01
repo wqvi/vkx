@@ -45,6 +45,20 @@ public:
 		    &info};
 		return set;
 	}
+
+	vk::WriteDescriptorSet createWriteDescriptorSet(vk::DescriptorBufferInfo* bufferInfo, vk::DescriptorSet descriptorSet, std::uint32_t dstBinding) const {
+		return {descriptorSet,
+			dstBinding,
+			0,
+			1,
+			vk::DescriptorType::eUniformBuffer,
+			nullptr,
+			bufferInfo};
+	}
+
+	vk::DescriptorBufferInfo createDescriptorBufferInfo() const {
+		return {resource->object, 0, sizeof(T)};
+	}
 };
 
 struct MVP {
