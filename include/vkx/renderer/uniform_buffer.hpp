@@ -6,10 +6,11 @@
 namespace vkx {
 template <class T>
 class UniformBuffer {
-public:
+private:
 	std::shared_ptr<Allocation<vk::Buffer>> resource{};
 	T uniformObject{};
 
+public:
 	UniformBuffer() = default;
 
 	explicit UniformBuffer(const T& value, std::shared_ptr<vkx::Allocation<vk::Buffer>> resource)
