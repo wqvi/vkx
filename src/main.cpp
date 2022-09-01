@@ -156,10 +156,10 @@ int main(void) {
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
 		auto swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), allocator);
-		const auto clearRenderPass = device.createRenderPass(swapchain->format(), vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
-		const auto loadRenderPass = device.createRenderPass(swapchain->format(), vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
+		const auto clearRenderPass = device.createRenderPass(swapchain.format(), vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
+		const auto loadRenderPass = device.createRenderPass(swapchain.format(), vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
-		swapchain->createFramebuffers(device, *clearRenderPass);
+		swapchain.createFramebuffers(device, *clearRenderPass);
 
 		constexpr vk::DescriptorPoolSize uniformBufferDescriptor{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
 		constexpr vk::DescriptorPoolSize samplerBufferDescriptor{vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT};
@@ -298,7 +298,7 @@ int main(void) {
 
 			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
-			auto [result, imageIndex] = swapchain->acquireNextImage(device, syncObject);
+			auto [result, imageIndex] = swapchain.acquireNextImage(device, syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR) {
 				auto [newWidth, newHeight] = window.getSize();
@@ -311,7 +311,7 @@ int main(void) {
 
 				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), allocator);
 
-				swapchain->createFramebuffers(device, *clearRenderPass);
+				swapchain.createFramebuffers(device, *clearRenderPass);
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 				throw std::runtime_error("Failed to acquire next image.");
@@ -322,7 +322,7 @@ int main(void) {
 			const vkx::DrawInfo chunkDrawInfo = {
 			    imageIndex,
 			    currentFrame,
-			    swapchain,
+			    &swapchain,
 			    graphicsPipeline,
 			    *clearRenderPass,
 			    {mesh.vertex->object, mesh1.vertex->object, mesh2.vertex->object, mesh3.vertex->object},
@@ -332,7 +332,7 @@ int main(void) {
 			const vkx::DrawInfo highlightDrawInfo = {
 			    imageIndex,
 			    currentFrame,
-			    swapchain,
+			    &swapchain,
 			    highlightGraphicsPipeline,
 			    *loadRenderPass,
 			    {highlightMesh.vertex->object},
@@ -353,7 +353,7 @@ int main(void) {
 
 			commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
 
-			commandSubmitter->presentToSwapchain(*swapchain, imageIndex, syncObject);
+			commandSubmitter->presentToSwapchain(swapchain, imageIndex, syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 				framebufferResized = false;
@@ -368,7 +368,7 @@ int main(void) {
 
 				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), allocator);
 
-				swapchain->createFramebuffers(device, *clearRenderPass);
+				swapchain.createFramebuffers(device, *clearRenderPass);
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
 			}
