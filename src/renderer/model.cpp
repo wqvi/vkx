@@ -14,9 +14,9 @@ vk::WriteDescriptorSet vkx::Texture::createWriteDescriptorSet(vk::DescriptorSet 
 	static vk::DescriptorImageInfo info{};
 
 	info = vk::DescriptorImageInfo{
-		*sampler,
-		*view, 
-		vk::ImageLayout::eShaderReadOnlyOptimal};
+	    *sampler,
+	    *view,
+	    vk::ImageLayout::eShaderReadOnlyOptimal};
 
 	static vk::WriteDescriptorSet set{};
 
@@ -30,4 +30,18 @@ vk::WriteDescriptorSet vkx::Texture::createWriteDescriptorSet(vk::DescriptorSet 
 	    nullptr};
 
 	return set;
+}
+
+vk::WriteDescriptorSet vkx::Texture::createWriteDescriptorSet(vk::DescriptorImageInfo* imageInfo, vk::DescriptorSet descriptorSet, std::uint32_t dstBinding) const {
+	return {descriptorSet,
+		dstBinding,
+		0,
+		1,
+		vk::DescriptorType::eCombinedImageSampler,
+		imageInfo,
+		nullptr};
+}
+
+vk::DescriptorImageInfo vkx::Texture::createDescriptorImageInfo() const {
+	return {*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal};
 }
