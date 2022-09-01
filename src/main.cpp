@@ -140,14 +140,14 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
+	if (SDL_SetRelativeMouseMode(SDL_TRUE)) {
+		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to capture mouse: %s", SDL_GetError());
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
+
 	{
 		const vkx::SDLWindow window{"Among Us", 640, 480};
-
-		if (SDL_SetRelativeMouseMode(SDL_TRUE)) {
-			SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to capture mouse: %s", SDL_GetError());
-			SDL_Quit();
-			return EXIT_FAILURE;
-		}
 
 		vkx::Camera camera({0, 0, 0});
 
@@ -172,7 +172,7 @@ int main(void) {
 
 		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(device);
 
-		vkx::GraphicsPipelineInformation graphicsPipelineInformation{
+		const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 		    "shader.vert.spv",
 		    "shader.frag.spv",
 		    *clearRenderPass,
@@ -183,7 +183,7 @@ int main(void) {
 
 		const auto graphicsPipeline = device.createGraphicsPipeline(graphicsPipelineInformation);
 
-		vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
+		const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
 		    "highlight.frag.spv",
 		    *clearRenderPass,
@@ -236,47 +236,7 @@ int main(void) {
 
 		const vkx::Texture texture{"a.jpg", device, allocator, commandSubmitter};
 
-		std::vector<glm::vec3> vertices = {
-		    {0.0f, 0.0f, 0.0f},
-		    {0.0f, 1.0f, 0.0f},
-		    {1.0f, 1.0f, 0.0f},
-		    {1.0f, 0.0f, 0.0f},
-
-		    {1.0f, 0.0f, 0.0f},
-		    {1.0f, 1.0f, 0.0f},
-		    {1.0f, 1.0f, 1.0f},
-		    {1.0f, 0.0f, 1.0f},
-
-		    {1.0f, 0.0f, 1.0f},
-		    {1.0f, 1.0f, 1.0f},
-		    {0.0f, 1.0f, 1.0f},
-		    {0.0f, 0.0f, 1.0f},
-
-		    {0.0f, 0.0f, 1.0f},
-		    {0.0f, 1.0f, 1.0f},
-		    {0.0f, 1.0f, 0.0f},
-		    {0.0f, 0.0f, 0.0f},
-
-		    {0.0f, 0.0f, 0.0f},
-		    {1.0f, 0.0f, 0.0f},
-		    {1.0f, 0.0f, 1.0f},
-		    {0.0f, 0.0f, 1.0f},
-
-		    {0.0f, 1.0f, 0.0f},
-		    {0.0f, 1.0f, 1.0f},
-		    {1.0f, 1.0f, 1.0f},
-		    {1.0f, 1.0f, 0.0f},
-		};
-
-		std::vector<std::uint32_t> indices = {
-		    0, 1, 2, 2, 3, 0,
-		    4, 5, 6, 6, 7, 4,
-		    8, 9, 10, 10, 11, 8,
-		    12, 13, 14, 14, 15, 12,
-		    16, 17, 18, 18, 19, 16,
-		    20, 21, 22, 22, 23, 20};
-
-		vkx::Mesh highlightMesh(vertices, indices, allocator);
+		const vkx::Mesh highlightMesh(vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator);
 
 		auto mvpBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
 		auto lightBuffers = allocator->allocateUniformBuffers(vkx::DirectionalLight{});
