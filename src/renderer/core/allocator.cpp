@@ -3,6 +3,12 @@
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
+void vkx::Allocator::VmaDeleter::operator()(VmaAllocator ptr) noexcept {
+	if (ptr) {
+		vmaDestroyAllocator(ptr);
+	}
+}
+
 vkx::Allocator::Allocator(VkPhysicalDevice physicalDevice, VkDevice device, VkInstance instance) {
 	VmaVulkanFunctions vulkanFunctions{};
 	vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
@@ -23,17 +29,16 @@ vkx::Allocator::Allocator(VkPhysicalDevice physicalDevice, VkDevice device, VkIn
 	allocatorCreateInfo.pTypeExternalMemoryHandleTypes = nullptr;
 #endif
 
-	if (vmaCreateAllocator(&allocatorCreateInfo, &allocator) != VK_SUCCESS) {
+	VmaAllocator cAllocator = nullptr;
+	if (vmaCreateAllocator(&allocatorCreateInfo, &cAllocator) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create vulkan memory allocator.");
 	}
-}
 
-vkx::Allocator::~Allocator() {
-	vmaDestroyAllocator(allocator);
+	allocator = std::unique_ptr<VmaAllocator_T, vkx::Allocator::VmaDeleter>(cAllocator);
 }
 
 VmaAllocator vkx::Allocator::getAllocator() const noexcept {
-	return allocator;
+	return allocator.get();
 }
 
 std::shared_ptr<vkx::Allocation<vk::Image>> vkx::Allocator::allocateImage(std::uint32_t width, std::uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags imageUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) const {
@@ -54,11 +59,11 @@ std::shared_ptr<vkx::Allocation<vk::Image>> vkx::Allocator::allocateImage(std::u
 	VkImage image = nullptr;
 	VmaAllocation allocation = nullptr;
 	VmaAllocationInfo allocationInfo = {};
-	if (vmaCreateImage(allocator, reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &image, &allocation, &allocationInfo) != VK_SUCCESS) {
+	if (vmaCreateImage(allocator.get(), reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &image, &allocation, &allocationInfo) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
-	return std::make_shared<Allocation<vk::Image>>(vk::Image(image), allocation, allocationInfo, allocator);
+	return std::make_shared<Allocation<vk::Image>>(vk::Image(image), allocation, allocationInfo, allocator.get());
 }
 
 std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(vk::DeviceSize size, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) const {
@@ -77,11 +82,11 @@ std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(vk::
 	VkBuffer buffer = nullptr;
 	VmaAllocation allocation = nullptr;
 	VmaAllocationInfo allocationInfo = {};
-	if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
+	if (vmaCreateBuffer(allocator.get(), reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate buffer memory resources.");
 	}
 
-	return std::make_shared<Allocation<vk::Buffer>>(vk::Buffer(buffer), allocation, allocationInfo, allocator);
+	return std::make_shared<Allocation<vk::Buffer>>(vk::Buffer(buffer), allocation, allocationInfo, allocator.get());
 }
 
 VmaAllocationCreateInfo vkx::Allocator::createAllocationInfo(VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage, VmaPool pool) {
