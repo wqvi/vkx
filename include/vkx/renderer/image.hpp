@@ -10,6 +10,6 @@ public:
 
 	Image() = default;
 
-	explicit Image(const std::string& file, const std::shared_ptr<vkx::Allocator>& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter);
+	explicit Image(const std::string& file, const Allocator& allocator, const std::shared_ptr<vkx::CommandSubmitter>& commandSubmitter);
 };
 } // namespace vkx
