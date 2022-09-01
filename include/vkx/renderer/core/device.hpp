@@ -36,7 +36,7 @@ public:
 
 	[[nodiscard]] vk::UniqueSampler createTextureSamplerUnique() const;
 
-	std::shared_ptr<vkx::Allocator> createAllocator() const;
+	vkx::Allocator createAllocator() const;
 
 	vkx::Swapchain createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const;
 

@@ -108,8 +108,8 @@ vk::UniqueSampler vkx::Device::createTextureSamplerUnique() const {
 	return device->createSamplerUnique(samplerInfo);
 }
 
-std::shared_ptr<vkx::Allocator> vkx::Device::createAllocator() const {
-	return std::make_shared<vkx::Allocator>(physicalDevice, *device, instance);
+vkx::Allocator vkx::Device::createAllocator() const {
+	return vkx::Allocator{physicalDevice, *device, instance};
 }
 
 vkx::Swapchain vkx::Device::createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const {
