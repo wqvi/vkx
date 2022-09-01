@@ -236,7 +236,7 @@ int main(void) {
 
 		const vkx::Texture texture{"a.jpg", device, allocator, commandSubmitter};
 
-		const vkx::Mesh highlightMesh(vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator);
+		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
 		auto mvpBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
 		auto lightBuffers = allocator->allocateUniformBuffers(vkx::DirectionalLight{});
