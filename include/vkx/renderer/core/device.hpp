@@ -38,7 +38,7 @@ public:
 
 	vkx::Allocator createAllocator() const;
 
-	vkx::Swapchain createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const;
+	vkx::Swapchain createSwapchain(SDL_Window* window, const vkx::Allocator& allocator) const;
 
 	vk::UniqueRenderPass createRenderPass(vk::Format format, vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
 

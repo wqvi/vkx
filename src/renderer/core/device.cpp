@@ -112,7 +112,7 @@ vkx::Allocator vkx::Device::createAllocator() const {
 	return vkx::Allocator{physicalDevice, *device, instance};
 }
 
-vkx::Swapchain vkx::Device::createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const {
+vkx::Swapchain vkx::Device::createSwapchain(SDL_Window* window, const vkx::Allocator& allocator) const {
 	return vkx::Swapchain{*this, surface, window, allocator};
 }
 
