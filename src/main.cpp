@@ -151,7 +151,7 @@ int main(void) {
 
 		vkx::Camera camera({0, 0, 0});
 
-		const vkx::RendererBootstrap renderer(static_cast<SDL_Window*>(window));
+		const vkx::RendererBootstrap renderer{static_cast<SDL_Window*>(window)};
 		const auto device = renderer.createDevice();
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
