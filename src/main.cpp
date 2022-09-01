@@ -79,7 +79,7 @@ struct MyScene : public vkx::Scene {
 			return chunk.at(b) != vkx::Voxel::Air;
 		};
 
-		texture = vkx::Texture{"a.jpg", device, allocator, commandSubmitter};
+		// texture = vkx::Texture{"a.jpg", device, allocator, commandSubmitter};
 	}
 
 	void destroy() override {
@@ -238,11 +238,11 @@ int main(void) {
 
 		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
-		auto mvpBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
-		auto lightBuffers = allocator->allocateUniformBuffers(vkx::DirectionalLight{});
-		auto materialBuffers = allocator->allocateUniformBuffers(vkx::Material{});
+		auto mvpBuffers = allocator.allocateUniformBuffers(vkx::MVP{});
+		auto lightBuffers = allocator.allocateUniformBuffers(vkx::DirectionalLight{});
+		auto materialBuffers = allocator.allocateUniformBuffers(vkx::Material{});
 
-		auto highlightMVPBuffers = allocator->allocateUniformBuffers(vkx::MVP{});
+		auto highlightMVPBuffers = allocator.allocateUniformBuffers(vkx::MVP{});
 
 		graphicsPipeline.updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
 			return {mvpBuffers[i].createDescriptorBufferInfo(),
