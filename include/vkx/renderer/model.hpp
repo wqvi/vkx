@@ -18,6 +18,11 @@ public:
 	explicit Mesh(const std::vector<T>& vertices, const std::vector<K>& indices, const std::shared_ptr<Allocator>& allocator)
 	    : vertex(allocator->allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator->allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
+	template <class T, std::size_t K, class U, std::size_t Y>
+	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, const std::shared_ptr<Allocator>& allocator)
+	    : vertex(allocator->allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator->allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
+
+
 	std::shared_ptr<Allocation<vk::Buffer>> vertex;
 	std::shared_ptr<Allocation<vk::Buffer>> index;
 	std::size_t indexCount = 0;
