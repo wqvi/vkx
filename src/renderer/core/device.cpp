@@ -112,8 +112,8 @@ std::shared_ptr<vkx::Allocator> vkx::Device::createAllocator() const {
 	return std::make_shared<vkx::Allocator>(physicalDevice, *device, instance);
 }
 
-std::shared_ptr<vkx::Swapchain> vkx::Device::createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const {
-	return std::make_shared<vkx::Swapchain>(*this, surface, window, allocator);
+vkx::Swapchain vkx::Device::createSwapchain(SDL_Window* window, const std::shared_ptr<vkx::Allocator>& allocator) const {
+	return vkx::Swapchain{*this, surface, window, allocator};
 }
 
 vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp) const {
