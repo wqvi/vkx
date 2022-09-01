@@ -135,7 +135,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 
 		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
-		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline.lock()->pipeline);
+		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipeline);
 
 		commandBuffer.setViewport(0, viewport);
 
@@ -145,7 +145,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 
 		commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
 
-		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline.lock()->layout, 0, drawInfo.graphicsPipeline.lock()->descriptorSets[drawInfo.currentFrame], {});
+		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->layout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
 
 		commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 
@@ -190,7 +190,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 
 			static_cast<void>(secondaryCommandBuffer.begin(secondaryBeginInfo));
 
-			secondaryCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline.lock()->pipeline);
+			secondaryCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipeline);
 
 			secondaryCommandBuffer.setViewport(0, viewport);
 
@@ -200,7 +200,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 
 			secondaryCommandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
 
-			secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline.lock()->layout, 0, drawInfo.graphicsPipeline.lock()->descriptorSets[drawInfo.currentFrame], {});
+			secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->layout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
 
 			secondaryCommandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 
