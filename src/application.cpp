@@ -11,7 +11,7 @@ vkx::Renderer::Renderer(SDL_Window* window)
     : window(window),
       bootstrap(window),
       device(bootstrap.createDevice()),
-      allocator(device.createAllocator()),
+    //   allocator(device.createAllocator()),
       commandSubmitter(device.createCommandSubmitter()),
     //   swapchain(device.createSwapchain(window, allocator)),
       clearRenderPass(device.createRenderPass(swapchain->format(), vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear)),
