@@ -21,7 +21,7 @@ private:
 public:
 	Swapchain() = default;
 
-	explicit Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator);
+	explicit Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator);
 
 	inline vk::Framebuffer operator[](std::size_t index) const noexcept {
 		return *framebuffers[index];

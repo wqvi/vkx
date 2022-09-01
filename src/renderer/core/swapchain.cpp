@@ -2,7 +2,7 @@
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 
-vkx::Swapchain::Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const std::shared_ptr<Allocator>& allocator) {
+vkx::Swapchain::Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator) {
 	if (!static_cast<bool>(surface)) {
 		throw std::invalid_argument("Surface must be a valid handle to create a swapchain.");
 	}
@@ -48,7 +48,7 @@ vkx::Swapchain::Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Wind
 	}
 
 	const auto depthFormat = device.findDepthFormat();
-	depthResource = allocator->allocateImage(imageExtent.width, imageExtent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+	depthResource = allocator.allocateImage(imageExtent.width, imageExtent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 	depthImageView = device.createImageViewUnique(depthResource->object, depthFormat, vk::ImageAspectFlagBits::eDepth);
 }
 
