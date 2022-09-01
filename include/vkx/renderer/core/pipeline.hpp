@@ -14,7 +14,7 @@ struct GraphicsPipelineInformation {
 	std::vector<vk::DescriptorPoolSize> poolSizes;
 };
 
-using DescriptorWriteFunctionTest = std::function<std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>>(std::size_t)>;
+using DescriptorWriteFunction = std::function<std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>>(std::size_t)>;
 
 class GraphicsPipeline {
 private:
@@ -31,7 +31,7 @@ public:
 
 	explicit GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info);
 
-	void updateDescriptorSets(DescriptorWriteFunctionTest function);
+	void updateDescriptorSets(DescriptorWriteFunction function);
 
 private:
 	static vk::UniquePipelineLayout createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout);

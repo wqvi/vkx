@@ -7,7 +7,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelin
       descriptorPool(createDescriptorPool(device, info.poolSizes)),
       descriptorSets(createDescriptorSets(device, info.descriptorSetLayout, *descriptorPool)) {}
 
-void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunctionTest function) {
+void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunction function) {
 	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		auto descriptorInfos = function(i);
 		std::vector<vk::WriteDescriptorSet> writes;
