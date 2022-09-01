@@ -198,8 +198,8 @@ int main(void) {
 
 		constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount + highlightDrawCommandAmount;
 		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
-		const auto drawCommands = commandSubmitter->allocateDrawCommands(drawCommandAmount);
-		const auto secondaryDrawCommands = commandSubmitter->allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
+		const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
+		const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 		const auto syncObjects = device.createSyncObjects();
 
 		vkx::VoxelChunk<16> chunk{{0, 0, 0}};
@@ -347,13 +347,13 @@ int main(void) {
 
 			const vk::CommandBuffer* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
-			commandSubmitter->recordSecondaryDrawCommands(chunkBegin, chunkDrawCommandAmount, secondaryBegin, secondaryDrawCommandAmount, chunkDrawInfo);
+			commandSubmitter.recordSecondaryDrawCommands(chunkBegin, chunkDrawCommandAmount, secondaryBegin, secondaryDrawCommandAmount, chunkDrawInfo);
 
-			commandSubmitter->recordPrimaryDrawCommands(highlightBegin, highlightDrawCommandAmount, highlightDrawInfo);
+			commandSubmitter.recordPrimaryDrawCommands(highlightBegin, highlightDrawCommandAmount, highlightDrawInfo);
 
-			commandSubmitter->submitDrawCommands(begin, drawCommandAmount, syncObject);
+			commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
-			commandSubmitter->presentToSwapchain(swapchain, imageIndex, syncObject);
+			commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 				framebufferResized = false;
