@@ -44,7 +44,7 @@ public:
 
 	vkx::GraphicsPipeline createGraphicsPipeline(const vkx::GraphicsPipelineInformation& info) const;
 
-	std::shared_ptr<vkx::CommandSubmitter> createCommandSubmitter() const;
+	vkx::CommandSubmitter createCommandSubmitter() const;
 
 	std::vector<SyncObjects> createSyncObjects() const;
 

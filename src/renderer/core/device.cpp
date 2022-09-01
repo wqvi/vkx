@@ -182,8 +182,8 @@ vkx::GraphicsPipeline vkx::Device::createGraphicsPipeline(const vkx::GraphicsPip
 	return vkx::GraphicsPipeline{*device, info};
 }
 
-std::shared_ptr<vkx::CommandSubmitter> vkx::Device::createCommandSubmitter() const {
-	return std::make_shared<vkx::CommandSubmitter>(physicalDevice, *device, surface);
+vkx::CommandSubmitter vkx::Device::createCommandSubmitter() const {
+	return vkx::CommandSubmitter{physicalDevice, *device, surface};
 }
 
 std::vector<vkx::SyncObjects> vkx::Device::createSyncObjects() const {
