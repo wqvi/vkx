@@ -291,6 +291,11 @@ int main(void) {
 				materialBuffers[i].createWriteDescriptorSet(descriptorSet, 3)};
 		});
 
+		// graphicsPipeline->updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> { return {{},
+		// 																									 {},
+		// 																									 {},
+		// 																									 {}}; });
+
 		highlightGraphicsPipeline->updateDescriptorSets([&highlightMVPBuffers](std::size_t i, vk::DescriptorSet descriptorSet) -> std::vector<vk::WriteDescriptorSet> {
 			return {highlightMVPBuffers[i].createWriteDescriptorSet(descriptorSet, 0)};
 		});

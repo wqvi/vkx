@@ -26,6 +26,7 @@
 #include <bitset>
 #include <list>
 #include <forward_list>
+#include <variant>
 
 #ifdef NDEBUG
 #define RELEASE

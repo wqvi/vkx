@@ -16,6 +16,8 @@ struct GraphicsPipelineInformation {
 
 using DescriptorWriteFunction = std::function<std::vector<vk::WriteDescriptorSet>(std::size_t, vk::DescriptorSet)>;
 
+using DescriptorWriteFunctionTest = std::function<std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>>(std::size_t)>;
+
 class GraphicsPipeline {
 private:
 	friend class CommandSubmitter;
@@ -32,6 +34,8 @@ public:
 	explicit GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info);
 
 	void updateDescriptorSets(DescriptorWriteFunction function);
+
+	void updateDescriptorSets(DescriptorWriteFunctionTest function);
 
 private:
 	static vk::UniquePipelineLayout createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout);
