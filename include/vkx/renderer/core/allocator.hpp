@@ -10,6 +10,7 @@ private:
 	};
 
 	std::unique_ptr<VmaAllocator_T, VmaDeleter> allocator;
+
 public:
 	Allocator() = default;
 
