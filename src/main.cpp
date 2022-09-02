@@ -158,7 +158,7 @@ int main(void) {
 
 		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(device);
 
-		const vkx::GraphicsPipelineInformationTest graphicsPipelineInformation{
+		const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 		    "shader.vert.spv",
 		    "shader.frag.spv",
 		    createShaderBindings(),
@@ -168,7 +168,7 @@ int main(void) {
 
 		const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, graphicsPipelineInformation);
 
-		const vkx::GraphicsPipelineInformationTest highlightGraphicsPipelineInformation{
+		const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
 		    "highlight.frag.spv",
 		    createHighlightShaderBindings(),

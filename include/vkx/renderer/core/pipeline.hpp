@@ -4,7 +4,7 @@
 #include <vkx/renderer/core/vertex.hpp>
 
 namespace vkx {
-struct GraphicsPipelineInformationTest {
+struct GraphicsPipelineInformation {
 	std::string vertexFile{};
 	std::string fragmentFile{};
 	std::vector<vk::DescriptorSetLayoutBinding> bindings{};
@@ -29,7 +29,7 @@ private:
 public:
 	GraphicsPipeline() = default;
 
-	explicit GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformationTest& info);
+	explicit GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info);
 
 	void updateDescriptorSets(DescriptorWriteFunction function) const;
 
@@ -38,7 +38,7 @@ private:
 
 	static vk::UniqueShaderModule createShaderModule(vk::Device device, const std::string& filename);
 
-	static vk::UniquePipeline createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformationTest& info, vk::PipelineLayout pipelineLayout);
+	static vk::UniquePipeline createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout);
 
 	static vk::UniqueDescriptorPool createDescriptorPool(vk::Device device, const std::vector<vk::DescriptorPoolSize>& poolSizes);
 

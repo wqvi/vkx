@@ -1,7 +1,7 @@
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/pipeline.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformationTest& info)
+vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info)
     : device(device) {
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, info.bindings};
 	descriptorLayout = device.createDescriptorSetLayoutUnique(layoutInfo);
@@ -76,7 +76,7 @@ vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device devi
 	return device.createShaderModuleUnique(shaderCreateInfo);
 }
 
-vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformationTest& info, vk::PipelineLayout pipelineLayout) {
+vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout) {
 	const auto vertShaderModule = createShaderModule(device, info.vertexFile);
 	const auto fragShaderModule = createShaderModule(device, info.fragmentFile);
 

@@ -45,7 +45,7 @@ public:
 
     explicit Renderer(const SDLWindow& window);
 
-    vkx::GraphicsPipeline* attachPipeline(const GraphicsPipelineInformationTest& pipelineInformation);
+    vkx::GraphicsPipeline* attachPipeline(const GraphicsPipelineInformation& pipelineInformation);
 
     void resized(const SDLWindow& window);
 

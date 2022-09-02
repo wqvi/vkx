@@ -178,7 +178,7 @@ vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageL
 	return device->createRenderPassUnique(renderPassInfo);
 }
 
-vkx::GraphicsPipeline vkx::Device::createGraphicsPipeline(vk::RenderPass renderPass, const vkx::GraphicsPipelineInformationTest& info) const {
+vkx::GraphicsPipeline vkx::Device::createGraphicsPipeline(vk::RenderPass renderPass, const vkx::GraphicsPipelineInformation& info) const {
 	return vkx::GraphicsPipeline{*device, renderPass, info};
 }
 

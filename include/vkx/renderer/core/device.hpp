@@ -42,7 +42,7 @@ public:
 
 	vk::UniqueRenderPass createRenderPass(vk::Format format, vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear) const;
 
-	vkx::GraphicsPipeline createGraphicsPipeline(vk::RenderPass renderPass, const vkx::GraphicsPipelineInformationTest& info) const;
+	vkx::GraphicsPipeline createGraphicsPipeline(vk::RenderPass renderPass, const vkx::GraphicsPipelineInformation& info) const;
 
 	vkx::CommandSubmitter createCommandSubmitter() const;
 
