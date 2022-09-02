@@ -1,4 +1,3 @@
-#include "vkx/pch.hpp"
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(const vkx::Device& device) {
@@ -124,7 +123,7 @@ int main(void) {
 	{
 		const vkx::SDLWindow window{"Among Us", 640, 480};
 
-		vkx::Renderer renderer{window};
+		// vkx::Renderer renderer{window};
 
 		// const auto* graphicsPipeline = renderer.attachPipeline({"shader.vert.spv",
 		// 			 "shader.frag.spv",
@@ -184,8 +183,8 @@ int main(void) {
 
 		constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount + highlightDrawCommandAmount;
 		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
-		const auto drawCommands = renderer.commandSubmitter.allocateDrawCommands(drawCommandAmount);
-		const auto secondaryDrawCommands = renderer.commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
+		const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
+		const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 		const auto syncObjects = device.createSyncObjects();
 
 		vkx::VoxelChunk<16> chunk{{0, 0, 0}};
@@ -208,21 +207,21 @@ int main(void) {
 		vkx::VoxelChunk<16> chunk3{{1, 0, 1}};
 		chunk3.greedy();
 
-		vkx::Mesh mesh = renderer.createMesh(chunk.vertices, chunk.indices);
+		vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
 		mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
 
-		vkx::Mesh mesh1 = renderer.createMesh(chunk1.vertices, chunk1.indices);
+		vkx::Mesh mesh1{chunk1.vertices, chunk1.indices, allocator};
 		mesh1.indexCount = std::distance(chunk1.indices.begin(), chunk1.indexIter);
 
-		vkx::Mesh mesh2 = renderer.createMesh(chunk2.vertices, chunk2.indices);
+		vkx::Mesh mesh2{chunk2.vertices, chunk2.indices, allocator};
 		mesh2.indexCount = std::distance(chunk2.indices.begin(), chunk2.indexIter);
 
-		vkx::Mesh mesh3 = renderer.createMesh(chunk3.vertices, chunk3.indices);
+		vkx::Mesh mesh3{chunk3.vertices, chunk3.indices, allocator};
 		mesh3.indexCount = std::distance(chunk3.indices.begin(), chunk3.indexIter);
 
-		const vkx::Texture texture = renderer.createTexture("a.jpg");
+		const vkx::Texture texture{"a.jpg", device, allocator, commandSubmitter};
 
-		const vkx::Mesh highlightMesh = renderer.createMesh(vkx::CUBE_VERTICES, vkx::CUBE_INDICES);
+		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
 		auto mvpBuffers = allocator.allocateUniformBuffers(vkx::MVP{});
 		auto lightBuffers = allocator.allocateUniformBuffers(vkx::DirectionalLight{});
@@ -282,7 +281,7 @@ int main(void) {
 			materialBuffer.mapMemory();
 			highlightMVPBuffer.mapMemory();
 
-			const auto& syncObject = renderer.syncObjects[currentFrame];
+			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
 			auto [result, imageIndex] = swapchain.acquireNextImage(device, syncObject);
 
