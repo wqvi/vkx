@@ -76,19 +76,32 @@ void vkx::Renderer::lazySync(const vkx::SDLWindow& window) {
 void vkx::Renderer::uploadDrawCommands(const std::vector<DrawInfoTest>& drawInfos, const SDLWindow& window) {
 	const auto& syncObject = syncObjects[currentFrame];
 
-	const vk::CommandBuffer* begin = &primaryCommandsBuffers[currentFrame * primaryDrawCommandsAmount];
+	const vk::CommandBuffer* primaryBegin = &primaryCommandsBuffers[currentFrame * primaryDrawCommandsAmount];
 
-	for (const auto& drawInfo : drawInfos) {
+	const vk::CommandBuffer* secondaryBegin = &secondaryCommandBuffers[currentFrame * secondaryDrawCommandsAmount];
+
+	std::uintptr_t offset = 0;
+
+	for (std::uint32_t i = 0; i < drawInfos.size(); i++) {
+		const auto& drawInfo = drawInfos[i];
+
+		const vk::CommandBuffer* primary = primaryBegin + static_cast<std::uintptr_t>(i);
+
+		const vk::CommandBuffer* secondary = secondaryBegin + offset;
+
 		if (drawInfo.level == vk::CommandBufferLevel::ePrimary) {
 			commandSubmitter.recordPrimaryDrawCommands(nullptr, 0, {});
 		} else {
 			commandSubmitter.recordSecondaryDrawCommands(nullptr, 0, nullptr, 0, {});
 		}
+
+		offset += static_cast<std::uintptr_t>(drawInfo.meshes.size());
 	}
 
-	commandSubmitter.submitDrawCommands(begin, primaryDrawCommandsAmount, syncObject);
+	commandSubmitter.submitDrawCommands(primaryBegin, primaryDrawCommandsAmount, syncObject);
 	
-	vk::Result result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
+	const auto result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
+	
 	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 		framebufferResized = false;
 
