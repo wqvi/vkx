@@ -14,6 +14,15 @@ struct GraphicsPipelineInformation {
 	std::vector<vk::DescriptorPoolSize> poolSizes;
 };
 
+struct GraphicsPipelineInformationTest {
+	std::string vertexFile{};
+	std::string fragmentFile{};
+	std::vector<vk::DescriptorSetLayoutBinding> bindings{};
+	std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
+	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
+	std::vector<vk::DescriptorPoolSize> poolSizes;
+};
+
 using DescriptorWriteFunction = std::function<std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>>(std::size_t)>;
 
 class GraphicsPipeline {
