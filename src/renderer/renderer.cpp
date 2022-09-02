@@ -7,5 +7,14 @@ vkx::Renderer::Renderer(const SDLWindow& window)
       allocator(device.createAllocator()),
       commandSubmitter(device.createCommandSubmitter()) {
 	const vkx::SwapchainInfo swapchainInfo{device};
-    const auto surfaceFormat = swapchainInfo.chooseSurfaceFormat().format;
+	const auto surfaceFormat = swapchainInfo.chooseSurfaceFormat().format;
+
+	clearRenderPass = device.createRenderPass(surfaceFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
+	loadRenderPass = device.createRenderPass(surfaceFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
+
+	swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
+}
+
+void vkx::Renderer::attachPipeline(const vkx::GraphicsPipelineInformation& pipelineInformation) {
+	pipelines.push_back(device.createGraphicsPipeline({pipelineInformation.vertexFile, pipelineInformation.fragmentFile, *clearRenderPass, pipelineInformation.descriptorSetLayout, pipelineInformation.bindingDescriptions, pipelineInformation.attributeDescriptions, pipelineInformation.poolSizes}));
 }

@@ -15,9 +15,13 @@ private:
     vk::UniqueRenderPass clearRenderPass{};
     vk::UniqueRenderPass loadRenderPass{};
 
+    std::vector<vkx::GraphicsPipeline> pipelines{};
+
 public:
     Renderer() = default;
 
     explicit Renderer(const SDLWindow& window);
+
+    void attachPipeline(const GraphicsPipelineInformation& pipelineInformation);
 };
 } // namespace vkx
