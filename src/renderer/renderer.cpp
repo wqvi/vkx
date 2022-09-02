@@ -37,3 +37,67 @@ void vkx::Renderer::resized(const SDLWindow& window) {
 vkx::Texture vkx::Renderer::createTexture(const std::string& file) const {
 	return vkx::Texture{file, device, allocator, commandSubmitter};
 }
+
+void vkx::Renderer::createDrawCommands(const std::vector<DrawInfoTest>& drawInfos) {
+	if (drawInfos.empty()) {
+		throw std::invalid_argument("Draw infos can't be empty.");
+	}
+
+	for (const auto& drawInfo : drawInfos) {
+		if (drawInfo.level == vk::CommandBufferLevel::eSecondary) {
+			secondaryDrawCommandsAmount += drawInfo.meshes.size();
+		}
+	}
+
+	primaryCommandsBuffers = commandSubmitter.allocateDrawCommands(drawInfos.size());
+
+	if (secondaryDrawCommandsAmount != 0) {
+		secondaryCommandBuffers = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandsAmount);
+	}
+
+	primaryDrawCommandsAmount = drawInfos.size();
+}
+
+void vkx::Renderer::lazySync(const vkx::SDLWindow& window) {
+	const auto& syncObject = syncObjects[currentFrame];
+	syncObject.waitForFence();
+	vk::Result result = vk::Result::eSuccess;
+	std::tie(result, imageIndex) = swapchain.acquireNextImage(device, syncObject);
+
+	if (result == vk::Result::eErrorOutOfDateKHR) {
+		resized(window);
+	} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+		throw std::runtime_error("Failed to acquire next image.");
+	}
+
+	syncObject.resetFence();
+}
+
+void vkx::Renderer::uploadDrawCommands(const std::vector<DrawInfoTest>& drawInfos, const SDLWindow& window) {
+	const auto& syncObject = syncObjects[currentFrame];
+
+	const vk::CommandBuffer* begin = &primaryCommandsBuffers[currentFrame * primaryDrawCommandsAmount];
+
+	for (const auto& drawInfo : drawInfos) {
+		if (drawInfo.level == vk::CommandBufferLevel::ePrimary) {
+			commandSubmitter.recordPrimaryDrawCommands(nullptr, 0, {});
+		} else {
+			commandSubmitter.recordSecondaryDrawCommands(nullptr, 0, nullptr, 0, {});
+		}
+	}
+
+	commandSubmitter.submitDrawCommands(begin, primaryDrawCommandsAmount, syncObject);
+	
+	vk::Result result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
+	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
+		framebufferResized = false;
+
+		resized(window);
+	} else if (result != vk::Result::eSuccess) {
+		throw std::runtime_error("Failed to present.");
+	}
+}
+
+void vkx::Renderer::lazyUpdate() {
+	currentFrame = (currentFrame + 1) % vkx::MAX_FRAMES_IN_FLIGHT;
+}

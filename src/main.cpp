@@ -223,6 +223,13 @@ int main(void) {
 
 		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
+		// const std::vector<vkx::DrawInfoTest> drawInfos = {
+		// 	{vk::CommandBufferLevel::eSecondary, graphicsPipeline, {&mesh, &mesh1, &mesh2, &mesh3}},
+		// 	{vk::CommandBufferLevel::eSecondary, highlightGraphicsPipeline, {&highlightMesh}}
+		// };
+
+		// renderer.createDrawCommands(drawInfos);
+
 		auto mvpBuffers = allocator.allocateUniformBuffers(vkx::MVP{});
 		auto lightBuffers = allocator.allocateUniformBuffers(vkx::DirectionalLight{});
 		auto materialBuffers = allocator.allocateUniformBuffers(vkx::Material{});
@@ -336,7 +343,7 @@ int main(void) {
 
 			commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
-			commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
+			result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 				framebufferResized = false;

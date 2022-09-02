@@ -6,6 +6,12 @@
 #include <vkx/application.hpp>
 
 namespace vkx {
+struct DrawInfoTest {
+    const vk::CommandBufferLevel level = vk::CommandBufferLevel::eSecondary;
+    const GraphicsPipeline* graphicsPipeline = nullptr;
+    const std::vector<const vkx::Mesh*> meshes{};
+};
+
 class Renderer {
 private:
     RendererBootstrap bootstrap{};
@@ -23,6 +29,17 @@ private:
 public:
     std::vector<vkx::SyncObjects> syncObjects{};
 
+    std::uint32_t currentFrame = 0;
+
+    std::uint32_t imageIndex = 0;
+
+    bool framebufferResized = false;
+
+    std::vector<vk::CommandBuffer> primaryCommandsBuffers{};
+    std::size_t primaryDrawCommandsAmount = 0;
+    std::vector<vk::CommandBuffer> secondaryCommandBuffers{};
+    std::size_t secondaryDrawCommandsAmount = 0;
+
 public:
     Renderer() = default;
 
@@ -38,5 +55,13 @@ public:
     }
 
     vkx::Texture createTexture(const std::string& file) const;
+
+    void createDrawCommands(const std::vector<DrawInfoTest>& drawInfos);
+
+    void lazySync(const vkx::SDLWindow& window);
+
+    void uploadDrawCommands(const std::vector<DrawInfoTest>& drawInfos, const SDLWindow& window);
+
+    void lazyUpdate();
 };
 } // namespace vkx
