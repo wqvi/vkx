@@ -182,6 +182,10 @@ vkx::GraphicsPipeline vkx::Device::createGraphicsPipeline(const vkx::GraphicsPip
 	return vkx::GraphicsPipeline{*device, info};
 }
 
+vkx::GraphicsPipeline vkx::Device::createGraphicsPipeline(vk::RenderPass renderPass, const vkx::GraphicsPipelineInformationTest& info) const {
+	return vkx::GraphicsPipeline{*device, renderPass, info};
+}
+
 vkx::CommandSubmitter vkx::Device::createCommandSubmitter() const {
 	return vkx::CommandSubmitter{physicalDevice, *device, surface};
 }
