@@ -82,6 +82,17 @@ auto createHighlightDescriptorSetLayout(const vkx::Device& device) {
 	return device->createDescriptorSetLayoutUnique(layoutInfo);
 }
 
+auto createHighlightShaderBindings() noexcept {
+	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
+	    0,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eVertex,
+	    nullptr};
+
+	return std::vector{uboLayoutBinding};
+}
+
 auto getBindingDescription() noexcept {
 	std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
 
@@ -136,27 +147,25 @@ int main(void) {
 
 		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(device);
 
-		const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
+		const vkx::GraphicsPipelineInformationTest graphicsPipelineInformation{
 		    "shader.vert.spv",
 		    "shader.frag.spv",
-		    *clearRenderPass,
-		    *descriptorSetLayout,
+			createShaderBindings(),
 		    vkx::Vertex::getBindingDescription(),
 		    vkx::Vertex::getAttributeDescriptions(),
 		    poolSizes};
 
-		const auto graphicsPipeline = device.createGraphicsPipeline(graphicsPipelineInformation);
+		const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, graphicsPipelineInformation);
 
-		const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
+		const vkx::GraphicsPipelineInformationTest highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
 		    "highlight.frag.spv",
-		    *clearRenderPass,
-		    *highlightDescriptorSetLayout,
+		    createHighlightShaderBindings(),
 		    getBindingDescription(),
 		    getAttributeDescriptions(),
 		    highlightPoolSizes};
 
-		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(highlightGraphicsPipelineInformation);
+		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, highlightGraphicsPipelineInformation);
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
 
