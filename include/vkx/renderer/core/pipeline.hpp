@@ -52,6 +52,8 @@ private:
 
 	static vk::UniquePipeline createPipeline(vk::Device device, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout);
 
+	static vk::UniquePipeline createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformationTest& info, vk::PipelineLayout pipelineLayout);
+
 	static vk::UniqueDescriptorPool createDescriptorPool(vk::Device device, const std::vector<vk::DescriptorPoolSize>& poolSizes);
 
 	static std::vector<vk::DescriptorSet> createDescriptorSets(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout, vk::DescriptorPool descriptorPool);
