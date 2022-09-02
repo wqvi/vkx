@@ -80,6 +80,10 @@ int main(void) {
 	{
 		const vkx::SDLWindow window{"Among Us", 640, 480};
 
+		// vkx::Renderer renderer{window};
+
+		// renderer.attachPipeline({"shader.vert.spv", "shader.frag.spv", {}, *descriptorSetLayout, vkx::Vertex::getBindingDescription(), vkx::Vertex::getAttributeDescriptions(), poolSizes});
+
 		vkx::Camera camera({0, 0, 0});
 
 		const vkx::RendererBootstrap bootstrap{static_cast<SDL_Window*>(window)};
