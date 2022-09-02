@@ -5,6 +5,8 @@
 namespace vkx {
 class RendererBootstrap {
 public:
+	RendererBootstrap() = default;
+
 	explicit RendererBootstrap(SDL_Window* window);
 
 	RendererBootstrap(const RendererBootstrap&) = delete;
