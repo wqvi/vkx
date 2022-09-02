@@ -1,3 +1,4 @@
+#include "vkx/pch.hpp"
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(const vkx::Device& device) {
@@ -33,7 +34,39 @@ auto createShaderDescriptorSetLayout(const vkx::Device& device) {
 
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
 	return device->createDescriptorSetLayoutUnique(layoutInfo);
-};
+}
+
+auto createShaderBindings() {
+	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
+	    0,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eVertex,
+	    nullptr};
+
+	constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding{
+	    1,
+	    vk::DescriptorType::eCombinedImageSampler,
+	    1,
+	    vk::ShaderStageFlagBits::eFragment,
+	    nullptr};
+
+	constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding{
+	    2,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eFragment,
+	    nullptr};
+
+	constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding{
+	    3,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eFragment,
+	    nullptr};
+
+	return std::vector{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
+}
 
 auto createHighlightDescriptorSetLayout(const vkx::Device& device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
@@ -82,7 +115,7 @@ int main(void) {
 
 		// vkx::Renderer renderer{window};
 
-		// renderer.attachPipeline({"shader.vert.spv", "shader.frag.spv", {}, *descriptorSetLayout, vkx::Vertex::getBindingDescription(), vkx::Vertex::getAttributeDescriptions(), poolSizes});
+		// renderer.attachPipeline({"shader.vert.spv", "shader.frag.spv", createShaderBindings(), vkx::Vertex::getBindingDescription(), vkx::Vertex::getAttributeDescriptions(), {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE}});
 
 		vkx::Camera camera({0, 0, 0});
 
@@ -95,12 +128,9 @@ int main(void) {
 		const auto loadRenderPass = device.createRenderPass(swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 		auto swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
 
-		constexpr vk::DescriptorPoolSize uniformBufferDescriptor{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
-		constexpr vk::DescriptorPoolSize samplerBufferDescriptor{vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT};
+		const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
 
-		const std::vector poolSizes = {uniformBufferDescriptor, samplerBufferDescriptor, uniformBufferDescriptor, uniformBufferDescriptor};
-
-		const std::vector highlightPoolSizes = {uniformBufferDescriptor};
+		const std::vector highlightPoolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE};
 
 		const auto descriptorSetLayout = createShaderDescriptorSetLayout(device);
 
@@ -303,7 +333,7 @@ int main(void) {
 				throw std::runtime_error("Failed to present.");
 			}
 
-			currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+			currentFrame = (currentFrame + 1) % vkx::MAX_FRAMES_IN_FLIGHT;
 
 			vkx::RaycastResult raycastResult{};
 			auto a = [&chunk](const auto& b) {
