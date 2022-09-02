@@ -86,11 +86,10 @@ int main(void) {
 		const auto device = renderer.createDevice();
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
-		auto swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), allocator);
-		const auto clearRenderPass = device.createRenderPass(swapchain.format(), vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
-		const auto loadRenderPass = device.createRenderPass(swapchain.format(), vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
-
-		swapchain.createFramebuffers(device, *clearRenderPass);
+		const vkx::SwapchainInfo swapchainInfo{device};
+		const auto clearRenderPass = device.createRenderPass(swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
+		const auto loadRenderPass = device.createRenderPass(swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
+		auto swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
 
 		constexpr vk::DescriptorPoolSize uniformBufferDescriptor{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
 		constexpr vk::DescriptorPoolSize samplerBufferDescriptor{vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT};
@@ -240,9 +239,7 @@ int main(void) {
 
 				device->waitIdle();
 
-				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), allocator);
-
-				swapchain.createFramebuffers(device, *clearRenderPass);
+				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 				throw std::runtime_error("Failed to acquire next image.");
@@ -297,9 +294,7 @@ int main(void) {
 
 				device->waitIdle();
 
-				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), allocator);
-
-				swapchain.createFramebuffers(device, *clearRenderPass);
+				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
 			}
