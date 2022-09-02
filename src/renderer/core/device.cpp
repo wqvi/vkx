@@ -112,8 +112,8 @@ vkx::Allocator vkx::Device::createAllocator() const {
 	return vkx::Allocator{physicalDevice, *device, instance};
 }
 
-vkx::Swapchain vkx::Device::createSwapchain(SDL_Window* window, const vkx::Allocator& allocator) const {
-	return vkx::Swapchain{*this, surface, window, allocator};
+vkx::Swapchain vkx::Device::createSwapchain(SDL_Window* window, vk::RenderPass renderPass, const vkx::Allocator& allocator) const {
+	return vkx::Swapchain{*this, renderPass, surface, window, allocator};
 }
 
 vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp) const {
