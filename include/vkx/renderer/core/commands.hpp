@@ -18,6 +18,8 @@ struct DrawInfo {
 
 class CommandSubmitter {
 public:
+	CommandSubmitter() = default;
+
 	explicit CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface);
 
 	void submitImmediately(const std::function<void(vk::CommandBuffer)>& command) const;
