@@ -82,8 +82,8 @@ int main(void) {
 
 		vkx::Camera camera({0, 0, 0});
 
-		const vkx::RendererBootstrap renderer{static_cast<SDL_Window*>(window)};
-		const auto device = renderer.createDevice();
+		const vkx::RendererBootstrap bootstrap{static_cast<SDL_Window*>(window)};
+		const auto device = bootstrap.createDevice();
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
 		const vkx::SwapchainInfo swapchainInfo{device};
