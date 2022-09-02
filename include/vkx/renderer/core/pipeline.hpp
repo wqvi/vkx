@@ -4,16 +4,6 @@
 #include <vkx/renderer/core/vertex.hpp>
 
 namespace vkx {
-struct GraphicsPipelineInformation {
-	std::string vertexFile{};
-	std::string fragmentFile{};
-	vk::RenderPass renderPass{};
-	vk::DescriptorSetLayout descriptorSetLayout{};
-	std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
-	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
-	std::vector<vk::DescriptorPoolSize> poolSizes{};
-};
-
 struct GraphicsPipelineInformationTest {
 	std::string vertexFile{};
 	std::string fragmentFile{};
@@ -39,8 +29,6 @@ private:
 public:
 	GraphicsPipeline() = default;
 
-	explicit GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info);
-
 	explicit GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformationTest& info);
 
 	void updateDescriptorSets(DescriptorWriteFunction function) const;
@@ -49,8 +37,6 @@ private:
 	static vk::UniquePipelineLayout createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout);
 
 	static vk::UniqueShaderModule createShaderModule(vk::Device device, const std::string& filename);
-
-	static vk::UniquePipeline createPipeline(vk::Device device, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout);
 
 	static vk::UniquePipeline createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformationTest& info, vk::PipelineLayout pipelineLayout);
 
