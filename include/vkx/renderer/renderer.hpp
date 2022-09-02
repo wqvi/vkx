@@ -7,7 +7,10 @@
 namespace vkx {
 class Renderer {
 private:
-    vkx::RendererBootstrap bootstrap{};
+    RendererBootstrap bootstrap{};
+    Device device{};
+    Allocator allocator{};
+    CommandSubmitter commandSubmitter{};
 
 public:
     Renderer() = default;
