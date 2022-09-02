@@ -35,6 +35,11 @@
 #endif
 
 namespace vkx {
+static constexpr std::uint32_t MAX_FRAMES_IN_FLIGHT = UINT32_C(2);
+
+static constexpr vk::DescriptorPoolSize UNIFORM_BUFFER_POOL_SIZE{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
+static constexpr vk::DescriptorPoolSize SAMPLER_BUFFER_POOL_SIZE{vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT};
+
 static constexpr std::array<glm::vec3, 24> CUBE_VERTICES = {
     glm::vec3{0.0f, 0.0f, 0.0f},
     {0.0f, 1.0f, 0.0f},
@@ -64,8 +69,7 @@ static constexpr std::array<glm::vec3, 24> CUBE_VERTICES = {
     {0.0f, 1.0f, 0.0f},
     {0.0f, 1.0f, 1.0f},
     {1.0f, 1.0f, 1.0f},
-    {1.0f, 1.0f, 0.0f},
-};
+    {1.0f, 1.0f, 0.0f}};
 
 static constexpr std::array<std::uint32_t, 36> CUBE_INDICES = {
     0, 1, 2, 2, 3, 0,
