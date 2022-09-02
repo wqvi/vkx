@@ -10,7 +10,6 @@ private:
 	friend class CommandSubmitter;
 
 	vk::UniqueSwapchainKHR swapchain{};
-	vk::Format imageFormat{};
 	vk::Extent2D imageExtent{};
 	std::vector<vk::Image> images{};
 	std::vector<vk::UniqueImageView> imageViews{};
@@ -30,10 +29,6 @@ public:
 	}
 
 	vk::ResultValue<std::uint32_t> acquireNextImage(const vkx::Device& device, const vkx::SyncObjects& syncObjects) const;
-
-	inline vk::Format format() const noexcept {
-		return imageFormat;
-	}
 
 	inline vk::Extent2D extent() const noexcept {
 		return imageExtent;
