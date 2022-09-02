@@ -23,15 +23,11 @@ private:
 public:
 	Swapchain() = default;
 
-	explicit Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator);
-
 	explicit Swapchain(const Device& device, vk::RenderPass renderPass, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator);
 
 	inline vk::Framebuffer operator[](std::size_t index) const noexcept {
 		return *framebuffers[index];
 	}
-
-	void createFramebuffers(const Device& device, vk::RenderPass renderPass);
 
 	vk::ResultValue<std::uint32_t> acquireNextImage(const vkx::Device& device, const vkx::SyncObjects& syncObjects) const;
 

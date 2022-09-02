@@ -1,33 +1,5 @@
 #include <vkx/renderer/core/swapchain.hpp>
 
-vkx::Swapchain::Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator) {
-	if (!static_cast<bool>(surface)) {
-		throw std::invalid_argument("Surface must be a valid handle to create a swapchain.");
-	}
-
-	const SwapchainInfo info{device};
-	const QueueConfig config{device};
-
-	swapchain = createSwapchain(device, info, config, surface, window);
-
-	images = device->getSwapchainImagesKHR(*swapchain);
-
-	int width;
-	int height;
-	SDL_Vulkan_GetDrawableSize(window, &width, &height);
-
-	imageFormat = info.chooseSurfaceFormat().format;
-	imageExtent = info.chooseExtent(width, height);
-
-	for (const auto image : images) {
-		imageViews.push_back(device.createImageViewUnique(image, imageFormat, vk::ImageAspectFlagBits::eColor));
-	}
-
-	const auto depthFormat = device.findDepthFormat();
-	depthResource = allocator.allocateImage(imageExtent.width, imageExtent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
-	depthImageView = device.createImageViewUnique(depthResource->object, depthFormat, vk::ImageAspectFlagBits::eDepth);
-}
-
 vkx::Swapchain::Swapchain(const vkx::Device& device, vk::RenderPass renderPass, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator) {
 	if (!static_cast<bool>(surface)) {
 		throw std::invalid_argument("Surface must be a valid handle to create a swapchain.");
@@ -55,24 +27,6 @@ vkx::Swapchain::Swapchain(const vkx::Device& device, vk::RenderPass renderPass, 
 	depthResource = allocator.allocateImage(imageExtent.width, imageExtent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 	depthImageView = device.createImageViewUnique(depthResource->object, depthFormat, vk::ImageAspectFlagBits::eDepth);
 
-	framebuffers.resize(imageViews.size());
-
-	for (std::size_t i = 0; i < imageViews.size(); i++) {
-		const std::array framebufferAttachments = {*imageViews[i], *depthImageView};
-
-		const vk::FramebufferCreateInfo framebufferInfo{
-		    {},
-		    renderPass,
-		    framebufferAttachments,
-		    imageExtent.width,
-		    imageExtent.height,
-		    1};
-
-		framebuffers[i] = device->createFramebufferUnique(framebufferInfo);
-	}
-}
-
-void vkx::Swapchain::createFramebuffers(const vkx::Device& device, vk::RenderPass renderPass) {
 	framebuffers.resize(imageViews.size());
 
 	for (std::size_t i = 0; i < imageViews.size(); i++) {
