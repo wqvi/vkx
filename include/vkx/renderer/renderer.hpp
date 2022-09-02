@@ -11,6 +11,9 @@ private:
     Device device{};
     Allocator allocator{};
     CommandSubmitter commandSubmitter{};
+    Swapchain swapchain{};
+    vk::UniqueRenderPass clearRenderPass{};
+    vk::UniqueRenderPass loadRenderPass{};
 
 public:
     Renderer() = default;
