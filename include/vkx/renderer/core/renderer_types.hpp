@@ -1,7 +1,5 @@
 #pragma once
 
-static constexpr std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-
 namespace vkx {
 class RendererContext;
 
