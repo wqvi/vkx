@@ -22,6 +22,6 @@ public:
 
     explicit Renderer(const SDLWindow& window);
 
-    void attachPipeline(const GraphicsPipelineInformation& pipelineInformation);
+    void attachPipeline(const GraphicsPipelineInformationTest& pipelineInformation);
 };
 } // namespace vkx

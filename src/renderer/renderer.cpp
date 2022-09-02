@@ -15,6 +15,6 @@ vkx::Renderer::Renderer(const SDLWindow& window)
 	swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
 }
 
-void vkx::Renderer::attachPipeline(const vkx::GraphicsPipelineInformation& pipelineInformation) {
-	pipelines.push_back(device.createGraphicsPipeline({pipelineInformation.vertexFile, pipelineInformation.fragmentFile, *clearRenderPass, pipelineInformation.descriptorSetLayout, pipelineInformation.bindingDescriptions, pipelineInformation.attributeDescriptions, pipelineInformation.poolSizes}));
+void vkx::Renderer::attachPipeline(const vkx::GraphicsPipelineInformationTest& pipelineInformation) {
+	pipelines.push_back(device.createGraphicsPipeline({}));
 }
