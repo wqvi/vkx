@@ -11,7 +11,7 @@ struct GraphicsPipelineInformation {
 	vk::DescriptorSetLayout descriptorSetLayout{};
 	std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
 	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
-	std::vector<vk::DescriptorPoolSize> poolSizes;
+	std::vector<vk::DescriptorPoolSize> poolSizes{};
 };
 
 struct GraphicsPipelineInformationTest {
@@ -30,7 +30,8 @@ private:
 	friend class CommandSubmitter;
 
 	vk::Device device{};
-	vk::UniquePipelineLayout layout{};
+	vk::UniqueDescriptorSetLayout descriptorLayout{};
+	vk::UniquePipelineLayout pipelineLayout{};
 	vk::UniquePipeline pipeline{};
 	vk::UniqueDescriptorPool descriptorPool;
 	std::vector<vk::DescriptorSet> descriptorSets{};
@@ -39,6 +40,8 @@ public:
 	GraphicsPipeline() = default;
 
 	explicit GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info);
+
+	explicit GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformationTest& info);
 
 	void updateDescriptorSets(DescriptorWriteFunction function) const;
 

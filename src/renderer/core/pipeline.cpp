@@ -1,9 +1,10 @@
 #include <vkx/renderer/core/pipeline.hpp>
+#include <vkx/renderer/core/device.hpp>
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, const GraphicsPipelineInformation& info)
     : device(device),
-      layout(createPipelineLayout(device, info.descriptorSetLayout)),
-      pipeline(createPipeline(device, info, *layout)),
+      pipelineLayout(createPipelineLayout(device, info.descriptorSetLayout)),
+      pipeline(createPipeline(device, info, *pipelineLayout)),
       descriptorPool(createDescriptorPool(device, info.poolSizes)),
       descriptorSets(createDescriptorSets(device, info.descriptorSetLayout, *descriptorPool)) {}
 
