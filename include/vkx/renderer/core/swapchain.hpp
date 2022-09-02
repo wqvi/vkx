@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vkx/renderer/core/device.hpp>
+#include <vkx/renderer/core/queue_config.hpp>
+#include <vkx/renderer/core/swapchain_info.hpp>
 
 namespace vkx {
 class Swapchain {
@@ -23,6 +25,8 @@ public:
 
 	explicit Swapchain(const Device& device, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator);
 
+	explicit Swapchain(const Device& device, vk::RenderPass renderPass, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator);
+
 	inline vk::Framebuffer operator[](std::size_t index) const noexcept {
 		return *framebuffers[index];
 	}
@@ -38,5 +42,8 @@ public:
 	inline vk::Extent2D extent() const noexcept {
 		return imageExtent;
 	}
+
+private:
+	static vk::UniqueSwapchainKHR createSwapchain(const Device& device, const SwapchainInfo& info, const QueueConfig& config, vk::SurfaceKHR surface, SDL_Window* window);
 };
 } // namespace vkx
