@@ -10,7 +10,13 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 	pipeline = createPipeline(device, renderPass, info, *pipelineLayout);
 
-	descriptorPool = createDescriptorPool(device, info.poolSizes);
+	std::vector<vk::DescriptorPoolSize> poolSizes{};
+	poolSizes.reserve(info.bindings.size());
+	for (const auto& info : info.bindings) {
+		poolSizes.emplace_back(info.descriptorType, vkx::MAX_FRAMES_IN_FLIGHT);
+	}
+
+	descriptorPool = createDescriptorPool(device, poolSizes);
 
 	descriptorSets = createDescriptorSets(device, *descriptorLayout, *descriptorPool);
 }

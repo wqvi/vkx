@@ -11,7 +11,6 @@ struct GraphicsPipelineInformation {
 	std::vector<vk::DescriptorSetLayoutBinding> bindings{};
 	std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
 	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
-	std::vector<vk::DescriptorPoolSize> poolSizes;
 };
 
 using DescriptorWriteFunction = std::function<std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>>(std::size_t)>;
