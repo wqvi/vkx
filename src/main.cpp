@@ -129,15 +129,13 @@ int main(void) {
 		// 			 "shader.frag.spv",
 		// 			 createShaderBindings(),
 		// 			 vkx::Vertex::getBindingDescription(),
-		// 			 vkx::Vertex::getAttributeDescriptions(),
-		// 			 {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE}});
+		// 			 vkx::Vertex::getAttributeDescriptions()});
 
 		// const auto* highlightGraphicsPipeline = renderer.attachPipeline({"highlight.vert.spv",
 		// 			 "highlight.frag.spv",
 		// 			 createHighlightShaderBindings(),
 		// 			 getBindingDescription(),
-		// 			 getAttributeDescriptions(),
-		// 			 {vkx::UNIFORM_BUFFER_POOL_SIZE}});
+		// 			 getAttributeDescriptions()});
 
 		vkx::Camera camera({0, 0, 0});
 
@@ -163,8 +161,7 @@ int main(void) {
 		    "shader.frag.spv",
 		    createShaderBindings(),
 		    vkx::Vertex::getBindingDescription(),
-		    vkx::Vertex::getAttributeDescriptions(),
-		    poolSizes};
+		    vkx::Vertex::getAttributeDescriptions()};
 
 		const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, graphicsPipelineInformation);
 
@@ -173,8 +170,7 @@ int main(void) {
 		    "highlight.frag.spv",
 		    createHighlightShaderBindings(),
 		    getBindingDescription(),
-		    getAttributeDescriptions(),
-		    highlightPoolSizes};
+		    getAttributeDescriptions()};
 
 		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, highlightGraphicsPipelineInformation);
 
