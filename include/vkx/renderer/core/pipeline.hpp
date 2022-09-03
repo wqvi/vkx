@@ -25,7 +25,7 @@ private:
 	vk::UniquePipeline pipeline{};
 	vk::UniqueDescriptorPool descriptorPool;
 	std::vector<vk::DescriptorSet> descriptorSets{};
-	std::vector<UniformBuffer> uniforms;
+	std::vector<std::vector<UniformBuffer>> uniforms;
 
 public:
 	GraphicsPipeline() = default;
