@@ -51,6 +51,10 @@ void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunction functio
 	}
 }
 
+const vkx::UniformBuffer* vkx::GraphicsPipeline::getUniformByIndex(std::size_t i) const {
+	return &uniforms[i];
+}
+
 vk::UniquePipelineLayout vkx::GraphicsPipeline::createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout) {
 	const vk::PipelineLayoutCreateInfo pipelineLayoutInfo{{}, descriptorSetLayout};
 

@@ -25,6 +25,7 @@ private:
 	vk::UniquePipeline pipeline{};
 	vk::UniqueDescriptorPool descriptorPool;
 	std::vector<vk::DescriptorSet> descriptorSets{};
+	std::vector<UniformBuffer> uniforms;
 
 public:
 	GraphicsPipeline() = default;
@@ -32,6 +33,8 @@ public:
 	explicit GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info);
 
 	void updateDescriptorSets(DescriptorWriteFunction function) const;
+
+	const UniformBuffer* getUniformByIndex(std::size_t i) const;
 
 private:
 	static vk::UniquePipelineLayout createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout);
