@@ -18,7 +18,7 @@ vkx::Renderer::Renderer(const SDLWindow& window)
 }
 
 vkx::GraphicsPipeline* vkx::Renderer::attachPipeline(const vkx::GraphicsPipelineInformation& pipelineInformation) {
-	pipelines.push_back(device.createGraphicsPipeline(*clearRenderPass, pipelineInformation));
+	pipelines.push_back(device.createGraphicsPipeline(*clearRenderPass, allocator, pipelineInformation));
 	return &pipelines.front();
 }
 

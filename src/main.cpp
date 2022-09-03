@@ -164,7 +164,7 @@ int main(void) {
 		    vkx::Vertex::getAttributeDescriptions(),
 			{sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)}};
 
-		const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, graphicsPipelineInformation);
+		const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, graphicsPipelineInformation);
 
 		const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
@@ -174,7 +174,7 @@ int main(void) {
 		    getAttributeDescriptions(),
 			{sizeof(vkx::MVP)}};
 
-		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, highlightGraphicsPipelineInformation);
+		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, highlightGraphicsPipelineInformation);
 
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
