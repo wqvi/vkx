@@ -34,6 +34,8 @@ public:
 	template <class T>
 	std::vector<vkx::UniformBuffer> allocateUniformBuffers(const T& value = {}) const;
 
+	std::vector<vkx::UniformBuffer> allocateUniformBuffers(std::size_t size) const;
+
 private:
 	static VmaAllocationCreateInfo createAllocationInfo(VmaAllocationCreateFlags flags = 0, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO, VmaPool pool = nullptr);
 };

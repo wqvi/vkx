@@ -1,4 +1,5 @@
 #include <vkx/renderer/core/allocator.hpp>
+#include <vkx/renderer/uniform_buffer.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
@@ -87,6 +88,15 @@ std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(vk::
 	}
 
 	return std::make_shared<Allocation<vk::Buffer>>(vk::Buffer(buffer), allocation, allocationInfo, allocator.get());
+}
+
+std::vector<vkx::UniformBuffer> vkx::Allocator::allocateUniformBuffers(std::size_t size) const {
+	std::vector<vkx::UniformBuffer> buffers;
+	buffers.reserve(MAX_FRAMES_IN_FLIGHT);
+	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		buffers.emplace_back(allocateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer));
+	}
+	return buffers;
 }
 
 VmaAllocationCreateInfo vkx::Allocator::createAllocationInfo(VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage, VmaPool pool) {
