@@ -1,7 +1,7 @@
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/pipeline.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info)
+vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const vkx::Allocator& allocator, const GraphicsPipelineInformation& info)
     : device(device) {
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, info.bindings};
 	descriptorLayout = device.createDescriptorSetLayoutUnique(layoutInfo);
@@ -21,7 +21,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 	descriptorSets = createDescriptorSets(device, *descriptorLayout, *descriptorPool);
 
 	for (std::size_t size : info.uniformSizes) {
-		uniforms.push_back({});
+		uniforms.push_back(allocator.allocateUniformBuffers(size));
 	}
 }
 

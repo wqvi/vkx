@@ -31,7 +31,7 @@ private:
 public:
 	GraphicsPipeline() = default;
 
-	explicit GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info);
+	explicit GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const Allocator& allocator, const GraphicsPipelineInformation& info);
 
 	void updateDescriptorSets(DescriptorWriteFunction function) const;
 
