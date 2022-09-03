@@ -19,6 +19,10 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 	descriptorPool = createDescriptorPool(device, poolSizes);
 
 	descriptorSets = createDescriptorSets(device, *descriptorLayout, *descriptorPool);
+
+	for (std::size_t size : info.uniformSizes) {
+		uniforms.push_back({});
+	}
 }
 
 void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunction function) const {
