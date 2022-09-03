@@ -34,7 +34,7 @@ public:
 
 	void updateDescriptorSets(DescriptorWriteFunction function) const;
 
-	const UniformBuffer* getUniformByIndex(std::size_t i) const;
+	const std::vector<UniformBuffer>& getUniformByIndex(std::size_t i) const;
 
 private:
 	static vk::UniquePipelineLayout createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout);
