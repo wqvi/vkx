@@ -6,12 +6,13 @@
 
 namespace vkx {
 struct GraphicsPipelineInformation {
-	std::string vertexFile{};
-	std::string fragmentFile{};
-	std::vector<vk::DescriptorSetLayoutBinding> bindings{};
-	std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
-	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
-	std::vector<std::size_t> uniformSizes{};
+	const std::string vertexFile{};
+	const std::string fragmentFile{};
+	const std::vector<vk::DescriptorSetLayoutBinding> bindings{};
+	const std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
+	const std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
+	const std::vector<std::size_t> uniformSizes{};
+	const std::vector<const Texture*> textures;
 };
 
 using DescriptorWriteFunction = std::function<std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>>(std::size_t)>;

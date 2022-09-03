@@ -1,5 +1,6 @@
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/pipeline.hpp>
+#include <vkx/renderer/model.hpp>
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const vkx::Allocator& allocator, const GraphicsPipelineInformation& info)
     : device(device) {
@@ -22,6 +23,45 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 	for (std::size_t size : info.uniformSizes) {
 		uniforms.push_back(allocator.allocateUniformBuffers(size));
+	}
+
+	auto texturesStart = info.textures.begin();
+	for (std::uint32_t i = 0; i < descriptorSets.size(); i++) {
+		const auto& descriptorSet = descriptorSets[i];
+
+		std::vector<vk::WriteDescriptorSet> writes{};
+		writes.reserve(info.bindings.size());
+
+		std::vector<vk::DescriptorBufferInfo> bufferInfos{};
+		bufferInfos.resize(info.bindings.size());
+		std::vector<vk::DescriptorImageInfo> imageInfos{};
+		imageInfos.resize(info.bindings.size());
+
+		// for (std::uint32_t j = 0; j < info.bindings.size(); j++) {
+		// 	const auto& binding = info.bindings[j];
+
+		// 	vk::DescriptorBufferInfo bufferInfo{};
+		// 	vk::DescriptorImageInfo imageInfo{};
+		// 	vk::WriteDescriptorSet write{descriptorSets[i],
+		// 				     j,
+		// 				     0,
+		// 				     1,
+		// 				     vk::DescriptorType::eUniformBuffer,
+		// 				     nullptr,
+		// 				     nullptr};
+		// 	if (binding.descriptorType == vk::DescriptorType::eUniformBuffer) {
+		// 		const auto& uniform = uniforms[j][i];
+		// 		bufferInfo = uniform.createDescriptorBufferInfo();
+		// 		write.pBufferInfo = &bufferInfos.emplace_back(bufferInfo);;
+		// 	} else if (binding.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
+		// 		if (texturesStart != info.textures.end()) {
+		// 			imageInfo = (*texturesStart)->createDescriptorImageInfo();
+		// 			write.pImageInfo = &imageInfo;
+
+		// 			texturesStart++;
+		// 		}
+		// 	}
+		// }
 	}
 }
 

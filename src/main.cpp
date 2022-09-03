@@ -156,13 +156,16 @@ int main(void) {
 
 		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(device);
 
+		const vkx::Texture texture{"a.jpg", device, allocator, commandSubmitter};
+
 		const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 		    "shader.vert.spv",
 		    "shader.frag.spv",
 		    createShaderBindings(),
 		    vkx::Vertex::getBindingDescription(),
 		    vkx::Vertex::getAttributeDescriptions(),
-			{sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)}};
+			{sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
+			{&texture}};
 
 		const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, graphicsPipelineInformation);
 
@@ -172,7 +175,8 @@ int main(void) {
 		    createHighlightShaderBindings(),
 		    getBindingDescription(),
 		    getAttributeDescriptions(),
-			{sizeof(vkx::MVP)}};
+			{sizeof(vkx::MVP)},
+			{}};
 
 		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, highlightGraphicsPipelineInformation);
 
@@ -216,8 +220,6 @@ int main(void) {
 
 		vkx::Mesh mesh3{chunk3.vertices, chunk3.indices, allocator};
 		mesh3.indexCount = std::distance(chunk3.indices.begin(), chunk3.indexIter);
-
-		const vkx::Texture texture{"a.jpg", device, allocator, commandSubmitter};
 
 		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
