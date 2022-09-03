@@ -260,33 +260,29 @@ int main(void) {
 			camera.position += camera.direction * 0.001f;
 
 			auto& mvpBuffer = mvpBuffers[currentFrame];
-			mvpBuffer->model = glm::mat4(1.0f);
-			mvpBuffer->view = camera.viewMatrix();
-			mvpBuffer->proj = proj;
+			auto mvp = vkx::MVP{glm::mat4(1.0f), camera.viewMatrix(), proj};
 
 			auto& lightBuffer = lightBuffers[currentFrame];
-			lightBuffer->position = glm::vec3(1.0f, 3.0f, 1.0f);
-			lightBuffer->eyePosition = camera.position;
-			lightBuffer->ambientColor = glm::vec4(1.0f, 1.0f, 1.0f, 0.2f);
-			lightBuffer->diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
-			lightBuffer->specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
-			lightBuffer->constant = 1.0f;
-			lightBuffer->linear = 0.09f;
-			lightBuffer->quadratic = 0.032f;
+			auto light = vkx::DirectionalLight{
+			    glm::vec3(1.0f, 3.0f, 1.0f),
+			    camera.position,
+			    glm::vec4(1.0f, 1.0f, 1.0f, 0.2f),
+			    glm::vec3(1.0f, 1.0f, 1.0f),
+			    glm::vec3(1.0f, 1.0f, 1.0f),
+			    1.0f,
+			    0.09f,
+			    0.032f};
 
 			auto& materialBuffer = materialBuffers[currentFrame];
-			materialBuffer->specularColor = glm::vec3(0.2f);
-			materialBuffer->shininess = 100.0f;
+			auto material = vkx::Material{glm::vec3(0.2f), 100.0f};
 
 			auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
-			highlightMVPBuffer->model = highlightModel;
-			highlightMVPBuffer->view = mvpBuffer->view;
-			highlightMVPBuffer->proj = mvpBuffer->proj;
+			auto highlightMVP = vkx::MVP{highlightModel, mvp.view, mvp.proj};
 
-			mvpBuffer.mapMemory();
-			lightBuffer.mapMemory();
-			materialBuffer.mapMemory();
-			highlightMVPBuffer.mapMemory();
+			mvpBuffer.mapMemory(mvp);
+			lightBuffer.mapMemory(light);
+			materialBuffer.mapMemory(material);
+			highlightMVPBuffer.mapMemory(highlightMVP);
 
 			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
