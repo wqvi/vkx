@@ -23,7 +23,6 @@ class IndexBuffer;
 
 class Image;
 
-template <class T>
 class UniformBuffer;
 
 class CommandSubmitter;

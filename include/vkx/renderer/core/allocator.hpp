@@ -32,7 +32,7 @@ public:
 	std::shared_ptr<Allocation<vk::Buffer>> allocateBuffer(const T& data, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
 
 	template <class T>
-	std::vector<vkx::UniformBuffer<T>> allocateUniformBuffers(const T& value = {}) const;
+	std::vector<vkx::UniformBuffer> allocateUniformBuffers(const T& value = {}) const;
 
 private:
 	static VmaAllocationCreateInfo createAllocationInfo(VmaAllocationCreateFlags flags = 0, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO, VmaPool pool = nullptr);
@@ -115,11 +115,11 @@ std::shared_ptr<vkx::Allocation<vk::Buffer>> vkx::Allocator::allocateBuffer(cons
 }
 
 template <class T>
-std::vector<vkx::UniformBuffer<T>> vkx::Allocator::allocateUniformBuffers(const T& value) const {
-	std::vector<vkx::UniformBuffer<T>> buffers;
+std::vector<vkx::UniformBuffer> vkx::Allocator::allocateUniformBuffers(const T& value) const {
+	std::vector<vkx::UniformBuffer> buffers;
 	buffers.reserve(MAX_FRAMES_IN_FLIGHT);
 	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		buffers.emplace_back(value, allocateBuffer(value, vk::BufferUsageFlagBits::eUniformBuffer));
+		buffers.emplace_back(allocateBuffer(value, vk::BufferUsageFlagBits::eUniformBuffer));
 	}
 	return buffers;
 }

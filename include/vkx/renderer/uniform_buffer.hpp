@@ -4,28 +4,23 @@
 #include <vkx/renderer/core/device.hpp>
 
 namespace vkx {
-template <class T>
 class UniformBuffer {
 private:
 	std::shared_ptr<Allocation<vk::Buffer>> resource{};
-	T uniformObject{};
 
 public:
 	UniformBuffer() = default;
 
-	explicit UniformBuffer(const T& value, std::shared_ptr<vkx::Allocation<vk::Buffer>> resource)
-	    : resource(resource), uniformObject(value) {}
+	explicit UniformBuffer(std::shared_ptr<vkx::Allocation<vk::Buffer>> resource)
+	    : resource(resource) {}
 
-	T* operator->() {
-		return &uniformObject;
-	}
-
-	void mapMemory() const {
-		std::memcpy(resource->allocationInfo.pMappedData, &uniformObject, resource->allocationInfo.size);
+	template <class T>
+	void mapMemory(const T& obj) const {
+		std::memcpy(resource->allocationInfo.pMappedData, &obj, resource->allocationInfo.size);
 	}
 
 	vk::DescriptorBufferInfo createDescriptorBufferInfo() const {
-		return {resource->object, 0, sizeof(T)};
+		return {resource->object, 0, resource->allocationInfo.size};
 	}
 };
 
