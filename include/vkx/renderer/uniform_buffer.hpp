@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vkx/renderer/core/allocator.hpp>
-#include <vkx/renderer/core/device.hpp>
 
 namespace vkx {
 class UniformBuffer {
