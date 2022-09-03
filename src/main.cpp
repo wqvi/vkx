@@ -226,11 +226,11 @@ int main(void) {
 
 		// renderer.createDrawCommands(drawInfos);
 
-		auto mvpBuffers = allocator.allocateUniformBuffers(vkx::MVP{});
-		auto lightBuffers = allocator.allocateUniformBuffers(vkx::DirectionalLight{});
-		auto materialBuffers = allocator.allocateUniformBuffers(vkx::Material{});
+		auto mvpBuffers = allocator.allocateUniformBuffers(sizeof(vkx::MVP));
+		auto lightBuffers = allocator.allocateUniformBuffers(sizeof(vkx::DirectionalLight));
+		auto materialBuffers = allocator.allocateUniformBuffers(sizeof(vkx::Material));
 
-		auto highlightMVPBuffers = allocator.allocateUniformBuffers(vkx::MVP{});
+		auto highlightMVPBuffers = allocator.allocateUniformBuffers(sizeof(vkx::MVP));
 
 		graphicsPipeline.updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
 			return {mvpBuffers[i].createDescriptorBufferInfo(),
