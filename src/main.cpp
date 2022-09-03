@@ -161,7 +161,8 @@ int main(void) {
 		    "shader.frag.spv",
 		    createShaderBindings(),
 		    vkx::Vertex::getBindingDescription(),
-		    vkx::Vertex::getAttributeDescriptions()};
+		    vkx::Vertex::getAttributeDescriptions(),
+			{sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)}};
 
 		const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, graphicsPipelineInformation);
 
@@ -170,7 +171,8 @@ int main(void) {
 		    "highlight.frag.spv",
 		    createHighlightShaderBindings(),
 		    getBindingDescription(),
-		    getAttributeDescriptions()};
+		    getAttributeDescriptions(),
+			{sizeof(vkx::MVP)}};
 
 		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, highlightGraphicsPipelineInformation);
 
