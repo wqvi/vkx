@@ -17,51 +17,58 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 		poolSizes.emplace_back(info.descriptorType, vkx::MAX_FRAMES_IN_FLIGHT);
 	}
 
-	descriptorPool = createDescriptorPool(device, poolSizes);
+	const vk::DescriptorPoolCreateInfo poolInfo{{}, MAX_FRAMES_IN_FLIGHT, poolSizes};
 
-	descriptorSets = createDescriptorSets(device, *descriptorLayout, *descriptorPool);
+	descriptorPool = device.createDescriptorPoolUnique(poolInfo);
+
+	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, *descriptorLayout};
+	const vk::DescriptorSetAllocateInfo allocInfo{*descriptorPool, layouts};
+
+	descriptorSets = device.allocateDescriptorSets(allocInfo);
 
 	for (std::size_t size : info.uniformSizes) {
 		uniforms.push_back(allocator.allocateUniformBuffers(size));
 	}
 
-	auto texturesStart = info.textures.begin();
-	for (std::uint32_t i = 0; i < descriptorSets.size(); i++) {
-		const auto& descriptorSet = descriptorSets[i];
+	for (std::uint32_t i = 0; i < vkx::MAX_FRAMES_IN_FLIGHT; i++) {
+		const auto descriptorSet = descriptorSets[i];
 
 		std::vector<vk::WriteDescriptorSet> writes{};
-		writes.reserve(info.bindings.size());
-
+		writes.reserve(poolSizes.size());
 		std::vector<vk::DescriptorBufferInfo> bufferInfos{};
-		bufferInfos.resize(info.bindings.size());
+		bufferInfos.reserve(info.uniformSizes.size());
 		std::vector<vk::DescriptorImageInfo> imageInfos{};
-		imageInfos.resize(info.bindings.size());
+		imageInfos.reserve(info.textures.size());
 
-		// for (std::uint32_t j = 0; j < info.bindings.size(); j++) {
-		// 	const auto& binding = info.bindings[j];
+		auto texturesStart = info.textures.begin();
+		auto uniformsBegin = uniforms.begin();
+		for (std::uint32_t j = 0; j < poolSizes.size(); j++) {
+			const auto type = poolSizes[j].type;
 
-		// 	vk::DescriptorBufferInfo bufferInfo{};
-		// 	vk::DescriptorImageInfo imageInfo{};
-		// 	vk::WriteDescriptorSet write{descriptorSets[i],
-		// 				     j,
-		// 				     0,
-		// 				     1,
-		// 				     vk::DescriptorType::eUniformBuffer,
-		// 				     nullptr,
-		// 				     nullptr};
-		// 	if (binding.descriptorType == vk::DescriptorType::eUniformBuffer) {
-		// 		const auto& uniform = uniforms[j][i];
-		// 		bufferInfo = uniform.createDescriptorBufferInfo();
-		// 		write.pBufferInfo = &bufferInfos.emplace_back(bufferInfo);;
-		// 	} else if (binding.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
-		// 		if (texturesStart != info.textures.end()) {
-		// 			imageInfo = (*texturesStart)->createDescriptorImageInfo();
-		// 			write.pImageInfo = &imageInfo;
+			vk::WriteDescriptorSet write{descriptorSet,
+						     j,
+						     0,
+						     1,
+						     type,
+						     nullptr,
+						     nullptr};
 
-		// 			texturesStart++;
-		// 		}
-		// 	}
-		// }
+			if (type == vk::DescriptorType::eUniformBuffer) {
+				bufferInfos.push_back((*uniformsBegin)[i].createDescriptorBufferInfo());
+				write.pBufferInfo = &bufferInfos.back();
+
+				uniformsBegin++;
+			} else if (type == vk::DescriptorType::eCombinedImageSampler) {
+				imageInfos.push_back((*texturesStart)->createDescriptorImageInfo());
+				write.pImageInfo = &imageInfos.back();
+
+				texturesStart++;
+			}
+
+			writes.push_back(write);
+		}
+
+		device.updateDescriptorSets(writes, {});
 	}
 }
 
