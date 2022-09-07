@@ -30,45 +30,17 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 		uniforms.push_back(allocator.allocateUniformBuffers(size));
 	}
 
+	std::vector<vk::WriteDescriptorSet> writes{};
+	writes.reserve(poolSizes.size());
+	SDL_Log("write size = %zu", writes.size());
 	for (std::uint32_t i = 0; i < vkx::MAX_FRAMES_IN_FLIGHT; i++) {
 		const auto descriptorSet = descriptorSets[i];
-
-		std::vector<vk::WriteDescriptorSet> writes{};
-		writes.reserve(poolSizes.size());
-		std::vector<vk::DescriptorBufferInfo> bufferInfos{};
-		bufferInfos.reserve(info.uniformSizes.size());
-		std::vector<vk::DescriptorImageInfo> imageInfos{};
-		imageInfos.reserve(info.textures.size());
-
-		auto texturesStart = info.textures.begin();
-		auto uniformsBegin = uniforms.begin();
+		
 		for (std::uint32_t j = 0; j < poolSizes.size(); j++) {
-			const auto type = poolSizes[j].type;
-
-			vk::WriteDescriptorSet write{descriptorSet,
-						     j,
-						     0,
-						     1,
-						     type,
-						     nullptr,
-						     nullptr};
-
-			if (type == vk::DescriptorType::eUniformBuffer) {
-				bufferInfos.push_back((*uniformsBegin)[i].createDescriptorBufferInfo());
-				write.pBufferInfo = &bufferInfos.back();
-
-				uniformsBegin++;
-			} else if (type == vk::DescriptorType::eCombinedImageSampler) {
-				imageInfos.push_back((*texturesStart)->createDescriptorImageInfo());
-				write.pImageInfo = &imageInfos.back();
-
-				texturesStart++;
-			}
-
-			writes.push_back(write);
+			
 		}
-
-		device.updateDescriptorSets(writes, {});
+	
+		device.updateDescriptorSets({}, {});
 	}
 }
 
