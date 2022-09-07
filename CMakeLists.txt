@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(vkx src/main.cpp)
 
 add_subdirectory("src")
+add_subdirectory("lib/VulkanMemoryAllocator")
 
 set_target_properties(vkx PROPERTIES
         VERSION ${PROJECT_VERSION}
@@ -47,6 +48,7 @@ find_package(SDL2 CONFIG REQUIRED)
 target_link_libraries(vkx
 	PUBLIC
 		Vulkan::Vulkan
+		VulkanMemoryAllocator
 		glm
 		SDL2
 		)
