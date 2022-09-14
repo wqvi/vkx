@@ -36,9 +36,12 @@ public:
 
 	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
 
+	[[nodiscard]] const vk::DescriptorImageInfo* getInfo() const;
+
 private:
 	Image image;
 	vk::UniqueImageView view;
 	vk::UniqueSampler sampler;
+	vk::DescriptorImageInfo info;
 };
 } // namespace vkx

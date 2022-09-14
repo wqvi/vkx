@@ -1,3 +1,4 @@
+#include "vkx/renderer/core/renderer_types.hpp"
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/model.hpp>
 
@@ -7,9 +8,15 @@ vkx::Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint
 vkx::Texture::Texture(const std::string& file, const Device& device, const vkx::Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter)
     : image(file, allocator, commandSubmitter),
       view(device.createTextureImageViewUnique(image.resource->object)),
-      sampler(device.createTextureSamplerUnique()) {
+      sampler(device.createTextureSamplerUnique()),
+	info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal)
+{
 }
 
 vk::DescriptorImageInfo vkx::Texture::createDescriptorImageInfo() const {
 	return {*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal};
+}
+
+const vk::DescriptorImageInfo* vkx::Texture::getInfo() const {
+	return &info;
 }

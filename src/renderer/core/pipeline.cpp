@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <stdexcept>
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/pipeline.hpp>
@@ -33,31 +34,29 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 	for (std::uint32_t i = 0; i < vkx::MAX_FRAMES_IN_FLIGHT; i++) {
 		const auto descriptorSet = descriptorSets[i];
-		
-		auto uniformsBegin = uniforms.begin();
-		auto texturesBegin = info.textures.begin();
+
+		auto uniformsBegin = uniforms.cbegin();
+		auto texturesBegin = info.textures.cbegin();
+
 		std::vector<vk::WriteDescriptorSet> writes;
-		std::vector<vk::DescriptorBufferInfo> descriptorBufferInfos;
-		std::vector<vk::DescriptorImageInfo> descriptorImageInfos;
+
 		for (std::uint32_t j = 0; j < poolSizes.size(); j++) {
 			const auto type = poolSizes[j].type;
 
 			vk::WriteDescriptorSet write{descriptorSet, j, 0, 1, type, nullptr, nullptr};
 			if (type == vk::DescriptorType::eUniformBuffer) {
-				auto bufferInfo = (*uniformsBegin)[i].createDescriptorBufferInfo();
-				descriptorBufferInfos.push_back(bufferInfo);
-				write.pBufferInfo = &bufferInfo;
+				const auto& uniform = *uniformsBegin;
+				write.pBufferInfo = uniform[i].getInfo();
 				uniformsBegin++;
 			} else if (type == vk::DescriptorType::eCombinedImageSampler) {
-				auto imageInfo = (*texturesBegin)->createDescriptorImageInfo();
-				descriptorImageInfos.push_back(imageInfo);
-				write.pImageInfo = &imageInfo;
+				const auto& texture = *texturesBegin;
+				write.pImageInfo = texture->getInfo();
 				texturesBegin++;
 			}
 
 			writes.push_back(write);
 		}
-		
+
 		device.updateDescriptorSets(writes, {});
 	}
 }
