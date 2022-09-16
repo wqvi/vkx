@@ -240,7 +240,7 @@ int main(void) {
 		auto lightBuffers = graphicsPipeline.getUniformByIndex(1);
 		auto materialBuffers = graphicsPipeline.getUniformByIndex(2);
 
-		auto highlightMVPBuffers = graphicsPipeline.getUniformByIndex(0);
+		auto highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
 
 		// graphicsPipeline.updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
 		// 	return {mvpBuffers[i].createDescriptorBufferInfo(),
