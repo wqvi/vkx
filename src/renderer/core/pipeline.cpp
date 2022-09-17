@@ -1,5 +1,3 @@
-#include <cstdint>
-#include <stdexcept>
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/model.hpp>
@@ -57,42 +55,6 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 			writes.push_back(write);
 		}
 
-		device.updateDescriptorSets(writes, {});
-	}
-}
-
-void vkx::GraphicsPipeline::updateDescriptorSets(DescriptorWriteFunction function) const {
-	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		auto descriptorInfos = function(i);
-		std::vector<vk::WriteDescriptorSet> writes;
-		for (std::uint32_t j = 0; j < descriptorInfos.size(); j++) {
-			const auto& info = descriptorInfos[j];
-
-			vk::WriteDescriptorSet write{};
-			if (info.index() == 0) {
-				// vk::DescriptorBufferInfo
-				const auto* ptr = &std::get<vk::DescriptorBufferInfo>(info);
-				write = {descriptorSets[i],
-	       					j,
-					 0,
-					 1,
-					 vk::DescriptorType::eUniformBuffer,
-					 nullptr,
-					 ptr};
-			} else {
-				// vk::DescriptorImageInfo
-				const auto* ptr = &std::get<vk::DescriptorImageInfo>(info);
-				write = {descriptorSets[i],
-					 j,
-					 0,
-					 1,
-					 vk::DescriptorType::eCombinedImageSampler,
-					 ptr,
-					 nullptr};
-			}
-
-			writes.push_back(write);
-		}
 		device.updateDescriptorSets(writes, {});
 	}
 }

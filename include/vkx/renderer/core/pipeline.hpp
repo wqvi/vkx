@@ -15,8 +15,6 @@ struct GraphicsPipelineInformation {
 	const std::vector<const Texture*> textures;
 };
 
-using DescriptorWriteFunction = std::function<std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>>(std::size_t)>;
-
 class GraphicsPipeline {
 private:
 	friend class CommandSubmitter;
@@ -33,8 +31,6 @@ public:
 	GraphicsPipeline() = default;
 
 	explicit GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const Allocator& allocator, const GraphicsPipelineInformation& info);
-
-	void updateDescriptorSets(DescriptorWriteFunction function) const;
 
 	const std::vector<UniformBuffer>& getUniformByIndex(std::size_t i) const;
 
