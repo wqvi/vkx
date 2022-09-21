@@ -123,23 +123,69 @@ int main(void) {
 	{
 		const vkx::SDLWindow window{"Among Us", 640, 480};
 
-		// vkx::Renderer renderer{window};
+		vkx::Renderer renderer{window};
 
-		// const auto* graphicsPipeline = renderer.attachPipeline({"shader.vert.spv",
-		// 			 "shader.frag.spv",
-		// 			 createShaderBindings(),
-		// 			 vkx::Vertex::getBindingDescription(),
-		// 			 vkx::Vertex::getAttributeDescriptions()});
+		const auto texture = renderer.createTexture("a.jpg");
 
-		// const auto* highlightGraphicsPipeline = renderer.attachPipeline({"highlight.vert.spv",
-		// 			 "highlight.frag.spv",
-		// 			 createHighlightShaderBindings(),
-		// 			 getBindingDescription(),
-		// 			 getAttributeDescriptions()});
+		const auto* graphicsPipeline = renderer.attachPipeline({"shader.vert.spv",
+					 "shader.frag.spv",
+					 createShaderBindings(),
+					 vkx::Vertex::getBindingDescription(),
+					 vkx::Vertex::getAttributeDescriptions(),
+					 {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
+					 {&texture}});
+
+		const auto* highlightGraphicsPipeline = renderer.attachPipeline({"highlight.vert.spv",
+					 "highlight.frag.spv",
+					 createHighlightShaderBindings(),
+					 getBindingDescription(),
+					 getAttributeDescriptions(),
+					 {sizeof(vkx::MVP)},
+					 {}});
 
 		vkx::Camera camera({0, 0, 0});
 
-		const vkx::RendererBootstrap bootstrap{static_cast<SDL_Window*>(window)};
+		vkx::VoxelChunk<16> chunk{{0, 0, 0}};
+		for (int j = 0; j < 10; j++) {
+			for (int k = 0; k < 4; k++) {
+				for (int i = 0; i < 14; i++) {
+					chunk.set(j, k, i, vkx::Voxel::Air);
+				}
+			}
+		}
+
+		chunk.greedy();
+
+		vkx::VoxelChunk<16> chunk1{{1, 0, 0}};
+		chunk1.greedy();
+
+		vkx::VoxelChunk<16> chunk2{{0, 0, 1}};
+		chunk2.greedy();
+
+		vkx::VoxelChunk<16> chunk3{{1, 0, 1}};
+		chunk3.greedy();
+
+		//vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
+		auto mesh = renderer.createMesh(chunk.vertices, chunk.indices);
+		mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
+
+		//vkx::Mesh mesh1{chunk1.vertices, chunk1.indices, allocator};
+		auto mesh1 = renderer.createMesh(chunk1.vertices, chunk1.indices);
+		mesh1.indexCount = std::distance(chunk1.indices.begin(), chunk1.indexIter);
+
+		//vkx::Mesh mesh2{chunk2.vertices, chunk2.indices, allocator};
+		auto mesh2 = renderer.createMesh(chunk2.vertices, chunk2.indices);
+		mesh2.indexCount = std::distance(chunk2.indices.begin(), chunk2.indexIter);
+
+		//vkx::Mesh mesh3{chunk3.vertices, chunk3.indices, allocator};
+		auto mesh3 = renderer.createMesh(chunk3.vertices, chunk3.indices);
+		mesh3.indexCount = std::distance(chunk3.indices.begin(), chunk3.indexIter);
+
+		//const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
+
+		const auto highlightMesh = renderer.createMesh(vkx::CUBE_VERTICES, vkx::CUBE_INDICES);
+
+		/*const vkx::RendererBootstrap bootstrap{static_cast<SDL_Window*>(window)};
 		const auto device = bootstrap.createDevice();
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
@@ -187,48 +233,14 @@ int main(void) {
 		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
 		const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
 		const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
-		const auto syncObjects = device.createSyncObjects();
+		const auto syncObjects = device.createSyncObjects();*/
 
-		vkx::VoxelChunk<16> chunk{{0, 0, 0}};
-		for (int j = 0; j < 10; j++) {
-			for (int k = 0; k < 4; k++) {
-				for (int i = 0; i < 14; i++) {
-					chunk.set(j, k, i, vkx::Voxel::Air);
-				}
-			}
-		}
+		const std::vector<vkx::DrawInfoTest> drawInfos = {
+			{vk::CommandBufferLevel::eSecondary, graphicsPipeline, {&mesh, &mesh1, &mesh2, &mesh3}},
+			{vk::CommandBufferLevel::eSecondary, highlightGraphicsPipeline, {&highlightMesh}}
+		};
 
-		chunk.greedy();
-
-		vkx::VoxelChunk<16> chunk1{{1, 0, 0}};
-		chunk1.greedy();
-
-		vkx::VoxelChunk<16> chunk2{{0, 0, 1}};
-		chunk2.greedy();
-
-		vkx::VoxelChunk<16> chunk3{{1, 0, 1}};
-		chunk3.greedy();
-
-		vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
-		mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
-
-		vkx::Mesh mesh1{chunk1.vertices, chunk1.indices, allocator};
-		mesh1.indexCount = std::distance(chunk1.indices.begin(), chunk1.indexIter);
-
-		vkx::Mesh mesh2{chunk2.vertices, chunk2.indices, allocator};
-		mesh2.indexCount = std::distance(chunk2.indices.begin(), chunk2.indexIter);
-
-		vkx::Mesh mesh3{chunk3.vertices, chunk3.indices, allocator};
-		mesh3.indexCount = std::distance(chunk3.indices.begin(), chunk3.indexIter);
-
-		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
-
-		// const std::vector<vkx::DrawInfoTest> drawInfos = {
-		// 	{vk::CommandBufferLevel::eSecondary, graphicsPipeline, {&mesh, &mesh1, &mesh2, &mesh3}},
-		// 	{vk::CommandBufferLevel::eSecondary, highlightGraphicsPipeline, {&highlightMesh}}
-		// };
-
-		// renderer.createDrawCommands(drawInfos);
+		renderer.createDrawCommands(drawInfos);
 
 		// auto mvpBuffers = allocator.allocateUniformBuffers(sizeof(vkx::MVP));
 		// auto lightBuffers = allocator.allocateUniformBuffers(sizeof(vkx::DirectionalLight));
@@ -236,26 +248,19 @@ int main(void) {
 
 		// auto highlightMVPBuffers = allocator.allocateUniformBuffers(sizeof(vkx::MVP));
 
-		auto mvpBuffers = graphicsPipeline.getUniformByIndex(0);
-		auto lightBuffers = graphicsPipeline.getUniformByIndex(1);
-		auto materialBuffers = graphicsPipeline.getUniformByIndex(2);
+		SDL_Log("%p, %p", graphicsPipeline, highlightGraphicsPipeline);
 
-		auto highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
+		auto mvpBuffers = graphicsPipeline->getUniformByIndex(0);
+		auto lightBuffers = graphicsPipeline->getUniformByIndex(1);
+		auto materialBuffers = graphicsPipeline->getUniformByIndex(2);
 
-		// graphicsPipeline.updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
-		// 	return {mvpBuffers[i].createDescriptorBufferInfo(),
-		// 		texture.createDescriptorImageInfo(),
-		// 		lightBuffers[i].createDescriptorBufferInfo(),
-		// 		materialBuffers[i].createDescriptorBufferInfo()};
-		// });
+		auto highlightMVPBuffers = highlightGraphicsPipeline->getUniformByIndex(0);
 
-		// highlightGraphicsPipeline.updateDescriptorSets([&highlightMVPBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
-		// 	return {highlightMVPBuffers[i].createDescriptorBufferInfo()};
-		// });
-
+		SDL_Log("Hey?");
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
 		auto highlightModel = glm::mat4(1.0f);
+
 
 		std::uint32_t currentFrame = 0;
 		SDL_Event event{};
@@ -290,7 +295,7 @@ int main(void) {
 			materialBuffer.mapMemory(material);
 			highlightMVPBuffer.mapMemory(highlightMVP);
 
-			const auto& syncObject = syncObjects[currentFrame];
+			/*const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
 			auto [result, imageIndex] = swapchain.acquireNextImage(device, syncObject);
 
@@ -361,7 +366,13 @@ int main(void) {
 				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
-			}
+			}*/
+
+			renderer.lazySync(window);
+
+			renderer.uploadDrawCommands(drawInfos, window);
+
+			renderer.lazyUpdate();
 
 			currentFrame = (currentFrame + 1) % vkx::MAX_FRAMES_IN_FLIGHT;
 
@@ -380,6 +391,7 @@ int main(void) {
 						int width = event.window.data1;
 						int height = event.window.data2;
 						proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
+						renderer.framebufferResized = true;
 					}
 					break;
 				case SDL_MOUSEMOTION: {
@@ -420,7 +432,8 @@ int main(void) {
 			}
 		}
 
-		device->waitIdle();
+		// device->waitIdle();
+		renderer.device->waitIdle();
 	}
 
 	SDL_Quit();

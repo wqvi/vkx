@@ -13,7 +13,7 @@ struct DrawInfoTest {
 };
 
 class Renderer {
-private:
+public:
     RendererBootstrap bootstrap{};
     Device device{};
 public:
