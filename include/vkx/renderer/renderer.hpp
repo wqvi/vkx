@@ -24,7 +24,7 @@ private:
     vk::UniqueRenderPass clearRenderPass{};
     vk::UniqueRenderPass loadRenderPass{};
 
-    std::vector<vkx::GraphicsPipeline> pipelines{};
+    std::vector<std::shared_ptr<vkx::GraphicsPipeline>> pipelines{};
 
 public:
     std::vector<vkx::SyncObjects> syncObjects{};
@@ -45,7 +45,7 @@ public:
 
     explicit Renderer(const SDLWindow& window);
 
-    vkx::GraphicsPipeline* attachPipeline(const GraphicsPipelineInformation& pipelineInformation);
+    std::shared_ptr<vkx::GraphicsPipeline> attachPipeline(const GraphicsPipelineInformation& pipelineInformation);
 
     void resized(const SDLWindow& window);
 

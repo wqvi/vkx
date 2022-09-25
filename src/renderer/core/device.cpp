@@ -1,3 +1,4 @@
+#include "vkx/renderer/core/renderer_types.hpp"
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
 
@@ -178,8 +179,8 @@ vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageL
 	return device->createRenderPassUnique(renderPassInfo);
 }
 
-vkx::GraphicsPipeline vkx::Device::createGraphicsPipeline(vk::RenderPass renderPass, const Allocator& allocator, const vkx::GraphicsPipelineInformation& info) const {
-	return vkx::GraphicsPipeline{*device, renderPass, allocator, info};
+std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(vk::RenderPass renderPass, const Allocator& allocator, const vkx::GraphicsPipelineInformation& info) const {
+	return std::shared_ptr<vkx::GraphicsPipeline>(new vkx::GraphicsPipeline{*device, renderPass, allocator, info});
 }
 
 vkx::CommandSubmitter vkx::Device::createCommandSubmitter() const {

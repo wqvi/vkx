@@ -230,28 +230,11 @@ int main(void) {
 
 		// renderer.createDrawCommands(drawInfos);
 
-		// auto mvpBuffers = allocator.allocateUniformBuffers(sizeof(vkx::MVP));
-		// auto lightBuffers = allocator.allocateUniformBuffers(sizeof(vkx::DirectionalLight));
-		// auto materialBuffers = allocator.allocateUniformBuffers(sizeof(vkx::Material));
+		auto mvpBuffers = graphicsPipeline->getUniformByIndex(0);
+		auto lightBuffers = graphicsPipeline->getUniformByIndex(1);
+		auto materialBuffers = graphicsPipeline->getUniformByIndex(2);
 
-		// auto highlightMVPBuffers = allocator.allocateUniformBuffers(sizeof(vkx::MVP));
-
-		auto mvpBuffers = graphicsPipeline.getUniformByIndex(0);
-		auto lightBuffers = graphicsPipeline.getUniformByIndex(1);
-		auto materialBuffers = graphicsPipeline.getUniformByIndex(2);
-
-		auto highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
-
-		// graphicsPipeline.updateDescriptorSets([&mvpBuffers, &texture, &lightBuffers, &materialBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
-		// 	return {mvpBuffers[i].createDescriptorBufferInfo(),
-		// 		texture.createDescriptorImageInfo(),
-		// 		lightBuffers[i].createDescriptorBufferInfo(),
-		// 		materialBuffers[i].createDescriptorBufferInfo()};
-		// });
-
-		// highlightGraphicsPipeline.updateDescriptorSets([&highlightMVPBuffers](std::size_t i) -> std::vector<std::variant<vk::DescriptorBufferInfo, vk::DescriptorImageInfo>> {
-		// 	return {highlightMVPBuffers[i].createDescriptorBufferInfo()};
-		// });
+		auto highlightMVPBuffers = highlightGraphicsPipeline->getUniformByIndex(0);
 
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
@@ -315,7 +298,7 @@ int main(void) {
 			    imageIndex,
 			    currentFrame,
 			    &swapchain,
-			    &graphicsPipeline,
+			    graphicsPipeline,
 			    *clearRenderPass,
 			    {mesh.vertex->object, mesh1.vertex->object, mesh2.vertex->object, mesh3.vertex->object},
 			    {mesh.index->object, mesh1.index->object, mesh2.index->object, mesh3.index->object},
@@ -325,7 +308,7 @@ int main(void) {
 			    imageIndex,
 			    currentFrame,
 			    &swapchain,
-			    &highlightGraphicsPipeline,
+			    highlightGraphicsPipeline,
 			    *loadRenderPass,
 			    {highlightMesh.vertex->object},
 			    {highlightMesh.index->object},

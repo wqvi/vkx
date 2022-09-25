@@ -17,9 +17,9 @@ vkx::Renderer::Renderer(const SDLWindow& window)
 	syncObjects = device.createSyncObjects();
 }
 
-vkx::GraphicsPipeline* vkx::Renderer::attachPipeline(const vkx::GraphicsPipelineInformation& pipelineInformation) {
+std::shared_ptr<vkx::GraphicsPipeline> vkx::Renderer::attachPipeline(const vkx::GraphicsPipelineInformation& pipelineInformation) {
 	pipelines.push_back(device.createGraphicsPipeline(*clearRenderPass, allocator, pipelineInformation));
-	return &pipelines.front();
+	return pipelines.back();
 }
 
 void vkx::Renderer::resized(const SDLWindow& window) {
