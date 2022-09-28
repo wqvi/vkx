@@ -1,4 +1,4 @@
-#include "vkx/renderer/core/swapchain_info.hpp"
+#include <vulkan/vulkan.hpp>
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(const vkx::Device& device) {
