@@ -110,43 +110,29 @@ auto getAttributeDescriptions() noexcept {
 
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2: %s", SDL_GetError());
 		return EXIT_FAILURE;
 	}
 
 	if (SDL_SetRelativeMouseMode(SDL_TRUE)) {
-		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to capture mouse: %s", SDL_GetError());
-		SDL_Quit();
+		return EXIT_FAILURE;
+	}
+
+	SDL_Window* window = SDL_CreateWindow("Among Us", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+	if (window == nullptr) {
 		return EXIT_FAILURE;
 	}
 
 	{
-		const vkx::SDLWindow window{"Among Us", 640, 480};
-
-		// vkx::Renderer renderer{window};
-
-		// const auto* graphicsPipeline = renderer.attachPipeline({"shader.vert.spv",
-		// 			 "shader.frag.spv",
-		// 			 createShaderBindings(),
-		// 			 vkx::Vertex::getBindingDescription(),
-		// 			 vkx::Vertex::getAttributeDescriptions()});
-
-		// const auto* highlightGraphicsPipeline = renderer.attachPipeline({"highlight.vert.spv",
-		// 			 "highlight.frag.spv",
-		// 			 createHighlightShaderBindings(),
-		// 			 getBindingDescription(),
-		// 			 getAttributeDescriptions()});
-
 		vkx::Camera camera({0, 0, 0});
 
-		const vkx::RendererBootstrap bootstrap{static_cast<SDL_Window*>(window)};
+		const vkx::RendererBootstrap bootstrap{window};
 		const auto device = bootstrap.createDevice();
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
 		const vkx::SwapchainInfo swapchainInfo{device};
 		const auto clearRenderPass = device.createRenderPass(swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
 		const auto loadRenderPass = device.createRenderPass(swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
-		auto swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
+		auto swapchain = device.createSwapchain(window, *clearRenderPass, allocator);
 
 		const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
 
@@ -244,7 +230,7 @@ int main(void) {
 		SDL_Event event{};
 		bool isRunning = true;
 		bool framebufferResized = false;
-		window.show();
+		SDL_ShowWindow(window);
 		while (isRunning) {
 			camera.position += camera.direction * 0.001f;
 
@@ -278,9 +264,10 @@ int main(void) {
 			auto [result, imageIndex] = swapchain.acquireNextImage(device, syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR) {
-				auto [newWidth, newHeight] = window.getSize();
+				int newWidth, newHeight;
+				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 				while (newWidth == 0 || newHeight == 0) {
-					std::tie(newWidth, newHeight) = window.getSize();
+					SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 					SDL_WaitEvent(nullptr);
 				}
 
@@ -333,9 +320,10 @@ int main(void) {
 			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 				framebufferResized = false;
 
-				auto [newWidth, newHeight] = window.getSize();
+				int newWidth, newHeight;
+				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 				while (newWidth == 0 || newHeight == 0) {
-					std::tie(newWidth, newHeight) = window.getSize();
+					SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 					SDL_WaitEvent(nullptr);
 				}
 
@@ -406,6 +394,7 @@ int main(void) {
 		device->waitIdle();
 	}
 
+	SDL_DestroyWindow(window);
 	SDL_Quit();
 
 	return EXIT_SUCCESS;
