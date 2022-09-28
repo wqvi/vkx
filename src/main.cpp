@@ -1,3 +1,4 @@
+#include "vkx/renderer/core/swapchain_info.hpp"
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(const vkx::Device& device) {
@@ -125,8 +126,82 @@ int main(void) {
 	{
 		vkx::Camera camera({0, 0, 0});
 
-		const vkx::RendererBootstrap bootstrap{window};
-		const auto device = bootstrap.createDevice();
+		constexpr vk::ApplicationInfo applicationInfo{"VKX", VK_MAKE_VERSION(0, 0, 1), "VKX", VK_MAKE_VERSION(0, 0, 1), VK_API_VERSION_1_0};
+
+		std::uint32_t count = 0;
+		if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
+			return EXIT_FAILURE;
+		}
+
+		std::vector<const char*> instanceExtensions{count};
+		if (SDL_Vulkan_GetInstanceExtensions(window, &count, instanceExtensions.data()) != SDL_TRUE) {
+			return EXIT_FAILURE;
+		}
+
+#ifdef DEBUG
+		instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+#ifdef DEBUG
+		constexpr std::array instanceLayers{"VK_LAYER_KHRONOS_validation"};
+#else
+		constexpr std::array<const char*, 0> instanceLayers{};
+#endif
+
+		const vk::InstanceCreateInfo instanceCreateInfo{{}, &applicationInfo, instanceLayers, instanceExtensions};
+
+#ifdef DEBUG
+		constexpr auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+		constexpr auto messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+
+		constexpr vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{{}, messageSeverity, messageType, [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; }, nullptr};
+
+		const vk::StructureChain structureChain{instanceCreateInfo, debugUtilsMessengerCreateInfo};
+
+		const auto instance = vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
+#else
+		const auto instance = vk::createInstanceUnique(instanceCreateInfo);
+#endif
+
+		VkSurfaceKHR cSurface = nullptr;
+		if (SDL_Vulkan_CreateSurface(window, *instance, &cSurface) != SDL_TRUE) {
+			return EXIT_FAILURE;
+		}
+		const auto surface = vk::UniqueSurfaceKHR{cSurface, *instance};
+
+		const auto physicalDevices = instance->enumeratePhysicalDevices();
+
+		std::optional<vk::PhysicalDevice> physicalDevice;
+		std::uint32_t bestRating = 0;
+		for (vk::PhysicalDevice pDevice : physicalDevices) {
+			std::uint32_t currentRating = 0;
+
+			const vkx::QueueConfig indices{pDevice, *surface};
+			if (indices.isComplete()) {
+				currentRating++;
+			}
+
+			const vkx::SwapchainInfo info{pDevice, *surface};
+			if (info.isComplete()) {
+				currentRating++;
+			}
+
+			if (pDevice.getFeatures().samplerAnisotropy) {
+				currentRating++;
+			}
+
+			if (currentRating > bestRating) {
+				bestRating = currentRating;
+				physicalDevice = pDevice;
+			}
+		}
+
+		if (!physicalDevice.has_value()) {
+			return EXIT_FAILURE;
+		}
+
+		const vkx::Device device{*instance, *physicalDevice, *surface};
+
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
 		const vkx::SwapchainInfo swapchainInfo{device};
@@ -208,13 +283,6 @@ int main(void) {
 		mesh3.indexCount = std::distance(chunk3.indices.begin(), chunk3.indexIter);
 
 		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
-
-		// const std::vector<vkx::DrawInfoTest> drawInfos = {
-		// 	{vk::CommandBufferLevel::eSecondary, graphicsPipeline, {&mesh, &mesh1, &mesh2, &mesh3}},
-		// 	{vk::CommandBufferLevel::eSecondary, highlightGraphicsPipeline, {&highlightMesh}}
-		// };
-
-		// renderer.createDrawCommands(drawInfos);
 
 		auto mvpBuffers = graphicsPipeline->getUniformByIndex(0);
 		auto lightBuffers = graphicsPipeline->getUniformByIndex(1);
