@@ -1,5 +1,6 @@
-#include <vulkan/vulkan.hpp>
+#include <stdexcept>
 #include <vkx/vkx.hpp>
+#include <vulkan/vulkan.hpp>
 
 auto createShaderDescriptorSetLayout(const vkx::Device& device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
@@ -109,6 +110,53 @@ auto getAttributeDescriptions() noexcept {
 	return attributeDescriptions;
 }
 
+static auto createInstance(SDL_Window* const window) {
+	constexpr vk::ApplicationInfo applicationInfo{"VKX", VK_MAKE_VERSION(0, 0, 1), "VKX", VK_MAKE_VERSION(0, 0, 1), VK_API_VERSION_1_0};
+
+	std::uint32_t count = 0;
+	if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
+		throw std::runtime_error("Failed to enumerate vulkan extensions");
+	}
+
+	std::vector<const char*> instanceExtensions{count};
+	if (SDL_Vulkan_GetInstanceExtensions(window, &count, instanceExtensions.data()) != SDL_TRUE) {
+		throw std::runtime_error("Failed to enumerate vulkan extensions");
+	}
+
+#ifdef DEBUG
+	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+#ifdef DEBUG
+	constexpr std::array instanceLayers{"VK_LAYER_KHRONOS_validation"};
+#else
+	constexpr std::array<const char*, 0> instanceLayers{};
+#endif
+
+	const vk::InstanceCreateInfo instanceCreateInfo{{}, &applicationInfo, instanceLayers, instanceExtensions};
+
+#ifdef DEBUG
+	constexpr auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+	constexpr auto messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+
+	constexpr vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{{}, messageSeverity, messageType, [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; }, nullptr};
+
+	const vk::StructureChain structureChain{instanceCreateInfo, debugUtilsMessengerCreateInfo};
+
+	return vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
+#else
+	return vk::createInstanceUnique(instanceCreateInfo);
+#endif
+}
+
+static auto createSurface(SDL_Window* const window, vk::Instance instance) {
+	VkSurfaceKHR cSurface = nullptr;
+	if (SDL_Vulkan_CreateSurface(window, instance, &cSurface) != SDL_TRUE) {
+		throw std::runtime_error("Failed to create vulkan surface.");
+	}
+	return vk::UniqueSurfaceKHR{cSurface, instance};
+}
+
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		return EXIT_FAILURE;
@@ -126,48 +174,8 @@ int main(void) {
 	{
 		vkx::Camera camera({0, 0, 0});
 
-		constexpr vk::ApplicationInfo applicationInfo{"VKX", VK_MAKE_VERSION(0, 0, 1), "VKX", VK_MAKE_VERSION(0, 0, 1), VK_API_VERSION_1_0};
-
-		std::uint32_t count = 0;
-		if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
-			return EXIT_FAILURE;
-		}
-
-		std::vector<const char*> instanceExtensions{count};
-		if (SDL_Vulkan_GetInstanceExtensions(window, &count, instanceExtensions.data()) != SDL_TRUE) {
-			return EXIT_FAILURE;
-		}
-
-#ifdef DEBUG
-		instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
-
-#ifdef DEBUG
-		constexpr std::array instanceLayers{"VK_LAYER_KHRONOS_validation"};
-#else
-		constexpr std::array<const char*, 0> instanceLayers{};
-#endif
-
-		const vk::InstanceCreateInfo instanceCreateInfo{{}, &applicationInfo, instanceLayers, instanceExtensions};
-
-#ifdef DEBUG
-		constexpr auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
-		constexpr auto messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
-
-		constexpr vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{{}, messageSeverity, messageType, [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; }, nullptr};
-
-		const vk::StructureChain structureChain{instanceCreateInfo, debugUtilsMessengerCreateInfo};
-
-		const auto instance = vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
-#else
-		const auto instance = vk::createInstanceUnique(instanceCreateInfo);
-#endif
-
-		VkSurfaceKHR cSurface = nullptr;
-		if (SDL_Vulkan_CreateSurface(window, *instance, &cSurface) != SDL_TRUE) {
-			return EXIT_FAILURE;
-		}
-		const auto surface = vk::UniqueSurfaceKHR{cSurface, *instance};
+		const auto instance = createInstance(window);
+		const auto surface = createSurface(window, *instance);
 
 		const auto physicalDevices = instance->enumeratePhysicalDevices();
 
@@ -225,8 +233,8 @@ int main(void) {
 		    createShaderBindings(),
 		    vkx::Vertex::getBindingDescription(),
 		    vkx::Vertex::getAttributeDescriptions(),
-			{sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
-			{&texture}};
+		    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
+		    {&texture}};
 
 		const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, graphicsPipelineInformation);
 
@@ -236,8 +244,8 @@ int main(void) {
 		    createHighlightShaderBindings(),
 		    getBindingDescription(),
 		    getAttributeDescriptions(),
-			{sizeof(vkx::MVP)},
-			{}};
+		    {sizeof(vkx::MVP)},
+		    {}};
 
 		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, highlightGraphicsPipelineInformation);
 
