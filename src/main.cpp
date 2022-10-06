@@ -259,7 +259,7 @@ int main(void) {
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
 
 		constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount + highlightDrawCommandAmount;
-		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
+		constexpr std::uint32_t secondaryDrawCommandAmount = 1;
 		const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
 		const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 		const auto syncObjects = device.createSyncObjects();
@@ -275,26 +275,8 @@ int main(void) {
 
 		chunk.greedy();
 
-		vkx::VoxelChunk<16> chunk1{{1, 0, 0}};
-		chunk1.greedy();
-
-		vkx::VoxelChunk<16> chunk2{{0, 0, 1}};
-		chunk2.greedy();
-
-		vkx::VoxelChunk<16> chunk3{{1, 0, 1}};
-		chunk3.greedy();
-
 		vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
 		mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
-
-		vkx::Mesh mesh1{chunk1.vertices, chunk1.indices, allocator};
-		mesh1.indexCount = std::distance(chunk1.indices.begin(), chunk1.indexIter);
-
-		vkx::Mesh mesh2{chunk2.vertices, chunk2.indices, allocator};
-		mesh2.indexCount = std::distance(chunk2.indices.begin(), chunk2.indexIter);
-
-		vkx::Mesh mesh3{chunk3.vertices, chunk3.indices, allocator};
-		mesh3.indexCount = std::distance(chunk3.indices.begin(), chunk3.indexIter);
 
 		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
@@ -369,9 +351,9 @@ int main(void) {
 			    &swapchain,
 			    graphicsPipeline,
 			    *clearRenderPass,
-			    {mesh.vertex->object, mesh1.vertex->object, mesh2.vertex->object, mesh3.vertex->object},
-			    {mesh.index->object, mesh1.index->object, mesh2.index->object, mesh3.index->object},
-			    {static_cast<std::uint32_t>(mesh.indexCount), static_cast<std::uint32_t>(mesh1.indexCount), static_cast<std::uint32_t>(mesh2.indexCount), static_cast<std::uint32_t>(mesh3.indexCount)}};
+			    {mesh.vertex->object},
+			    {mesh.index->object},
+			    {static_cast<std::uint32_t>(mesh.indexCount)}};
 
 			const vkx::DrawInfo highlightDrawInfo = {
 			    imageIndex,
