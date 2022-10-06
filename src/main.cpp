@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <vkx/vkx.hpp>
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 auto createShaderDescriptorSetLayout(const vkx::Device& device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
@@ -157,6 +158,41 @@ static auto createSurface(SDL_Window* const window, vk::Instance instance) {
 	return vk::UniqueSurfaceKHR{cSurface, instance};
 }
 
+static auto getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface) {
+	const auto physicalDevices = instance.enumeratePhysicalDevices();
+
+	std::optional<vk::PhysicalDevice> physicalDevice;
+	std::uint32_t bestRating = 0;
+	for (vk::PhysicalDevice pDevice : physicalDevices) {
+		std::uint32_t currentRating = 0;
+
+		const vkx::QueueConfig indices{pDevice, surface};
+		if (indices.isComplete()) {
+			currentRating++;
+		}
+
+		const vkx::SwapchainInfo info{pDevice, surface};
+		if (info.isComplete()) {
+			currentRating++;
+		}
+
+		if (pDevice.getFeatures().samplerAnisotropy) {
+			currentRating++;
+		}
+
+		if (currentRating > bestRating) {
+			bestRating = currentRating;
+			physicalDevice = pDevice;
+		}
+	}
+
+	if (!physicalDevice.has_value()) {
+		throw std::runtime_error("Failure to find suitable physical device!");
+	}
+
+	return *physicalDevice;
+}
+
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		return EXIT_FAILURE;
@@ -176,39 +212,9 @@ int main(void) {
 
 		const auto instance = createInstance(window);
 		const auto surface = createSurface(window, *instance);
+		const auto physicalDevice = getBestPhysicalDevice(*instance, *surface);
 
-		const auto physicalDevices = instance->enumeratePhysicalDevices();
-
-		std::optional<vk::PhysicalDevice> physicalDevice;
-		std::uint32_t bestRating = 0;
-		for (vk::PhysicalDevice pDevice : physicalDevices) {
-			std::uint32_t currentRating = 0;
-
-			const vkx::QueueConfig indices{pDevice, *surface};
-			if (indices.isComplete()) {
-				currentRating++;
-			}
-
-			const vkx::SwapchainInfo info{pDevice, *surface};
-			if (info.isComplete()) {
-				currentRating++;
-			}
-
-			if (pDevice.getFeatures().samplerAnisotropy) {
-				currentRating++;
-			}
-
-			if (currentRating > bestRating) {
-				bestRating = currentRating;
-				physicalDevice = pDevice;
-			}
-		}
-
-		if (!physicalDevice.has_value()) {
-			return EXIT_FAILURE;
-		}
-
-		const vkx::Device device{*instance, *physicalDevice, *surface};
+		const vkx::Device device{*instance, physicalDevice, *surface};
 
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
