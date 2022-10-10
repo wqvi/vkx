@@ -1,5 +1,6 @@
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/renderer.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 vkx::Renderer::Renderer(const SDLWindow& window)
     : bootstrap(static_cast<SDL_Window*>(window)),
@@ -113,6 +114,14 @@ void vkx::Renderer::uploadDrawCommands(const std::vector<DrawInfoTest>& drawInfo
 
 void vkx::Renderer::lazyUpdate() {
 	currentFrame = (currentFrame + 1) % vkx::MAX_FRAMES_IN_FLIGHT;
+}
+
+vk::UniqueSurfaceKHR vkx::createSurface(SDL_Window *const window, vk::Instance instance) {
+	VkSurfaceKHR cSurface = nullptr;
+	if (SDL_Vulkan_CreateSurface(window, instance, &cSurface) != SDL_TRUE) {
+		throw std::runtime_error("Failed to create vulkan surface.");
+	}
+	return vk::UniqueSurfaceKHR{cSurface, instance};
 }
 
 vk::PhysicalDevice vkx::getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface) {

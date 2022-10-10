@@ -4,6 +4,7 @@
 #include <vkx/renderer/core/bootstrap.hpp>
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/model.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
 struct DrawInfoTest {
@@ -66,6 +67,9 @@ public:
 
 	void lazyUpdate();
 };
+
+[[nodiscard]]
+vk::UniqueSurfaceKHR createSurface(SDL_Window* const window, vk::Instance instance);
 
 [[nodiscard]]
 vk::PhysicalDevice getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface);
