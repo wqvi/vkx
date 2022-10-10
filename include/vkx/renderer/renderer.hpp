@@ -69,6 +69,9 @@ public:
 };
 
 [[nodiscard]]
+vk::UniqueInstance createInstance(SDL_Window* const window);
+
+[[nodiscard]]
 vk::UniqueSurfaceKHR createSurface(SDL_Window* const window, vk::Instance instance);
 
 [[nodiscard]]

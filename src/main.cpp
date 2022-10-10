@@ -111,44 +111,6 @@ auto getAttributeDescriptions() noexcept {
 	return attributeDescriptions;
 }
 
-static auto createInstance(SDL_Window* const window) {
-	constexpr vk::ApplicationInfo applicationInfo{"VKX", VK_MAKE_VERSION(0, 0, 1), "VKX", VK_MAKE_VERSION(0, 0, 1), VK_API_VERSION_1_0};
-
-	std::uint32_t count = 0;
-	if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
-		throw std::runtime_error("Failed to enumerate vulkan extensions");
-	}
-
-	std::vector<const char*> instanceExtensions{count};
-	if (SDL_Vulkan_GetInstanceExtensions(window, &count, instanceExtensions.data()) != SDL_TRUE) {
-		throw std::runtime_error("Failed to enumerate vulkan extensions");
-	}
-
-#ifdef DEBUG
-	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
-
-#ifdef DEBUG
-	constexpr std::array instanceLayers{"VK_LAYER_KHRONOS_validation"};
-#else
-	constexpr std::array<const char*, 0> instanceLayers{};
-#endif
-
-	const vk::InstanceCreateInfo instanceCreateInfo{{}, &applicationInfo, instanceLayers, instanceExtensions};
-
-#ifdef DEBUG
-	constexpr auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
-	constexpr auto messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
-
-	constexpr vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{{}, messageSeverity, messageType, [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; }, nullptr};
-
-	const vk::StructureChain structureChain{instanceCreateInfo, debugUtilsMessengerCreateInfo};
-
-	return vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
-#else
-	return vk::createInstanceUnique(instanceCreateInfo);
-#endif
-}
 
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -167,7 +129,7 @@ int main(void) {
 	{
 		vkx::Camera camera({0, 0, 0});
 
-		const auto instance = createInstance(window);
+		const auto instance = vkx::createInstance(window);
 		const auto surface = vkx::createSurface(window, *instance);
 		const auto physicalDevice = vkx::getBestPhysicalDevice(*instance, *surface);
 
