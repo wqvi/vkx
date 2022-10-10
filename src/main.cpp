@@ -150,14 +150,6 @@ static auto createInstance(SDL_Window* const window) {
 #endif
 }
 
-static auto createSurface(SDL_Window* const window, vk::Instance instance) {
-	VkSurfaceKHR cSurface = nullptr;
-	if (SDL_Vulkan_CreateSurface(window, instance, &cSurface) != SDL_TRUE) {
-		throw std::runtime_error("Failed to create vulkan surface.");
-	}
-	return vk::UniqueSurfaceKHR{cSurface, instance};
-}
-
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		return EXIT_FAILURE;
@@ -176,7 +168,7 @@ int main(void) {
 		vkx::Camera camera({0, 0, 0});
 
 		const auto instance = createInstance(window);
-		const auto surface = createSurface(window, *instance);
+		const auto surface = vkx::createSurface(window, *instance);
 		const auto physicalDevice = vkx::getBestPhysicalDevice(*instance, *surface);
 
 		const vkx::Device device{*instance, physicalDevice, *surface};
