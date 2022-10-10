@@ -99,9 +99,9 @@ void vkx::Renderer::uploadDrawCommands(const std::vector<DrawInfoTest>& drawInfo
 	}
 
 	commandSubmitter.submitDrawCommands(primaryBegin, primaryDrawCommandsAmount, syncObject);
-	
+
 	const auto result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
-	
+
 	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 		framebufferResized = false;
 
@@ -113,4 +113,39 @@ void vkx::Renderer::uploadDrawCommands(const std::vector<DrawInfoTest>& drawInfo
 
 void vkx::Renderer::lazyUpdate() {
 	currentFrame = (currentFrame + 1) % vkx::MAX_FRAMES_IN_FLIGHT;
+}
+
+vk::PhysicalDevice vkx::getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface) {
+	const auto physicalDevices = instance.enumeratePhysicalDevices();
+
+	std::optional<vk::PhysicalDevice> physicalDevice;
+	std::uint32_t bestRating = 0;
+	for (vk::PhysicalDevice pDevice : physicalDevices) {
+		std::uint32_t currentRating = 0;
+
+		const vkx::QueueConfig indices{pDevice, surface};
+		if (indices.isComplete()) {
+			currentRating++;
+		}
+
+		const vkx::SwapchainInfo info{pDevice, surface};
+		if (info.isComplete()) {
+			currentRating++;
+		}
+
+		if (pDevice.getFeatures().samplerAnisotropy) {
+			currentRating++;
+		}
+
+		if (currentRating > bestRating) {
+			bestRating = currentRating;
+			physicalDevice = pDevice;
+		}
+	}
+
+	if (!physicalDevice.has_value()) {
+		throw std::runtime_error("Failure to find suitable physical device!");
+	}
+
+	return *physicalDevice;
 }
