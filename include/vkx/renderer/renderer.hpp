@@ -7,9 +7,32 @@
 #include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
+/**
+ * @brief Create a Vulkan instance object
+ *
+ * @exception std::runtime_exception Gets thrown if debug info or instance can't be made 
+ * @param window The window to which is queried for extensions 
+ * @return vk::UniqueInstance 
+ */
 [[nodiscard]] vk::UniqueInstance createInstance(SDL_Window* const window);
 
+/**
+ * @brief Create a surface object
+ *
+ * @exception std::runtime_exception Gets thrown if a surface can't be made 
+ * @param window The window to which to attach the Vulkan surface 
+ * @param instance The Vulkan instance handle
+ * @return vk::UniqueSurfaceKHR 
+ */
 [[nodiscard]] vk::UniqueSurfaceKHR createSurface(SDL_Window* const window, vk::Instance instance);
 
+/**
+ * @brief Get the best physical device for Vulkan usage.
+ *
+ * @exception std::runtime_exception Gets thrown if a suitable physical device can't be found 
+ * @param instance The Vulkan instance handle 
+ * @param surface The Vulkan surface handle
+ * @return vk::PhysicalDevice 
+ */
 [[nodiscard]] vk::PhysicalDevice getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface);
 } // namespace vkx
