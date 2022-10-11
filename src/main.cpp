@@ -1,4 +1,7 @@
+#include <stdexcept>
 #include <vkx/vkx.hpp>
+#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 auto createShaderDescriptorSetLayout(const vkx::Device& device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
@@ -108,91 +111,36 @@ auto getAttributeDescriptions() noexcept {
 	return attributeDescriptions;
 }
 
+
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to initialize SDL2: %s", SDL_GetError());
 		return EXIT_FAILURE;
 	}
 
 	if (SDL_SetRelativeMouseMode(SDL_TRUE)) {
-		SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, "Failure to capture mouse: %s", SDL_GetError());
-		SDL_Quit();
+		return EXIT_FAILURE;
+	}
+
+	SDL_Window* window = SDL_CreateWindow("Among Us", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+	if (window == nullptr) {
 		return EXIT_FAILURE;
 	}
 
 	{
-		const vkx::SDLWindow window{"Among Us", 640, 480};
-
-		vkx::Renderer renderer{window};
-
-		const auto texture = renderer.createTexture("a.jpg");
-
-		const auto* graphicsPipeline = renderer.attachPipeline({"shader.vert.spv",
-					 "shader.frag.spv",
-					 createShaderBindings(),
-					 vkx::Vertex::getBindingDescription(),
-					 vkx::Vertex::getAttributeDescriptions(),
-					 {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
-					 {&texture}});
-
-		const auto* highlightGraphicsPipeline = renderer.attachPipeline({"highlight.vert.spv",
-					 "highlight.frag.spv",
-					 createHighlightShaderBindings(),
-					 getBindingDescription(),
-					 getAttributeDescriptions(),
-					 {sizeof(vkx::MVP)},
-					 {}});
-
 		vkx::Camera camera({0, 0, 0});
 
-		vkx::VoxelChunk<16> chunk{{0, 0, 0}};
-		for (int j = 0; j < 10; j++) {
-			for (int k = 0; k < 4; k++) {
-				for (int i = 0; i < 14; i++) {
-					chunk.set(j, k, i, vkx::Voxel::Air);
-				}
-			}
-		}
+		const auto instance = vkx::createInstance(window);
+		const auto surface = vkx::createSurface(window, *instance);
+		const auto physicalDevice = vkx::getBestPhysicalDevice(*instance, *surface);
 
-		chunk.greedy();
+		const vkx::Device device{*instance, physicalDevice, *surface};
 
-		vkx::VoxelChunk<16> chunk1{{1, 0, 0}};
-		chunk1.greedy();
-
-		vkx::VoxelChunk<16> chunk2{{0, 0, 1}};
-		chunk2.greedy();
-
-		vkx::VoxelChunk<16> chunk3{{1, 0, 1}};
-		chunk3.greedy();
-
-		//vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
-		auto mesh = renderer.createMesh(chunk.vertices, chunk.indices);
-		mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
-
-		//vkx::Mesh mesh1{chunk1.vertices, chunk1.indices, allocator};
-		auto mesh1 = renderer.createMesh(chunk1.vertices, chunk1.indices);
-		mesh1.indexCount = std::distance(chunk1.indices.begin(), chunk1.indexIter);
-
-		//vkx::Mesh mesh2{chunk2.vertices, chunk2.indices, allocator};
-		auto mesh2 = renderer.createMesh(chunk2.vertices, chunk2.indices);
-		mesh2.indexCount = std::distance(chunk2.indices.begin(), chunk2.indexIter);
-
-		//vkx::Mesh mesh3{chunk3.vertices, chunk3.indices, allocator};
-		auto mesh3 = renderer.createMesh(chunk3.vertices, chunk3.indices);
-		mesh3.indexCount = std::distance(chunk3.indices.begin(), chunk3.indexIter);
-
-		//const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
-
-		const auto highlightMesh = renderer.createMesh(vkx::CUBE_VERTICES, vkx::CUBE_INDICES);
-
-		/*const vkx::RendererBootstrap bootstrap{static_cast<SDL_Window*>(window)};
-		const auto device = bootstrap.createDevice();
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
 		const vkx::SwapchainInfo swapchainInfo{device};
 		const auto clearRenderPass = device.createRenderPass(swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
 		const auto loadRenderPass = device.createRenderPass(swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
-		auto swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
+		auto swapchain = device.createSwapchain(window, *clearRenderPass, allocator);
 
 		const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
 
@@ -210,8 +158,8 @@ int main(void) {
 		    createShaderBindings(),
 		    vkx::Vertex::getBindingDescription(),
 		    vkx::Vertex::getAttributeDescriptions(),
-			{sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
-			{&texture}};
+		    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
+		    {&texture}};
 
 		const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, graphicsPipelineInformation);
 
@@ -221,8 +169,8 @@ int main(void) {
 		    createHighlightShaderBindings(),
 		    getBindingDescription(),
 		    getAttributeDescriptions(),
-			{sizeof(vkx::MVP)},
-			{}};
+		    {sizeof(vkx::MVP)},
+		    {}};
 
 		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, highlightGraphicsPipelineInformation);
 
@@ -230,25 +178,26 @@ int main(void) {
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
 
 		constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount + highlightDrawCommandAmount;
-		constexpr std::uint32_t secondaryDrawCommandAmount = 4;
+		constexpr std::uint32_t secondaryDrawCommandAmount = 1;
 		const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
 		const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
-		const auto syncObjects = device.createSyncObjects();*/
+		const auto syncObjects = device.createSyncObjects();
 
-		const std::vector<vkx::DrawInfoTest> drawInfos = {
-			{vk::CommandBufferLevel::eSecondary, graphicsPipeline, {&mesh, &mesh1, &mesh2, &mesh3}},
-			{vk::CommandBufferLevel::eSecondary, highlightGraphicsPipeline, {&highlightMesh}}
-		};
+		vkx::VoxelChunk<16> chunk{{0, 0, 0}};
+		for (int j = 0; j < 10; j++) {
+			for (int k = 0; k < 4; k++) {
+				for (int i = 0; i < 14; i++) {
+					chunk.set(j, k, i, vkx::Voxel::Air);
+				}
+			}
+		}
 
-		renderer.createDrawCommands(drawInfos);
+		chunk.greedy();
 
-		// auto mvpBuffers = allocator.allocateUniformBuffers(sizeof(vkx::MVP));
-		// auto lightBuffers = allocator.allocateUniformBuffers(sizeof(vkx::DirectionalLight));
-		// auto materialBuffers = allocator.allocateUniformBuffers(sizeof(vkx::Material));
+		vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
+		mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
 
-		// auto highlightMVPBuffers = allocator.allocateUniformBuffers(sizeof(vkx::MVP));
-
-		SDL_Log("%p, %p", graphicsPipeline, highlightGraphicsPipeline);
+		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
 		auto mvpBuffers = graphicsPipeline->getUniformByIndex(0);
 		auto lightBuffers = graphicsPipeline->getUniformByIndex(1);
@@ -256,17 +205,15 @@ int main(void) {
 
 		auto highlightMVPBuffers = highlightGraphicsPipeline->getUniformByIndex(0);
 
-		SDL_Log("Hey?");
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
 		auto highlightModel = glm::mat4(1.0f);
-
 
 		std::uint32_t currentFrame = 0;
 		SDL_Event event{};
 		bool isRunning = true;
 		bool framebufferResized = false;
-		window.show();
+		SDL_ShowWindow(window);
 		while (isRunning) {
 			camera.position += camera.direction * 0.001f;
 
@@ -295,14 +242,15 @@ int main(void) {
 			materialBuffer.mapMemory(material);
 			highlightMVPBuffer.mapMemory(highlightMVP);
 
-			/*const auto& syncObject = syncObjects[currentFrame];
+			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
 			auto [result, imageIndex] = swapchain.acquireNextImage(device, syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR) {
-				auto [newWidth, newHeight] = window.getSize();
+				int newWidth, newHeight;
+				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 				while (newWidth == 0 || newHeight == 0) {
-					std::tie(newWidth, newHeight) = window.getSize();
+					SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 					SDL_WaitEvent(nullptr);
 				}
 
@@ -320,17 +268,17 @@ int main(void) {
 			    imageIndex,
 			    currentFrame,
 			    &swapchain,
-			    &graphicsPipeline,
+			    graphicsPipeline,
 			    *clearRenderPass,
-			    {mesh.vertex->object, mesh1.vertex->object, mesh2.vertex->object, mesh3.vertex->object},
-			    {mesh.index->object, mesh1.index->object, mesh2.index->object, mesh3.index->object},
-			    {static_cast<std::uint32_t>(mesh.indexCount), static_cast<std::uint32_t>(mesh1.indexCount), static_cast<std::uint32_t>(mesh2.indexCount), static_cast<std::uint32_t>(mesh3.indexCount)}};
+			    {mesh.vertex->object},
+			    {mesh.index->object},
+			    {static_cast<std::uint32_t>(mesh.indexCount)}};
 
 			const vkx::DrawInfo highlightDrawInfo = {
 			    imageIndex,
 			    currentFrame,
 			    &swapchain,
-			    &highlightGraphicsPipeline,
+			    highlightGraphicsPipeline,
 			    *loadRenderPass,
 			    {highlightMesh.vertex->object},
 			    {highlightMesh.index->object},
@@ -355,9 +303,10 @@ int main(void) {
 			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 				framebufferResized = false;
 
-				auto [newWidth, newHeight] = window.getSize();
+				int newWidth, newHeight;
+				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 				while (newWidth == 0 || newHeight == 0) {
-					std::tie(newWidth, newHeight) = window.getSize();
+					SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 					SDL_WaitEvent(nullptr);
 				}
 
@@ -366,13 +315,7 @@ int main(void) {
 				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
-			}*/
-
-			renderer.lazySync(window);
-
-			renderer.uploadDrawCommands(drawInfos, window);
-
-			renderer.lazyUpdate();
+			}
 
 			currentFrame = (currentFrame + 1) % vkx::MAX_FRAMES_IN_FLIGHT;
 
@@ -391,7 +334,6 @@ int main(void) {
 						int width = event.window.data1;
 						int height = event.window.data2;
 						proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
-						renderer.framebufferResized = true;
 					}
 					break;
 				case SDL_MOUSEMOTION: {
@@ -432,10 +374,10 @@ int main(void) {
 			}
 		}
 
-		// device->waitIdle();
-		renderer.device->waitIdle();
+		device->waitIdle();
 	}
 
+	SDL_DestroyWindow(window);
 	SDL_Quit();
 
 	return EXIT_SUCCESS;

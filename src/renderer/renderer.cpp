@@ -1,116 +1,127 @@
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/renderer.hpp>
+#include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
-vkx::Renderer::Renderer(const SDLWindow& window)
-    : bootstrap(static_cast<SDL_Window*>(window)),
-      device(bootstrap.createDevice()),
-      allocator(device.createAllocator()),
-      commandSubmitter(device.createCommandSubmitter()) {
-	const vkx::SwapchainInfo swapchainInfo{device};
-	const auto surfaceFormat = swapchainInfo.chooseSurfaceFormat().format;
+vk::UniqueInstance vkx::createInstance(SDL_Window* const window) {
+	constexpr vk::ApplicationInfo applicationInfo{"VKX", VK_MAKE_VERSION(0, 0, 1), "VKX", VK_MAKE_VERSION(0, 0, 1), VK_API_VERSION_1_0};
 
-	clearRenderPass = device.createRenderPass(surfaceFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
-	loadRenderPass = device.createRenderPass(surfaceFormat, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
-
-	swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
-
-	syncObjects = device.createSyncObjects();
-}
-
-vkx::GraphicsPipeline* vkx::Renderer::attachPipeline(const vkx::GraphicsPipelineInformation& pipelineInformation) {
-	pipelines.push_back(device.createGraphicsPipeline(*clearRenderPass, allocator, pipelineInformation));
-	return &pipelines.front();
-}
-
-void vkx::Renderer::resized(const SDLWindow& window) {
-	auto [newWidth, newHeight] = window.getSize();
-	while (newWidth == 0 || newHeight == 0) {
-		std::tie(newWidth, newHeight) = window.getSize();
-		SDL_WaitEvent(nullptr);
+	std::uint32_t count = 0;
+	if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
+		throw std::runtime_error("Failed to enumerate vulkan extensions");
 	}
 
-	device->waitIdle();
-
-	swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
-}
-
-vkx::Texture vkx::Renderer::createTexture(const std::string& file) const {
-	return vkx::Texture{file, device, allocator, commandSubmitter};
-}
-
-void vkx::Renderer::createDrawCommands(const std::vector<DrawInfoTest>& drawInfos) {
-	if (drawInfos.empty()) {
-		throw std::invalid_argument("Draw infos can't be empty.");
+	std::vector<const char*> instanceExtensions{count};
+	if (SDL_Vulkan_GetInstanceExtensions(window, &count, instanceExtensions.data()) != SDL_TRUE) {
+		throw std::runtime_error("Failed to enumerate vulkan extensions");
 	}
 
-	for (const auto& drawInfo : drawInfos) {
-		if (drawInfo.level == vk::CommandBufferLevel::eSecondary) {
-			secondaryDrawCommandsAmount += drawInfo.meshes.size();
+#ifdef DEBUG
+	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+#ifdef DEBUG
+	constexpr std::array instanceLayers{"VK_LAYER_KHRONOS_validation"};
+#else
+	constexpr std::array<const char*, 0> instanceLayers{};
+#endif
+
+	const vk::InstanceCreateInfo instanceCreateInfo{{}, &applicationInfo, instanceLayers, instanceExtensions};
+
+#ifdef DEBUG
+	constexpr auto messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo | vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+	constexpr auto messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+
+	constexpr vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{{}, messageSeverity, messageType, [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; }, nullptr};
+
+	const vk::StructureChain structureChain{instanceCreateInfo, debugUtilsMessengerCreateInfo};
+
+	return vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
+#else
+	return vk::createInstanceUnique(instanceCreateInfo);
+#endif
+}
+
+vk::UniqueSurfaceKHR vkx::createSurface(SDL_Window* const window, vk::Instance instance) {
+	VkSurfaceKHR cSurface = nullptr;
+	if (SDL_Vulkan_CreateSurface(window, instance, &cSurface) != SDL_TRUE) {
+		throw std::runtime_error("Failed to create vulkan surface.");
+	}
+	return vk::UniqueSurfaceKHR{cSurface, instance};
+}
+
+vk::PhysicalDevice vkx::getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface) {
+	const auto physicalDevices = instance.enumeratePhysicalDevices();
+
+	std::optional<vk::PhysicalDevice> physicalDevice;
+	std::uint32_t bestRating = 0;
+	for (vk::PhysicalDevice pDevice : physicalDevices) {
+		std::uint32_t currentRating = 0;
+
+		const vkx::QueueConfig indices{pDevice, surface};
+		if (indices.isComplete()) {
+			currentRating++;
+		}
+
+		const vkx::SwapchainInfo info{pDevice, surface};
+		if (info.isComplete()) {
+			currentRating++;
+		}
+
+		if (pDevice.getFeatures().samplerAnisotropy) {
+			currentRating++;
+		}
+
+		if (currentRating > bestRating) {
+			bestRating = currentRating;
+			physicalDevice = pDevice;
 		}
 	}
 
-	primaryCommandsBuffers = commandSubmitter.allocateDrawCommands(drawInfos.size());
-
-	if (secondaryDrawCommandsAmount != 0) {
-		secondaryCommandBuffers = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandsAmount);
+	if (!physicalDevice.has_value()) {
+		throw std::runtime_error("Failure to find suitable physical device!");
 	}
 
-	primaryDrawCommandsAmount = drawInfos.size();
+	return *physicalDevice;
 }
 
-void vkx::Renderer::lazySync(const vkx::SDLWindow& window) {
-	const auto& syncObject = syncObjects[currentFrame];
-	syncObject.waitForFence();
-	vk::Result result = vk::Result::eSuccess;
-	std::tie(result, imageIndex) = swapchain.acquireNextImage(device, syncObject);
+vk::UniqueDevice vkx::createDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice) {
+	const QueueConfig queueConfig{physicalDevice, surface};
+	constexpr float queuePriority = 1.0f;
+	const auto queueCreateInfos = queueConfig.createQueueInfos(queuePriority);
 
-	if (result == vk::Result::eErrorOutOfDateKHR) {
-		resized(window);
-	} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
-		throw std::runtime_error("Failed to acquire next image.");
-	}
+	vk::PhysicalDeviceFeatures deviceFeatures{};
+	deviceFeatures.samplerAnisotropy = true;
 
-	syncObject.resetFence();
+#ifdef DEBUG
+	constexpr std::array layers = {"VK_LAYER_KHRONOS_validation"};
+#elif RELEASE
+	constexpr std::array<const char*, 0> layers = {};
+#endif
+
+	constexpr std::array extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+	const vk::DeviceCreateInfo deviceCreateInfo{
+	    {},
+	    queueCreateInfos,
+	    layers,
+	    extensions,
+	    &deviceFeatures};
+
+	return physicalDevice.createDeviceUnique(deviceCreateInfo);
 }
 
-void vkx::Renderer::uploadDrawCommands(const std::vector<DrawInfoTest>& drawInfos, const SDLWindow& window) {
-	const auto& syncObject = syncObjects[currentFrame];
+vk::Format vkx::findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format> &candidates) {
+	for (const vk::Format format : candidates) {
+		const auto formatProps = physicalDevice.getFormatProperties(format);
 
-	const vk::CommandBuffer* primaryBegin = &primaryCommandsBuffers[currentFrame * primaryDrawCommandsAmount];
+		const bool isLinear = tiling == vk::ImageTiling::eLinear && (formatProps.linearTilingFeatures & features) == features;
+		const bool isOptimal = tiling == vk::ImageTiling::eOptimal && (formatProps.optimalTilingFeatures & features) == features;
 
-	const vk::CommandBuffer* secondaryBegin = &secondaryCommandBuffers[currentFrame * secondaryDrawCommandsAmount];
-
-	std::uintptr_t offset = 0;
-
-	for (std::uint32_t i = 0; i < drawInfos.size(); i++) {
-		const auto& drawInfo = drawInfos[i];
-
-		const vk::CommandBuffer* primary = primaryBegin + static_cast<std::uintptr_t>(i);
-
-		const vk::CommandBuffer* secondary = secondaryBegin + offset;
-
-		if (drawInfo.level == vk::CommandBufferLevel::ePrimary) {
-			commandSubmitter.recordPrimaryDrawCommands(nullptr, 0, {});
-		} else {
-			commandSubmitter.recordSecondaryDrawCommands(nullptr, 0, nullptr, 0, {});
+		if (isLinear || isOptimal) {
+			return format;
 		}
-
-		offset += static_cast<std::uintptr_t>(drawInfo.meshes.size());
 	}
 
-	commandSubmitter.submitDrawCommands(primaryBegin, primaryDrawCommandsAmount, syncObject);
-	
-	const auto result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
-	
-	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
-		framebufferResized = false;
-
-		resized(window);
-	} else if (result != vk::Result::eSuccess) {
-		throw std::runtime_error("Failed to present.");
-	}
-}
-
-void vkx::Renderer::lazyUpdate() {
-	currentFrame = (currentFrame + 1) % vkx::MAX_FRAMES_IN_FLIGHT;
+	return vk::Format::eUndefined;
 }

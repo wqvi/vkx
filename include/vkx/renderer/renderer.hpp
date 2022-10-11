@@ -1,67 +1,51 @@
 #pragma once
 
-#include <vkx/renderer/model.hpp>
+#include <vkx/application.hpp>
 #include <vkx/renderer/core/bootstrap.hpp>
 #include <vkx/renderer/core/device.hpp>
-#include <vkx/application.hpp>
+#include <vkx/renderer/model.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
-struct DrawInfoTest {
-    const vk::CommandBufferLevel level = vk::CommandBufferLevel::eSecondary;
-    const GraphicsPipeline* graphicsPipeline = nullptr;
-    const std::vector<const vkx::Mesh*> meshes{};
-};
+/**
+ * @brief Create a Vulkan instance object
+ *
+ * @exception std::runtime_exception Gets thrown if debug info or instance can't be made
+ * @param window The window to which is queried for extensions
+ * @return vk::UniqueInstance
+ */
+[[nodiscard]] vk::UniqueInstance createInstance(SDL_Window* const window);
 
-class Renderer {
-public:
-    RendererBootstrap bootstrap{};
-    Device device{};
-public:
-    Allocator allocator{};
-    CommandSubmitter commandSubmitter{};
-private:
-    Swapchain swapchain{};
-    vk::UniqueRenderPass clearRenderPass{};
-    vk::UniqueRenderPass loadRenderPass{};
+/**
+ * @brief Create a surface object
+ *
+ * @exception std::runtime_exception Gets thrown if a surface can't be made
+ * @param window The window to which to attach the Vulkan surface
+ * @param instance The Vulkan instance handle
+ * @return vk::UniqueSurfaceKHR
+ */
+[[nodiscard]] vk::UniqueSurfaceKHR createSurface(SDL_Window* const window, vk::Instance instance);
 
-    std::vector<vkx::GraphicsPipeline> pipelines{};
+/**
+ * @brief Get the best physical device for Vulkan usage.
+ *
+ * @exception std::runtime_exception Gets thrown if a suitable physical device can't be found
+ * @param instance The Vulkan instance handle
+ * @param surface The Vulkan surface handle
+ * @return vk::PhysicalDevice
+ */
+[[nodiscard]] vk::PhysicalDevice getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface);
 
-public:
-    std::vector<vkx::SyncObjects> syncObjects{};
+/**
+ * @brief Create a Vulkan logical device object.
+ *
+ * @exception std::runtime_exception Gets thrown if unable to create a logical device
+ * @param instance The Vulkan instance handle
+ * @param surface The Vulkan surface handle
+ * @param physicalDevice The Vulkan physical device handle
+ * @return vk::UniqueDevice
+ */
+[[nodiscard]] vk::UniqueDevice createDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice);
 
-    std::uint32_t currentFrame = 0;
-
-    std::uint32_t imageIndex = 0;
-
-    bool framebufferResized = false;
-
-    std::vector<vk::CommandBuffer> primaryCommandsBuffers{};
-    std::size_t primaryDrawCommandsAmount = 0;
-    std::vector<vk::CommandBuffer> secondaryCommandBuffers{};
-    std::size_t secondaryDrawCommandsAmount = 0;
-
-public:
-    Renderer() = default;
-
-    explicit Renderer(const SDLWindow& window);
-
-    vkx::GraphicsPipeline* attachPipeline(const GraphicsPipelineInformation& pipelineInformation);
-
-    void resized(const SDLWindow& window);
-
-    template <class T, class K>
-    auto createMesh(const T& vertices, const K& indices) const {
-        return vkx::Mesh{vertices, indices, allocator};
-    }
-
-    vkx::Texture createTexture(const std::string& file) const;
-
-    void createDrawCommands(const std::vector<DrawInfoTest>& drawInfos);
-
-    void lazySync(const vkx::SDLWindow& window);
-
-    void uploadDrawCommands(const std::vector<DrawInfoTest>& drawInfos, const SDLWindow& window);
-
-    void lazyUpdate();
-};
+[[nodiscard]] vk::Format findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates);
 } // namespace vkx
