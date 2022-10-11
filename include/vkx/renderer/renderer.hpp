@@ -36,5 +36,14 @@ namespace vkx {
  */
 [[nodiscard]] vk::PhysicalDevice getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface);
 
+/**
+ * @brief Create a Vulkan logical device object.
+ * 
+ * @exception std::runtime_exception Gets thrown if unable to create a logical device
+ * @param instance The Vulkan instance handle 
+ * @param surface The Vulkan surface handle
+ * @param physicalDevice The Vulkan physical device handle
+ * @return vk::UniqueDevice 
+ */
 [[nodiscard]] vk::UniqueDevice createDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice);
 } // namespace vkx
