@@ -47,19 +47,5 @@ namespace vkx {
  */
 [[nodiscard]] vk::UniqueDevice createDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice);
 
-template <class T>
-[[nodiscard]] vk::Format findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const T& candidates) {
-	for (const vk::Format format : candidates) {
-		const auto formatProps = physicalDevice.getFormatProperties(format);
-
-		const bool isLinear = tiling == vk::ImageTiling::eLinear && (formatProps.linearTilingFeatures & features) == features;
-		const bool isOptimal = tiling == vk::ImageTiling::eOptimal && (formatProps.optimalTilingFeatures & features) == features;
-
-		if (isLinear || isOptimal) {
-			return format;
-		}
-	}
-
-	return vk::Format::eUndefined;
-}
+[[nodiscard]] vk::Format findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates);
 } // namespace vkx

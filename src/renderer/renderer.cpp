@@ -1,5 +1,6 @@
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/renderer.hpp>
+#include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
 
 vk::UniqueInstance vkx::createInstance(SDL_Window* const window) {
@@ -108,4 +109,19 @@ vk::UniqueDevice vkx::createDevice(vk::Instance instance, vk::SurfaceKHR surface
 	    &deviceFeatures};
 
 	return physicalDevice.createDeviceUnique(deviceCreateInfo);
+}
+
+vk::Format vkx::findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format> &candidates) {
+	for (const vk::Format format : candidates) {
+		const auto formatProps = physicalDevice.getFormatProperties(format);
+
+		const bool isLinear = tiling == vk::ImageTiling::eLinear && (formatProps.linearTilingFeatures & features) == features;
+		const bool isOptimal = tiling == vk::ImageTiling::eOptimal && (formatProps.optimalTilingFeatures & features) == features;
+
+		if (isLinear || isOptimal) {
+			return format;
+		}
+	}
+
+	return vk::Format::eUndefined;
 }
