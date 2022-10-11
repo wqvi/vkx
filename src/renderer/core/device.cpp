@@ -1,4 +1,5 @@
 #include "vkx/renderer/core/renderer_types.hpp"
+#include "vkx/renderer/renderer.hpp"
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
 
@@ -50,7 +51,7 @@ const vk::Device* vkx::Device::operator->() const {
 }
 
 vk::Format vkx::Device::findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const {
-	for (const vk::Format format : candidates) {
+	/*for (const vk::Format format : candidates) {
 		const auto formatProps = physicalDevice.getFormatProperties(format);
 
 		bool isLinear = tiling == vk::ImageTiling::eLinear && (formatProps.linearTilingFeatures & features) == features;
@@ -61,7 +62,8 @@ vk::Format vkx::Device::findSupportedFormat(const std::vector<vk::Format>& candi
 		}
 	}
 
-	return vk::Format::eUndefined;
+	return vk::Format::eUndefined;*/
+	return vkx::findSupportedFormat(physicalDevice, tiling, features, candidates);
 }
 
 vk::UniqueImageView vkx::Device::createImageViewUnique(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const {
