@@ -35,4 +35,6 @@ namespace vkx {
  * @return vk::PhysicalDevice 
  */
 [[nodiscard]] vk::PhysicalDevice getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface);
+
+[[nodiscard]] vk::UniqueDevice createDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice);
 } // namespace vkx

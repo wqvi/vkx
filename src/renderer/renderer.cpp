@@ -83,3 +83,29 @@ vk::PhysicalDevice vkx::getBestPhysicalDevice(vk::Instance instance, vk::Surface
 
 	return *physicalDevice;
 }
+
+vk::UniqueDevice vkx::createDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice) {
+	const QueueConfig queueConfig{physicalDevice, surface};
+	constexpr float queuePriority = 1.0f;
+	const auto queueCreateInfos = queueConfig.createQueueInfos(queuePriority);
+
+	vk::PhysicalDeviceFeatures deviceFeatures{};
+	deviceFeatures.samplerAnisotropy = true;
+
+#ifdef DEBUG
+	constexpr std::array layers = {"VK_LAYER_KHRONOS_validation"};
+#elif RELEASE
+	constexpr std::array<const char*, 0> layers = {};
+#endif
+
+	constexpr std::array extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+	const vk::DeviceCreateInfo deviceCreateInfo{
+	    {},
+	    queueCreateInfos,
+	    layers,
+	    extensions,
+	    &deviceFeatures};
+
+	return physicalDevice.createDeviceUnique(deviceCreateInfo);
+}
