@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <vulkan/vulkan_enums.hpp>
 
 namespace vkx {
 /**
@@ -75,4 +74,15 @@ namespace vkx {
  * @return vk::UniqueImageView
  */
 [[nodiscard]] vk::UniqueImageView createImageViewUnique(vk::Device device, vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags);
+
+/**
+ * @brief Create a texture image view unique object
+ *
+ * @param device The Vulkan logical device handle
+ * @param image The Vulkan image handle
+ * @return vk::UniqueImageView
+ */
+[[nodiscard]] inline vk::UniqueImageView createTextureImageViewUnique(vk::Device device, vk::Image image) {
+	return createImageViewUnique(device, image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
+}
 } // namespace vkx
