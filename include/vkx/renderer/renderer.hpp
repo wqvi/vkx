@@ -1,10 +1,6 @@
 #pragma once
 
-#include <vkx/application.hpp>
-#include <vkx/renderer/core/bootstrap.hpp>
-#include <vkx/renderer/core/device.hpp>
-#include <vkx/renderer/model.hpp>
-#include <vulkan/vulkan_handles.hpp>
+#include <vector>
 
 namespace vkx {
 /**
@@ -47,5 +43,18 @@ namespace vkx {
  */
 [[nodiscard]] vk::UniqueDevice createDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice);
 
+/**
+ * @brief Finds a supported format based on provided parameters
+ * 
+ * @param physicalDevice The Vulkan physical device handle
+ * @param tiling The tiling flags used
+ * @param features The feature flags used
+ * @param candidates The candidate formats being compared to
+ * @return vk::Format Returns undefined if candidates don't match specification, else it will return the valid candidate
+ */
 [[nodiscard]] vk::Format findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates);
+
+[[nodiscard]] inline auto findDepthFormat(vk::PhysicalDevice physicalDevice) {
+    return findSupportedFormat(physicalDevice, vk::ImageTiling::eOptimal,vk::FormatFeatureFlagBits::eDepthStencilAttachment, {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint});
+}
 } // namespace vkx

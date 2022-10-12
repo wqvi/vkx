@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vkx/renderer/renderer.hpp"
 #include <vkx/renderer/core/allocator.hpp>
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/pipeline.hpp>
@@ -27,7 +28,7 @@ public:
 	[[nodiscard]] vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const;
 
 	[[nodiscard]] inline vk::Format findDepthFormat() const {
-		return findSupportedFormat({vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint}, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
+		return vkx::findDepthFormat(physicalDevice);
 	}
 
 	[[nodiscard]] vk::UniqueImageView createImageViewUnique(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;

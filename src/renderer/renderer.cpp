@@ -1,7 +1,6 @@
-#include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/renderer.hpp>
-#include <vulkan/vulkan_enums.hpp>
-#include <vulkan/vulkan_handles.hpp>
+#include <vkx/renderer/core/swapchain_info.hpp>
+#include <vkx/renderer/core/queue_config.hpp>
 
 vk::UniqueInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr vk::ApplicationInfo applicationInfo{"VKX", VK_MAKE_VERSION(0, 0, 1), "VKX", VK_MAKE_VERSION(0, 0, 1), VK_API_VERSION_1_0};
