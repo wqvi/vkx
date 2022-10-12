@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
 /**
@@ -94,4 +96,17 @@ namespace vkx {
  * @return vk::UniqueSampler
  */
 [[nodiscard]] vk::UniqueSampler createTextureSamplerUnique(vk::Device device, float samplerAnisotropy);
+
+/**
+ * @brief Create a Render Pass Unique object
+ *
+ * @param device
+ * @param physicalDevice
+ * @param format
+ * @param initialLayout
+ * @param finalLayout
+ * @param loadOp
+ * @return vk::UniqueRenderPass
+ */
+[[nodiscard]] vk::UniqueRenderPass createRenderPassUnique(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp);
 } // namespace vkx

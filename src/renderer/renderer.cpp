@@ -1,6 +1,7 @@
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/renderer.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 vk::UniqueInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr vk::ApplicationInfo applicationInfo{"VKX", VK_MAKE_VERSION(0, 0, 1), "VKX", VK_MAKE_VERSION(0, 0, 1), VK_API_VERSION_1_0};
@@ -164,4 +165,66 @@ vk::UniqueSampler vkx::createTextureSamplerUnique(vk::Device device, float sampl
 	    false};
 
 	return device.createSamplerUnique(samplerInfo);
+}
+
+vk::UniqueRenderPass vkx::createRenderPassUnique(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp) {
+	const vk::AttachmentDescription colorAttachment{
+	    {},
+	    format,
+	    vk::SampleCountFlagBits::e1,
+	    loadOp,
+	    vk::AttachmentStoreOp::eStore,
+	    vk::AttachmentLoadOp::eDontCare,
+	    vk::AttachmentStoreOp::eDontCare,
+	    initialLayout,
+	    finalLayout};
+
+	const vk::AttachmentReference colorAttachmentRef{
+	    0,
+	    vk::ImageLayout::eColorAttachmentOptimal};
+
+	const vk::AttachmentDescription depthAttachment{
+	    {},
+	    findDepthFormat(physicalDevice),
+	    vk::SampleCountFlagBits::e1,
+	    vk::AttachmentLoadOp::eClear,
+	    vk::AttachmentStoreOp::eDontCare,
+	    vk::AttachmentLoadOp::eDontCare,
+	    vk::AttachmentStoreOp::eDontCare,
+	    vk::ImageLayout::eUndefined,
+	    vk::ImageLayout::eDepthStencilAttachmentOptimal};
+
+	const vk::AttachmentReference depthAttachmentRef{
+	    1,
+	    vk::ImageLayout::eDepthStencilAttachmentOptimal};
+
+	const vk::SubpassDescription subpass{
+	    {},
+	    vk::PipelineBindPoint::eGraphics,
+	    {},
+	    colorAttachmentRef,
+	    {},
+	    &depthAttachmentRef,
+	    {}};
+
+	constexpr auto dependencyStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+	constexpr auto dependencyAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+	const vk::SubpassDependency dependency{
+	    VK_SUBPASS_EXTERNAL,
+	    0,
+	    dependencyStageMask,
+	    dependencyStageMask,
+	    {},
+	    dependencyAccessMask};
+
+	const auto renderPassAttachments = {colorAttachment, depthAttachment};
+
+	const vk::RenderPassCreateInfo renderPassInfo{
+	    {},
+	    renderPassAttachments,
+	    subpass,
+	    dependency};
+
+	return device.createRenderPassUnique(renderPassInfo);
 }
