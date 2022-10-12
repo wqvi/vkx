@@ -91,25 +91,7 @@ vk::UniqueImageView vkx::Device::createTextureImageViewUnique(vk::Image image) c
 }
 
 vk::UniqueSampler vkx::Device::createTextureSamplerUnique() const {
-	const vk::SamplerCreateInfo samplerInfo{
-	    {},
-	    vk::Filter::eLinear,
-	    vk::Filter::eLinear,
-	    vk::SamplerMipmapMode::eLinear,
-	    vk::SamplerAddressMode::eRepeat,
-	    vk::SamplerAddressMode::eRepeat,
-	    vk::SamplerAddressMode::eRepeat,
-	    {},
-	    true,
-	    maxSamplerAnisotropy,
-	    false,
-	    vk::CompareOp::eAlways,
-	    {},
-	    {},
-	    vk::BorderColor::eIntOpaqueBlack,
-	    false};
-
-	return device->createSamplerUnique(samplerInfo);
+	return vkx::createTextureSamplerUnique(*device, maxSamplerAnisotropy);
 }
 
 vkx::Allocator vkx::Device::createAllocator() const {
