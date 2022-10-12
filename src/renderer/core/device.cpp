@@ -102,65 +102,7 @@ vkx::Swapchain vkx::Device::createSwapchain(SDL_Window* window, vk::RenderPass r
 }
 
 vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp) const {
-	const vk::AttachmentDescription colorAttachment{
-	    {},
-	    format,
-	    vk::SampleCountFlagBits::e1,
-	    loadOp,
-	    vk::AttachmentStoreOp::eStore,
-	    vk::AttachmentLoadOp::eDontCare,
-	    vk::AttachmentStoreOp::eDontCare,
-	    initialLayout,
-	    finalLayout};
-
-	const vk::AttachmentReference colorAttachmentRef{
-	    0,
-	    vk::ImageLayout::eColorAttachmentOptimal};
-
-	const vk::AttachmentDescription depthAttachment{
-	    {},
-	    findDepthFormat(),
-	    vk::SampleCountFlagBits::e1,
-	    vk::AttachmentLoadOp::eClear,
-	    vk::AttachmentStoreOp::eDontCare,
-	    vk::AttachmentLoadOp::eDontCare,
-	    vk::AttachmentStoreOp::eDontCare,
-	    vk::ImageLayout::eUndefined,
-	    vk::ImageLayout::eDepthStencilAttachmentOptimal};
-
-	const vk::AttachmentReference depthAttachmentRef{
-	    1,
-	    vk::ImageLayout::eDepthStencilAttachmentOptimal};
-
-	const vk::SubpassDescription subpass{
-	    {},
-	    vk::PipelineBindPoint::eGraphics,
-	    {},
-	    colorAttachmentRef,
-	    {},
-	    &depthAttachmentRef,
-	    {}};
-
-	constexpr auto dependencyStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
-	constexpr auto dependencyAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-
-	const vk::SubpassDependency dependency{
-	    VK_SUBPASS_EXTERNAL,
-	    0,
-	    dependencyStageMask,
-	    dependencyStageMask,
-	    {},
-	    dependencyAccessMask};
-
-	const auto renderPassAttachments = {colorAttachment, depthAttachment};
-
-	const vk::RenderPassCreateInfo renderPassInfo{
-	    {},
-	    renderPassAttachments,
-	    subpass,
-	    dependency};
-
-	return device->createRenderPassUnique(renderPassInfo);
+	return vkx::createRenderPassUnique(*device, physicalDevice, format, initialLayout, finalLayout, loadOp);
 }
 
 std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(vk::RenderPass renderPass, const Allocator& allocator, const vkx::GraphicsPipelineInformation& info) const {
