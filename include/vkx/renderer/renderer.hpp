@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <vulkan/vulkan_enums.hpp>
 
 namespace vkx {
 /**
@@ -45,7 +46,7 @@ namespace vkx {
 
 /**
  * @brief Finds a supported format based on provided parameters
- * 
+ *
  * @param physicalDevice The Vulkan physical device handle
  * @param tiling The tiling flags used
  * @param features The feature flags used
@@ -54,7 +55,13 @@ namespace vkx {
  */
 [[nodiscard]] vk::Format findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates);
 
-[[nodiscard]] inline auto findDepthFormat(vk::PhysicalDevice physicalDevice) {
-    return findSupportedFormat(physicalDevice, vk::ImageTiling::eOptimal,vk::FormatFeatureFlagBits::eDepthStencilAttachment, {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint});
+/**
+ * @brief Finds the supported depth format for the specified physical device
+ *
+ * @param physicalDevice The Vulkan physical device handle
+ * @return vk::Format Returns undefined if candidates don't match specification, else it will return valid candidate
+ */
+[[nodiscard]] inline vk::Format findDepthFormat(vk::PhysicalDevice physicalDevice) {
+	return findSupportedFormat(physicalDevice, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment, {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint});
 }
 } // namespace vkx

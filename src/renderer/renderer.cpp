@@ -1,6 +1,6 @@
-#include <vkx/renderer/renderer.hpp>
-#include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
+#include <vkx/renderer/core/swapchain_info.hpp>
+#include <vkx/renderer/renderer.hpp>
 
 vk::UniqueInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr vk::ApplicationInfo applicationInfo{"VKX", VK_MAKE_VERSION(0, 0, 1), "VKX", VK_MAKE_VERSION(0, 0, 1), VK_API_VERSION_1_0};
@@ -110,7 +110,7 @@ vk::UniqueDevice vkx::createDevice(vk::Instance instance, vk::SurfaceKHR surface
 	return physicalDevice.createDeviceUnique(deviceCreateInfo);
 }
 
-vk::Format vkx::findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format> &candidates) {
+vk::Format vkx::findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates) {
 	for (const vk::Format format : candidates) {
 		const auto formatProps = physicalDevice.getFormatProperties(format);
 
