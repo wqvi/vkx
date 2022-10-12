@@ -64,4 +64,15 @@ namespace vkx {
 [[nodiscard]] inline vk::Format findDepthFormat(vk::PhysicalDevice physicalDevice) {
 	return findSupportedFormat(physicalDevice, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment, {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint});
 }
+
+/**
+ * @brief Create a image view unique object
+ *
+ * @param device The Vulkan logical device handle
+ * @param image The Vulkan image handle
+ * @param format The format of the unique image view
+ * @param aspectFlags The aspect flags of the unique image view
+ * @return vk::UniqueImageView
+ */
+[[nodiscard]] vk::UniqueImageView createImageViewUnique(vk::Device device, vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags);
 } // namespace vkx

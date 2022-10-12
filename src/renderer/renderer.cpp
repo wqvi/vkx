@@ -124,3 +124,22 @@ vk::Format vkx::findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::Image
 
 	return vk::Format::eUndefined;
 }
+
+vk::UniqueImageView createImageViewUnique(vk::Device device, vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) {
+	const vk::ImageSubresourceRange subresourceRange{
+	    aspectFlags,
+	    0,
+	    1,
+	    0,
+	    1};
+
+	const vk::ImageViewCreateInfo imageViewInfo{
+	    {},
+	    image,
+	    vk::ImageViewType::e2D,
+	    format,
+	    {},
+	    subresourceRange};
+
+	return device.createImageViewUnique(imageViewInfo);
+}
