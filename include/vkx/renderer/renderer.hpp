@@ -86,6 +86,12 @@ namespace vkx {
 	return createImageViewUnique(device, image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
 }
 
-vk::UniqueSampler createTextureSamplerUnique(vk::Device device, float samplerAnisotropy);
-
+/**
+ * @brief Create a Texture Sampler Unique object
+ *
+ * @param device The Vulkan logical device handle
+ * @param samplerAnisotropy The maximum sampler anisotropy for the sampler
+ * @return vk::UniqueSampler
+ */
+[[nodiscard]] vk::UniqueSampler createTextureSamplerUnique(vk::Device device, float samplerAnisotropy);
 } // namespace vkx

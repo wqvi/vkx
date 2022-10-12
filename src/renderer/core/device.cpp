@@ -86,7 +86,6 @@ vk::UniqueImageView vkx::Device::createImageViewUnique(vk::Image image, vk::Form
 }
 
 vk::UniqueImageView vkx::Device::createTextureImageViewUnique(vk::Image image) const {
-	//return createImageViewUnique(image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
 	return vkx::createTextureImageViewUnique(*device, image);
 }
 
