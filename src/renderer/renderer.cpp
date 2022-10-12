@@ -125,7 +125,7 @@ vk::Format vkx::findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::Image
 	return vk::Format::eUndefined;
 }
 
-vk::UniqueImageView createImageViewUnique(vk::Device device, vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) {
+vk::UniqueImageView vkx::createImageViewUnique(vk::Device device, vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) {
 	const vk::ImageSubresourceRange subresourceRange{
 	    aspectFlags,
 	    0,
