@@ -143,3 +143,25 @@ vk::UniqueImageView vkx::createImageViewUnique(vk::Device device, vk::Image imag
 
 	return device.createImageViewUnique(imageViewInfo);
 }
+
+vk::UniqueSampler vkx::createTextureSamplerUnique(vk::Device device, float samplerAnisotropy) {
+	const vk::SamplerCreateInfo samplerInfo{
+	    {},
+	    vk::Filter::eLinear,
+	    vk::Filter::eLinear,
+	    vk::SamplerMipmapMode::eLinear,
+	    vk::SamplerAddressMode::eRepeat,
+	    vk::SamplerAddressMode::eRepeat,
+	    vk::SamplerAddressMode::eRepeat,
+	    {},
+	    true,
+	    samplerAnisotropy,
+	    false,
+	    vk::CompareOp::eAlways,
+	    {},
+	    {},
+	    vk::BorderColor::eIntOpaqueBlack,
+	    false};
+
+	return device.createSamplerUnique(samplerInfo);
+}

@@ -85,4 +85,7 @@ namespace vkx {
 [[nodiscard]] inline vk::UniqueImageView createTextureImageViewUnique(vk::Device device, vk::Image image) {
 	return createImageViewUnique(device, image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
 }
+
+vk::UniqueSampler createTextureSamplerUnique(vk::Device device, float samplerAnisotropy);
+
 } // namespace vkx
