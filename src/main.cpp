@@ -1,3 +1,5 @@
+#include "vkx/renderer/core/commands.hpp"
+#include "vkx/renderer/renderer.hpp"
 #include <stdexcept>
 #include <vkx/vkx.hpp>
 #include <vulkan/vulkan.hpp>
@@ -132,8 +134,13 @@ int main(void) {
 		const auto instance = vkx::createInstance(window);
 		const auto surface = vkx::createSurface(window, *instance);
 		const auto physicalDevice = vkx::getBestPhysicalDevice(*instance, *surface);
+		//const auto logicalDevice = vkx::createDevice(*instance, *surface, physicalDevice);
 
 		const vkx::Device device{*instance, physicalDevice, *surface};
+
+		//const vkx::Allocator tmpAllocator{physicalDevice, *logicalDevice, *instance};
+
+		//const vkx::CommandSubmitter tmpCommandSubmitter{physicalDevice, *logicalDevice, *surface};
 
 		const auto allocator = device.createAllocator();
 		const auto commandSubmitter = device.createCommandSubmitter();
