@@ -25,13 +25,13 @@ public:
 
 	const vk::Device* operator->() const;
 
+	explicit operator vk::Device() const;
+
 	[[nodiscard]] vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const;
 
 	[[nodiscard]] inline vk::Format findDepthFormat() const {
 		return vkx::findDepthFormat(physicalDevice);
 	}
-
-	[[nodiscard]] vk::UniqueImageView createImageViewUnique(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
 	[[nodiscard]] vk::UniqueImageView createTextureImageViewUnique(vk::Image image) const;
 

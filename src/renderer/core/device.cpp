@@ -50,6 +50,10 @@ const vk::Device* vkx::Device::operator->() const {
 	return &*device;
 }
 
+vkx::Device::operator vk::Device() const {
+	return *device;
+}
+
 vk::Format vkx::Device::findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const {
 	/*for (const vk::Format format : candidates) {
 		const auto formatProps = physicalDevice.getFormatProperties(format);
@@ -64,25 +68,6 @@ vk::Format vkx::Device::findSupportedFormat(const std::vector<vk::Format>& candi
 
 	return vk::Format::eUndefined;*/
 	return vkx::findSupportedFormat(physicalDevice, tiling, features, candidates);
-}
-
-vk::UniqueImageView vkx::Device::createImageViewUnique(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const {
-	const vk::ImageSubresourceRange subresourceRange{
-	    aspectFlags,
-	    0,
-	    1,
-	    0,
-	    1};
-
-	const vk::ImageViewCreateInfo imageViewInfo{
-	    {},
-	    image,
-	    vk::ImageViewType::e2D,
-	    format,
-	    {},
-	    subresourceRange};
-
-	return device->createImageViewUnique(imageViewInfo);
 }
 
 vk::UniqueImageView vkx::Device::createTextureImageViewUnique(vk::Image image) const {
