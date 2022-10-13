@@ -1,4 +1,6 @@
+#include "vkx/renderer/renderer.hpp"
 #include <vkx/renderer/core/swapchain.hpp>
+#include <vulkan/vulkan_enums.hpp>
 
 vkx::Swapchain::Swapchain(const vkx::Device& device, vk::RenderPass renderPass, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator) {
 	if (!static_cast<bool>(surface)) {
@@ -20,12 +22,12 @@ vkx::Swapchain::Swapchain(const vkx::Device& device, vk::RenderPass renderPass, 
 	imageExtent = info.chooseExtent(width, height);
 
 	for (const auto image : images) {
-		imageViews.push_back(device.createImageViewUnique(image, imageFormat, vk::ImageAspectFlagBits::eColor));
+		imageViews.push_back(vkx::createImageViewUnique(static_cast<vk::Device>(device), image, imageFormat, vk::ImageAspectFlagBits::eColor));
 	}
 
 	const auto depthFormat = device.findDepthFormat();
 	depthResource = allocator.allocateImage(imageExtent.width, imageExtent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
-	depthImageView = device.createImageViewUnique(depthResource->object, depthFormat, vk::ImageAspectFlagBits::eDepth);
+	depthImageView = vkx::createImageViewUnique(static_cast<vk::Device>(device), depthResource->object, depthFormat, vk::ImageAspectFlagBits::eDepth);
 
 	framebuffers.resize(imageViews.size());
 
