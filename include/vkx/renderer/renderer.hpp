@@ -100,12 +100,12 @@ namespace vkx {
 /**
  * @brief Create a Render Pass Unique object
  *
- * @param device
- * @param physicalDevice
- * @param format
- * @param initialLayout
- * @param finalLayout
- * @param loadOp
+ * @param device The Vulkan logical device handle
+ * @param physicalDevice The Vulkan physical device handle
+ * @param format The format that the Vulkan render pass will be
+ * @param initialLayout The initial image layout of the render pass
+ * @param finalLayout The final image layout of the render pass
+ * @param loadOp The operation that will occur upon the load of the render pass
  * @return vk::UniqueRenderPass
  */
 [[nodiscard]] vk::UniqueRenderPass createRenderPassUnique(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp);
