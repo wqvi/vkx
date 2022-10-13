@@ -111,5 +111,11 @@ namespace vkx {
  */
 [[nodiscard]] vk::UniqueRenderPass createRenderPassUnique(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp);
 
+/**
+ * @brief Create a Sync Objects object
+ * 
+ * @param device The Vulkan logical device handle 
+ * @return std::vector<vkx::SyncObjects> 
+ */
 [[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects(vk::Device device);
 } // namespace vkx
