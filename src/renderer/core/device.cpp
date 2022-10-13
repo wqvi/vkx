@@ -114,12 +114,5 @@ vkx::CommandSubmitter vkx::Device::createCommandSubmitter() const {
 }
 
 std::vector<vkx::SyncObjects> vkx::Device::createSyncObjects() const {
-	std::vector<vkx::SyncObjects> objs;
-	objs.resize(MAX_FRAMES_IN_FLIGHT);
-
-	std::generate(objs.begin(), objs.end(), [&device = *this->device]() { return SyncObjects{device}; });
-
-	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Successfully created renderer sync objects.");
-
-	return objs;
+	return vkx::createSyncObjects(*device);
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vkx/renderer/core/sync_objects.hpp"
 #include <vector>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
@@ -109,4 +110,6 @@ namespace vkx {
  * @return vk::UniqueRenderPass
  */
 [[nodiscard]] vk::UniqueRenderPass createRenderPassUnique(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp);
+
+[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects(vk::Device device);
 } // namespace vkx

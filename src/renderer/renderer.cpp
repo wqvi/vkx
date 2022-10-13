@@ -1,3 +1,4 @@
+#include "vkx/pch.hpp"
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/renderer.hpp>
@@ -227,4 +228,12 @@ vk::UniqueRenderPass vkx::createRenderPassUnique(vk::Device device, vk::Physical
 	    dependency};
 
 	return device.createRenderPassUnique(renderPassInfo);
+}
+
+[[nodiscard]] std::vector<vkx::SyncObjects> vkx::createSyncObjects(vk::Device device) {
+	std::vector<vkx::SyncObjects> objs{vkx::MAX_FRAMES_IN_FLIGHT};
+
+	std::generate(objs.begin(), objs.end(), [&device]() { return vkx::SyncObjects{device}; });
+
+	return objs;
 }
