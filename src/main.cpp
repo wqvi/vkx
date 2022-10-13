@@ -5,7 +5,7 @@
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_handles.hpp>
 
-auto createShaderDescriptorSetLayout(const vkx::Device& device) {
+auto createShaderDescriptorSetLayout(vk::Device device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
 	    vk::DescriptorType::eUniformBuffer,
@@ -37,7 +37,7 @@ auto createShaderDescriptorSetLayout(const vkx::Device& device) {
 	constexpr std::array bindings = {uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
-	return device->createDescriptorSetLayoutUnique(layoutInfo);
+	return device.createDescriptorSetLayoutUnique(layoutInfo);
 }
 
 auto createShaderBindings() {
@@ -72,7 +72,7 @@ auto createShaderBindings() {
 	return std::vector{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 }
 
-auto createHighlightDescriptorSetLayout(const vkx::Device& device) {
+auto createHighlightDescriptorSetLayout(vk::Device device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
 	    vk::DescriptorType::eUniformBuffer,
@@ -83,7 +83,7 @@ auto createHighlightDescriptorSetLayout(const vkx::Device& device) {
 	constexpr std::array bindings = {uboLayoutBinding};
 
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
-	return device->createDescriptorSetLayoutUnique(layoutInfo);
+	return device.createDescriptorSetLayoutUnique(layoutInfo);
 }
 
 auto createHighlightShaderBindings() noexcept {
@@ -134,30 +134,34 @@ int main(void) {
 		const auto instance = vkx::createInstance(window);
 		const auto surface = vkx::createSurface(window, *instance);
 		const auto physicalDevice = vkx::getBestPhysicalDevice(*instance, *surface);
-		//const auto logicalDevice = vkx::createDevice(*instance, *surface, physicalDevice);
+		const auto logicalDevice = vkx::createDevice(*instance, *surface, physicalDevice);
 
-		const vkx::Device device{*instance, physicalDevice, *surface};
+		//const vkx::Device device{*instance, physicalDevice, *surface};
 
-		//const vkx::Allocator tmpAllocator{physicalDevice, *logicalDevice, *instance};
+		const vkx::Allocator allocator{physicalDevice, *logicalDevice, *instance};
 
-		//const vkx::CommandSubmitter tmpCommandSubmitter{physicalDevice, *logicalDevice, *surface};
+		const vkx::CommandSubmitter commandSubmitter{physicalDevice, *logicalDevice, *surface};
 
-		const auto allocator = device.createAllocator();
-		const auto commandSubmitter = device.createCommandSubmitter();
-		const vkx::SwapchainInfo swapchainInfo{device};
-		const auto clearRenderPass = device.createRenderPass(swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
-		const auto loadRenderPass = device.createRenderPass(swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
-		auto swapchain = device.createSwapchain(window, *clearRenderPass, allocator);
+		//const auto allocator = device.createAllocator();
+		//const auto commandSubmitter = device.createCommandSubmitter();
+		const vkx::SwapchainInfo swapchainInfo{physicalDevice, *surface};
+
+		const auto clearRenderPass = vkx::createRenderPassUnique(*logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
+		const auto loadRenderPass = vkx::createRenderPassUnique(*logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
+
+		vkx::Swapchain swapchain{*logicalDevice, physicalDevice, *clearRenderPass, *surface, window, allocator};
+
+		//auto swapchain = device.createSwapchain(window, *clearRenderPass, allocator);
 
 		const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
 
 		const std::vector highlightPoolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE};
 
-		const auto descriptorSetLayout = createShaderDescriptorSetLayout(device);
+		const auto descriptorSetLayout = createShaderDescriptorSetLayout(*logicalDevice);
 
-		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(device);
+		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(*logicalDevice);
 
-		const vkx::Texture texture{"a.jpg", device, allocator, commandSubmitter};
+		const vkx::Texture texture{"a.jpg", *logicalDevice, allocator, commandSubmitter};
 
 		const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 		    "shader.vert.spv",
@@ -168,7 +172,10 @@ int main(void) {
 		    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
 		    {&texture}};
 
-		const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, graphicsPipelineInformation);
+
+		const auto graphicsPipeline = std::shared_ptr<vkx::GraphicsPipeline>(new vkx::GraphicsPipeline{*logicalDevice, *clearRenderPass, allocator, graphicsPipelineInformation});
+
+		//const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, graphicsPipelineInformation);
 
 		const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
@@ -179,8 +186,10 @@ int main(void) {
 		    {sizeof(vkx::MVP)},
 		    {}};
 
-		const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, highlightGraphicsPipelineInformation);
+		//const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, highlightGraphicsPipelineInformation);
 
+		const auto highlightGraphicsPipeline = std::shared_ptr<vkx::GraphicsPipeline>(new vkx::GraphicsPipeline{*logicalDevice, *clearRenderPass, allocator, highlightGraphicsPipelineInformation});
+		
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
 
@@ -188,7 +197,9 @@ int main(void) {
 		constexpr std::uint32_t secondaryDrawCommandAmount = 1;
 		const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
 		const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
-		const auto syncObjects = device.createSyncObjects();
+		//const auto syncObjects = device.createSyncObjects();
+
+		const auto syncObjects = vkx::createSyncObjects(*logicalDevice);
 
 		vkx::VoxelChunk<16> chunk{{0, 0, 0}};
 		for (int j = 0; j < 10; j++) {
@@ -251,7 +262,7 @@ int main(void) {
 
 			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
-			auto [result, imageIndex] = swapchain.acquireNextImage(device, syncObject);
+			auto [result, imageIndex] = swapchain.acquireNextImage(*logicalDevice, syncObject);
 
 			if (result == vk::Result::eErrorOutOfDateKHR) {
 				int newWidth, newHeight;
@@ -261,9 +272,11 @@ int main(void) {
 					SDL_WaitEvent(nullptr);
 				}
 
-				device->waitIdle();
+				logicalDevice->waitIdle();
 
-				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
+				swapchain = vkx::Swapchain{*logicalDevice, physicalDevice, *clearRenderPass, *surface, window, allocator};
+
+				//swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 				throw std::runtime_error("Failed to acquire next image.");
@@ -317,9 +330,10 @@ int main(void) {
 					SDL_WaitEvent(nullptr);
 				}
 
-				device->waitIdle();
+				logicalDevice->waitIdle();
 
-				swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
+				//swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
+				swapchain = vkx::Swapchain{*logicalDevice, physicalDevice, *clearRenderPass, *surface, window, allocator};
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
 			}
@@ -381,7 +395,7 @@ int main(void) {
 			}
 		}
 
-		device->waitIdle();
+		logicalDevice->waitIdle();
 	}
 
 	SDL_DestroyWindow(window);

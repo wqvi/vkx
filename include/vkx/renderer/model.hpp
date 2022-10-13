@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vkx/renderer/core/commands.hpp"
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/image.hpp>
 
@@ -33,6 +34,8 @@ public:
 	Texture() = default;
 
 	Texture(const std::string& file, const Device& device, const Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
+
+	Texture(const std::string& file, vk::Device device, const vkx::Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
 
 	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
 
