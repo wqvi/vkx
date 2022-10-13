@@ -134,6 +134,7 @@ int main(void) {
 		const auto instance = vkx::createInstance(window);
 		const auto surface = vkx::createSurface(window, *instance);
 		const auto physicalDevice = vkx::getBestPhysicalDevice(*instance, *surface);
+		const float maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
 		const auto logicalDevice = vkx::createDevice(*instance, *surface, physicalDevice);
 
 		//const vkx::Device device{*instance, physicalDevice, *surface};
@@ -161,7 +162,7 @@ int main(void) {
 
 		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(*logicalDevice);
 
-		const vkx::Texture texture{"a.jpg", *logicalDevice, allocator, commandSubmitter};
+		const vkx::Texture texture{"a.jpg", *logicalDevice, maxSamplerAnisotropy, allocator, commandSubmitter};
 
 		const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 		    "shader.vert.spv",
