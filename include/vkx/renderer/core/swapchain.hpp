@@ -42,8 +42,5 @@ public:
 	inline vk::Extent2D extent() const noexcept {
 		return imageExtent;
 	}
-
-private:
-	static vk::UniqueSwapchainKHR createSwapchainUnique(vk::Device device, vk::SurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config);
 };
 } // namespace vkx

@@ -52,7 +52,3 @@ vk::ResultValue<std::uint32_t> vkx::Swapchain::acquireNextImage(const vkx::Devic
 
 	return {result, imageIndex};
 }
-
-vk::UniqueSwapchainKHR vkx::Swapchain::createSwapchainUnique(vk::Device device, vk::SurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config) {
-	return vkx::createSwapchainUnique(device, surface, window, info, config);
-}
