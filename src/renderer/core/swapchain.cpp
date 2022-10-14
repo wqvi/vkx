@@ -56,6 +56,8 @@ vkx::Swapchain::Swapchain(vk::Device device, vk::PhysicalDevice physicalDevice, 
 
 	//swapchain = createSwapchain(device, info, config, surface, window);
 
+	swapchain = createSwapchainUnique(device, surface, window, info, config);
+
 	images = device.getSwapchainImagesKHR(*swapchain);
 
 	int width;
@@ -125,4 +127,34 @@ vk::UniqueSwapchainKHR vkx::Swapchain::createSwapchain(const vkx::Device& device
 	    true};
 
 	return device->createSwapchainKHRUnique(swapchainCreateInfo);
+}
+
+vk::UniqueSwapchainKHR vkx::Swapchain::createSwapchainUnique(vk::Device device, vk::SurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config) {
+	int width;
+	int height;
+	SDL_Vulkan_GetDrawableSize(window, &width, &height);
+
+	const auto surfaceFormat = info.chooseSurfaceFormat();
+	const auto presentMode = info.choosePresentMode();
+	const auto actualExtent = info.chooseExtent(width, height);
+	const auto imageCount = info.getImageCount();
+	const auto imageSharingMode = config.getImageSharingMode();
+
+	const vk::SwapchainCreateInfoKHR swapchainCreateInfo{
+	    {},
+	    surface,
+	    imageCount,
+	    surfaceFormat.format,
+	    surfaceFormat.colorSpace,
+	    actualExtent,
+	    1,
+	    vk::ImageUsageFlagBits::eColorAttachment,
+	    imageSharingMode,
+	    config.indices,
+	    info.capabilities.currentTransform,
+	    vk::CompositeAlphaFlagBitsKHR::eOpaque,
+	    presentMode,
+	    true};
+
+	return device.createSwapchainKHRUnique(swapchainCreateInfo);
 }

@@ -47,5 +47,7 @@ public:
 
 private:
 	static vk::UniqueSwapchainKHR createSwapchain(const Device& device, const SwapchainInfo& info, const QueueConfig& config, vk::SurfaceKHR surface, SDL_Window* window);
+
+	static vk::UniqueSwapchainKHR createSwapchainUnique(vk::Device device, vk::SurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config);
 };
 } // namespace vkx

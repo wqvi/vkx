@@ -19,7 +19,7 @@ vkx::Texture::Texture(const std::string& file, vk::Device device, float maxAniso
       sampler(vkx::createTextureSamplerUnique(device, maxAnisotropy)), // ERROR
 	info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal)
 {
-    throw std::runtime_error("Specify max sampler anisotropy");
+    //throw std::runtime_error("Specify max sampler anisotropy");
 }
 
 vk::DescriptorImageInfo vkx::Texture::createDescriptorImageInfo() const {
