@@ -1,6 +1,8 @@
 #pragma once
 
-#include "vkx/renderer/core/sync_objects.hpp"
+#include <vkx/renderer/core/queue_config.hpp>
+#include <vkx/renderer/core/swapchain_info.hpp>
+#include <vkx/renderer/core/sync_objects.hpp>
 #include <vector>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
@@ -118,4 +120,6 @@ namespace vkx {
  * @return std::vector<vkx::SyncObjects> 
  */
 [[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects(vk::Device device);
+
+[[nodiscard]] vk::UniqueSwapchainKHR createSwapchainUnique(vk::Device device, vk::SurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config);
 } // namespace vkx
