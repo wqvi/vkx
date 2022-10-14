@@ -9,7 +9,7 @@ struct DrawInfo {
 	std::uint32_t imageIndex = 0;
 	std::uint32_t currentFrame = 0;
 	vkx::Swapchain* swapchain{};
-	const std::shared_ptr<vkx::GraphicsPipeline> graphicsPipeline{};
+	const vkx::GraphicsPipeline* graphicsPipeline{};
 	vk::RenderPass renderPass{};
 	std::vector<vk::Buffer> vertexBuffers{};
 	std::vector<vk::Buffer> indexBuffers{};

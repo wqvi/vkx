@@ -1,4 +1,5 @@
 #include "vkx/renderer/core/commands.hpp"
+#include "vkx/renderer/core/pipeline.hpp"
 #include "vkx/renderer/renderer.hpp"
 #include <stdexcept>
 #include <vkx/vkx.hpp>
@@ -137,22 +138,16 @@ int main(void) {
 		const float maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
 		const auto logicalDevice = vkx::createDevice(*instance, *surface, physicalDevice);
 
-		//const vkx::Device device{*instance, physicalDevice, *surface};
-
 		const vkx::Allocator allocator{physicalDevice, *logicalDevice, *instance};
 
 		const vkx::CommandSubmitter commandSubmitter{physicalDevice, *logicalDevice, *surface};
 
-		//const auto allocator = device.createAllocator();
-		//const auto commandSubmitter = device.createCommandSubmitter();
 		const vkx::SwapchainInfo swapchainInfo{physicalDevice, *surface};
 
 		const auto clearRenderPass = vkx::createRenderPassUnique(*logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
 		const auto loadRenderPass = vkx::createRenderPassUnique(*logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
 		vkx::Swapchain swapchain{*logicalDevice, physicalDevice, *clearRenderPass, *surface, window, allocator};
-
-		//auto swapchain = device.createSwapchain(window, *clearRenderPass, allocator);
 
 		const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
 
@@ -174,9 +169,7 @@ int main(void) {
 		    {&texture}};
 
 
-		const auto graphicsPipeline = std::shared_ptr<vkx::GraphicsPipeline>(new vkx::GraphicsPipeline{*logicalDevice, *clearRenderPass, allocator, graphicsPipelineInformation});
-
-		//const auto graphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, graphicsPipelineInformation);
+		const vkx::GraphicsPipeline graphicsPipeline{*logicalDevice, *clearRenderPass, allocator, graphicsPipelineInformation};
 
 		const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
@@ -187,9 +180,7 @@ int main(void) {
 		    {sizeof(vkx::MVP)},
 		    {}};
 
-		//const auto highlightGraphicsPipeline = device.createGraphicsPipeline(*clearRenderPass, allocator, highlightGraphicsPipelineInformation);
-
-		const auto highlightGraphicsPipeline = std::shared_ptr<vkx::GraphicsPipeline>(new vkx::GraphicsPipeline{*logicalDevice, *clearRenderPass, allocator, highlightGraphicsPipelineInformation});
+		const vkx::GraphicsPipeline highlightGraphicsPipeline{*logicalDevice, *clearRenderPass, allocator, highlightGraphicsPipelineInformation};
 		
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
@@ -198,7 +189,6 @@ int main(void) {
 		constexpr std::uint32_t secondaryDrawCommandAmount = 1;
 		const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
 		const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
-		//const auto syncObjects = device.createSyncObjects();
 
 		const auto syncObjects = vkx::createSyncObjects(*logicalDevice);
 
@@ -218,11 +208,11 @@ int main(void) {
 
 		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
-		auto mvpBuffers = graphicsPipeline->getUniformByIndex(0);
-		auto lightBuffers = graphicsPipeline->getUniformByIndex(1);
-		auto materialBuffers = graphicsPipeline->getUniformByIndex(2);
+		auto mvpBuffers = graphicsPipeline.getUniformByIndex(0);
+		auto lightBuffers = graphicsPipeline.getUniformByIndex(1);
+		auto materialBuffers = graphicsPipeline.getUniformByIndex(2);
 
-		auto highlightMVPBuffers = highlightGraphicsPipeline->getUniformByIndex(0);
+		auto highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
 
 		auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
@@ -289,7 +279,7 @@ int main(void) {
 			    imageIndex,
 			    currentFrame,
 			    &swapchain,
-			    graphicsPipeline,
+			    &graphicsPipeline,
 			    *clearRenderPass,
 			    {mesh.vertex->object},
 			    {mesh.index->object},
@@ -299,7 +289,7 @@ int main(void) {
 			    imageIndex,
 			    currentFrame,
 			    &swapchain,
-			    highlightGraphicsPipeline,
+			    &highlightGraphicsPipeline,
 			    *loadRenderPass,
 			    {highlightMesh.vertex->object},
 			    {highlightMesh.index->object},
