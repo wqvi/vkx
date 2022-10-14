@@ -114,7 +114,6 @@ auto getAttributeDescriptions() noexcept {
 	return attributeDescriptions;
 }
 
-
 int main(void) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		return EXIT_FAILURE;
@@ -168,7 +167,6 @@ int main(void) {
 		    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
 		    {&texture}};
 
-
 		const vkx::GraphicsPipeline graphicsPipeline{*logicalDevice, *clearRenderPass, allocator, graphicsPipelineInformation};
 
 		const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
@@ -181,7 +179,7 @@ int main(void) {
 		    {}};
 
 		const vkx::GraphicsPipeline highlightGraphicsPipeline{*logicalDevice, *clearRenderPass, allocator, highlightGraphicsPipelineInformation};
-		
+
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
 
@@ -266,8 +264,6 @@ int main(void) {
 				logicalDevice->waitIdle();
 
 				swapchain = vkx::Swapchain{*logicalDevice, physicalDevice, *clearRenderPass, *surface, window, allocator};
-
-				//swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 				throw std::runtime_error("Failed to acquire next image.");
@@ -323,7 +319,6 @@ int main(void) {
 
 				logicalDevice->waitIdle();
 
-				//swapchain = device.createSwapchain(static_cast<SDL_Window*>(window), *clearRenderPass, allocator);
 				swapchain = vkx::Swapchain{*logicalDevice, physicalDevice, *clearRenderPass, *surface, window, allocator};
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
