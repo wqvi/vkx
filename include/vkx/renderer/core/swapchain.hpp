@@ -24,8 +24,6 @@ private:
 public:
 	Swapchain() = default;
 
-	explicit Swapchain(const Device& device, vk::RenderPass renderPass, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator);
-
 	explicit Swapchain(vk::Device device, vk::PhysicalDevice physicalDevice, vk::RenderPass renderPass, vk::SurfaceKHR surface, SDL_Window* const window, const vkx::Allocator& allocator);
 
 	inline vk::Framebuffer operator[](std::size_t index) const noexcept {
@@ -46,8 +44,6 @@ public:
 	}
 
 private:
-	static vk::UniqueSwapchainKHR createSwapchain(const Device& device, const SwapchainInfo& info, const QueueConfig& config, vk::SurfaceKHR surface, SDL_Window* window);
-
 	static vk::UniqueSwapchainKHR createSwapchainUnique(vk::Device device, vk::SurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config);
 };
 } // namespace vkx
