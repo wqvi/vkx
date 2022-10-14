@@ -9,17 +9,14 @@ vkx::Texture::Texture(const std::string& file, const Device& device, const vkx::
     : image(file, allocator, commandSubmitter),
       view(device.createTextureImageViewUnique(image.resource->object)),
       sampler(device.createTextureSamplerUnique()),
-	info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal)
-{
+      info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal) {
 }
 
 vkx::Texture::Texture(const std::string& file, vk::Device device, float maxAnisotropy, const vkx::Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter)
     : image(file, allocator, commandSubmitter),
       view(vkx::createTextureImageViewUnique(device, image.resource->object)),
-      sampler(vkx::createTextureSamplerUnique(device, maxAnisotropy)), // ERROR
-	info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal)
-{
-    //throw std::runtime_error("Specify max sampler anisotropy");
+      sampler(vkx::createTextureSamplerUnique(device, maxAnisotropy)),
+      info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal) {
 }
 
 vk::DescriptorImageInfo vkx::Texture::createDescriptorImageInfo() const {
