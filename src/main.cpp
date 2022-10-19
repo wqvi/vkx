@@ -1,6 +1,7 @@
 #include "vkx/renderer/core/commands.hpp"
 #include "vkx/renderer/core/pipeline.hpp"
 #include "vkx/renderer/renderer.hpp"
+#include <SDL2/SDL.h>
 #include <stdexcept>
 #include <vkx/vkx.hpp>
 #include <vulkan/vulkan.hpp>
@@ -115,7 +116,7 @@ auto getAttributeDescriptions() noexcept {
 }
 
 int main(void) {
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0) {
 		return EXIT_FAILURE;
 	}
 
