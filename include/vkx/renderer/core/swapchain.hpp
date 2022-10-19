@@ -7,6 +7,14 @@
 #include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
+	struct SwapChain {
+		vk::UniqueSwapchainKHR swapchain{};
+		vk::Extent2D imageExtent{};
+		std::vector<vk::Image> images{};
+		std::vector<vk::UniqueImageView> imageViews{};
+
+	};
+
 class Swapchain {
 private:
 	friend class CommandSubmitter;
