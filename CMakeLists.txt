@@ -7,7 +7,11 @@ project(vkx
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(vkx src/main.cpp)
+add_executable(vkx src/main.cpp
+        lib/imgui/imgui_draw.cpp
+        lib/imgui/imgui_tables.cpp
+        lib/imgui/imgui_widgets.cpp
+        lib/imgui/imgui.cpp)
 
 add_subdirectory("src")
 add_subdirectory("lib/VulkanMemoryAllocator")
