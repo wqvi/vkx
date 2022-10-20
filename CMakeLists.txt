@@ -31,7 +31,8 @@ target_link_libraries(vkx
 target_include_directories(vkx
         PUBLIC
         	"${CMAKE_CURRENT_SOURCE_DIR}/include"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/stb")
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/stb"
+                "${CMAKE_CURRENT_SOURCE_DIR}/lib/imgui")
 
 # A precompiled header will speed up compile time due to the dummy thicc libraries included
 target_precompile_headers(vkx
