@@ -13,7 +13,7 @@ namespace vkx {
  * @param window The window to which is queried for extensions
  * @return vk::UniqueInstance
  */
-[[nodiscard]] vk::UniqueInstance createInstance(SDL_Window* const window);
+[[nodiscard]] VkInstance createInstance(SDL_Window* const window);
 
 /**
  * @brief Create a surface object

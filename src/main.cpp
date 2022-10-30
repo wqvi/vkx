@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vkx/vkx.hpp>
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_handles.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
@@ -129,16 +130,17 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
+	const auto instance = vkx::createInstance(window);
+
 	{
 		vkx::Camera camera({0, 0, 0});
 
-		const auto instance = vkx::createInstance(window);
-		const auto surface = vkx::createSurface(window, *instance);
-		const auto physicalDevice = vkx::getBestPhysicalDevice(*instance, *surface);
+		const auto surface = vkx::createSurface(window, instance);
+		const auto physicalDevice = vkx::getBestPhysicalDevice(instance, *surface);
 		const float maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
-		const auto logicalDevice = vkx::createDevice(*instance, *surface, physicalDevice);
+		const auto logicalDevice = vkx::createDevice(instance, *surface, physicalDevice);
 
-		const vkx::Allocator allocator{physicalDevice, *logicalDevice, *instance};
+		const vkx::Allocator allocator{physicalDevice, *logicalDevice, instance};
 
 		const vkx::CommandSubmitter commandSubmitter{physicalDevice, *logicalDevice, *surface};
 
@@ -383,8 +385,10 @@ int main(void) {
 		}
 
 		logicalDevice->waitIdle();
+
 	}
 
+	vkDestroyInstance(instance, nullptr);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 
