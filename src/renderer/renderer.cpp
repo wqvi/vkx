@@ -8,13 +8,13 @@
 
 VkInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr VkApplicationInfo ai{
-		VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		nullptr,
-		"VKX",
-		VK_MAKE_VERSION(0, 0, 1),
-		"VKX",
-		VK_MAKE_VERSION(0, 0, 1), 
-		VK_API_VERSION_1_0};
+	    VK_STRUCTURE_TYPE_APPLICATION_INFO,
+	    nullptr,
+	    "VKX",
+	    VK_MAKE_VERSION(0, 0, 1),
+	    "VKX",
+	    VK_MAKE_VERSION(0, 0, 1),
+	    VK_API_VERSION_1_0};
 
 	std::uint32_t count = 0;
 	if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
@@ -38,33 +38,33 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 
 	VkInstanceCreateInfo icf{
 	    VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-		nullptr,
-		0,
-		&ai,
-		static_cast<std::uint32_t>(instanceLayers.size()),
-		instanceLayers.data(),
-		static_cast<std::uint32_t>(instanceExtensions.size()),
-		instanceExtensions.data()};
+	    nullptr,
+	    0,
+	    &ai,
+	    static_cast<std::uint32_t>(instanceLayers.size()),
+	    instanceLayers.data(),
+	    static_cast<std::uint32_t>(instanceExtensions.size()),
+	    instanceExtensions.data()};
 
 #ifdef DEBUG
 	constexpr auto severity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 	constexpr auto type = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
 	constexpr VkDebugUtilsMessengerCreateInfoEXT dumci{
-		VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT, 
-		nullptr, 
-		0, 
-		severity, 
-		type, 
-		[](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; }, 
-		nullptr};
+	    VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+	    nullptr,
+	    0,
+	    severity,
+	    type,
+	    [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; },
+	    nullptr};
 
 	icf.pNext = &dumci;
 #endif
 	VkInstance instance = nullptr;
 	const auto result = vkCreateInstance(&icf, nullptr, &instance);
 	if (result == VK_ERROR_LAYER_NOT_PRESENT) {
-		throw std::runtime_error("Layer not present");	
+		throw std::runtime_error("Layer not present");
 	}
 
 	if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
@@ -129,10 +129,13 @@ VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR su
 	return *physicalDevice;
 }
 
-vk::UniqueDevice vkx::createDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice) {
+VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice) {
 	const QueueConfig queueConfig{physicalDevice, surface};
 	constexpr float queuePriority = 1.0f;
 	const auto queueCreateInfos = queueConfig.createQueueInfos(queuePriority);
+
+	VkPhysicalDeviceFeatures features{};
+	features.samplerAnisotropy = true;
 
 	vk::PhysicalDeviceFeatures deviceFeatures{};
 	deviceFeatures.samplerAnisotropy = true;
@@ -145,14 +148,41 @@ vk::UniqueDevice vkx::createDevice(vk::Instance instance, vk::SurfaceKHR surface
 
 	constexpr std::array extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-	const vk::DeviceCreateInfo deviceCreateInfo{
+	const VkDeviceCreateInfo dci{
+	    VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    static_cast<std::uint32_t>(queueCreateInfos.size()),
+	    queueCreateInfos.data(),
+	    static_cast<std::uint32_t>(layers.size()),
+	    layers.data(),
+	    static_cast<std::uint32_t>(extensions.size()),
+	    extensions.data(),
+	    &features};
+
+	/*const vk::DeviceCreateInfo deviceCreateInfo{
 	    {},
 	    queueCreateInfos,
 	    layers,
 	    extensions,
 	    &deviceFeatures};
+*/
+	// return physicalDevice.createDeviceUnique(deviceCreateInfo);
+	
+	VkDevice device = nullptr;
+	const auto result = vkCreateDevice(physicalDevice, &dci, nullptr, &device);
+	if (result == VK_ERROR_LAYER_NOT_PRESENT) {
+		throw std::runtime_error("Layer not present");
+	}
 
-	return physicalDevice.createDeviceUnique(deviceCreateInfo);
+	if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
+		throw std::runtime_error("Extension not present");
+	}
+
+	if (result != VK_SUCCESS) {
+		throw std::runtime_error("Failure to create logical device.");
+	}
+	return device;
 }
 
 vk::Format vkx::findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates) {

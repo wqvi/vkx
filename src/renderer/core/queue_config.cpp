@@ -1,5 +1,6 @@
 #include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
+#include <vulkan/vulkan_core.h>
 
 vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
 	if (!static_cast<bool>(physicalDevice)) {
@@ -45,14 +46,16 @@ bool vkx::QueueConfig::isUniversal() const {
 	return *graphicsIndex == *presentIndex;
 }
 
-std::vector<vk::DeviceQueueCreateInfo> vkx::QueueConfig::createQueueInfos(float queuePriorities) const {
-	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+std::vector<VkDeviceQueueCreateInfo> vkx::QueueConfig::createQueueInfos(float queuePriorities) const {
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	for (const std::uint32_t index : indices) {
-		const vk::DeviceQueueCreateInfo queueCreateInfo(
-		    {},
+		const VkDeviceQueueCreateInfo queueCreateInfo{
+			VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+			nullptr,
+			0,
 		    index,
 		    1,
-		    &queuePriorities);
+		    &queuePriorities};
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
 

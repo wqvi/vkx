@@ -44,7 +44,7 @@ namespace vkx {
  * @param physicalDevice The Vulkan physical device handle
  * @return vk::UniqueDevice
  */
-[[nodiscard]] vk::UniqueDevice createDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice);
+[[nodiscard]] VkDevice createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
 
 /**
  * @brief Finds a supported format based on provided parameters

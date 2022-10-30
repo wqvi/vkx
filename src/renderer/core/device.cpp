@@ -36,14 +36,14 @@ vkx::Device::Device(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk
 
 	constexpr std::array extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-	const vk::DeviceCreateInfo deviceCreateInfo{
+	/*const vk::DeviceCreateInfo deviceCreateInfo{
 	    {},
 	    queueCreateInfos,
 	    layers,
 	    extensions,
-	    &deviceFeatures};
+	    &deviceFeatures};*/
 
-	device = physicalDevice.createDeviceUnique(deviceCreateInfo);
+	//device = physicalDevice.createDeviceUnique(deviceCreateInfo);
 }
 
 const vk::Device* vkx::Device::operator->() const {
