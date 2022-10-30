@@ -78,12 +78,12 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	return instance;
 }
 
-vk::UniqueSurfaceKHR vkx::createSurface(SDL_Window* const window, vk::Instance instance) {
-	VkSurfaceKHR cSurface = nullptr;
-	if (SDL_Vulkan_CreateSurface(window, instance, &cSurface) != SDL_TRUE) {
+VkSurfaceKHR vkx::createSurface(SDL_Window* const window, VkInstance instance) {
+	VkSurfaceKHR surface = nullptr;
+	if (SDL_Vulkan_CreateSurface(window, instance, &surface) != SDL_TRUE) {
 		throw std::runtime_error("Failed to create vulkan surface.");
 	}
-	return vk::UniqueSurfaceKHR{cSurface, vk::Instance{instance}};
+	return surface;
 }
 
 vk::PhysicalDevice vkx::getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface) {

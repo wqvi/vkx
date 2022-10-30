@@ -131,25 +131,25 @@ int main(void) {
 	}
 
 	const auto instance = vkx::createInstance(window);
+	const auto surface = vkx::createSurface(window, instance);
 
 	{
 		vkx::Camera camera({0, 0, 0});
 
-		const auto surface = vkx::createSurface(window, instance);
-		const auto physicalDevice = vkx::getBestPhysicalDevice(instance, *surface);
+		const auto physicalDevice = vkx::getBestPhysicalDevice(instance, surface);
 		const float maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
-		const auto logicalDevice = vkx::createDevice(instance, *surface, physicalDevice);
+		const auto logicalDevice = vkx::createDevice(instance, surface, physicalDevice);
 
 		const vkx::Allocator allocator{physicalDevice, *logicalDevice, instance};
 
-		const vkx::CommandSubmitter commandSubmitter{physicalDevice, *logicalDevice, *surface};
+		const vkx::CommandSubmitter commandSubmitter{physicalDevice, *logicalDevice, surface};
 
-		const vkx::SwapchainInfo swapchainInfo{physicalDevice, *surface};
+		const vkx::SwapchainInfo swapchainInfo{physicalDevice, surface};
 
 		const auto clearRenderPass = vkx::createRenderPassUnique(*logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
 		const auto loadRenderPass = vkx::createRenderPassUnique(*logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
-		vkx::Swapchain swapchain{*logicalDevice, physicalDevice, *clearRenderPass, *surface, window, allocator};
+		vkx::Swapchain swapchain{*logicalDevice, physicalDevice, *clearRenderPass, surface, window, allocator};
 
 		const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
 
@@ -266,7 +266,7 @@ int main(void) {
 
 				logicalDevice->waitIdle();
 
-				swapchain = vkx::Swapchain{*logicalDevice, physicalDevice, *clearRenderPass, *surface, window, allocator};
+				swapchain = vkx::Swapchain{*logicalDevice, physicalDevice, *clearRenderPass, surface, window, allocator};
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 				throw std::runtime_error("Failed to acquire next image.");
@@ -322,7 +322,7 @@ int main(void) {
 
 				logicalDevice->waitIdle();
 
-				swapchain = vkx::Swapchain{*logicalDevice, physicalDevice, *clearRenderPass, *surface, window, allocator};
+				swapchain = vkx::Swapchain{*logicalDevice, physicalDevice, *clearRenderPass, surface, window, allocator};
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
 			}
@@ -388,6 +388,7 @@ int main(void) {
 
 	}
 
+	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
 	SDL_DestroyWindow(window);
 	SDL_Quit();

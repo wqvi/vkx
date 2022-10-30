@@ -23,7 +23,7 @@ namespace vkx {
  * @param instance The Vulkan instance handle
  * @return vk::UniqueSurfaceKHR
  */
-[[nodiscard]] vk::UniqueSurfaceKHR createSurface(SDL_Window* const window, vk::Instance instance);
+[[nodiscard]] VkSurfaceKHR createSurface(SDL_Window* const window, VkInstance instance);
 
 /**
  * @brief Get the best physical device for Vulkan usage.
