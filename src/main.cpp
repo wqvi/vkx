@@ -132,11 +132,11 @@ int main(void) {
 
 	const auto instance = vkx::createInstance(window);
 	const auto surface = vkx::createSurface(window, instance);
+	const auto physicalDevice = vkx::getBestPhysicalDevice(instance, surface);
 
 	{
 		vkx::Camera camera({0, 0, 0});
 
-		const auto physicalDevice = vkx::getBestPhysicalDevice(instance, surface);
 		const float maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
 		const auto logicalDevice = vkx::createDevice(instance, surface, physicalDevice);
 
