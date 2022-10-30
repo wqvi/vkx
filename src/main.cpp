@@ -137,7 +137,9 @@ int main(void) {
 	{
 		vkx::Camera camera({0, 0, 0});
 
-		const float maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
+		VkPhysicalDeviceProperties properties{};
+		vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+		const float maxSamplerAnisotropy = properties.limits.maxSamplerAnisotropy;
 		const auto logicalDevice = vkx::createDevice(instance, surface, physicalDevice);
 
 		const vkx::Allocator allocator{physicalDevice, *logicalDevice, instance};

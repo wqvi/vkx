@@ -33,7 +33,7 @@ namespace vkx {
  * @param surface The Vulkan surface handle
  * @return vk::PhysicalDevice
  */
-[[nodiscard]] vk::PhysicalDevice getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface);
+[[nodiscard]] VkPhysicalDevice getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
 
 /**
  * @brief Create a Vulkan logical device object.

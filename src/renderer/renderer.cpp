@@ -86,8 +86,16 @@ VkSurfaceKHR vkx::createSurface(SDL_Window* const window, VkInstance instance) {
 	return surface;
 }
 
-vk::PhysicalDevice vkx::getBestPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface) {
-	const auto physicalDevices = instance.enumeratePhysicalDevices();
+VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR surface) {
+	std::uint32_t count = 0;
+	if (vkEnumeratePhysicalDevices(instance, &count, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failure to get count of physical devices.");
+	}
+
+	std::vector<VkPhysicalDevice> physicalDevices{count};
+	if (vkEnumeratePhysicalDevices(instance, &count, physicalDevices.data()) != VK_SUCCESS) {
+		throw std::runtime_error("Failure to enumerate physical devices.");
+	}
 
 	std::optional<vk::PhysicalDevice> physicalDevice;
 	std::uint32_t bestRating = 0;
