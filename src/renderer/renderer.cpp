@@ -7,7 +7,7 @@
 #include <vulkan/vulkan_handles.hpp>
 
 VkInstance vkx::createInstance(SDL_Window* const window) {
-	constexpr VkApplicationInfo ai{
+	constexpr VkApplicationInfo applicationInfo{
 	    VK_STRUCTURE_TYPE_APPLICATION_INFO,
 	    nullptr,
 	    "VKX",
@@ -36,11 +36,11 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr std::array<const char*, 0> instanceLayers{};
 #endif
 
-	VkInstanceCreateInfo icf{
+	VkInstanceCreateInfo instanceCreateInfo{
 	    VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 	    nullptr,
 	    0,
-	    &ai,
+	    &applicationInfo,
 	    static_cast<std::uint32_t>(instanceLayers.size()),
 	    instanceLayers.data(),
 	    static_cast<std::uint32_t>(instanceExtensions.size()),
@@ -50,7 +50,7 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr auto severity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 	constexpr auto type = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
-	constexpr VkDebugUtilsMessengerCreateInfoEXT dumci{
+	constexpr VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
 	    VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
 	    nullptr,
 	    0,
@@ -59,10 +59,10 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	    [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; },
 	    nullptr};
 
-	icf.pNext = &dumci;
+	instanceCreateInfo.pNext = &debugUtilsMessengerCreateInfo;
 #endif
 	VkInstance instance = nullptr;
-	const auto result = vkCreateInstance(&icf, nullptr, &instance);
+	const auto result = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
 	if (result == VK_ERROR_LAYER_NOT_PRESENT) {
 		throw std::runtime_error("Layer not present");
 	}
@@ -148,7 +148,7 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 
 	constexpr std::array extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-	const VkDeviceCreateInfo dci{
+	const VkDeviceCreateInfo deviceCreateInfo{
 	    VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 	    nullptr,
 	    0,
@@ -160,17 +160,8 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 	    extensions.data(),
 	    &features};
 
-	/*const vk::DeviceCreateInfo deviceCreateInfo{
-	    {},
-	    queueCreateInfos,
-	    layers,
-	    extensions,
-	    &deviceFeatures};
-*/
-	// return physicalDevice.createDeviceUnique(deviceCreateInfo);
-
 	VkDevice device = nullptr;
-	const auto result = vkCreateDevice(physicalDevice, &dci, nullptr, &device);
+	const auto result = vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
 	if (result == VK_ERROR_LAYER_NOT_PRESENT) {
 		throw std::runtime_error("Layer not present");
 	}
