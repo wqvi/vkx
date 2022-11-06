@@ -11,7 +11,7 @@ namespace vkx {
  *
  * @exception std::runtime_exception Gets thrown if debug info or instance can't be made
  * @param window The window to which is queried for extensions
- * @return vk::UniqueInstance
+ * @return VkInstance
  */
 [[nodiscard]] VkInstance createInstance(SDL_Window* const window);
 
@@ -21,7 +21,7 @@ namespace vkx {
  * @exception std::runtime_exception Gets thrown if a surface can't be made
  * @param window The window to which to attach the Vulkan surface
  * @param instance The Vulkan instance handle
- * @return vk::UniqueSurfaceKHR
+ * @return VkSurfaceKHR
  */
 [[nodiscard]] VkSurfaceKHR createSurface(SDL_Window* const window, VkInstance instance);
 
@@ -31,7 +31,7 @@ namespace vkx {
  * @exception std::runtime_exception Gets thrown if a suitable physical device can't be found
  * @param instance The Vulkan instance handle
  * @param surface The Vulkan surface handle
- * @return vk::PhysicalDevice
+ * @return VkPhysicalDevice
  */
 [[nodiscard]] VkPhysicalDevice getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
 
@@ -42,7 +42,7 @@ namespace vkx {
  * @param instance The Vulkan instance handle
  * @param surface The Vulkan surface handle
  * @param physicalDevice The Vulkan physical device handle
- * @return vk::UniqueDevice
+ * @return VkDevice
  */
 [[nodiscard]] VkDevice createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
 
@@ -107,27 +107,27 @@ namespace vkx {
  * @param initialLayout The initial image layout of the render pass
  * @param finalLayout The final image layout of the render pass
  * @param loadOp The operation that will occur upon the load of the render pass
- * @return vk::UniqueRenderPass
+ * @return VkRenderPass
  */
-[[nodiscard]] vk::UniqueRenderPass createRenderPassUnique(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp);
+[[nodiscard]] VkRenderPass createRenderPass(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp);
 
 /**
  * @brief Create a Sync Objects object
- * 
- * @param device The Vulkan logical device handle 
- * @return std::vector<vkx::SyncObjects> 
+ *
+ * @param device The Vulkan logical device handle
+ * @return std::vector<vkx::SyncObjects>
  */
 [[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects(vk::Device device);
 
 /**
  * @brief Create a Swapchain Unique object
- * 
- * @param device The Vulkan logical device handle 
+ *
+ * @param device The Vulkan logical device handle
  * @param surface The Vulkan surface handle
  * @param window The SDL2 window handle
  * @param info The VKX Swapchain information
  * @param config The VKX physical device queue config
- * @return vk::UniqueSwapchainKHR 
+ * @return vk::UniqueSwapchainKHR
  */
 [[nodiscard]] vk::UniqueSwapchainKHR createSwapchainUnique(vk::Device device, vk::SurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config);
 } // namespace vkx

@@ -88,7 +88,8 @@ vkx::Swapchain vkx::Device::createSwapchain(SDL_Window* window, vk::RenderPass r
 }
 
 vk::UniqueRenderPass vkx::Device::createRenderPass(vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp) const {
-	return vkx::createRenderPassUnique(*device, physicalDevice, format, initialLayout, finalLayout, loadOp);
+	return {};
+	//return vkx::createRenderPassUnique(*device, physicalDevice, format, initialLayout, finalLayout, loadOp);
 }
 
 std::shared_ptr<vkx::GraphicsPipeline> vkx::Device::createGraphicsPipeline(vk::RenderPass renderPass, const Allocator& allocator, const vkx::GraphicsPipelineInformation& info) const {
