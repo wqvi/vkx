@@ -1,8 +1,10 @@
+#include <stdexcept>
 #include <vkx/renderer/renderer.hpp>
+#include <vulkan/vulkan_core.h>
 
 /**
  * @brief This function reduces the boilerplate needed for retrieving an array from Vulkan or SDL2
- * 
+ *
  * @tparam ArrayType The desired type of the returned array
  * @tparam Function The function that will be executed
  * @tparam Predicate validates if the function executed successfully
@@ -11,10 +13,10 @@
  * @param function The function pointer that will be executed
  * @param predicate The function that validates the function pointer return type
  * @param param The parameters passed into the function pointer
- * @return constexpr std::vector<ArrayType> 
+ * @return constexpr std::vector<ArrayType>
  */
 template <class ArrayType, class Function, class Predicate, class... Parameters>
-constexpr std::vector<ArrayType> get(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
+constexpr auto get(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
 	std::uint32_t count = 0;
 	auto result = function(param..., &count, nullptr);
 	if (predicate(result)) {
@@ -30,6 +32,27 @@ constexpr std::vector<ArrayType> get(const char* errorMessage, Function function
 	return items;
 }
 
+/**
+ * @brief This function creates a Vulkan object from provided parameters
+ * 
+ * @tparam ObjectType The type of Vulkan object
+ * @tparam Function The Vulkan function pointer to be executed
+ * @tparam Predicate The function that validates the result of the vulkan function
+ * @tparam Parameters The parameters passed into the Vulkan function pointer
+ * @param function The Vulkan function pointer to be executed
+ * @param predicate The function that validates the result of the vulkan function
+ * @param param The parameters passed into the Vulkan function pointer
+ * @return constexpr ObjectType 
+ */
+template <class ObjectType, class Function, class Predicate, class... Parameters>
+constexpr auto create(Function function, Predicate predicate, Parameters... param) {
+	ObjectType object{};
+	auto result = function(param..., &object);
+	predicate(result);
+
+	return object;
+}
+
 VkInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr VkApplicationInfo applicationInfo{
 	    VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -40,7 +63,8 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	    VK_MAKE_VERSION(0, 0, 1),
 	    VK_API_VERSION_1_0};
 
-	auto instanceExtensions = get<const char*>("Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, window);
+	auto instanceExtensions = get<const char*>(
+	    "Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, window);
 
 #ifdef DEBUG
 	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -77,9 +101,8 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 
 	instanceCreateInfo.pNext = &debugUtilsMessengerCreateInfo;
 #endif
-	VkInstance instance = nullptr;
-	const auto result = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
-	if (result == VK_ERROR_LAYER_NOT_PRESENT) {
+	const auto instance = create<VkInstance>(
+	    vkCreateInstance, [](auto result) { if (result == VK_ERROR_LAYER_NOT_PRESENT) {
 		throw std::runtime_error("Layer not present");
 	}
 
@@ -89,7 +112,7 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 
 	if (result != VK_SUCCESS) {
 		throw std::runtime_error("Failure to create instance");
-	}
+	} }, &instanceCreateInfo, nullptr);
 
 	return instance;
 }
