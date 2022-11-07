@@ -1,6 +1,4 @@
-#include <stdexcept>
 #include <vkx/renderer/renderer.hpp>
-#include <vulkan/vulkan_core.h>
 
 /**
  * @brief This function reduces the boilerplate needed for retrieving an array from Vulkan or SDL2
