@@ -3,7 +3,6 @@
 #include "core/queue_config.hpp"
 #include "core/swapchain_info.hpp"
 #include "core/sync_objects.hpp"
-#include <vector>
 
 namespace vkx {
 /**
@@ -16,7 +15,7 @@ namespace vkx {
 [[nodiscard]] VkInstance createInstance(SDL_Window* const window);
 
 /**
- * @brief Create a surface object
+ * @brief Create a Vulkan surface object
  *
  * @exception std::runtime_exception Gets thrown if a surface can't be made
  * @param window The window to which to attach the Vulkan surface
@@ -26,7 +25,7 @@ namespace vkx {
 [[nodiscard]] VkSurfaceKHR createSurface(SDL_Window* const window, VkInstance instance);
 
 /**
- * @brief Get the best physical device for Vulkan usage.
+ * @brief Get the best Vulkan physical device for Vulkan usage.
  *
  * @exception std::runtime_exception Gets thrown if a suitable physical device can't be found
  * @param instance The Vulkan instance handle
@@ -124,7 +123,7 @@ namespace vkx {
  *
  * @param device The Vulkan logical device handle
  * @param surface The Vulkan surface handle
- * @param window The SDL2 window handle
+ * @param window The SDL2 window handle to attach to
  * @param info The VKX Swapchain information
  * @param config The VKX physical device queue config
  * @return vk::UniqueSwapchainKHR
@@ -133,11 +132,11 @@ namespace vkx {
 
 /**
  * @brief Create a Allocator object
- * 
- * @param physicalDevice 
- * @param device 
- * @param instance 
- * @return VmaAllocator 
+ *
+ * @param physicalDevice
+ * @param device
+ * @param instance
+ * @return VmaAllocator
  */
 [[nodiscard]] VmaAllocator createAllocator(VkPhysicalDevice physicalDevice, VkDevice device, VkInstance instance);
 } // namespace vkx
