@@ -1,10 +1,34 @@
-#include "vkx/pch.hpp"
-#include <stdexcept>
-#include <vkx/renderer/core/queue_config.hpp>
-#include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/renderer.hpp>
-#include <vulkan/vulkan_core.h>
-#include <vulkan/vulkan_handles.hpp>
+
+/**
+ * @brief This function reduces the boilerplate needed for retrieving an array from Vulkan or SDL2
+ * 
+ * @tparam ArrayType The desired type of the returned array
+ * @tparam Function The function that will be executed
+ * @tparam Predicate validates if the function executed successfully
+ * @tparam Parameters The paramaters being passed into the function
+ * @param errorMessage The message that will be thrown if an error occurs
+ * @param function The function pointer that will be executed
+ * @param predicate The function that validates the function pointer return type
+ * @param param The parameters passed into the function pointer
+ * @return constexpr std::vector<ArrayType> 
+ */
+template <class ArrayType, class Function, class Predicate, class... Parameters>
+constexpr std::vector<ArrayType> get(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
+	std::uint32_t count = 0;
+	auto result = function(param..., &count, nullptr);
+	if (predicate(result)) {
+		throw std::runtime_error(errorMessage);
+	}
+
+	std::vector<ArrayType> items{count};
+	result = function(param..., &count, items.data());
+	if (predicate(result)) {
+		throw std::runtime_error(errorMessage);
+	}
+
+	return items;
+}
 
 VkInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr VkApplicationInfo applicationInfo{
@@ -16,15 +40,7 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	    VK_MAKE_VERSION(0, 0, 1),
 	    VK_API_VERSION_1_0};
 
-	std::uint32_t count = 0;
-	if (SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr) != SDL_TRUE) {
-		throw std::runtime_error("Failed to enumerate vulkan extensions");
-	}
-
-	std::vector<const char*> instanceExtensions{count};
-	if (SDL_Vulkan_GetInstanceExtensions(window, &count, instanceExtensions.data()) != SDL_TRUE) {
-		throw std::runtime_error("Failed to enumerate vulkan extensions");
-	}
+	auto instanceExtensions = get<const char*>("Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, window);
 
 #ifdef DEBUG
 	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
