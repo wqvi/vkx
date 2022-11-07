@@ -34,7 +34,7 @@ constexpr auto get(const char* errorMessage, Function function, Predicate predic
 
 /**
  * @brief This function creates a Vulkan object from provided parameters
- * 
+ *
  * @tparam ObjectType The type of Vulkan object
  * @tparam Function The Vulkan function pointer to be executed
  * @tparam Predicate The function that validates the result of the vulkan function
@@ -42,7 +42,7 @@ constexpr auto get(const char* errorMessage, Function function, Predicate predic
  * @param function The Vulkan function pointer to be executed
  * @param predicate The function that validates the result of the vulkan function
  * @param param The parameters passed into the Vulkan function pointer
- * @return constexpr ObjectType 
+ * @return constexpr ObjectType
  */
 template <class ObjectType, class Function, class Predicate, class... Parameters>
 constexpr auto create(Function function, Predicate predicate, Parameters... param) {
@@ -101,7 +101,8 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 
 	instanceCreateInfo.pNext = &debugUtilsMessengerCreateInfo;
 #endif
-	const auto instance = create<VkInstance>(
+
+	return create<VkInstance>(
 	    vkCreateInstance, [](auto result) { if (result == VK_ERROR_LAYER_NOT_PRESENT) {
 		throw std::runtime_error("Layer not present");
 	}
@@ -113,8 +114,6 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	if (result != VK_SUCCESS) {
 		throw std::runtime_error("Failure to create instance");
 	} }, &instanceCreateInfo, nullptr);
-
-	return instance;
 }
 
 VkSurfaceKHR vkx::createSurface(SDL_Window* const window, VkInstance instance) {
