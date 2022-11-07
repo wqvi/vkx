@@ -341,3 +341,31 @@ vk::UniqueSwapchainKHR vkx::createSwapchainUnique(vk::Device device, vk::Surface
 
 	return device.createSwapchainKHRUnique(swapchainCreateInfo);
 }
+
+VmaAllocator vkx::createAllocator(VkPhysicalDevice physicalDevice, VkDevice device, VkInstance instance) {
+	VmaVulkanFunctions vulkanFunctions{};
+	vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
+	vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
+
+	VmaAllocatorCreateInfo allocatorCreateInfo{};
+	allocatorCreateInfo.flags = 0;
+	allocatorCreateInfo.physicalDevice = physicalDevice;
+	allocatorCreateInfo.device = device;
+	allocatorCreateInfo.preferredLargeHeapBlockSize = 0;
+	allocatorCreateInfo.pAllocationCallbacks = nullptr;
+	allocatorCreateInfo.pDeviceMemoryCallbacks = nullptr;
+	allocatorCreateInfo.pHeapSizeLimit = nullptr;
+	allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+	allocatorCreateInfo.instance = instance;
+	allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+#if VMA_EXTERNAL_MEMORY
+	allocatorCreateInfo.pTypeExternalMemoryHandleTypes = nullptr;
+#endif
+
+	VmaAllocator allocator = nullptr;
+	if (vmaCreateAllocator(&allocatorCreateInfo, &allocator) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create vulkan memory allocator.");
+	}
+
+	return allocator;
+}

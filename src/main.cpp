@@ -141,8 +141,11 @@ int main(void) {
 	const auto clearRenderPass = vkx::createRenderPass(logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
 	const auto loadRenderPass = vkx::createRenderPass(logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 
+	VmaAllocator allocatorA = vkx::createAllocator(physicalDevice, logicalDevice, instance);
+
+	vkx::Camera camera({0, 0, 0});
+
 	{
-		vkx::Camera camera({0, 0, 0});
 
 		const vkx::Allocator allocator{physicalDevice, logicalDevice, instance};
 
@@ -385,6 +388,7 @@ int main(void) {
 		vkDeviceWaitIdle(logicalDevice);
 	}
 
+	vmaDestroyAllocator(allocatorA);
 	vkDestroyRenderPass(logicalDevice, clearRenderPass, nullptr);
 	vkDestroyRenderPass(logicalDevice, loadRenderPass, nullptr);
 	vkDestroyDevice(logicalDevice, nullptr);

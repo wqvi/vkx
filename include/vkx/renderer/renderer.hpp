@@ -130,4 +130,14 @@ namespace vkx {
  * @return vk::UniqueSwapchainKHR
  */
 [[nodiscard]] vk::UniqueSwapchainKHR createSwapchainUnique(vk::Device device, vk::SurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config);
+
+/**
+ * @brief Create a Allocator object
+ * 
+ * @param physicalDevice 
+ * @param device 
+ * @param instance 
+ * @return VmaAllocator 
+ */
+[[nodiscard]] VmaAllocator createAllocator(VkPhysicalDevice physicalDevice, VkDevice device, VkInstance instance);
 } // namespace vkx
