@@ -1,13 +1,9 @@
 #include <vkx/renderer/core/swapchain_info.hpp>
-#include <vkx/renderer/core/device.hpp>
 
 vkx::SwapchainInfo::SwapchainInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface)
     : capabilities(physicalDevice.getSurfaceCapabilitiesKHR(surface)),
       formats(physicalDevice.getSurfaceFormatsKHR(surface)),
       presentModes(physicalDevice.getSurfacePresentModesKHR(surface)) {}
-
-vkx::SwapchainInfo::SwapchainInfo(const vkx::Device& device) 
-	: vkx::SwapchainInfo::SwapchainInfo(device.physicalDevice, device.surface) {}
 
 vk::SurfaceFormatKHR vkx::SwapchainInfo::chooseSurfaceFormat() const {
 	for (const auto& surfaceFormat : formats) {

@@ -1,6 +1,8 @@
 #include "vkx/renderer/renderer.hpp"
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vulkan/vulkan_enums.hpp>
+#include <vkx/renderer/core/allocator.hpp>
+#include <vkx/renderer/renderer.hpp>
 
 vkx::Swapchain::Swapchain(vk::Device device, vk::PhysicalDevice physicalDevice, vk::RenderPass renderPass, vk::SurfaceKHR surface, SDL_Window* window, const Allocator& allocator) {
 	if (!static_cast<bool>(surface)) {
@@ -46,9 +48,9 @@ vkx::Swapchain::Swapchain(vk::Device device, vk::PhysicalDevice physicalDevice, 
 	}
 }
 
-vk::ResultValue<std::uint32_t> vkx::Swapchain::acquireNextImage(const vkx::Device& device, const vkx::SyncObjects& syncObjects) const {
+vk::ResultValue<std::uint32_t> vkx::Swapchain::acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const {
 	std::uint32_t imageIndex = 0;
-	const auto result = device->acquireNextImageKHR(*swapchain, UINT64_MAX, *syncObjects.imageAvailableSemaphore, {}, &imageIndex);
+	const auto result = device.acquireNextImageKHR(*swapchain, UINT64_MAX, *syncObjects.imageAvailableSemaphore, {}, &imageIndex);
 
 	return {result, imageIndex};
 }

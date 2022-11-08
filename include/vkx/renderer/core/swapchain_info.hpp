@@ -10,8 +10,6 @@ struct SwapchainInfo {
 
 	explicit SwapchainInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
 
-	explicit SwapchainInfo(const Device& device);
-
 	[[nodiscard]] vk::SurfaceFormatKHR chooseSurfaceFormat() const;
 
 	[[nodiscard]] vk::PresentModeKHR choosePresentMode() const;

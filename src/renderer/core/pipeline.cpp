@@ -1,4 +1,3 @@
-#include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/model.hpp>
 

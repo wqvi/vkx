@@ -10,8 +10,6 @@ struct QueueConfig {
 
 	explicit QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
 
-	explicit QueueConfig(const Device& device);
-
 	[[nodiscard]] std::vector<VkDeviceQueueCreateInfo> createQueueInfos(float queuePriorities) const;
 
 	[[nodiscard]] vk::SharingMode getImageSharingMode() const;

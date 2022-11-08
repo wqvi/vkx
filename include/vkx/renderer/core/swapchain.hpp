@@ -1,7 +1,6 @@
 #pragma once
 
 #include "vkx/renderer/core/sync_objects.hpp"
-#include <vkx/renderer/core/device.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vulkan/vulkan_handles.hpp>
@@ -38,14 +37,7 @@ public:
 		return *framebuffers[index];
 	}
 
-	vk::ResultValue<std::uint32_t> acquireNextImage(const vkx::Device& device, const vkx::SyncObjects& syncObjects) const;
-
-	vk::ResultValue<std::uint32_t> acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObject) const {
-		std::uint32_t imageIndex = 0;
-		const auto result = device.acquireNextImageKHR(*swapchain, UINT64_MAX, *syncObject.imageAvailableSemaphore, {}, &imageIndex);
-
-		return {result, imageIndex};
-	}
+	vk::ResultValue<std::uint32_t> acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const;
 
 	inline vk::Extent2D extent() const noexcept {
 		return imageExtent;

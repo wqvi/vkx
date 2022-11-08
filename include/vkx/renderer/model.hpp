@@ -33,8 +33,6 @@ class Texture {
 public:
 	Texture() = default;
 
-	Texture(const std::string& file, const Device& device, const Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
-
 	Texture(const std::string& file, vk::Device device, float maxAnisotropy, const vkx::Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
 
 	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
