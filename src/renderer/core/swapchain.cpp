@@ -28,8 +28,8 @@ vkx::Swapchain::Swapchain(vk::Device device, vk::PhysicalDevice physicalDevice, 
 	}
 
 	const auto depthFormat = vkx::findDepthFormat(physicalDevice);
-	depthResource = allocator.allocateImage(imageExtent.width, imageExtent.height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
-	depthImageView = vkx::createImageViewUnique(static_cast<vk::Device>(device), depthResource->object, depthFormat, vk::ImageAspectFlagBits::eDepth);
+	depthResource = allocator.allocateImage(imageExtent.width, imageExtent.height, static_cast<vk::Format>(depthFormat), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+	depthImageView = vkx::createImageViewUnique(static_cast<vk::Device>(device), depthResource->object, static_cast<vk::Format>(depthFormat), vk::ImageAspectFlagBits::eDepth);
 
 	framebuffers.resize(imageViews.size());
 

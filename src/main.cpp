@@ -162,8 +162,6 @@ int main(void) {
 
 	ImGui_ImplVulkan_Init(&imguiVulkanInitInfo, clearRenderPass);*/
 
-	VmaAllocator allocatorA = vkx::createAllocator(physicalDevice, logicalDevice, instance);
-
 	vkx::Camera camera({0, 0, 0});
 
 	{
@@ -413,7 +411,6 @@ int main(void) {
 		vkDeviceWaitIdle(logicalDevice);
 	}
 
-	vmaDestroyAllocator(allocatorA);
 	vkDestroyRenderPass(logicalDevice, clearRenderPass, nullptr);
 	vkDestroyRenderPass(logicalDevice, loadRenderPass, nullptr);
 	vkDestroyDevice(logicalDevice, nullptr);

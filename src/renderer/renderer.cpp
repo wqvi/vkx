@@ -224,19 +224,20 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 	return device;
 }
 
-vk::Format vkx::findSupportedFormat(vk::PhysicalDevice physicalDevice, vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates) {
-	for (const vk::Format format : candidates) {
-		const auto formatProps = physicalDevice.getFormatProperties(format);
+VkFormat vkx::findSupportedFormat(VkPhysicalDevice physicalDevice, VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates) {
+	for (const auto format : candidates) {
+		VkFormatProperties formatProps{};
+		vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProps);
 
-		const bool isLinear = tiling == vk::ImageTiling::eLinear && (formatProps.linearTilingFeatures & features) == features;
-		const bool isOptimal = tiling == vk::ImageTiling::eOptimal && (formatProps.optimalTilingFeatures & features) == features;
+		const bool isLinear = tiling == VK_IMAGE_TILING_LINEAR && (formatProps.linearTilingFeatures & features) == features;
+		const bool isOptimal = tiling == VK_IMAGE_TILING_OPTIMAL && (formatProps.optimalTilingFeatures & features) == features;
 
 		if (isLinear || isOptimal) {
 			return format;
 		}
 	}
 
-	return vk::Format::eUndefined;
+	return VK_FORMAT_UNDEFINED;
 }
 
 vk::UniqueImageView vkx::createImageViewUnique(vk::Device device, vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) {
