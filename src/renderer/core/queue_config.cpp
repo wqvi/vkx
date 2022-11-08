@@ -56,9 +56,10 @@ std::vector<VkDeviceQueueCreateInfo> vkx::QueueConfig::createQueueInfos(float qu
 		    index,
 		    1,
 		    &queuePriorities};
+
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
-
+	
 	return queueCreateInfos;
 }
 

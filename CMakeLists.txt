@@ -28,7 +28,7 @@ target_link_libraries(vkx
 	PUBLIC
 		Vulkan::Vulkan
 		VulkanMemoryAllocator
-		glm
+		glm::glm
 		SDL2
 		)
 

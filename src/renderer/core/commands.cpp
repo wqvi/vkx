@@ -19,7 +19,9 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::Comma
 
 	auto commandBuffer = device.allocateCommandBuffers(allocInfo)[0];
 
-	constexpr vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit, {}, nullptr};
+	// constexpr vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit, {}, nullptr};
+
+	constexpr vk::CommandBufferBeginInfo beginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
 
 	commandBuffer.begin(beginInfo);
 

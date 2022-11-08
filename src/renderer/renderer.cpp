@@ -167,9 +167,21 @@ VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR su
 
 VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice) {
 	const QueueConfig queueConfig{physicalDevice, surface};
+	
 	constexpr float queuePriority = 1.0f;
-	const auto queueCreateInfos = queueConfig.createQueueInfos(queuePriority);
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	for (const std::uint32_t index : queueConfig.indices) {
+		const VkDeviceQueueCreateInfo queueCreateInfo{
+			VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+			nullptr,
+			0,
+		    index,
+		    1,
+		    &queuePriority};
 
+		queueCreateInfos.push_back(queueCreateInfo);
+	}
+	
 	VkPhysicalDeviceFeatures features{};
 	features.samplerAnisotropy = true;
 
