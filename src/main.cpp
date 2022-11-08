@@ -365,6 +365,10 @@ int main(void) {
 					if (collision.success) {
 						SDL_Log("Colliding");
 					}
+
+					if (event.key.keysym.sym == SDLK_ESCAPE) {
+						isRunning = false;
+					}
 				} break;
 				case SDL_KEYUP:
 					camera.direction = glm::vec3(0);
