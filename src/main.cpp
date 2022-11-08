@@ -2,11 +2,7 @@
 #include "vkx/renderer/core/pipeline.hpp"
 #include "vkx/renderer/renderer.hpp"
 #include <SDL2/SDL.h>
-#include <stdexcept>
 #include <vkx/vkx.hpp>
-#include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_core.h>
-#include <vulkan/vulkan_handles.hpp>
 
 auto createShaderDescriptorSetLayout(vk::Device device) {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
@@ -140,6 +136,31 @@ int main(void) {
 	const vkx::SwapchainInfo swapchainInfo{physicalDevice, surface};
 	const auto clearRenderPass = vkx::createRenderPass(logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, vk::AttachmentLoadOp::eClear);
 	const auto loadRenderPass = vkx::createRenderPass(logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
+	const vkx::QueueConfig queueConfig{physicalDevice, surface};
+
+	/*IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	(void)io;
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplSDL2_InitForVulkan(window);
+	ImGui_ImplVulkan_InitInfo imguiVulkanInitInfo{
+	    instance,
+	    physicalDevice,
+	    logicalDevice,
+	    *queueConfig.graphicsIndex,
+	    nullptr, // queue
+	    nullptr,
+	    nullptr, // descriptor pool
+	    0,
+	    2,
+	    0, // image count
+	    VK_SAMPLE_COUNT_1_BIT,
+	    nullptr,
+	    nullptr};
+
+	ImGui_ImplVulkan_Init(&imguiVulkanInitInfo, clearRenderPass);*/
 
 	VmaAllocator allocatorA = vkx::createAllocator(physicalDevice, logicalDevice, instance);
 
