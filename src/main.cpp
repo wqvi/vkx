@@ -414,6 +414,7 @@ int main(void) {
 		}
 		vkDeviceWaitIdle(logicalDevice);
 
+		texture.image.destroy(allocator.getAllocator()); // todo
 		swapchain.destroy();
 	}
 
