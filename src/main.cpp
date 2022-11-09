@@ -170,7 +170,7 @@ int main(void) {
 
 		const vkx::CommandSubmitter commandSubmitter{physicalDevice, logicalDevice, surface};
 
-		vkx::Swapchain swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, window, allocator};
+		vkx::Swapchain swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator.getAllocator(), window};
 
 		const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
 
@@ -289,7 +289,7 @@ int main(void) {
 
 				swapchain.destroy();
 
-				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, window, allocator};
+				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator.getAllocator(), window};
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 				throw std::runtime_error("Failed to acquire next image.");
@@ -347,7 +347,7 @@ int main(void) {
 
 				swapchain.destroy();
 
-				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, window, allocator};
+				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator.getAllocator(), window};
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
 			}

@@ -4,8 +4,8 @@
 #include <vkx/renderer/core/allocator.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::Swapchain::Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkSurfaceKHR surface, SDL_Window* window, const Allocator& allocator) 
-	: device(device), allocator(allocator.getAllocator()) {
+vkx::Swapchain::Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkSurfaceKHR surface, VmaAllocator allocator, SDL_Window* window) 
+	: device(device), allocator(allocator) {
 	const SwapchainInfo info{physicalDevice, surface};
 	const QueueConfig config{physicalDevice, surface};
 
@@ -25,7 +25,7 @@ vkx::Swapchain::Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRe
 	}
 
 	const auto depthFormat = vkx::findDepthFormat(physicalDevice);
-	depthAllocation = vkx::allocateImage(nullptr, &depthImage, allocator.getAllocator(), imageExtent.width, imageExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	depthAllocation = vkx::allocateImage(nullptr, &depthImage, allocator, imageExtent.width, imageExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
 	depthImageView = vkx::createImageView(device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 	framebuffers.resize(imageViews.size());
