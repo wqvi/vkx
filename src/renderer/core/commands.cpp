@@ -232,12 +232,15 @@ void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, s
 }
 
 vk::Result vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
-	const vk::PresentInfoKHR presentInfo{
-	    1,
-	    &*syncObjects.renderFinishedSemaphore,
-	    1,
-	    &*swapchain.swapchain,
-	    &imageIndex};
+	const VkPresentInfoKHR presentInfo{
+		VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+		nullptr,
+		1,
+		reinterpret_cast<const VkSemaphore*>(&*syncObjects.renderFinishedSemaphore),
+		1,
+		&swapchain.swapchain,
+		&imageIndex,
+		nullptr};
 
-	return presentQueue.presentKHR(&presentInfo);
+	return static_cast<vk::Result>(vkQueuePresentKHR(presentQueue, &presentInfo));
 }

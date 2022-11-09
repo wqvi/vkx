@@ -287,6 +287,8 @@ int main(void) {
 
 				vkDeviceWaitIdle(logicalDevice);
 
+				swapchain.destroy();
+
 				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, window, allocator};
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
@@ -342,6 +344,8 @@ int main(void) {
 				}
 
 				vkDeviceWaitIdle(logicalDevice);
+
+				swapchain.destroy();
 
 				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, window, allocator};
 			} else if (result != vk::Result::eSuccess) {
@@ -409,6 +413,8 @@ int main(void) {
 			}
 		}
 		vkDeviceWaitIdle(logicalDevice);
+
+		swapchain.destroy();
 	}
 
 	vkDestroyRenderPass(logicalDevice, clearRenderPass, nullptr);
