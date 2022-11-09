@@ -39,8 +39,9 @@ public:
 
 	[[nodiscard]] const vk::DescriptorImageInfo* getInfo() const;
 
-private:
+public: // Todo
 	Image image;
+private:
 	vk::UniqueImageView view;
 	vk::UniqueSampler sampler;
 	vk::DescriptorImageInfo info;
