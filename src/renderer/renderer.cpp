@@ -387,21 +387,21 @@ VmaAllocation vkx::allocateImage(VmaAllocationInfo* allocationInfo, VkImage* ima
 	const VkExtent3D imageExtent{width, height, 1};
 
 	const VkImageCreateInfo imageCreateInfo{
-		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, 
-		nullptr, 
-		0,
-		VK_IMAGE_TYPE_2D, 
-		format, 
-		imageExtent, 
-		1,
-		1,
-		VK_SAMPLE_COUNT_1_BIT,
-		tiling,
-		imageUsage, 
-		VK_SHARING_MODE_EXCLUSIVE,
-		0,
-		nullptr, 
-		VK_IMAGE_LAYOUT_UNDEFINED};
+	    VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    VK_IMAGE_TYPE_2D,
+	    format,
+	    imageExtent,
+	    1,
+	    1,
+	    VK_SAMPLE_COUNT_1_BIT,
+	    tiling,
+	    imageUsage,
+	    VK_SHARING_MODE_EXCLUSIVE,
+	    0,
+	    nullptr,
+	    VK_IMAGE_LAYOUT_UNDEFINED};
 
 	VmaAllocationCreateInfo allocationCreateInfo{};
 	allocationCreateInfo.flags = flags;
@@ -416,6 +416,35 @@ VmaAllocation vkx::allocateImage(VmaAllocationInfo* allocationInfo, VkImage* ima
 	VmaAllocation allocation = nullptr;
 	if (vmaCreateImage(allocator, &imageCreateInfo, &allocationCreateInfo, image, &allocation, allocationInfo) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate image memory resources.");
+	}
+
+	return allocation;
+}
+
+[[nodiscard]] VmaAllocation vkx::allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) {
+	const VkBufferCreateInfo bufferCreateInfo{
+	    VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+	    nullptr,
+	    0,
+	    size,
+	    static_cast<VkBufferUsageFlags>(bufferUsage),
+	    VK_SHARING_MODE_EXCLUSIVE,
+	    0,
+	    nullptr};
+
+	VmaAllocationCreateInfo allocationCreateInfo{};
+	allocationCreateInfo.flags = flags;
+	allocationCreateInfo.usage = memoryUsage;
+	allocationCreateInfo.requiredFlags = 0;
+	allocationCreateInfo.preferredFlags = 0;
+	allocationCreateInfo.memoryTypeBits = 0;
+	allocationCreateInfo.pool = nullptr;
+	allocationCreateInfo.pUserData = nullptr;
+	allocationCreateInfo.priority = {};
+
+	VmaAllocation allocation = nullptr;
+	if (vmaCreateBuffer(allocator, &bufferCreateInfo, &allocationCreateInfo, buffer, &allocation, allocationInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate buffer memory resources.");
 	}
 
 	return allocation;
