@@ -7,7 +7,7 @@ vkx::Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint
 
 vkx::Texture::Texture(const std::string& file, vk::Device device, float maxAnisotropy, const vkx::Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter)
     : image(file, allocator, commandSubmitter),
-      view(vkx::createTextureImageViewUnique(device, image.resource->object)),
+      view(vkx::createTextureImageView(device, image.resource->object), device),
       sampler(vkx::createTextureSamplerUnique(device, maxAnisotropy)),
       info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal) {
 }
