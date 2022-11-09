@@ -6,10 +6,15 @@
 namespace vkx {
 class Image {
 public:
-	std::shared_ptr<Allocation<vk::Image>> resource;
+	VkImage resourceImage{};
+	VmaAllocation resourceAllocation{};
 
 	Image() = default;
 
 	explicit Image(const std::string& file, const Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
+
+	explicit Image(const char* file, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter);
+
+	void destroy(VmaAllocator allocator) const;
 };
 } // namespace vkx
