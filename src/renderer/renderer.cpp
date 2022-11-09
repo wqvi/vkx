@@ -1,56 +1,5 @@
 #include <vkx/renderer/renderer.hpp>
 
-/**
- * @brief This function reduces the boilerplate needed for retrieving an array from Vulkan or SDL2
- *
- * @tparam ArrayType The desired type of the returned array
- * @tparam Function The function that will be executed
- * @tparam Predicate validates if the function executed successfully
- * @tparam Parameters The paramaters being passed into the function
- * @param errorMessage The message that will be thrown if an error occurs
- * @param function The function pointer that will be executed
- * @param predicate The function that validates the function pointer return type
- * @param param The parameters passed into the function pointer
- * @return constexpr std::vector<ArrayType>
- */
-template <class ArrayType, class Function, class Predicate, class... Parameters>
-constexpr auto get(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
-	std::uint32_t count = 0;
-	auto result = function(param..., &count, nullptr);
-	if (predicate(result)) {
-		throw std::runtime_error(errorMessage);
-	}
-
-	std::vector<ArrayType> items{count};
-	result = function(param..., &count, items.data());
-	if (predicate(result)) {
-		throw std::runtime_error(errorMessage);
-	}
-
-	return items;
-}
-
-/**
- * @brief This function creates a Vulkan object from provided parameters
- *
- * @tparam ObjectType The type of Vulkan object
- * @tparam Function The Vulkan function pointer to be executed
- * @tparam Predicate The function that validates the result of the vulkan function
- * @tparam Parameters The parameters passed into the Vulkan function pointer
- * @param function The Vulkan function pointer to be executed
- * @param predicate The function that validates the result of the vulkan function
- * @param param The parameters passed into the Vulkan function pointer
- * @return constexpr ObjectType
- */
-template <class ObjectType, class Function, class Predicate, class... Parameters>
-constexpr auto create(Function function, Predicate predicate, Parameters... param) {
-	ObjectType object{};
-	auto result = function(param..., &object);
-	predicate(result);
-
-	return object;
-}
-
 VkInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr VkApplicationInfo applicationInfo{
 	    VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -167,21 +116,21 @@ VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR su
 
 VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice) {
 	const QueueConfig queueConfig{physicalDevice, surface};
-	
+
 	constexpr float queuePriority = 1.0f;
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	for (const std::uint32_t index : queueConfig.indices) {
 		const VkDeviceQueueCreateInfo queueCreateInfo{
-			VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-			nullptr,
-			0,
+		    VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+		    nullptr,
+		    0,
 		    index,
 		    1,
 		    &queuePriority};
 
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
-	
+
 	VkPhysicalDeviceFeatures features{};
 	features.samplerAnisotropy = true;
 
@@ -240,23 +189,30 @@ VkFormat vkx::findSupportedFormat(VkPhysicalDevice physicalDevice, VkImageTiling
 	return VK_FORMAT_UNDEFINED;
 }
 
-vk::UniqueImageView vkx::createImageViewUnique(vk::Device device, vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) {
-	const vk::ImageSubresourceRange subresourceRange{
+VkImageView vkx::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
+	const VkImageSubresourceRange subresourceRange{
 	    aspectFlags,
 	    0,
 	    1,
 	    0,
 	    1};
 
-	const vk::ImageViewCreateInfo imageViewInfo{
-	    {},
+	const VkImageViewCreateInfo imageViewCreateInfo{
+	    VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+	    nullptr,
+	    0,
 	    image,
-	    vk::ImageViewType::e2D,
+	    VK_IMAGE_VIEW_TYPE_2D,
 	    format,
 	    {},
 	    subresourceRange};
 
-	return device.createImageViewUnique(imageViewInfo);
+	VkImageView imageView = nullptr;
+	if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageView)) {
+		throw std::runtime_error("Failed to create image view");
+	}
+
+	return imageView;
 }
 
 vk::UniqueSampler vkx::createTextureSamplerUnique(vk::Device device, float samplerAnisotropy) {
@@ -361,7 +317,7 @@ VkRenderPass vkx::createRenderPass(vk::Device device, vk::PhysicalDevice physica
 	return objs;
 }
 
-vk::UniqueSwapchainKHR vkx::createSwapchainUnique(vk::Device device, vk::SurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config) {
+VkSwapchainKHR vkx::createSwapchain(VkDevice device, VkSurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config) {
 	int width;
 	int height;
 	SDL_Vulkan_GetDrawableSize(window, &width, &height);
@@ -372,23 +328,31 @@ vk::UniqueSwapchainKHR vkx::createSwapchainUnique(vk::Device device, vk::Surface
 	const auto imageCount = info.getImageCount();
 	const auto imageSharingMode = config.getImageSharingMode();
 
-	const vk::SwapchainCreateInfoKHR swapchainCreateInfo{
-	    {},
+	const VkSwapchainCreateInfoKHR swapchainCreateInfo{
+	    VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+	    nullptr,
+	    0,
 	    surface,
 	    imageCount,
-	    surfaceFormat.format,
-	    surfaceFormat.colorSpace,
-	    actualExtent,
+	    static_cast<VkFormat>(surfaceFormat.format),
+	    static_cast<VkColorSpaceKHR>(surfaceFormat.colorSpace),
+	    static_cast<VkExtent2D>(actualExtent),
 	    1,
-	    vk::ImageUsageFlagBits::eColorAttachment,
-	    imageSharingMode,
-	    config.indices,
-	    info.capabilities.currentTransform,
-	    vk::CompositeAlphaFlagBitsKHR::eOpaque,
-	    presentMode,
+	    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+	    static_cast<VkSharingMode>(imageSharingMode),
+	    static_cast<std::uint32_t>(config.indices.size()),
+	    config.indices.data(),
+	    static_cast<VkSurfaceTransformFlagBitsKHR>(info.capabilities.currentTransform),
+	    VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+	    static_cast<VkPresentModeKHR>(presentMode),
 	    true};
 
-	return device.createSwapchainKHRUnique(swapchainCreateInfo);
+	VkSwapchainKHR swapchain = nullptr;
+	if (vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchain)) {
+		throw std::runtime_error("Failed to create swapchain");
+	}
+
+	return swapchain;
 }
 
 VmaAllocator vkx::createAllocator(VkPhysicalDevice physicalDevice, VkDevice device, VkInstance instance) {
@@ -417,4 +381,42 @@ VmaAllocator vkx::createAllocator(VkPhysicalDevice physicalDevice, VkDevice devi
 	}
 
 	return allocator;
+}
+
+VmaAllocation vkx::allocateImage(VmaAllocationInfo* allocationInfo, VkImage* image, VmaAllocator allocator, std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags imageUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) {
+	const VkExtent3D imageExtent{width, height, 1};
+
+	const VkImageCreateInfo imageCreateInfo{
+		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, 
+		nullptr, 
+		0,
+		VK_IMAGE_TYPE_2D, 
+		format, 
+		imageExtent, 
+		1,
+		1,
+		VK_SAMPLE_COUNT_1_BIT,
+		tiling,
+		imageUsage, 
+		VK_SHARING_MODE_EXCLUSIVE,
+		0,
+		nullptr, 
+		VK_IMAGE_LAYOUT_UNDEFINED};
+
+	VmaAllocationCreateInfo allocationCreateInfo{};
+	allocationCreateInfo.flags = flags;
+	allocationCreateInfo.usage = memoryUsage;
+	allocationCreateInfo.requiredFlags = 0;
+	allocationCreateInfo.preferredFlags = 0;
+	allocationCreateInfo.memoryTypeBits = 0;
+	allocationCreateInfo.pool = nullptr;
+	allocationCreateInfo.pUserData = nullptr;
+	allocationCreateInfo.priority = {};
+
+	VmaAllocation allocation = nullptr;
+	if (vmaCreateImage(allocator, &imageCreateInfo, &allocationCreateInfo, image, &allocation, allocationInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate image memory resources.");
+	}
+
+	return allocation;
 }

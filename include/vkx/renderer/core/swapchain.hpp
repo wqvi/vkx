@@ -6,35 +6,31 @@
 #include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
-	struct SwapChain {
-		vk::UniqueSwapchainKHR swapchain{};
-		vk::Extent2D imageExtent{};
-		std::vector<vk::Image> images{};
-		std::vector<vk::UniqueImageView> imageViews{};
-
-	};
-
 class Swapchain {
 private:
 	friend class CommandSubmitter;
 
-	vk::UniqueSwapchainKHR swapchain{};
-	vk::Extent2D imageExtent{};
-	std::vector<vk::Image> images{};
-	std::vector<vk::UniqueImageView> imageViews{};
+	VkDevice device{};
+	VmaAllocator allocator{};
 
-	std::shared_ptr<Allocation<vk::Image>> depthResource{};
-	vk::UniqueImageView depthImageView{};
+	VkSwapchainKHR swapchain{};
+	VkExtent2D imageExtent{};
+	std::vector<VkImage> images{};
+	std::vector<VkImageView> imageViews{};
 
-	std::vector<vk::UniqueFramebuffer> framebuffers{};
+	VkImage depthImage{};
+	VmaAllocation depthAllocation{};
+	VkImageView depthImageView{};
+
+	std::vector<VkFramebuffer> framebuffers{};
 
 public:
 	Swapchain() = default;
 
-	explicit Swapchain(vk::Device device, vk::PhysicalDevice physicalDevice, vk::RenderPass renderPass, vk::SurfaceKHR surface, SDL_Window* const window, const vkx::Allocator& allocator);
+	explicit Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkSurfaceKHR surface, SDL_Window* const window, const vkx::Allocator& allocator);
 
 	inline vk::Framebuffer operator[](std::size_t index) const noexcept {
-		return *framebuffers[index];
+		return framebuffers[index];
 	}
 
 	vk::ResultValue<std::uint32_t> acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const;
@@ -42,5 +38,7 @@ public:
 	inline vk::Extent2D extent() const noexcept {
 		return imageExtent;
 	}
+
+	void destroy();
 };
 } // namespace vkx
