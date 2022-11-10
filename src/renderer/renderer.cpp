@@ -458,7 +458,7 @@ VmaAllocation vkx::allocateImage(VmaAllocationInfo* allocationInfo, VkImage* ima
 	return allocation;
 }
 
-VmaAllocation vkx::allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, void* ptr, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) {
+VmaAllocation vkx::allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, const void* ptr, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) {
 	const VkBufferCreateInfo bufferCreateInfo{
 	    VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 	    nullptr,
