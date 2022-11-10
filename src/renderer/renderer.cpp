@@ -458,6 +458,37 @@ VmaAllocation vkx::allocateImage(VmaAllocationInfo* allocationInfo, VkImage* ima
 	return allocation;
 }
 
+VmaAllocation vkx::allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, void* ptr, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) {
+	const VkBufferCreateInfo bufferCreateInfo{
+	    VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+	    nullptr,
+	    0,
+	    size,
+	    static_cast<VkBufferUsageFlags>(bufferUsage),
+	    VK_SHARING_MODE_EXCLUSIVE,
+	    0,
+	    nullptr};
+
+	VmaAllocationCreateInfo allocationCreateInfo{};
+	allocationCreateInfo.flags = flags;
+	allocationCreateInfo.usage = memoryUsage;
+	allocationCreateInfo.requiredFlags = 0;
+	allocationCreateInfo.preferredFlags = 0;
+	allocationCreateInfo.memoryTypeBits = 0;
+	allocationCreateInfo.pool = nullptr;
+	allocationCreateInfo.pUserData = nullptr;
+	allocationCreateInfo.priority = {};
+
+	VmaAllocation allocation = nullptr;
+	if (vmaCreateBuffer(allocator, &bufferCreateInfo, &allocationCreateInfo, buffer, &allocation, allocationInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate buffer memory resources.");
+	}
+
+	std::memcpy(allocationInfo->pMappedData, ptr, allocationInfo->size);
+
+	return allocation;
+}
+
 std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocator, std::size_t size) {
 	std::vector<vkx::UniformBuffer> buffers;
 	buffers.reserve(MAX_FRAMES_IN_FLIGHT);
