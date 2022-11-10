@@ -2,7 +2,7 @@
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const vkx::Allocator& allocator, const GraphicsPipelineInformation& info)
+vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info)
     : device(device) {
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, info.bindings};
 	descriptorLayout = device.createDescriptorSetLayoutUnique(layoutInfo);
@@ -27,7 +27,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 	descriptorSets = device.allocateDescriptorSets(allocInfo);
 
 	for (std::size_t size : info.uniformSizes) {
-		uniforms.push_back(vkx::allocateUniformBuffers(allocator.getAllocator(), size));
+		uniforms.push_back(vkx::allocateUniformBuffers(allocator, size));
 	}
 
 	for (std::uint32_t i = 0; i < vkx::MAX_FRAMES_IN_FLIGHT; i++) {
