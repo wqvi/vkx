@@ -215,26 +215,33 @@ VkImageView vkx::createImageView(VkDevice device, VkImage image, VkFormat format
 	return imageView;
 }
 
-vk::UniqueSampler vkx::createTextureSamplerUnique(vk::Device device, float samplerAnisotropy) {
-	const vk::SamplerCreateInfo samplerInfo{
-	    {},
-	    vk::Filter::eLinear,
-	    vk::Filter::eLinear,
-	    vk::SamplerMipmapMode::eLinear,
-	    vk::SamplerAddressMode::eRepeat,
-	    vk::SamplerAddressMode::eRepeat,
-	    vk::SamplerAddressMode::eRepeat,
-	    {},
-	    true,
-	    samplerAnisotropy,
-	    false,
-	    vk::CompareOp::eAlways,
-	    {},
-	    {},
-	    vk::BorderColor::eIntOpaqueBlack,
-	    false};
+VkSampler vkx::createTextureSampler(VkDevice device, float samplerAnisotropy) {
+	const VkSamplerCreateInfo samplerCreateInfo{
+		VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+		nullptr,
+		0,
+		VK_FILTER_LINEAR,
+		VK_FILTER_LINEAR,
+		VK_SAMPLER_MIPMAP_MODE_LINEAR,
+		VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		{},
+		true,
+		samplerAnisotropy,
+		false,
+		VK_COMPARE_OP_ALWAYS,
+		{},
+		{},
+		VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+		false};
 
-	return device.createSamplerUnique(samplerInfo);
+	VkSampler sampler = nullptr;
+	if (vkCreateSampler(device, &samplerCreateInfo, nullptr, &sampler) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create texture sampler");
+	}
+
+	return sampler;
 }
 
 VkRenderPass vkx::createRenderPass(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp) {
