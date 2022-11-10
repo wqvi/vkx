@@ -138,6 +138,8 @@ int main(void) {
 	const auto loadRenderPass = vkx::createRenderPass(logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 
+	const auto allocatorA = vkx::createAllocator(physicalDevice, logicalDevice, instance);
+
 	/*IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -414,10 +416,11 @@ int main(void) {
 		}
 		vkDeviceWaitIdle(logicalDevice);
 
-		texture.image.destroy(allocator.getAllocator()); // todo
+		texture.destroy(allocator.getAllocator(), logicalDevice);
 		swapchain.destroy();
 	}
 
+	vmaDestroyAllocator(allocatorA);
 	vkDestroyRenderPass(logicalDevice, clearRenderPass, nullptr);
 	vkDestroyRenderPass(logicalDevice, loadRenderPass, nullptr);
 	vkDestroyDevice(logicalDevice, nullptr);
