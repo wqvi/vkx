@@ -23,7 +23,6 @@ public:
 	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, const Allocator& allocator)
 	    : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
-
 	std::shared_ptr<Allocation<vk::Buffer>> vertex;
 	std::shared_ptr<Allocation<vk::Buffer>> index;
 	std::size_t indexCount = 0;
@@ -35,13 +34,16 @@ public:
 
 	Texture(const std::string& file, vk::Device device, float maxAnisotropy, const vkx::Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
 
+	explicit Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter);
+
 	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
 
 	[[nodiscard]] const vk::DescriptorImageInfo* getInfo() const;
 
-public: // Todo
-	Image image;
+	void destroy(VmaAllocator allocator, VkDevice device) const;
+
 private:
+	Image image;
 	vk::UniqueImageView view;
 	vk::UniqueSampler sampler;
 	vk::DescriptorImageInfo info;

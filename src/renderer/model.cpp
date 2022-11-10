@@ -12,10 +12,22 @@ vkx::Texture::Texture(const std::string& file, vk::Device device, float maxAniso
       info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal) {
 }
 
+vkx::Texture::Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter)
+    : image(file, allocator, commandSubmitter),
+      view(vkx::createTextureImageView(device, image.resourceImage), static_cast<vk::Device>(device)),
+      sampler(vkx::createTextureSamplerUnique(device, maxAnisotropy)),
+      info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal) {}
+
 vk::DescriptorImageInfo vkx::Texture::createDescriptorImageInfo() const {
 	return {*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal};
 }
 
 const vk::DescriptorImageInfo* vkx::Texture::getInfo() const {
 	return &info;
+}
+
+void vkx::Texture::destroy(VmaAllocator allocator, VkDevice device) const {
+	image.destroy(allocator);
+	// vkDestroyImageView(device, nullptr, nullptr);
+	// vkDestroySampler(device, nullptr, nullptr);
 }
