@@ -1,4 +1,5 @@
 #include <vkx/renderer/renderer.hpp>
+#include <vkx/renderer/uniform_buffer.hpp>
 
 VkInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr VkApplicationInfo applicationInfo{
@@ -217,24 +218,24 @@ VkImageView vkx::createImageView(VkDevice device, VkImage image, VkFormat format
 
 VkSampler vkx::createTextureSampler(VkDevice device, float samplerAnisotropy) {
 	const VkSamplerCreateInfo samplerCreateInfo{
-		VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-		nullptr,
-		0,
-		VK_FILTER_LINEAR,
-		VK_FILTER_LINEAR,
-		VK_SAMPLER_MIPMAP_MODE_LINEAR,
-		VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		{},
-		true,
-		samplerAnisotropy,
-		false,
-		VK_COMPARE_OP_ALWAYS,
-		{},
-		{},
-		VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-		false};
+	    VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+	    nullptr,
+	    0,
+	    VK_FILTER_LINEAR,
+	    VK_FILTER_LINEAR,
+	    VK_SAMPLER_MIPMAP_MODE_LINEAR,
+	    VK_SAMPLER_ADDRESS_MODE_REPEAT,
+	    VK_SAMPLER_ADDRESS_MODE_REPEAT,
+	    VK_SAMPLER_ADDRESS_MODE_REPEAT,
+	    {},
+	    true,
+	    samplerAnisotropy,
+	    false,
+	    VK_COMPARE_OP_ALWAYS,
+	    {},
+	    {},
+	    VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+	    false};
 
 	VkSampler sampler = nullptr;
 	if (vkCreateSampler(device, &samplerCreateInfo, nullptr, &sampler) != VK_SUCCESS) {
@@ -455,4 +456,17 @@ VmaAllocation vkx::allocateImage(VmaAllocationInfo* allocationInfo, VkImage* ima
 	}
 
 	return allocation;
+}
+
+std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocator, std::size_t size) {
+	std::vector<vkx::UniformBuffer> buffers;
+	buffers.reserve(MAX_FRAMES_IN_FLIGHT);
+	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		VkBuffer buffer = nullptr;
+		VmaAllocationInfo allocationInfo{};
+		auto allocation = vkx::allocateBuffer(&allocationInfo, &buffer, allocator, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+
+		buffers.emplace_back(std::make_shared<vkx::Allocation<vk::Buffer>>(static_cast<vk::Buffer>(buffer), allocation, allocationInfo, allocator));
+	}
+	return buffers;
 }
