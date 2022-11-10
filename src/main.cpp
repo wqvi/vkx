@@ -182,7 +182,7 @@ int main(void) {
 
 		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(logicalDevice);
 
-		const vkx::Texture texture{"a.jpg", logicalDevice, maxSamplerAnisotropy, allocator, commandSubmitter};
+		const vkx::Texture texture{"a.jpg", logicalDevice, maxSamplerAnisotropy, allocator.getAllocator(), commandSubmitter};
 
 		const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 		    "shader.vert.spv",

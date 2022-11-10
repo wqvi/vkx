@@ -5,21 +5,14 @@
 vkx::Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const vkx::Allocator& allocator)
     : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
-vkx::Texture::Texture(const std::string& file, vk::Device device, float maxAnisotropy, const vkx::Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter)
-    : image(file.c_str(), allocator.getAllocator(), commandSubmitter),
-      view(vkx::createTextureImageView(device, image.resourceImage), device),
-      sampler(vkx::createTextureSamplerUnique(device, maxAnisotropy)),
-      info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal) {
-}
-
 vkx::Texture::Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter)
     : image(file, allocator, commandSubmitter),
-      view(vkx::createTextureImageView(device, image.resourceImage), static_cast<vk::Device>(device)),
-      sampler(vkx::createTextureSamplerUnique(device, maxAnisotropy)),
-      info(*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal) {}
+      view(vkx::createTextureImageView(device, image.resourceImage)),
+      sampler(vkx::createTextureSampler(device, maxAnisotropy)),
+      info(sampler, view, vk::ImageLayout::eShaderReadOnlyOptimal) {}
 
 vk::DescriptorImageInfo vkx::Texture::createDescriptorImageInfo() const {
-	return {*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal};
+	return {sampler, view, vk::ImageLayout::eShaderReadOnlyOptimal};
 }
 
 const vk::DescriptorImageInfo* vkx::Texture::getInfo() const {
@@ -28,6 +21,6 @@ const vk::DescriptorImageInfo* vkx::Texture::getInfo() const {
 
 void vkx::Texture::destroy(VmaAllocator allocator, VkDevice device) const {
 	image.destroy(allocator);
-	// vkDestroyImageView(device, nullptr, nullptr);
-	// vkDestroySampler(device, nullptr, nullptr);
+	vkDestroyImageView(device, view, nullptr);
+	vkDestroySampler(device, sampler, nullptr);
 }

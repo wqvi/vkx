@@ -32,8 +32,6 @@ class Texture {
 public:
 	Texture() = default;
 
-	Texture(const std::string& file, vk::Device device, float maxAnisotropy, const vkx::Allocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
-
 	explicit Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter);
 
 	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
@@ -44,8 +42,8 @@ public:
 
 private:
 	Image image;
-	vk::UniqueImageView view;
-	vk::UniqueSampler sampler;
+	VkImageView view;
+	VkSampler sampler;
 	vk::DescriptorImageInfo info;
 };
 } // namespace vkx
