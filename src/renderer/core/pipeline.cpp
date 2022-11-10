@@ -1,5 +1,6 @@
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/model.hpp>
+#include <vkx/renderer/renderer.hpp>
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const vkx::Allocator& allocator, const GraphicsPipelineInformation& info)
     : device(device) {
@@ -26,7 +27,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 	descriptorSets = device.allocateDescriptorSets(allocInfo);
 
 	for (std::size_t size : info.uniformSizes) {
-		uniforms.push_back(allocator.allocateUniformBuffers(size));
+		uniforms.push_back(vkx::allocateUniformBuffers(allocator.getAllocator(), size));
 	}
 
 	for (std::uint32_t i = 0; i < vkx::MAX_FRAMES_IN_FLIGHT; i++) {
