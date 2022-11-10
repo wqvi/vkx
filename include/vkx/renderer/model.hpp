@@ -11,6 +11,8 @@ public:
 
 	explicit Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const Allocator& allocator);
 
+	explicit Mesh(const std::vector<vkx::Vertex>& vertices, const std::vector<std::uint32_t>& indices, VmaAllocator allocator);
+
 	template <std::size_t T, std::size_t K>
 	explicit Mesh(const std::array<Vertex, T>& vertices, const std::array<std::uint32_t, K>& indices, const Allocator& allocator)
 	    : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(K) {}
@@ -24,7 +26,13 @@ public:
 	    : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
 	std::shared_ptr<Allocation<vk::Buffer>> vertex;
+	VkBuffer vertexBuffer = nullptr;
+	VmaAllocation vertexAllocation = nullptr;
+	VmaAllocationInfo vertexAllocationInfo{};
 	std::shared_ptr<Allocation<vk::Buffer>> index;
+	VkBuffer indexBuffer = nullptr;
+	VmaAllocation indexAllocation = nullptr;
+	VmaAllocationInfo indexAllocationInfo{};
 	std::size_t indexCount = 0;
 };
 
