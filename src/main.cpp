@@ -193,7 +193,7 @@ int main(void) {
 		    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
 		    {&texture}};
 
-		const vkx::GraphicsPipeline graphicsPipeline{logicalDevice, clearRenderPass, allocator, graphicsPipelineInformation};
+		const vkx::GraphicsPipeline graphicsPipeline{logicalDevice, clearRenderPass, allocator.getAllocator(), graphicsPipelineInformation};
 
 		const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
@@ -204,7 +204,7 @@ int main(void) {
 		    {sizeof(vkx::MVP)},
 		    {}};
 
-		const vkx::GraphicsPipeline highlightGraphicsPipeline{logicalDevice, clearRenderPass, allocator, highlightGraphicsPipelineInformation};
+		const vkx::GraphicsPipeline highlightGraphicsPipeline{logicalDevice, clearRenderPass, allocator.getAllocator(), highlightGraphicsPipelineInformation};
 
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
