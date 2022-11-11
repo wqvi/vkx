@@ -27,7 +27,7 @@ public:
 	    : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
 
 	template <class T, std::size_t K, class U, std::size_t Y>
-	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, VmaAllocation allocator)
+	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, VmaAllocator allocator)
 	    : vertexAllocation(vkx::allocateBuffer(&vertexAllocationInfo, vertices.data(), vertices.data(), sizeof(T) * K, allocator, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)), 
 		indexAllocation(vkx::allocateBuffer(&indexAllocationInfo, vertices.data(), indices.data(), sizeof(U) * Y, allocator, VK_BUFFER_USAGE_INDEX_BUFFER_BIT)), 
 		indexCount(indices.size()) {}
