@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vkx/renderer/core/sync_objects.hpp"
+#include <vkx/renderer/core/sync_objects.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
 
@@ -32,7 +32,7 @@ public:
 		return framebuffers[index];
 	}
 
-	VkResult acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects, std::uint32_t* imageIndex) const;
+	VkResult acquireNextImage(VkDevice device, const vkx::SyncObjects& syncObjects, std::uint32_t* imageIndex) const;
 
 	inline VkExtent2D extent() const noexcept {
 		return imageExtent;

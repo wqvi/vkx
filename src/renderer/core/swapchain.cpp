@@ -1,7 +1,4 @@
-#include "vkx/renderer/renderer.hpp"
 #include <vkx/renderer/core/swapchain.hpp>
-#include <vulkan/vulkan_enums.hpp>
-#include <vkx/renderer/core/allocator.hpp>
 #include <vkx/renderer/renderer.hpp>
 
 vkx::Swapchain::Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkSurfaceKHR surface, VmaAllocator allocator, SDL_Window* window) 
@@ -50,7 +47,7 @@ vkx::Swapchain::Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRe
 	}
 }
 
-VkResult vkx::Swapchain::acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects, std::uint32_t* imageIndex) const {
+VkResult vkx::Swapchain::acquireNextImage(VkDevice device, const vkx::SyncObjects& syncObjects, std::uint32_t* imageIndex) const {
 	return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, *syncObjects.imageAvailableSemaphore, {}, imageIndex);
 }
 
