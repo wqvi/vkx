@@ -28,8 +28,8 @@ public:
 
 	template <class T, std::size_t K, class U, std::size_t Y>
 	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, VmaAllocator allocator)
-	    : vertexAllocation(vkx::allocateBuffer(&vertexAllocationInfo, vertices.data(), vertices.data(), sizeof(T) * K, allocator, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)), 
-		indexAllocation(vkx::allocateBuffer(&indexAllocationInfo, vertices.data(), indices.data(), sizeof(U) * Y, allocator, VK_BUFFER_USAGE_INDEX_BUFFER_BIT)), 
+	    : vertexAllocation(vkx::allocateBuffer(&vertexAllocationInfo, &vertexBuffer, allocator, vertices.data(), sizeof(T) * K, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)), 
+		indexAllocation(vkx::allocateBuffer(&indexAllocationInfo, &indexBuffer, allocator, indices.data(), sizeof(U) * Y, VK_BUFFER_USAGE_INDEX_BUFFER_BIT)), 
 		indexCount(indices.size()) {}
 
 	std::shared_ptr<Allocation<vk::Buffer>> vertex;
