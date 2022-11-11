@@ -316,19 +316,21 @@ int main(void) {
 			    {highlightMesh.indexBuffer},
 			    {static_cast<std::uint32_t>(highlightMesh.indexCount)}};
 
-			const vk::CommandBuffer* begin = &drawCommands[currentFrame * drawCommandAmount];
+			const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 
-			const vk::CommandBuffer* chunkBegin = begin;
+			const auto* chunkBegin = begin;
 
-			const vk::CommandBuffer* highlightBegin = chunkBegin + chunkDrawCommandAmount;
+			const auto* highlightBegin = chunkBegin + chunkDrawCommandAmount;
 
-			const vk::CommandBuffer* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
+			const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
 			commandSubmitter.recordSecondaryDrawCommands(chunkBegin, chunkDrawCommandAmount, secondaryBegin, secondaryDrawCommandAmount, chunkDrawInfo);
 
 			commandSubmitter.recordPrimaryDrawCommands(highlightBegin, highlightDrawCommandAmount, highlightDrawInfo);
 
 			commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
+
+			// throw std::runtime_error("Working on command submitter");
 
 			result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
 
@@ -419,6 +421,7 @@ int main(void) {
 		mesh.destroy(allocator);
 		highlightMesh.destroy(allocator);
 		swapchain.destroy();
+		commandSubmitter.destroy();
 	}
 
 	vmaDestroyAllocator(allocator);

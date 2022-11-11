@@ -28,22 +28,24 @@ public:
 
 	void copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const;
 
-	std::vector<vk::CommandBuffer> allocateDrawCommands(std::uint32_t amount) const;
+	std::vector<VkCommandBuffer> allocateDrawCommands(std::uint32_t amount) const;
 
-	std::vector<vk::CommandBuffer> allocateSecondaryDrawCommands(std::uint32_t amount) const;
+	std::vector<VkCommandBuffer> allocateSecondaryDrawCommands(std::uint32_t amount) const;
 
-	void recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const;
+	void recordPrimaryDrawCommands(const VkCommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const;
 
-	void recordSecondaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vk::CommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const;
+	void recordSecondaryDrawCommands(const VkCommandBuffer* begin, std::uint32_t size, const VkCommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const;
 
-	void submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const;
+	void submitDrawCommands(const VkCommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const;
 
 	vk::Result presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const;
 
+	void destroy() const;
+
 private:
-	vk::Device device{};
-	vk::UniqueCommandPool commandPool{};
-	vk::Queue graphicsQueue{};
-	vk::Queue presentQueue{};
+	VkDevice device = nullptr;
+	VkCommandPool commandPool = nullptr;
+	VkQueue graphicsQueue = nullptr;
+	VkQueue presentQueue = nullptr;
 };
 } // namespace vkx
