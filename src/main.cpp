@@ -138,7 +138,7 @@ int main(void) {
 	const auto loadRenderPass = vkx::createRenderPass(logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR, vk::AttachmentLoadOp::eLoad);
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 
-	const auto allocatorA = vkx::createAllocator(physicalDevice, logicalDevice, instance);
+	const auto allocator = vkx::createAllocator(physicalDevice, logicalDevice, instance);
 
 	/*IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -167,12 +167,9 @@ int main(void) {
 	vkx::Camera camera({0, 0, 0});
 
 	{
-
-		const vkx::Allocator allocator{physicalDevice, logicalDevice, instance};
-
 		const vkx::CommandSubmitter commandSubmitter{physicalDevice, logicalDevice, surface};
 
-		vkx::Swapchain swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator.getAllocator(), window};
+		vkx::Swapchain swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator, window};
 
 		const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
 
@@ -182,7 +179,7 @@ int main(void) {
 
 		const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(logicalDevice);
 
-		const vkx::Texture texture{"a.jpg", logicalDevice, maxSamplerAnisotropy, allocator.getAllocator(), commandSubmitter};
+		const vkx::Texture texture{"a.jpg", logicalDevice, maxSamplerAnisotropy, allocator, commandSubmitter};
 
 		const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 		    "shader.vert.spv",
@@ -193,7 +190,7 @@ int main(void) {
 		    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
 		    {&texture}};
 
-		const vkx::GraphicsPipeline graphicsPipeline{logicalDevice, clearRenderPass, allocator.getAllocator(), graphicsPipelineInformation};
+		const vkx::GraphicsPipeline graphicsPipeline{logicalDevice, clearRenderPass, allocator, graphicsPipelineInformation};
 
 		const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
 		    "highlight.vert.spv",
@@ -204,7 +201,7 @@ int main(void) {
 		    {sizeof(vkx::MVP)},
 		    {}};
 
-		const vkx::GraphicsPipeline highlightGraphicsPipeline{logicalDevice, clearRenderPass, allocator.getAllocator(), highlightGraphicsPipelineInformation};
+		const vkx::GraphicsPipeline highlightGraphicsPipeline{logicalDevice, clearRenderPass, allocator, highlightGraphicsPipelineInformation};
 
 		constexpr std::uint32_t chunkDrawCommandAmount = 1;
 		constexpr std::uint32_t highlightDrawCommandAmount = 1;
@@ -227,10 +224,10 @@ int main(void) {
 
 		chunk.greedy();
 
-		vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator.getAllocator()};
+		vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
 		mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
 
-		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator.getAllocator()};
+		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
 		auto mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 		auto lightBuffers = graphicsPipeline.getUniformByIndex(1);
@@ -291,7 +288,7 @@ int main(void) {
 
 				swapchain.destroy();
 
-				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator.getAllocator(), window};
+				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator, window};
 				continue;
 			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 				throw std::runtime_error("Failed to acquire next image.");
@@ -349,7 +346,7 @@ int main(void) {
 
 				swapchain.destroy();
 
-				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator.getAllocator(), window};
+				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator, window};
 			} else if (result != vk::Result::eSuccess) {
 				throw std::runtime_error("Failed to present.");
 			}
@@ -418,13 +415,13 @@ int main(void) {
 		}
 		vkDeviceWaitIdle(logicalDevice);
 
-		texture.destroy(allocator.getAllocator(), logicalDevice);
-		mesh.destroy(allocator.getAllocator());
-		highlightMesh.destroy(allocator.getAllocator());
+		texture.destroy(allocator, logicalDevice);
+		mesh.destroy(allocator);
+		highlightMesh.destroy(allocator);
 		swapchain.destroy();
 	}
 
-	vmaDestroyAllocator(allocatorA);
+	vmaDestroyAllocator(allocator);
 	vkDestroyRenderPass(logicalDevice, clearRenderPass, nullptr);
 	vkDestroyRenderPass(logicalDevice, loadRenderPass, nullptr);
 	vkDestroyDevice(logicalDevice, nullptr);
