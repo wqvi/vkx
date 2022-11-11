@@ -298,13 +298,8 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const VkCommandBuffer* b
 	for (std::uint32_t i = 0; i < size; i++) {
 		const auto commandBuffer = begin[i];
 
-		// commandBuffer.reset({});
-		// static_cast<void>(commandBuffer.begin(beginInfo));
-
 		vkResetCommandBuffer(commandBuffer, 0);
 		vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
-
-		// commandBuffer.beginRenderPass(renderPassInfo, VkSubpassContents::eSecondaryCommandBuffers);
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
@@ -314,49 +309,35 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const VkCommandBuffer* b
 			const auto indexBuffer = drawInfo.indexBuffers[j];
 			const auto indexCount = drawInfo.indexCount[j];
 
-			// static_cast<void>(secondaryCommandBuffer.begin(secondaryBeginInfo));
 			vkBeginCommandBuffer(secondaryCommandBuffer, &secondaryCommandBufferBeginInfo);
 
-			// secondaryCommandBuffer.bindPipeline(VkPipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipeline);
 			vkCmdBindPipeline(secondaryCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *drawInfo.graphicsPipeline->pipeline);
 
-			// secondaryCommandBuffer.setViewport(0, viewport);
 			vkCmdSetViewport(secondaryCommandBuffer, 0, 1, &viewport);
 
-			// secondaryCommandBuffer.setScissor(0, scissor);
 			vkCmdSetScissor(secondaryCommandBuffer, 0, 1, &renderArea);
 
-			// secondaryCommandBuffer.bindVertexBuffers(0, vertexBuffer, {0});
 			const VkDeviceSize offsets[1] = {0};
 			vkCmdBindVertexBuffers(secondaryCommandBuffer, 0, 1, reinterpret_cast<const VkBuffer*>(&vertexBuffer), offsets);
 
-			// secondaryCommandBuffer.bindIndexBuffer(indexBuffer, 0, VkIndexType::eUint32);
 			vkCmdBindIndexBuffer(secondaryCommandBuffer, static_cast<VkBuffer>(indexBuffer), 0, VK_INDEX_TYPE_UINT32);
 
-			// secondaryCommandBuffer.bindDescriptorSets(VkPipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipelineLayout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
 			vkCmdBindDescriptorSets(secondaryCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *drawInfo.graphicsPipeline->pipelineLayout, 0, 1, reinterpret_cast<const VkDescriptorSet*>(&drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame]), 0, nullptr);
 
-			// secondaryCommandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 			vkCmdDrawIndexed(secondaryCommandBuffer, indexCount, 1, 0, 0, 0);
 
-			// secondaryCommandBuffer.end();
 			vkEndCommandBuffer(secondaryCommandBuffer);
 		}
 
-		// commandBuffer.executeCommands(secondarySize, secondaryBegin);
 		vkCmdExecuteCommands(commandBuffer, secondarySize, secondaryBegin);
 
-		// commandBuffer.endRenderPass();
 		vkCmdEndRenderPass(commandBuffer);
 
-		// commandBuffer.end();
 		vkEndCommandBuffer(commandBuffer);
 	}
 }
 
 void vkx::CommandSubmitter::submitDrawCommands(const VkCommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const {
-	// constexpr std::array waitStage = {VkPipelineStageFlags(VkPipelineStageFlagBits::eColorAttachmentOutput)};
-
 	const VkPipelineStageFlags waitStages[1] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
 	const VkSubmitInfo submitInfo{
@@ -369,8 +350,6 @@ void vkx::CommandSubmitter::submitDrawCommands(const VkCommandBuffer* begin, std
 	    reinterpret_cast<const VkCommandBuffer*>(begin),
 	    1,
 	    reinterpret_cast<const VkSemaphore*>(&*syncObjects.renderFinishedSemaphore)};
-
-	// graphicsQueue.submit(submitInfo, *syncObjects.inFlightFence);
 
 	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, static_cast<VkFence>(*syncObjects.inFlightFence)) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to submit draw commands");
