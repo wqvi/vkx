@@ -50,11 +50,8 @@ vkx::Swapchain::Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRe
 	}
 }
 
-vk::ResultValue<std::uint32_t> vkx::Swapchain::acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const {
-	std::uint32_t imageIndex = 0;
-	const auto result = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, *syncObjects.imageAvailableSemaphore, {}, &imageIndex);
-
-	return {static_cast<vk::Result>(result), imageIndex};
+VkResult vkx::Swapchain::acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects, std::uint32_t* imageIndex) const {
+	return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, *syncObjects.imageAvailableSemaphore, {}, imageIndex);
 }
 
 void vkx::Swapchain::destroy() {

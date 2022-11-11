@@ -3,7 +3,6 @@
 #include "vkx/renderer/core/sync_objects.hpp"
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
 namespace vkx {
 class Swapchain {
@@ -29,13 +28,13 @@ public:
 
 	explicit Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkSurfaceKHR surface, VmaAllocator allocator, SDL_Window* window);
 
-	inline vk::Framebuffer operator[](std::size_t index) const noexcept {
+	inline VkFramebuffer operator[](std::size_t index) const noexcept {
 		return framebuffers[index];
 	}
 
-	vk::ResultValue<std::uint32_t> acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects) const;
+	VkResult acquireNextImage(vk::Device device, const vkx::SyncObjects& syncObjects, std::uint32_t* imageIndex) const;
 
-	inline vk::Extent2D extent() const noexcept {
+	inline VkExtent2D extent() const noexcept {
 		return imageExtent;
 	}
 
