@@ -274,9 +274,10 @@ int main(void) {
 
 			const auto& syncObject = syncObjects[currentFrame];
 			syncObject.waitForFence();
-			auto [result, imageIndex] = swapchain.acquireNextImage(logicalDevice, syncObject);
+			std::uint32_t imageIndex = 0;
+			auto result = swapchain.acquireNextImage(logicalDevice, syncObject, &imageIndex);
 
-			if (result == vk::Result::eErrorOutOfDateKHR) {
+			if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 				int newWidth, newHeight;
 				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
 				while (newWidth == 0 || newHeight == 0) {
@@ -290,7 +291,7 @@ int main(void) {
 
 				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator, window};
 				continue;
-			} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+			} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 				throw std::runtime_error("Failed to acquire next image.");
 			}
 
@@ -330,11 +331,9 @@ int main(void) {
 
 			commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
-			// throw std::runtime_error("Working on command submitter");
+			result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
 
-			result = static_cast<vk::Result>(commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject));
-
-			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
+			if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
 				framebufferResized = false;
 
 				int newWidth, newHeight;
@@ -349,7 +348,7 @@ int main(void) {
 				swapchain.destroy();
 
 				swapchain = vkx::Swapchain{logicalDevice, physicalDevice, clearRenderPass, surface, allocator, window};
-			} else if (result != vk::Result::eSuccess) {
+			} else if (result != VK_SUCCESS) {
 				throw std::runtime_error("Failed to present.");
 			}
 
