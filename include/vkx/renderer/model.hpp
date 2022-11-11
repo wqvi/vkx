@@ -28,9 +28,15 @@ public:
 
 	template <class T, std::size_t K, class U, std::size_t Y>
 	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, VmaAllocator allocator)
-	    : vertexAllocation(vkx::allocateBuffer(&vertexAllocationInfo, &vertexBuffer, allocator, vertices.data(), sizeof(T) * K, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)), 
-		indexAllocation(vkx::allocateBuffer(&indexAllocationInfo, &indexBuffer, allocator, indices.data(), sizeof(U) * Y, VK_BUFFER_USAGE_INDEX_BUFFER_BIT)), 
-		indexCount(indices.size()) {}
+	    : indexCount(indices.size()) {
+		vertexAllocation = vkx::allocateBuffer(&vertexAllocationInfo, &vertexBuffer, allocator, vertices.data(), sizeof(T) * K, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+		indexAllocation = vkx::allocateBuffer(&indexAllocationInfo, &indexBuffer, allocator, indices.data(), sizeof(U) * Y, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+	}
+
+	void destroy(VmaAllocator allocator) const {
+		vmaDestroyBuffer(allocator, vertexBuffer, vertexAllocation);
+		vmaDestroyBuffer(allocator, indexBuffer, indexAllocation);
+	}
 
 	std::shared_ptr<Allocation<vk::Buffer>> vertex;
 	VkBuffer vertexBuffer = nullptr;
