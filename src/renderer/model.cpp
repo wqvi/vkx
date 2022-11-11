@@ -1,13 +1,9 @@
-#include "vkx/renderer/core/renderer_types.hpp"
 #include <vkx/renderer/model.hpp>
 
-vkx::Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const vkx::Allocator& allocator)
-    : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
-
-vkx::Mesh::Mesh(const std::vector<vkx::Vertex>& vertices, const std::vector<std::uint32_t>& indices, VmaAllocator allocator)
-    : vertexAllocation(vkx::allocateBuffer(&vertexAllocationInfo, &vertexBuffer, allocator, vertices.data(), vertices.size() * sizeof(vkx::Vertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)),
-      indexAllocation(vkx::allocateBuffer(&indexAllocationInfo, &indexBuffer, allocator, indices.data(), indices.size() * sizeof(std::uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT)),
-      indexCount(indices.size()) {}
+void vkx::Mesh::destroy(VmaAllocator allocator) const {
+  vmaDestroyBuffer(allocator, vertexBuffer, vertexAllocation);
+  vmaDestroyBuffer(allocator, indexBuffer, indexAllocation);
+}
 
 vkx::Texture::Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter)
     : image(file, allocator, commandSubmitter),
