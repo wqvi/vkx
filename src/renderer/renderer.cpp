@@ -140,7 +140,7 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 
 #ifdef DEBUG
 	constexpr std::array layers = {"VK_LAYER_KHRONOS_validation"};
-#elif RELEASE
+#elif defined(RELEASE)
 	constexpr std::array<const char*, 0> layers = {};
 #endif
 
