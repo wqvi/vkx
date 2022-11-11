@@ -1,6 +1,5 @@
 #include "vkx/renderer/core/renderer_types.hpp"
 #include <vkx/renderer/model.hpp>
-#include <vkx/renderer/renderer.hpp>
 
 vkx::Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, const vkx::Allocator& allocator)
     : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
