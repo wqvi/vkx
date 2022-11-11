@@ -2,12 +2,9 @@
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/renderer_types.hpp>
 
-vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface)
+vkx::CommandSubmitter::CommandSubmitter(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface)
     : device(device) {
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
-
-	// graphicsQueue = device.getQueue(*queueConfig.graphicsIndex, 0);
-	// presentQueue = device.getQueue(*queueConfig.presentIndex, 0);
 
 	vkGetDeviceQueue(device, *queueConfig.graphicsIndex, 0, &graphicsQueue);
 	vkGetDeviceQueue(device, *queueConfig.presentIndex, 0, &presentQueue);
@@ -23,7 +20,7 @@ vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::D
 	}
 }
 
-void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::CommandBuffer)>& command) const {
+void vkx::CommandSubmitter::submitImmediately(const std::function<void(VkCommandBuffer)>& command) const {
 	const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
 	    VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
 	    nullptr,
@@ -46,7 +43,7 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::Comma
 		throw std::runtime_error("Failed to begin command buffer");
 	}
 
-	command(static_cast<vk::CommandBuffer>(commandBuffer));
+	command(static_cast<VkCommandBuffer>(commandBuffer));
 
 	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to end command buffer");
@@ -68,14 +65,24 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(vk::Comma
 	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
-void vkx::CommandSubmitter::copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const {
-	const vk::ImageSubresourceLayers subresourceLayer{vk::ImageAspectFlagBits::eColor, 0, 0, 1};
+void vkx::CommandSubmitter::copyBufferToImage(VkBuffer buffer, VkImage image, std::uint32_t width, std::uint32_t height) const {
+	const VkImageSubresourceLayers subresourceLayer{
+	    VK_IMAGE_ASPECT_COLOR_BIT,
+	    0,
+	    0,
+	    1};
 
-	const vk::Offset3D imageOffset{0, 0, 0};
+	const VkOffset3D imageOffset{
+	    0,
+	    0,
+	    0};
 
-	const vk::Extent3D imageExtent{width, height, 1};
+	const VkExtent3D imageExtent{
+	    width,
+	    height,
+	    1};
 
-	const vk::BufferImageCopy region{
+	const VkBufferImageCopy region{
 	    0,
 	    0,
 	    0,
@@ -83,37 +90,44 @@ void vkx::CommandSubmitter::copyBufferToImage(vk::Buffer buffer, vk::Image image
 	    imageOffset,
 	    imageExtent};
 
-	submitImmediately([&buffer, &image, &region](vk::CommandBuffer commandBuffer) {
-		commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
+	submitImmediately([&buffer, &image, &region](VkCommandBuffer commandBuffer) {
+		vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 	});
 }
 
-void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
-	const vk::ImageSubresourceRange subresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1};
+void vkx::CommandSubmitter::transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout) const {
+	const VkImageSubresourceRange subresourceRange{
+	    VK_IMAGE_ASPECT_COLOR_BIT,
+	    0,
+	    1,
+	    0,
+	    1};
 
-	vk::AccessFlags srcAccessMask;
-	vk::AccessFlags dstAccessMask;
+	VkAccessFlags srcAccessMask;
+	VkAccessFlags dstAccessMask;
 
-	vk::PipelineStageFlags sourceStage;
-	vk::PipelineStageFlags destinationStage;
+	VkPipelineStageFlags sourceStage;
+	VkPipelineStageFlags destinationStage;
 
-	if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
-		srcAccessMask = vk::AccessFlagBits::eNone;
-		dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+		srcAccessMask = VK_ACCESS_NONE;
+		dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-		sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
-		destinationStage = vk::PipelineStageFlagBits::eTransfer;
-	} else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
-		srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-		dstAccessMask = vk::AccessFlagBits::eShaderRead;
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	} else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+		srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-		sourceStage = vk::PipelineStageFlagBits::eTransfer;
-		destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	} else {
 		throw std::invalid_argument("Unsupported layout transition.");
 	}
 
-	const vk::ImageMemoryBarrier barrier{
+	const VkImageMemoryBarrier barrier{
+	    VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+	    nullptr,
 	    srcAccessMask,
 	    dstAccessMask,
 	    oldLayout,
@@ -123,8 +137,8 @@ void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayo
 	    image,
 	    subresourceRange};
 
-	submitImmediately([&sourceStage, &destinationStage, &barrier](vk::CommandBuffer commandBuffer) {
-		commandBuffer.pipelineBarrier(sourceStage, destinationStage, {}, {}, {}, barrier);
+	submitImmediately([&sourceStage, &destinationStage, &barrier](VkCommandBuffer commandBuffer) {
+		vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 	});
 }
 
@@ -290,7 +304,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const VkCommandBuffer* b
 		vkResetCommandBuffer(commandBuffer, 0);
 		vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
 
-		// commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eSecondaryCommandBuffers);
+		// commandBuffer.beginRenderPass(renderPassInfo, VkSubpassContents::eSecondaryCommandBuffers);
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
@@ -303,7 +317,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const VkCommandBuffer* b
 			// static_cast<void>(secondaryCommandBuffer.begin(secondaryBeginInfo));
 			vkBeginCommandBuffer(secondaryCommandBuffer, &secondaryCommandBufferBeginInfo);
 
-			// secondaryCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipeline);
+			// secondaryCommandBuffer.bindPipeline(VkPipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipeline);
 			vkCmdBindPipeline(secondaryCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *drawInfo.graphicsPipeline->pipeline);
 
 			// secondaryCommandBuffer.setViewport(0, viewport);
@@ -316,10 +330,10 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const VkCommandBuffer* b
 			const VkDeviceSize offsets[1] = {0};
 			vkCmdBindVertexBuffers(secondaryCommandBuffer, 0, 1, reinterpret_cast<const VkBuffer*>(&vertexBuffer), offsets);
 
-			// secondaryCommandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
+			// secondaryCommandBuffer.bindIndexBuffer(indexBuffer, 0, VkIndexType::eUint32);
 			vkCmdBindIndexBuffer(secondaryCommandBuffer, static_cast<VkBuffer>(indexBuffer), 0, VK_INDEX_TYPE_UINT32);
 
-			// secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipelineLayout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
+			// secondaryCommandBuffer.bindDescriptorSets(VkPipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipelineLayout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
 			vkCmdBindDescriptorSets(secondaryCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *drawInfo.graphicsPipeline->pipelineLayout, 0, 1, reinterpret_cast<const VkDescriptorSet*>(&drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame]), 0, nullptr);
 
 			// secondaryCommandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
@@ -341,7 +355,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const VkCommandBuffer* b
 }
 
 void vkx::CommandSubmitter::submitDrawCommands(const VkCommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const {
-	// constexpr std::array waitStage = {vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
+	// constexpr std::array waitStage = {VkPipelineStageFlags(VkPipelineStageFlagBits::eColorAttachmentOutput)};
 
 	const VkPipelineStageFlags waitStages[1] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
@@ -363,7 +377,7 @@ void vkx::CommandSubmitter::submitDrawCommands(const VkCommandBuffer* begin, std
 	}
 }
 
-vk::Result vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
+VkResult vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
 	const VkPresentInfoKHR presentInfo{
 	    VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
 	    nullptr,
@@ -374,7 +388,7 @@ vk::Result vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain,
 	    &imageIndex,
 	    nullptr};
 
-	return static_cast<vk::Result>(vkQueuePresentKHR(presentQueue, &presentInfo));
+	return static_cast<VkResult>(vkQueuePresentKHR(presentQueue, &presentInfo));
 }
 
 void vkx::CommandSubmitter::destroy() const {
