@@ -3,6 +3,7 @@
 #include "vkx/renderer/core/commands.hpp"
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/image.hpp>
+#include <vkx/renderer/renderer.hpp>
 
 namespace vkx {
 class Mesh {
@@ -24,6 +25,12 @@ public:
 	template <class T, std::size_t K, class U, std::size_t Y>
 	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, const Allocator& allocator)
 	    : vertex(allocator.allocateBuffer(vertices, vk::BufferUsageFlagBits::eVertexBuffer)), index(allocator.allocateBuffer(indices, vk::BufferUsageFlagBits::eIndexBuffer)), indexCount(indices.size()) {}
+
+	template <class T, std::size_t K, class U, std::size_t Y>
+	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, VmaAllocation allocator)
+	    : vertexAllocation(vkx::allocateBuffer(&vertexAllocationInfo, vertices.data(), vertices.data(), sizeof(T) * K, allocator, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)), 
+		indexAllocation(vkx::allocateBuffer(&indexAllocationInfo, vertices.data(), indices.data(), sizeof(U) * Y, allocator, VK_BUFFER_USAGE_INDEX_BUFFER_BIT)), 
+		indexCount(indices.size()) {}
 
 	std::shared_ptr<Allocation<vk::Buffer>> vertex;
 	VkBuffer vertexBuffer = nullptr;
