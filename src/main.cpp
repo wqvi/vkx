@@ -227,10 +227,10 @@ int main(void) {
 
 		chunk.greedy();
 
-		vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
+		vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator.getAllocator()};
 		mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
 
-		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
+		const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator.getAllocator()};
 
 		auto mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 		auto lightBuffers = graphicsPipeline.getUniformByIndex(1);
@@ -305,8 +305,8 @@ int main(void) {
 			    &swapchain,
 			    &graphicsPipeline,
 			    clearRenderPass,
-			    {mesh.vertex->object},
-			    {mesh.index->object},
+			    {mesh.vertexBuffer},
+			    {mesh.indexBuffer},
 			    {static_cast<std::uint32_t>(mesh.indexCount)}};
 
 			const vkx::DrawInfo highlightDrawInfo = {
@@ -315,8 +315,8 @@ int main(void) {
 			    &swapchain,
 			    &highlightGraphicsPipeline,
 			    loadRenderPass,
-			    {highlightMesh.vertex->object},
-			    {highlightMesh.index->object},
+			    {highlightMesh.vertexBuffer},
+			    {highlightMesh.indexBuffer},
 			    {static_cast<std::uint32_t>(highlightMesh.indexCount)}};
 
 			const vk::CommandBuffer* begin = &drawCommands[currentFrame * drawCommandAmount];
@@ -404,8 +404,10 @@ int main(void) {
 					if (raycastResult.success) {
 						chunk.set(raycastResult.hitPos, vkx::Voxel::Air);
 						chunk.greedy();
-						mesh.vertex->mapMemory(chunk.vertices);
-						mesh.index->mapMemory(chunk.indices);
+						// mesh.vertex->mapMemory(chunk.vertices);
+						// mesh.index->mapMemory(chunk.indices);
+						std::memcpy(mesh.vertexAllocationInfo.pMappedData, chunk.vertices.data(), mesh.vertexAllocationInfo.size);
+						std::memcpy(mesh.indexAllocationInfo.pMappedData, chunk.indices.data(), mesh.indexAllocationInfo.size);
 						mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
 					}
 				} break;
@@ -417,6 +419,8 @@ int main(void) {
 		vkDeviceWaitIdle(logicalDevice);
 
 		texture.destroy(allocator.getAllocator(), logicalDevice);
+		mesh.destroy(allocator.getAllocator());
+		highlightMesh.destroy(allocator.getAllocator());
 		swapchain.destroy();
 	}
 
