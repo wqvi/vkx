@@ -347,7 +347,7 @@ void vkx::CommandSubmitter::submitDrawCommands(const VkCommandBuffer* begin, std
 	    reinterpret_cast<const VkSemaphore*>(&*syncObjects.imageAvailableSemaphore),
 	    waitStages,
 	    size,
-	    reinterpret_cast<const VkCommandBuffer*>(begin),
+	    begin,
 	    1,
 	    reinterpret_cast<const VkSemaphore*>(&*syncObjects.renderFinishedSemaphore)};
 
