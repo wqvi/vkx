@@ -332,7 +332,7 @@ int main(void) {
 
 			// throw std::runtime_error("Working on command submitter");
 
-			result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
+			result = static_cast<vk::Result>(commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject));
 
 			if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 				framebufferResized = false;
