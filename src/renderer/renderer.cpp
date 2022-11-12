@@ -138,9 +138,6 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 	VkPhysicalDeviceFeatures features{};
 	features.samplerAnisotropy = true;
 
-	vk::PhysicalDeviceFeatures deviceFeatures{};
-	deviceFeatures.samplerAnisotropy = true;
-
 #ifdef DEBUG
 	constexpr std::array layers = {"VK_LAYER_KHRONOS_validation"};
 #elif defined(RELEASE)
@@ -164,11 +161,11 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 	VkDevice device = nullptr;
 	const auto result = vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
 	if (result == VK_ERROR_LAYER_NOT_PRESENT) {
-		throw std::runtime_error("Layer not present");
+		throw std::runtime_error("Device layer not present.");
 	}
 
 	if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-		throw std::runtime_error("Extension not present");
+		throw std::runtime_error("Device extension not present.");
 	}
 
 	if (result != VK_SUCCESS) {
@@ -213,7 +210,7 @@ VkImageView vkx::createImageView(VkDevice device, VkImage image, VkFormat format
 
 	VkImageView imageView = nullptr;
 	if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageView)) {
-		throw std::runtime_error("Failed to create image view");
+		throw std::runtime_error("Failed to create image view.");
 	}
 
 	return imageView;
