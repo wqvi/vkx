@@ -52,15 +52,15 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 
 	return create<VkInstance>(
 	    vkCreateInstance, [](auto result) { if (result == VK_ERROR_LAYER_NOT_PRESENT) {
-		throw std::runtime_error("Layer not present");
+		throw std::runtime_error("Instance layer not present.");
 	}
 
 	if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-		throw std::runtime_error("Extension not present");
+		throw std::runtime_error("Instance extension not present.");
 	}
 
 	if (result != VK_SUCCESS) {
-		throw std::runtime_error("Failure to create instance");
+		throw std::runtime_error("Failure to create instance.");
 	} }, &instanceCreateInfo, nullptr);
 }
 
@@ -83,9 +83,9 @@ VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR su
 		throw std::runtime_error("Failure to enumerate physical devices.");
 	}
 
-	std::optional<vk::PhysicalDevice> physicalDevice;
+	std::optional<VkPhysicalDevice> physicalDevice;
 	std::uint32_t bestRating = 0;
-	for (vk::PhysicalDevice pDevice : physicalDevices) {
+	for (VkPhysicalDevice pDevice : physicalDevices) {
 		std::uint32_t currentRating = 0;
 
 		const vkx::QueueConfig indices{pDevice, surface};
@@ -98,7 +98,10 @@ VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR su
 			currentRating++;
 		}
 
-		if (pDevice.getFeatures().samplerAnisotropy) {
+		VkPhysicalDeviceFeatures features{};
+		vkGetPhysicalDeviceFeatures(pDevice, &features);
+
+		if (features.samplerAnisotropy) {
 			currentRating++;
 		}
 
