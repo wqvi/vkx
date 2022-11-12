@@ -245,17 +245,17 @@ VkSampler vkx::createTextureSampler(VkDevice device, float samplerAnisotropy) {
 	return sampler;
 }
 
-VkRenderPass vkx::createRenderPass(vk::Device device, vk::PhysicalDevice physicalDevice, vk::Format format, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout, vk::AttachmentLoadOp loadOp) {
+VkRenderPass vkx::createRenderPass(VkDevice device, VkPhysicalDevice physicalDevice, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout, VkAttachmentLoadOp loadOp) {
 	const VkAttachmentDescription colorAttachment{
 	    0,
-	    static_cast<VkFormat>(format),
+	    format,
 	    VK_SAMPLE_COUNT_1_BIT,
-	    static_cast<VkAttachmentLoadOp>(loadOp),
+	    loadOp,
 	    VK_ATTACHMENT_STORE_OP_STORE,
 	    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 	    VK_ATTACHMENT_STORE_OP_DONT_CARE,
-	    static_cast<VkImageLayout>(initialLayout),
-	    static_cast<VkImageLayout>(finalLayout)};
+	    initialLayout,
+	    finalLayout};
 
 	const VkAttachmentReference colorAttachmentRef{
 	    0,
@@ -263,7 +263,7 @@ VkRenderPass vkx::createRenderPass(vk::Device device, vk::PhysicalDevice physica
 
 	const VkAttachmentDescription depthAttachment{
 	    0,
-	    static_cast<VkFormat>(findDepthFormat(physicalDevice)),
+	    findDepthFormat(physicalDevice),
 	    VK_SAMPLE_COUNT_1_BIT,
 	    VK_ATTACHMENT_LOAD_OP_CLEAR,
 	    VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -296,7 +296,7 @@ VkRenderPass vkx::createRenderPass(vk::Device device, vk::PhysicalDevice physica
 	    0,
 	    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT};
 
-	const std::array renderPassAttachments{colorAttachment, depthAttachment};
+	const std::array renderPassAttachments = {colorAttachment, depthAttachment};
 
 	const VkRenderPassCreateInfo renderPassCreateInfo{
 	    VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
@@ -311,7 +311,7 @@ VkRenderPass vkx::createRenderPass(vk::Device device, vk::PhysicalDevice physica
 
 	VkRenderPass renderPass = nullptr;
 	if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create render pass");
+		throw std::runtime_error("Failed to create render pass.");
 	}
 
 	return renderPass;
