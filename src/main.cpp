@@ -421,6 +421,8 @@ int main(void) {
 		highlightMesh.destroy(allocator);
 		swapchain.destroy();
 		commandSubmitter.destroy();
+		graphicsPipeline.destroy();
+		highlightGraphicsPipeline.destroy();
 	}
 
 	vmaDestroyAllocator(allocator);

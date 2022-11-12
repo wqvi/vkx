@@ -223,7 +223,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const VkCommandBuffer* beg
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<VkPipeline>(*drawInfo.graphicsPipeline->pipeline));
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawInfo.graphicsPipeline->pipeline);
 
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
@@ -234,7 +234,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const VkCommandBuffer* beg
 
 		vkCmdBindIndexBuffer(commandBuffer, static_cast<VkBuffer>(indexBuffer), 0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *drawInfo.graphicsPipeline->pipelineLayout, 0, 1, reinterpret_cast<const VkDescriptorSet*>(&drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame]), 0, nullptr);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawInfo.graphicsPipeline->pipelineLayout, 0, 1, &drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], 0, nullptr);
 
 		vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
 
@@ -311,7 +311,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const VkCommandBuffer* b
 
 			vkBeginCommandBuffer(secondaryCommandBuffer, &secondaryCommandBufferBeginInfo);
 
-			vkCmdBindPipeline(secondaryCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *drawInfo.graphicsPipeline->pipeline);
+			vkCmdBindPipeline(secondaryCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawInfo.graphicsPipeline->pipeline);
 
 			vkCmdSetViewport(secondaryCommandBuffer, 0, 1, &viewport);
 
@@ -322,7 +322,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const VkCommandBuffer* b
 
 			vkCmdBindIndexBuffer(secondaryCommandBuffer, static_cast<VkBuffer>(indexBuffer), 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdBindDescriptorSets(secondaryCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *drawInfo.graphicsPipeline->pipelineLayout, 0, 1, reinterpret_cast<const VkDescriptorSet*>(&drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame]), 0, nullptr);
+			vkCmdBindDescriptorSets(secondaryCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawInfo.graphicsPipeline->pipelineLayout, 0, 1, &drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], 0, nullptr);
 
 			vkCmdDrawIndexed(secondaryCommandBuffer, indexCount, 1, 0, 0, 0);
 

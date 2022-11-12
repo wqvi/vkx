@@ -19,30 +19,28 @@ class GraphicsPipeline {
 private:
 	friend class CommandSubmitter;
 
-	vk::Device device{};
-	vk::UniqueDescriptorSetLayout descriptorLayout{};
-	vk::UniquePipelineLayout pipelineLayout{};
-	vk::UniquePipeline pipeline{};
-	vk::UniqueDescriptorPool descriptorPool;
-	std::vector<vk::DescriptorSet> descriptorSets{};
+	VkDevice device = nullptr;
+	VkDescriptorSetLayout descriptorLayout{};
+	VkPipelineLayout pipelineLayout{};
+	VkPipeline pipeline{};
+	VkDescriptorPool descriptorPool;
+	std::vector<VkDescriptorSet> descriptorSets{};
 	std::vector<std::vector<UniformBuffer>> uniforms;
 
 public:
 	GraphicsPipeline() = default;
 
-	GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info);
+	GraphicsPipeline(VkDevice device, vk::RenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info);
 
 	const std::vector<UniformBuffer>& getUniformByIndex(std::size_t i) const;
 
+	void destroy() const;
+
 private:
-	static vk::UniquePipelineLayout createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout);
+	static VkPipelineLayout createPipelineLayout(VkDevice device, VkDescriptorSetLayout descriptorSetLayout);
 
-	static vk::UniqueShaderModule createShaderModule(vk::Device device, const std::string& filename);
+	static VkShaderModule createShaderModule(VkDevice device, const char* filename);
 
-	static vk::UniquePipeline createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout);
-
-	static vk::UniqueDescriptorPool createDescriptorPool(vk::Device device, const std::vector<vk::DescriptorPoolSize>& poolSizes);
-
-	static std::vector<vk::DescriptorSet> createDescriptorSets(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout, vk::DescriptorPool descriptorPool);
+	static VkPipeline createPipeline(VkDevice device, VkRenderPass renderPass, const GraphicsPipelineInformation& info, VkPipelineLayout pipelineLayout);
 };
 } // namespace vkx

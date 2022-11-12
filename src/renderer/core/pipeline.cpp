@@ -2,14 +2,24 @@
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info)
+vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, vk::RenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info)
     : device(device) {
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, info.bindings};
-	descriptorLayout = device.createDescriptorSetLayoutUnique(layoutInfo);
 
-	pipelineLayout = createPipelineLayout(device, *descriptorLayout);
+	const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
+	    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+	    nullptr,
+	    0,
+	    static_cast<std::uint32_t>(info.bindings.size()),
+	    reinterpret_cast<const VkDescriptorSetLayoutBinding*>(info.bindings.data())};
 
-	pipeline = createPipeline(device, renderPass, info, *pipelineLayout);
+	if (vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorLayout) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create descriptor set layout.");
+	}
+
+	pipelineLayout = createPipelineLayout(device, descriptorLayout);
+
+	pipeline = createPipeline(device, renderPass, info, pipelineLayout);
 
 	std::vector<vk::DescriptorPoolSize> poolSizes{};
 	poolSizes.reserve(info.bindings.size());
@@ -19,12 +29,31 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 	const vk::DescriptorPoolCreateInfo poolInfo{{}, MAX_FRAMES_IN_FLIGHT, poolSizes};
 
-	descriptorPool = device.createDescriptorPoolUnique(poolInfo);
+	const VkDescriptorPoolCreateInfo descriptorPoolCreateInfo{
+		VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+		nullptr,
+		0,
+		vkx::MAX_FRAMES_IN_FLIGHT,
+		static_cast<std::uint32_t>(poolSizes.size()),
+		reinterpret_cast<const VkDescriptorPoolSize*>(poolSizes.data())};
 
-	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, *descriptorLayout};
-	const vk::DescriptorSetAllocateInfo allocInfo{*descriptorPool, layouts};
+	if (vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create graphics pipeline descriptor pool.");
+	}
 
-	descriptorSets = device.allocateDescriptorSets(allocInfo);
+	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, descriptorLayout};
+
+	const VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{
+		VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+		nullptr,
+		descriptorPool,
+		static_cast<std::uint32_t>(layouts.size()),
+		layouts.data()};
+
+	descriptorSets.resize(vkx::MAX_FRAMES_IN_FLIGHT);
+	if (vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, descriptorSets.data()) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate graphics pipeline descriptor sets.");
+	}
 
 	for (std::size_t size : info.uniformSizes) {
 		uniforms.push_back(vkx::allocateUniformBuffers(allocator, size));
@@ -55,7 +84,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 			writes.push_back(write);
 		}
 
-		device.updateDescriptorSets(writes, {});
+		vkUpdateDescriptorSets(device, static_cast<std::uint32_t>(writes.size()), reinterpret_cast<const VkWriteDescriptorSet*>(writes.data()), 0, nullptr);
 	}
 }
 
@@ -63,13 +92,32 @@ const std::vector<vkx::UniformBuffer>& vkx::GraphicsPipeline::getUniformByIndex(
 	return uniforms[i];
 }
 
-vk::UniquePipelineLayout vkx::GraphicsPipeline::createPipelineLayout(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout) {
-	const vk::PipelineLayoutCreateInfo pipelineLayoutInfo{{}, descriptorSetLayout};
-
-	return device.createPipelineLayoutUnique(pipelineLayoutInfo);
+void vkx::GraphicsPipeline::destroy() const {
+	vkDestroyDescriptorSetLayout(device, descriptorLayout, nullptr);
+	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	vkDestroyPipeline(device, pipeline, nullptr);
+	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 }
 
-vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device device, const std::string& filename) {
+VkPipelineLayout vkx::GraphicsPipeline::createPipelineLayout(VkDevice device, VkDescriptorSetLayout descriptorSetLayout) {
+	const VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{
+	    VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+	    nullptr,
+	    0,
+	    1,
+	    &descriptorSetLayout,
+	    0,
+	    nullptr};
+
+	VkPipelineLayout pipelineLayout = nullptr;
+	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create graphics pipeline layout.");
+	}
+
+	return pipelineLayout;
+}
+
+VkShaderModule vkx::GraphicsPipeline::createShaderModule(VkDevice device, const char* filename) {
 	std::ifstream file{filename, std::ios::ate | std::ios::binary};
 
 	if (!file.is_open()) {
@@ -83,114 +131,165 @@ vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device devi
 	file.seekg(0);
 	file.read(buffer.data(), fileSize);
 
-	const vk::ShaderModuleCreateInfo shaderCreateInfo{{}, static_cast<std::uint32_t>(buffer.size()), reinterpret_cast<const std::uint32_t*>(buffer.data())};
+	const VkShaderModuleCreateInfo shaderModuleCreateInfo{
+	    VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    static_cast<std::uint32_t>(buffer.size()),
+	    reinterpret_cast<const std::uint32_t*>(buffer.data())};
 
-	return device.createShaderModuleUnique(shaderCreateInfo);
+	VkShaderModule shaderModule = nullptr;
+	if (vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create shader module");
+	}
+
+	return shaderModule;
 }
 
-vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout) {
-	const auto vertShaderModule = createShaderModule(device, info.vertexFile);
-	const auto fragShaderModule = createShaderModule(device, info.fragmentFile);
+VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass renderPass, const GraphicsPipelineInformation& info, VkPipelineLayout pipelineLayout) {
+	const auto vertShaderModule = createShaderModule(device, info.vertexFile.c_str());
+	const auto fragShaderModule = createShaderModule(device, info.fragmentFile.c_str());
 
-	const vk::PipelineShaderStageCreateInfo vertShaderStageInfo{{}, vk::ShaderStageFlagBits::eVertex, *vertShaderModule, "main"};
-	const vk::PipelineShaderStageCreateInfo fragShaderStageInfo{{}, vk::ShaderStageFlagBits::eFragment, *fragShaderModule, "main"};
-
-	const auto shaderStages = {vertShaderStageInfo, fragShaderStageInfo};
-
-	const vk::PipelineVertexInputStateCreateInfo vertexInputInfo{{}, info.bindingDescriptions, info.attributeDescriptions};
-
-	constexpr vk::PipelineInputAssemblyStateCreateInfo inputAssembly{{}, vk::PrimitiveTopology::eTriangleList, false};
-
-	const vk::PipelineViewportStateCreateInfo viewportState{{}, 1, nullptr, 1, nullptr};
-
-	constexpr vk::PipelineRasterizationStateCreateInfo rasterizer{
-	    {},
-	    false,
-	    false,
-	    vk::PolygonMode::eFill,
-	    vk::CullModeFlagBits::eBack,
-	    vk::FrontFace::eCounterClockwise,
-	    false,
-	    {},
-	    {},
-	    {},
-	    1.0f};
-
-	constexpr vk::PipelineMultisampleStateCreateInfo multisampling{
-	    {},
-	    vk::SampleCountFlagBits::e1,
-	    false};
-
-	constexpr vk::PipelineDepthStencilStateCreateInfo depthStencil{
-	    {},
-	    true,
-	    true,
-	    vk::CompareOp::eLess,
-	    false,
-	    false};
-
-	constexpr auto mask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-	constexpr vk::PipelineColorBlendAttachmentState colorBlendAttachment{
-	    true,
-	    vk::BlendFactor::eSrcAlpha,
-	    vk::BlendFactor::eOneMinusSrcAlpha,
-	    vk::BlendOp::eAdd,
-	    vk::BlendFactor::eSrcAlpha,
-	    vk::BlendFactor::eOneMinusSrcAlpha,
-	    vk::BlendOp::eAdd,
-	    mask};
-
-	constexpr std::array blendConstants{0.0f, 0.0f, 0.0f, 0.0f};
-	const vk::PipelineColorBlendStateCreateInfo colorBlending{
-	    {},
-	    false,
-	    vk::LogicOp::eCopy,
-	    colorBlendAttachment,
-	    blendConstants};
-
-	constexpr std::array dynamicStates = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
-
-	const vk::PipelineDynamicStateCreateInfo dynamicStateInfo{{}, dynamicStates};
-
-	const vk::GraphicsPipelineCreateInfo pipelineInfo{
-	    {},
-	    shaderStages,
-	    &vertexInputInfo,
-	    &inputAssembly,
+	const VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo{
+	    VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 	    nullptr,
-	    &viewportState,
-	    &rasterizer,
-	    &multisampling,
-	    &depthStencil,
-	    &colorBlending,
-	    &dynamicStateInfo,
-	    pipelineLayout,
-	    renderPass,
 	    0,
+	    VK_SHADER_STAGE_VERTEX_BIT,
+	    vertShaderModule,
+	    "main",
 	    nullptr};
 
-	// Use Vulkan C api to create pipeline as the C++ bindings returns an array
+	const VkPipelineShaderStageCreateInfo fragShaderStageCreateInfo{
+	    VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    VK_SHADER_STAGE_FRAGMENT_BIT,
+	    fragShaderModule,
+	    "main",
+	    nullptr};
 
-	VkPipeline cPipeline = nullptr;
-	const auto result = vkCreateGraphicsPipelines(device, nullptr, 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo*>(&pipelineInfo), nullptr, &cPipeline);
+	const std::vector shaderStages = {vertShaderStageCreateInfo, fragShaderStageCreateInfo};
+
+	const VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo{
+	    VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    static_cast<std::uint32_t>(info.bindingDescriptions.size()),
+	    reinterpret_cast<const VkVertexInputBindingDescription*>(info.bindingDescriptions.data()),
+	    static_cast<std::uint32_t>(info.attributeDescriptions.size()),
+	    reinterpret_cast<const VkVertexInputAttributeDescription*>(info.attributeDescriptions.data())};
+
+	const VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{
+	    VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+	    false};
+		
+	const VkPipelineViewportStateCreateInfo viewportStateCreateInfo{
+	    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    1,
+	    nullptr,
+	    1,
+	    nullptr};
+
+	const VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo{
+	    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    false,
+	    false,
+	    VK_POLYGON_MODE_FILL,
+	    VK_CULL_MODE_BACK_BIT,
+	    VK_FRONT_FACE_COUNTER_CLOCKWISE,
+	    false,
+	    0.0f,
+	    0.0f,
+	    0.0f,
+	    1.0f};
+
+	const VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo{
+	    VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    VK_SAMPLE_COUNT_1_BIT,
+	    false};
+
+	const VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo{
+	    VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    true,
+	    true,
+	    VK_COMPARE_OP_LESS,
+	    false,
+	    false};
+
+	constexpr auto colorMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+
+	const VkPipelineColorBlendAttachmentState colorBlendAttachmentState{
+	    true,
+	    VK_BLEND_FACTOR_SRC_ALPHA,
+	    VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+	    VK_BLEND_OP_ADD,
+	    VK_BLEND_FACTOR_SRC_ALPHA,
+	    VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+	    VK_BLEND_OP_ADD,
+	    colorMask};
+
+	const float colorBlendConstants[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+	const VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo{
+		VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+		nullptr,
+		0,
+		false,
+		VK_LOGIC_OP_COPY,
+		1,
+		&colorBlendAttachmentState,
+		{0.0f, 0.0f, 0.0f, 0.0f}};
+
+	const VkDynamicState pipelineDynamicStates[2] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+
+	const VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{
+		VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+		nullptr,
+		0,
+		2,
+		pipelineDynamicStates};
+
+	const VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo{
+		VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+		nullptr,
+		0,
+		static_cast<std::uint32_t>(shaderStages.size()),
+		shaderStages.data(),
+		&vertexInputCreateInfo,
+	    &inputAssemblyCreateInfo,
+	    nullptr,
+	    &viewportStateCreateInfo,
+	    &rasterizationStateCreateInfo,
+	    &multisampleStateCreateInfo,
+	    &depthStencilStateCreateInfo,
+	    &colorBlendStateCreateInfo,
+	    &dynamicStateCreateInfo,
+	    pipelineLayout,
+	    renderPass,
+		0,
+		nullptr};
+
+	VkPipeline pipeline = nullptr;
+	const auto result = vkCreateGraphicsPipelines(device, nullptr, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline);
 	if (result == VK_PIPELINE_COMPILE_REQUIRED_EXT) {
 		throw std::runtime_error("Failed to create graphics pipeline. Compile is required.");
 	} else if (result != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create graphics pipeline. Unknown error.");
 	}
 
-	return vk::UniquePipeline{cPipeline, device};
-}
+	vkDestroyShaderModule(device, vertShaderModule, nullptr);
+	vkDestroyShaderModule(device, fragShaderModule, nullptr);
 
-vk::UniqueDescriptorPool vkx::GraphicsPipeline::createDescriptorPool(vk::Device device, const std::vector<vk::DescriptorPoolSize>& poolSizes) {
-	const vk::DescriptorPoolCreateInfo poolInfo{{}, MAX_FRAMES_IN_FLIGHT, poolSizes};
-
-	return device.createDescriptorPoolUnique(poolInfo);
-}
-
-std::vector<vk::DescriptorSet> vkx::GraphicsPipeline::createDescriptorSets(vk::Device device, vk::DescriptorSetLayout descriptorSetLayout, vk::DescriptorPool descriptorPool) {
-	const std::vector<vk::DescriptorSetLayout> layouts{MAX_FRAMES_IN_FLIGHT, descriptorSetLayout};
-	const vk::DescriptorSetAllocateInfo allocInfo{descriptorPool, layouts};
-
-	return device.allocateDescriptorSets(allocInfo);
+	return pipeline;
 }
