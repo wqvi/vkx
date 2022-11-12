@@ -2,7 +2,7 @@
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, vk::RenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info)
+vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, VkRenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info)
     : device(device) {
 	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, info.bindings};
 
