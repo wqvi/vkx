@@ -416,6 +416,10 @@ int main(void) {
 		}
 		vkDeviceWaitIdle(logicalDevice);
 
+		for (auto& syncObject : syncObjects) {
+			syncObject.destroy();
+		}
+
 		texture.destroy(allocator, logicalDevice);
 		mesh.destroy(allocator);
 		highlightMesh.destroy(allocator);

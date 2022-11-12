@@ -317,7 +317,7 @@ VkRenderPass vkx::createRenderPass(VkDevice device, VkPhysicalDevice physicalDev
 	return renderPass;
 }
 
-[[nodiscard]] std::vector<vkx::SyncObjects> vkx::createSyncObjects(vk::Device device) {
+[[nodiscard]] std::vector<vkx::SyncObjects> vkx::createSyncObjects(VkDevice device) {
 	std::vector<vkx::SyncObjects> objs{vkx::MAX_FRAMES_IN_FLIGHT};
 
 	std::generate(objs.begin(), objs.end(), [&device]() { return vkx::SyncObjects{device}; });

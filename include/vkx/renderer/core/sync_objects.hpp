@@ -4,17 +4,19 @@ namespace vkx {
 struct SyncObjects {
 	SyncObjects() = default;
 
-	explicit SyncObjects(vk::Device device);
+	explicit SyncObjects(VkDevice device);
 
-	static std::vector<SyncObjects> createSyncObjects(vk::Device device);
+	static std::vector<SyncObjects> createSyncObjects(VkDevice device);
 
 	void waitForFence() const;
 
 	void resetFence() const;
 
-	vk::Device device;
-	vk::UniqueSemaphore imageAvailableSemaphore;
-	vk::UniqueSemaphore renderFinishedSemaphore;
-	vk::UniqueFence inFlightFence;
+	void destroy() const;
+
+	VkDevice device;
+	VkSemaphore imageAvailableSemaphore;
+	VkSemaphore renderFinishedSemaphore;
+	VkFence inFlightFence;
 };
 } // namespace vkx

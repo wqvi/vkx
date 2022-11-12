@@ -55,7 +55,7 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] VkRenderPass createRenderPass(VkDevice device, VkPhysicalDevice physicalDevice, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout, VkAttachmentLoadOp loadOp);
 
-[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects(vk::Device device);
+[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects(VkDevice device);
 
 [[nodiscard]] VkSwapchainKHR createSwapchain(VkDevice device, VkSurfaceKHR surface, SDL_Window* window, const vkx::SwapchainInfo& info, const vkx::QueueConfig& config);
 

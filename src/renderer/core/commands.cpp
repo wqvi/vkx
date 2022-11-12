@@ -344,14 +344,14 @@ void vkx::CommandSubmitter::submitDrawCommands(const VkCommandBuffer* begin, std
 	    VK_STRUCTURE_TYPE_SUBMIT_INFO,
 	    nullptr,
 	    1,
-	    reinterpret_cast<const VkSemaphore*>(&*syncObjects.imageAvailableSemaphore),
+	    &syncObjects.imageAvailableSemaphore,
 	    waitStages,
 	    size,
 	    begin,
 	    1,
-	    reinterpret_cast<const VkSemaphore*>(&*syncObjects.renderFinishedSemaphore)};
+	    &syncObjects.renderFinishedSemaphore};
 
-	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, static_cast<VkFence>(*syncObjects.inFlightFence)) != VK_SUCCESS) {
+	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, syncObjects.inFlightFence) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to submit draw commands");
 	}
 }
@@ -361,13 +361,13 @@ VkResult vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, s
 	    VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
 	    nullptr,
 	    1,
-	    reinterpret_cast<const VkSemaphore*>(&*syncObjects.renderFinishedSemaphore),
+	    &syncObjects.renderFinishedSemaphore,
 	    1,
 	    &swapchain.swapchain,
 	    &imageIndex,
 	    nullptr};
 
-	return static_cast<VkResult>(vkQueuePresentKHR(presentQueue, &presentInfo));
+	return vkQueuePresentKHR(presentQueue, &presentInfo);
 }
 
 void vkx::CommandSubmitter::destroy() const {

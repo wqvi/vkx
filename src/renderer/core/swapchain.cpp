@@ -48,7 +48,7 @@ vkx::Swapchain::Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRe
 }
 
 VkResult vkx::Swapchain::acquireNextImage(VkDevice device, const vkx::SyncObjects& syncObjects, std::uint32_t* imageIndex) const {
-	return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, *syncObjects.imageAvailableSemaphore, {}, imageIndex);
+	return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, syncObjects.imageAvailableSemaphore, {}, imageIndex);
 }
 
 void vkx::Swapchain::destroy() {
