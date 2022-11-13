@@ -7,7 +7,7 @@ void vkx::Mesh::destroy(VmaAllocator allocator) const {
 
 vkx::Texture::Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter)
     : image(file, allocator, commandSubmitter),
-      view(vkx::createTextureImageView(device, image.resourceImage)),
+      view(image.createTextureImageView(device)),
       sampler(vkx::createTextureSampler(device, maxAnisotropy)),
       info{sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
       device(device) {}
