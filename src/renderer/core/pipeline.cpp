@@ -77,7 +77,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, VkRenderPass renderPass
 				uniformsBegin++;
 			} else if (type == vk::DescriptorType::eCombinedImageSampler) {
 				const auto& texture = *texturesBegin;
-				write.pImageInfo = texture->getInfo();
+				write.pImageInfo = reinterpret_cast<const vk::DescriptorImageInfo*>(texture->getInfo());
 				texturesBegin++;
 			}
 

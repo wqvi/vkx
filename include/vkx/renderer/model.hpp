@@ -18,7 +18,7 @@ public:
 	}
 
 	void destroy(VmaAllocator allocator) const;
-	
+
 	VkBuffer vertexBuffer = nullptr;
 	VmaAllocation vertexAllocation = nullptr;
 	VmaAllocationInfo vertexAllocationInfo{};
@@ -34,16 +34,17 @@ public:
 
 	explicit Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter);
 
-	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
+	[[nodiscard]] VkDescriptorImageInfo createDescriptorImageInfo() const;
 
-	[[nodiscard]] const vk::DescriptorImageInfo* getInfo() const;
+	[[nodiscard]] const VkDescriptorImageInfo* getInfo() const;
 
-	void destroy(VmaAllocator allocator, VkDevice device) const;
+	void destroy() const;
 
 private:
-	Image image;
-	VkImageView view;
-	VkSampler sampler;
-	vk::DescriptorImageInfo info;
+	Image image{};
+	VkImageView view = nullptr;
+	VkSampler sampler = nullptr;
+	VkDescriptorImageInfo info{};
+	VkDevice device = nullptr;
 };
 } // namespace vkx

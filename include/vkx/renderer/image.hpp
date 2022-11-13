@@ -6,8 +6,8 @@
 namespace vkx {
 class Image {
 public:
-	VkImage resourceImage{};
-	VmaAllocation resourceAllocation{};
+	VkImage resourceImage = nullptr;
+	VmaAllocation resourceAllocation = nullptr;
 
 	Image() = default;
 
@@ -15,6 +15,9 @@ public:
 
 	explicit Image(const char* file, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter);
 
-	void destroy(VmaAllocator allocator) const;
+	void destroy() const;
+
+private:
+	VmaAllocator allocator = nullptr;
 };
 } // namespace vkx

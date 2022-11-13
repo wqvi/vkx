@@ -9,18 +9,19 @@ vkx::Texture::Texture(const char* file, VkDevice device, float maxAnisotropy, Vm
     : image(file, allocator, commandSubmitter),
       view(vkx::createTextureImageView(device, image.resourceImage)),
       sampler(vkx::createTextureSampler(device, maxAnisotropy)),
-      info(sampler, view, vk::ImageLayout::eShaderReadOnlyOptimal) {}
+      info{sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+      device(device) {}
 
-vk::DescriptorImageInfo vkx::Texture::createDescriptorImageInfo() const {
-	return {sampler, view, vk::ImageLayout::eShaderReadOnlyOptimal};
+VkDescriptorImageInfo vkx::Texture::createDescriptorImageInfo() const {
+	return {sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 }
 
-const vk::DescriptorImageInfo* vkx::Texture::getInfo() const {
+const VkDescriptorImageInfo* vkx::Texture::getInfo() const {
 	return &info;
 }
 
-void vkx::Texture::destroy(VmaAllocator allocator, VkDevice device) const {
-	image.destroy(allocator);
+void vkx::Texture::destroy() const {
+	image.destroy();
 	vkDestroyImageView(device, view, nullptr);
 	vkDestroySampler(device, sampler, nullptr);
 }

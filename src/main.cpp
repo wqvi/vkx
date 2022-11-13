@@ -420,7 +420,7 @@ int main(void) {
 			syncObject.destroy();
 		}
 
-		texture.destroy(allocator, logicalDevice);
+		texture.destroy();
 		mesh.destroy(allocator);
 		highlightMesh.destroy(allocator);
 		swapchain.destroy();
