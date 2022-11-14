@@ -47,10 +47,6 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
-[[nodiscard]] inline auto createTextureImageView(VkDevice device, VkImage image) {
-	return createImageView(device, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
-}
-
 [[nodiscard]] VkSampler createTextureSampler(VkDevice device, float samplerAnisotropy);
 
 [[nodiscard]] VkRenderPass createRenderPass(VkDevice device, VkPhysicalDevice physicalDevice, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout, VkAttachmentLoadOp loadOp);

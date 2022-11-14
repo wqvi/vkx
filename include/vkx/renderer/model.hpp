@@ -30,8 +30,6 @@ public:
 
 class Texture {
 public:
-	Texture() = default;
-
 	explicit Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter);
 
 	[[nodiscard]] VkDescriptorImageInfo createDescriptorImageInfo() const;
@@ -41,7 +39,7 @@ public:
 	void destroy() const;
 
 private:
-	Image image{};
+	Image image;
 	VkImageView view = nullptr;
 	VkSampler sampler = nullptr;
 	VkDescriptorImageInfo info{};

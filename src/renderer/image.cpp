@@ -3,8 +3,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include <vkx/renderer/renderer.hpp>
-
 vkx::Image::Image(const char* file, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter) 
 	: allocator(allocator) {
 	int texWidth;
