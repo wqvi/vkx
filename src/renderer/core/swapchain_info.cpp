@@ -2,20 +2,26 @@
 #include <vkx/renderer/renderer.hpp>
 
 vkx::SwapchainInfo::SwapchainInfo(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
-	if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to get physical device surface capabilities.");
-	}
+	const auto predicate = [](VkResult result) {
+		return result != VK_SUCCESS;
+	};
+
+	capabilities = vkx::getObject<VkSurfaceCapabilitiesKHR>(
+		"Failed to get physical device surface capabilites.",
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR,
+		predicate,
+		physicalDevice, surface);
 
 	formats = vkx::getArray<VkSurfaceFormatKHR>(
 		"Failed to get physcial device surface formats.",
 		vkGetPhysicalDeviceSurfaceFormatsKHR,
-		[](auto a) { return a != VK_SUCCESS; },
+		predicate,
 		physicalDevice, surface);
 
 	presentModes = vkx::getArray<VkPresentModeKHR>(
 	    "Failed to get physical device surface present modes.",
 	    vkGetPhysicalDeviceSurfacePresentModesKHR,
-	    [](auto a) { return a != VK_SUCCESS; },
+		predicate,
 	    physicalDevice, surface);
 }
 
