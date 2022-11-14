@@ -17,7 +17,7 @@ constexpr auto getObject(const char* errorMessage, Function function, Predicate 
 }
 
 template <class ArrayType, class Function, class Predicate, class... Parameters>
-constexpr auto getArray(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
+constexpr std::enable_if_t<std::is_same_v<std::invoke_result_t<Function, Parameters..., std::uint32_t*, ArrayType*>, SDL_bool> || std::is_same_v<std::invoke_result_t<Function, Parameters..., std::uint32_t*, ArrayType*>, VkResult>, std::vector<ArrayType>> getArray(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
 	std::uint32_t count = 0;
 	auto result = function(param..., &count, nullptr);
 	if (predicate(result)) {
@@ -34,7 +34,7 @@ constexpr auto getArray(const char* errorMessage, Function function, Predicate p
 }
 
 template <class ArrayType, class Function, class... Parameters>
-constexpr auto getArray(Function function, Parameters... param) {
+constexpr std::enable_if_t<std::is_same_v<std::invoke_result_t<Function, Parameters..., std::uint32_t*, ArrayType*>, void>, std::vector<ArrayType>> getArray(Function function, Parameters... param) {
 	std::uint32_t count = 0;
 	function(param..., &count, nullptr);
 
@@ -85,5 +85,5 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] VmaAllocation allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, const void* ptr, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
 
-[[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(VmaAllocator allocator, std::size_t size); 
+[[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(VmaAllocator allocator, std::size_t size);
 } // namespace vkx
