@@ -5,6 +5,17 @@
 #include "core/sync_objects.hpp"
 
 namespace vkx {
+template <class ObjectType, class Function, class Predicate, class... Parameters>
+constexpr auto getObject(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
+	ObjectType object{};
+	const auto result = function(param..., &object);
+	if (predicate(result)) {
+		throw std::runtime_error(errorMessage);
+	}
+
+	return object;
+}
+
 template <class ArrayType, class Function, class Predicate, class... Parameters>
 constexpr auto getArray(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
 	std::uint32_t count = 0;
@@ -13,13 +24,13 @@ constexpr auto getArray(const char* errorMessage, Function function, Predicate p
 		throw std::runtime_error(errorMessage);
 	}
 
-	std::vector<ArrayType> items{count};
-	result = function(param..., &count, items.data());
+	std::vector<ArrayType> array{count};
+	result = function(param..., &count, array.data());
 	if (predicate(result)) {
 		throw std::runtime_error(errorMessage);
 	}
 
-	return items;
+	return array;
 }
 
 template <class ObjectType, class Function, class Predicate, class... Parameters>
