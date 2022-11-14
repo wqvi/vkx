@@ -1,23 +1,26 @@
 #include <vkx/renderer/core/queue_config.hpp>
+#include <vkx/renderer/renderer.hpp>
 
-vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
-	if (!static_cast<bool>(physicalDevice)) {
-		throw std::invalid_argument("Physical device must be a valid handle.");
-	}
-
-	if (!static_cast<bool>(surface)) {
-		throw std::invalid_argument("Surface must be a valid handle.");
-	}
-
-	const auto queueFamilies = physicalDevice.getQueueFamilyProperties();
+vkx::QueueConfig::QueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+	const auto queueFamilies = vkx::getArray<VkQueueFamilyProperties>(
+	    vkGetPhysicalDeviceQueueFamilyProperties,
+	    physicalDevice);
 
 	for (std::uint32_t i = 0; i < static_cast<std::uint32_t>(queueFamilies.size()); i++) {
 		const auto flags = queueFamilies[i].queueFlags;
-		if (flags & vk::QueueFlagBits::eGraphics) {
+		if (flags & VK_QUEUE_GRAPHICS_BIT) {
 			graphicsIndex = i;
 		}
 
-		if (physicalDevice.getSurfaceSupportKHR(i, surface)) {
+		const auto surfaceSupport = vkx::getObject<VkBool32>(
+		    "Failed to get physical device surface support.",
+		    vkGetPhysicalDeviceSurfaceSupportKHR,
+		    [](auto a) {
+			    return a != VK_SUCCESS;
+		    },
+		    physicalDevice, i, surface);
+
+		if (surfaceSupport) {
 			presentIndex = i;
 		}
 
@@ -45,22 +48,23 @@ std::vector<VkDeviceQueueCreateInfo> vkx::QueueConfig::createQueueInfos(float qu
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	for (const std::uint32_t index : indices) {
 		const VkDeviceQueueCreateInfo queueCreateInfo{
-			VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-			nullptr,
-			0,
+		    VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+		    nullptr,
+		    0,
 		    index,
 		    1,
 		    &queuePriorities};
 
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
-	
+
 	return queueCreateInfos;
 }
 
-vk::SharingMode vkx::QueueConfig::getImageSharingMode() const {
+VkSharingMode vkx::QueueConfig::getImageSharingMode() const {
 	if (isUniversal()) {
-		return vk::SharingMode::eExclusive;
+		return VK_SHARING_MODE_EXCLUSIVE;
 	}
-	return vk::SharingMode::eConcurrent;
+
+	return VK_SHARING_MODE_CONCURRENT;
 }
