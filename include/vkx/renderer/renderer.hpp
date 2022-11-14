@@ -6,7 +6,7 @@
 
 namespace vkx {
 template <class ArrayType, class Function, class Predicate, class... Parameters>
-constexpr auto get(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
+constexpr auto getArray(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
 	std::uint32_t count = 0;
 	auto result = function(param..., &count, nullptr);
 	if (predicate(result)) {

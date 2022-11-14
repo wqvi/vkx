@@ -11,7 +11,7 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	    VK_MAKE_VERSION(0, 0, 1),
 	    VK_API_VERSION_1_0};
 
-	auto instanceExtensions = get<const char*>(
+	auto instanceExtensions = getArray<const char*>(
 	    "Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, window);
 
 #ifdef DEBUG

@@ -8,7 +8,7 @@ vkx::Swapchain::Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRe
 
 	swapchain = vkx::createSwapchain(device, surface, window, info, config);
 
-	images = vkx::get<VkImage>("Failed to retrieve swapchain images", vkGetSwapchainImagesKHR, [](auto a) { return a != VK_SUCCESS; }, device, swapchain);
+	images = vkx::getArray<VkImage>("Failed to retrieve swapchain images", vkGetSwapchainImagesKHR, [](auto a) { return a != VK_SUCCESS; }, device, swapchain);
 	
 	int width;
 	int height;
