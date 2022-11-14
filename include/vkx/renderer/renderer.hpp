@@ -33,6 +33,17 @@ constexpr auto getArray(const char* errorMessage, Function function, Predicate p
 	return array;
 }
 
+template <class ArrayType, class Function, class... Parameters>
+constexpr auto getArray(Function function, Parameters... param) {
+	std::uint32_t count = 0;
+	function(param..., &count, nullptr);
+
+	std::vector<ArrayType> array{count};
+	function(param..., &count, array.data());
+
+	return array;
+}
+
 template <class ObjectType, class Function, class Predicate, class... Parameters>
 constexpr auto create(Function function, Predicate predicate, Parameters... param) {
 	ObjectType object{};
