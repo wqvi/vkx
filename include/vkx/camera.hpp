@@ -19,6 +19,10 @@ public:
 
 	explicit Camera(const glm::vec3& position);
 
+	template <class... T>
+	explicit Camera(T... t)
+		: position(t...) {}
+
 	void updateMouse(const glm::vec2& relative);
 
 	void updateKey(SDL_Keycode key);
