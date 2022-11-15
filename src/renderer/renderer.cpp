@@ -497,7 +497,7 @@ std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocat
 		VmaAllocationInfo allocationInfo{};
 		auto allocation = vkx::allocateBuffer(&allocationInfo, &buffer, allocator, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
-		buffers.emplace_back(std::make_shared<vkx::Allocation<VkBuffer>>(buffer, allocation, allocationInfo, allocator));
+		buffers.emplace_back(allocator, buffer, allocation, allocationInfo);
 	}
 	return buffers;
 }

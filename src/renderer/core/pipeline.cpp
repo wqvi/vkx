@@ -1,6 +1,7 @@
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/renderer.hpp>
+#include <vkx/renderer/uniform_buffer.hpp>
 
 vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, VkRenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info)
     : device(device) {
@@ -98,6 +99,12 @@ const std::vector<vkx::UniformBuffer>& vkx::GraphicsPipeline::getUniformByIndex(
 }
 
 void vkx::GraphicsPipeline::destroy() const {
+	for (const auto& uniformGroup : uniforms) {
+		for (const auto& uniform : uniformGroup) {
+			uniform.destroy();
+		}
+	}
+
 	vkDestroyDescriptorSetLayout(device, descriptorLayout, nullptr);
 	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 	vkDestroyPipeline(device, pipeline, nullptr);

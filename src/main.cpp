@@ -33,14 +33,14 @@ auto createShaderDescriptorSetLayout(VkDevice device) {
 	    VK_SHADER_STAGE_FRAGMENT_BIT,
 	    nullptr};
 
-	constexpr std::array bindings = {uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
+	constexpr VkDescriptorSetLayoutBinding bindings[4] = {uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 
 	const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
 	    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
 	    nullptr,
 	    0,
-	    static_cast<std::uint32_t>(bindings.size()),
-	    bindings.data()};
+	    4,
+	    bindings};
 
 	VkDescriptorSetLayout descriptorSetLayout = nullptr;
 	if (vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {

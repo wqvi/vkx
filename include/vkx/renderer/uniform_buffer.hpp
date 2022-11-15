@@ -5,26 +5,37 @@
 namespace vkx {
 class UniformBuffer {
 private:
-	std::shared_ptr<Allocation<VkBuffer>> resource{};
-	VkDescriptorBufferInfo info;
+	VmaAllocator allocator = nullptr;
+	VkBuffer buffer = nullptr;
+	VmaAllocation allocation = nullptr;
+	VmaAllocationInfo allocationInfo{};
+	VkDescriptorBufferInfo info{};
 
 public:
 	UniformBuffer() = default;
 
-	explicit UniformBuffer(std::shared_ptr<vkx::Allocation<VkBuffer>> resource)
-	    : resource(resource), info{resource->object, 0, resource->allocationInfo.size} {}
+	explicit UniformBuffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, const VmaAllocationInfo& allocationInfo)
+	    : allocator(allocator),
+	      buffer(buffer),
+	      allocation(allocation),
+	      allocationInfo(allocationInfo),
+	      info{buffer, 0, allocationInfo.size} {}
 
 	template <class T>
 	void mapMemory(const T& obj) const {
-		std::memcpy(resource->allocationInfo.pMappedData, &obj, resource->allocationInfo.size);
+		std::memcpy(allocationInfo.pMappedData, &obj, allocationInfo.size);
 	}
 
 	VkDescriptorBufferInfo createDescriptorBufferInfo() const {
-		return {resource->object, 0, resource->allocationInfo.size};
+		return {buffer, 0, allocationInfo.size};
 	}
 
 	const VkDescriptorBufferInfo* getInfo() const {
 		return &info;
+	}
+
+	void destroy() const {
+		vmaDestroyBuffer(allocator, buffer, allocation);
 	}
 };
 
