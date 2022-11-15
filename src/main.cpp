@@ -148,8 +148,8 @@ int main(void) {
 	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
 	const auto logicalDevice = vkx::createDevice(instance, surface, physicalDevice);
 	const vkx::SwapchainInfo swapchainInfo{physicalDevice, surface};
-	const auto clearRenderPass = vkx::createRenderPass(logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR);
-	const auto loadRenderPass = vkx::createRenderPass(logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_LOAD);
+	const auto clearRenderPass = vkx::createRenderPass(physicalDevice, logicalDevice, swapchainInfo.chooseSurfaceFormat().format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR);
+	const auto loadRenderPass = vkx::createRenderPass(physicalDevice, logicalDevice, swapchainInfo.chooseSurfaceFormat().format, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_LOAD);
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 	const auto allocator = vkx::createAllocator(physicalDevice, logicalDevice, instance);
 
