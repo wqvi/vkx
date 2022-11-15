@@ -446,11 +446,10 @@ int main(void) {
 	highlightMesh.destroy(allocator);
 	swapchain.destroy();
 	commandSubmitter.destroy();
-	graphicsPipeline.destroy();
-	highlightGraphicsPipeline.destroy();
-
 	vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
+	graphicsPipeline.destroy();
 	vkDestroyDescriptorSetLayout(logicalDevice, highlightDescriptorSetLayout, nullptr);
+	highlightGraphicsPipeline.destroy();
 
 	vmaDestroyAllocator(allocator);
 	vkDestroyRenderPass(logicalDevice, clearRenderPass, nullptr);
