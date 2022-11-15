@@ -1,6 +1,9 @@
 #include <vkx/renderer/renderer.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
+
 VkInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr VkApplicationInfo applicationInfo{
 	    VK_STRUCTURE_TYPE_APPLICATION_INFO,
