@@ -1,7 +1,3 @@
-#include "vkx/renderer/core/commands.hpp"
-#include "vkx/renderer/core/pipeline.hpp"
-#include "vkx/renderer/renderer.hpp"
-#include <SDL2/SDL.h>
 #include <vkx/vkx.hpp>
 
 auto createShaderDescriptorSetLayout(VkDevice device) {
@@ -90,14 +86,12 @@ auto createHighlightDescriptorSetLayout(VkDevice device) {
 	    VK_SHADER_STAGE_VERTEX_BIT,
 	    nullptr};
 
-	constexpr std::array bindings = {uboLayoutBinding};
-
 	const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
 	    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
 	    nullptr,
 	    0,
-	    static_cast<std::uint32_t>(bindings.size()),
-	    bindings.data()};
+	    1,
+	    &uboLayoutBinding};
 
 	VkDescriptorSetLayout descriptorSetLayout = nullptr;
 	if (vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
