@@ -6,12 +6,20 @@
 
 namespace vkx {
 template <class ObjectType, class Function, class Predicate, class... Parameters>
-constexpr auto getObject(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
+constexpr std::enable_if_t<std::is_same_v<std::invoke_result_t<Function, Parameters..., ObjectType*>, VkResult>, ObjectType> getObject(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
 	ObjectType object{};
 	const auto result = function(param..., &object);
 	if (predicate(result)) {
 		throw std::runtime_error(errorMessage);
 	}
+
+	return object;
+}
+
+template <class ObjectType, class Function, class... Parameters>
+constexpr std::enable_if_t<std::is_same_v<std::invoke_result_t<Function, Parameters..., ObjectType*>, void>, ObjectType> getObject(Function function, Parameters... param) {
+	ObjectType object{};
+	function(param..., &object);
 
 	return object;
 }
