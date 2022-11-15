@@ -365,12 +365,6 @@ int main(void) {
 			} break;
 			case SDL_KEYDOWN: {
 				camera.updateKey(event.key.keysym.sym);
-				const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
-				const vkx::AABB box{glm::vec3{0}, glm::vec3{1}};
-				const auto collision = vkx::handleCollision(box, origin, glm::vec3{0, 1, 0}, 1.0f, a);
-				if (collision.success) {
-					SDL_Log("Colliding");
-				}
 
 				if (event.key.keysym.sym == SDLK_ESCAPE) {
 					isRunning = false;
@@ -385,8 +379,6 @@ int main(void) {
 				if (raycastResult.success) {
 					chunk.set(raycastResult.hitPos, vkx::Voxel::Air);
 					chunk.greedy();
-					// mesh.vertex->mapMemory(chunk.vertices);
-					// mesh.index->mapMemory(chunk.indices);
 					std::memcpy(mesh.vertexAllocationInfo.pMappedData, chunk.vertices.data(), mesh.vertexAllocationInfo.size);
 					std::memcpy(mesh.indexAllocationInfo.pMappedData, chunk.indices.data(), mesh.indexAllocationInfo.size);
 					mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);

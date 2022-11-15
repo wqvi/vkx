@@ -12,13 +12,5 @@ struct RaycastResult {
     float length = 0.0f;
 };
 
-struct CollisionResult {
-    bool success = false;
-    glm::vec3 hitPos = glm::vec3{0};
-    glm::vec3 normal = glm::vec3{0};
-};
-
 RaycastResult raycast(const glm::vec3& origin, const glm::vec3& direction, float maxLength, RaycastPredicate predicate);
-
-CollisionResult handleCollision(const AABB& box, const glm::vec3& origin, const glm::vec3& direction, float maxLength, RaycastPredicate predicate);
 }
