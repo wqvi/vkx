@@ -7,19 +7,21 @@ struct Vertex {
 	glm::vec3 normal;
 
 	static auto getBindingDescription() noexcept {
-		std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
+		std::vector<VkVertexInputBindingDescription> bindingDescriptions{};
 
-		bindingDescriptions.push_back({0, sizeof(Vertex), vk::VertexInputRate::eVertex});
+		bindingDescriptions.push_back({0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX});
 
 		return bindingDescriptions;
 	}
 
 	static auto getAttributeDescriptions() noexcept {
-		std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 
-		attributeDescriptions.push_back({0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, pos)});
-		attributeDescriptions.push_back({1, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)});
-		attributeDescriptions.push_back({2, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)});
+		attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos)});
+		attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)});
+		attributeDescriptions.push_back({2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)});
+
+		
 
 		return attributeDescriptions;
 	}

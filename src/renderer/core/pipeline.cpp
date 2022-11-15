@@ -4,8 +4,6 @@
 
 vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, VkRenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info)
     : device(device) {
-	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, info.bindings};
-
 	const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
 	    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
 	    nullptr,
@@ -21,13 +19,11 @@ vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, VkRenderPass renderPass
 
 	pipeline = createPipeline(device, renderPass, info, pipelineLayout);
 
-	std::vector<vk::DescriptorPoolSize> poolSizes{};
+	std::vector<VkDescriptorPoolSize> poolSizes{};
 	poolSizes.reserve(info.bindings.size());
 	for (const auto& info : info.bindings) {
-		poolSizes.emplace_back(info.descriptorType, vkx::MAX_FRAMES_IN_FLIGHT);
+		poolSizes.emplace_back(VkDescriptorPoolSize{info.descriptorType, vkx::MAX_FRAMES_IN_FLIGHT});
 	}
-
-	const vk::DescriptorPoolCreateInfo poolInfo{{}, MAX_FRAMES_IN_FLIGHT, poolSizes};
 
 	const VkDescriptorPoolCreateInfo descriptorPoolCreateInfo{
 		VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -35,7 +31,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, VkRenderPass renderPass
 		0,
 		vkx::MAX_FRAMES_IN_FLIGHT,
 		static_cast<std::uint32_t>(poolSizes.size()),
-		reinterpret_cast<const VkDescriptorPoolSize*>(poolSizes.data())};
+		poolSizes.data()};
 
 	if (vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create graphics pipeline descriptor pool.");
@@ -65,26 +61,35 @@ vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, VkRenderPass renderPass
 		auto uniformsBegin = uniforms.cbegin();
 		auto texturesBegin = info.textures.cbegin();
 
-		std::vector<vk::WriteDescriptorSet> writes;
+		std::vector<VkWriteDescriptorSet> writes;
 
 		for (std::uint32_t j = 0; j < poolSizes.size(); j++) {
 			const auto type = poolSizes[j].type;
 
-			vk::WriteDescriptorSet write{descriptorSet, j, 0, 1, type, nullptr, nullptr};
-			if (type == vk::DescriptorType::eUniformBuffer) {
+			VkWriteDescriptorSet write{
+				VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				nullptr,
+				descriptorSet, 
+				j, 
+				0, 
+				1, 
+				type, 
+				nullptr, 
+				nullptr};
+			if (type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
 				const auto& uniform = *uniformsBegin;
 				write.pBufferInfo = uniform[i].getInfo();
 				uniformsBegin++;
-			} else if (type == vk::DescriptorType::eCombinedImageSampler) {
+			} else if (type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
 				const auto& texture = *texturesBegin;
-				write.pImageInfo = reinterpret_cast<const vk::DescriptorImageInfo*>(texture->getInfo());
+				write.pImageInfo = texture->getInfo();
 				texturesBegin++;
 			}
 
 			writes.push_back(write);
 		}
 
-		vkUpdateDescriptorSets(device, static_cast<std::uint32_t>(writes.size()), reinterpret_cast<const VkWriteDescriptorSet*>(writes.data()), 0, nullptr);
+		vkUpdateDescriptorSets(device, static_cast<std::uint32_t>(writes.size()), writes.data(), 0, nullptr);
 	}
 }
 

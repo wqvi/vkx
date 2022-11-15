@@ -5,25 +5,25 @@
 namespace vkx {
 class UniformBuffer {
 private:
-	std::shared_ptr<Allocation<vk::Buffer>> resource{};
-	vk::DescriptorBufferInfo info;
+	std::shared_ptr<Allocation<VkBuffer>> resource{};
+	VkDescriptorBufferInfo info;
 
 public:
 	UniformBuffer() = default;
 
-	explicit UniformBuffer(std::shared_ptr<vkx::Allocation<vk::Buffer>> resource)
-	    : resource(resource), info(resource->object, 0, resource->allocationInfo.size) {}
+	explicit UniformBuffer(std::shared_ptr<vkx::Allocation<VkBuffer>> resource)
+	    : resource(resource), info{resource->object, 0, resource->allocationInfo.size} {}
 
 	template <class T>
 	void mapMemory(const T& obj) const {
 		std::memcpy(resource->allocationInfo.pMappedData, &obj, resource->allocationInfo.size);
 	}
 
-	vk::DescriptorBufferInfo createDescriptorBufferInfo() const {
+	VkDescriptorBufferInfo createDescriptorBufferInfo() const {
 		return {resource->object, 0, resource->allocationInfo.size};
 	}
 
-	const vk::DescriptorBufferInfo* getInfo() const {
+	const VkDescriptorBufferInfo* getInfo() const {
 		return &info;
 	}
 };

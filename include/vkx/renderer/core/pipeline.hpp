@@ -8,9 +8,9 @@ namespace vkx {
 struct GraphicsPipelineInformation {
 	const std::string vertexFile{};
 	const std::string fragmentFile{};
-	const std::vector<vk::DescriptorSetLayoutBinding> bindings{};
-	const std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
-	const std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
+	const std::vector<VkDescriptorSetLayoutBinding> bindings{};
+	const std::vector<VkVertexInputBindingDescription> bindingDescriptions{};
+	const std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 	const std::vector<std::size_t> uniformSizes{};
 	const std::vector<const Texture*> textures;
 };

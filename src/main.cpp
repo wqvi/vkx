@@ -4,110 +4,132 @@
 #include <SDL2/SDL.h>
 #include <vkx/vkx.hpp>
 
-auto createShaderDescriptorSetLayout(vk::Device device) {
-	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
+auto createShaderDescriptorSetLayout(VkDevice device) {
+	constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
-	    vk::DescriptorType::eUniformBuffer,
+	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 	    1,
-	    vk::ShaderStageFlagBits::eVertex,
+	    VK_SHADER_STAGE_VERTEX_BIT,
 	    nullptr};
 
-	constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding{
+	constexpr VkDescriptorSetLayoutBinding samplerLayoutBinding{
 	    1,
-	    vk::DescriptorType::eCombinedImageSampler,
+	    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 	    1,
-	    vk::ShaderStageFlagBits::eFragment,
+	    VK_SHADER_STAGE_FRAGMENT_BIT,
 	    nullptr};
 
-	constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding{
+	constexpr VkDescriptorSetLayoutBinding lightLayoutBinding{
 	    2,
-	    vk::DescriptorType::eUniformBuffer,
+	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 	    1,
-	    vk::ShaderStageFlagBits::eFragment,
+	    VK_SHADER_STAGE_FRAGMENT_BIT,
 	    nullptr};
 
-	constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding{
+	constexpr VkDescriptorSetLayoutBinding materialLayoutBinding{
 	    3,
-	    vk::DescriptorType::eUniformBuffer,
+	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 	    1,
-	    vk::ShaderStageFlagBits::eFragment,
+	    VK_SHADER_STAGE_FRAGMENT_BIT,
 	    nullptr};
 
 	constexpr std::array bindings = {uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 
-	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
-	return device.createDescriptorSetLayoutUnique(layoutInfo);
+	const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
+	    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+	    nullptr,
+	    0,
+	    static_cast<std::uint32_t>(bindings.size()),
+	    bindings.data()};
+
+	VkDescriptorSetLayout descriptorSetLayout = nullptr;
+	if (vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create descriptor set layout.");
+	}
+
+	return descriptorSetLayout;
 }
 
 auto createShaderBindings() {
-	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
+	constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
-	    vk::DescriptorType::eUniformBuffer,
+	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 	    1,
-	    vk::ShaderStageFlagBits::eVertex,
+	    VK_SHADER_STAGE_VERTEX_BIT,
 	    nullptr};
 
-	constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding{
+	constexpr VkDescriptorSetLayoutBinding samplerLayoutBinding{
 	    1,
-	    vk::DescriptorType::eCombinedImageSampler,
+	    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 	    1,
-	    vk::ShaderStageFlagBits::eFragment,
+	    VK_SHADER_STAGE_FRAGMENT_BIT,
 	    nullptr};
 
-	constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding{
+	constexpr VkDescriptorSetLayoutBinding lightLayoutBinding{
 	    2,
-	    vk::DescriptorType::eUniformBuffer,
+	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 	    1,
-	    vk::ShaderStageFlagBits::eFragment,
+	    VK_SHADER_STAGE_FRAGMENT_BIT,
 	    nullptr};
 
-	constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding{
+	constexpr VkDescriptorSetLayoutBinding materialLayoutBinding{
 	    3,
-	    vk::DescriptorType::eUniformBuffer,
+	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 	    1,
-	    vk::ShaderStageFlagBits::eFragment,
+	    VK_SHADER_STAGE_FRAGMENT_BIT,
 	    nullptr};
 
 	return std::vector{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 }
 
-auto createHighlightDescriptorSetLayout(vk::Device device) {
-	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
+auto createHighlightDescriptorSetLayout(VkDevice device) {
+	constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
-	    vk::DescriptorType::eUniformBuffer,
+	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 	    1,
-	    vk::ShaderStageFlagBits::eVertex,
+	    VK_SHADER_STAGE_VERTEX_BIT,
 	    nullptr};
 
 	constexpr std::array bindings = {uboLayoutBinding};
 
-	const vk::DescriptorSetLayoutCreateInfo layoutInfo{{}, bindings};
-	return device.createDescriptorSetLayoutUnique(layoutInfo);
+	const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
+	    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+	    nullptr,
+	    0,
+	    static_cast<std::uint32_t>(bindings.size()),
+	    bindings.data()};
+
+	VkDescriptorSetLayout descriptorSetLayout = nullptr;
+	if (vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create descriptor set layout.");
+	}
+
+	return descriptorSetLayout;
 }
 
 auto createHighlightShaderBindings() noexcept {
-	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
+	constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
-	    vk::DescriptorType::eUniformBuffer,
+		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 	    1,
-	    vk::ShaderStageFlagBits::eVertex,
+		VK_SHADER_STAGE_VERTEX_BIT,
 	    nullptr};
 
 	return std::vector{uboLayoutBinding};
 }
 
 auto getBindingDescription() noexcept {
-	std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
+	std::vector<VkVertexInputBindingDescription> bindingDescriptions{};
 
-	bindingDescriptions.push_back({0, sizeof(glm::vec3), vk::VertexInputRate::eVertex});
+	bindingDescriptions.push_back({0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX});
 
 	return bindingDescriptions;
 }
 
 auto getAttributeDescriptions() noexcept {
-	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
+	std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 
-	attributeDescriptions.push_back({0, 0, vk::Format::eR32G32B32Sfloat, 0});
+	attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0});
 
 	return attributeDescriptions;
 }
