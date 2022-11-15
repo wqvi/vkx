@@ -142,6 +142,8 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
+	vkx::Camera camera{0.0f, 0.0f, 0.0f};
+
 	const auto instance = vkx::createInstance(window);
 	const auto surface = vkx::createSurface(window, instance);
 	const auto physicalDevice = vkx::getBestPhysicalDevice(instance, surface);
@@ -152,43 +154,12 @@ int main(void) {
 	const auto loadRenderPass = vkx::createRenderPass(physicalDevice, logicalDevice, swapchainInfo.chooseSurfaceFormat().format, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_LOAD);
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 	const auto allocator = vkx::createAllocator(physicalDevice, logicalDevice, instance);
-
-	/*IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	(void)io;
-	ImGui::StyleColorsDark();
-
-	ImGui_ImplSDL2_InitForVulkan(window);
-	ImGui_ImplVulkan_InitInfo imguiVulkanInitInfo{
-	    instance,
-	    physicalDevice,
-	    logicalDevice,
-	    *queueConfig.graphicsIndex,
-	    nullptr, // queue
-	    nullptr,
-	    nullptr, // descriptor pool
-	    0,
-	    2,
-	    0, // image count
-	    VK_SAMPLE_COUNT_1_BIT,
-	    nullptr,
-	    nullptr};
-
-	ImGui_ImplVulkan_Init(&imguiVulkanInitInfo, clearRenderPass);*/
-
-	vkx::Camera camera{0.0f, 0.0f, 0.0f};
-
 	const vkx::CommandSubmitter commandSubmitter{physicalDevice, logicalDevice, surface};
-
 	vkx::Swapchain swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, window};
 
 	const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
-
 	const std::vector highlightPoolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE};
-
 	const auto descriptorSetLayout = createShaderDescriptorSetLayout(logicalDevice);
-
 	const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(logicalDevice);
 
 	const vkx::Texture texture{"a.jpg", logicalDevice, properties.limits.maxSamplerAnisotropy, allocator, commandSubmitter};

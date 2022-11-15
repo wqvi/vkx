@@ -43,7 +43,7 @@ static constexpr VkDescriptorPoolSize UNIFORM_BUFFER_POOL_SIZE{
 
 static constexpr VkDescriptorPoolSize SAMPLER_BUFFER_POOL_SIZE{
     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-	MAX_FRAMES_IN_FLIGHT};
+    MAX_FRAMES_IN_FLIGHT};
 
 static constexpr std::array<glm::vec3, 24> CUBE_VERTICES = {
     glm::vec3{0.0f, 0.0f, 0.0f},
