@@ -1,7 +1,7 @@
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::Swapchain::Swapchain(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkSurfaceKHR surface, VmaAllocator allocator, SDL_Window* window) 
+vkx::Swapchain::Swapchain(VkPhysicalDevice physicalDevice, VkDevice device, VkRenderPass renderPass, VkSurfaceKHR surface, VmaAllocator allocator, SDL_Window* window) 
 	: device(device), allocator(allocator) {
 	const SwapchainInfo info{physicalDevice, surface};
 	const QueueConfig config{physicalDevice, surface};
