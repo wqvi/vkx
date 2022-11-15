@@ -146,13 +146,11 @@ int main(void) {
 	const auto surface = vkx::createSurface(window, instance);
 	const auto physicalDevice = vkx::getBestPhysicalDevice(instance, surface);
 	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
-	const float maxSamplerAnisotropy = properties.limits.maxSamplerAnisotropy;
 	const auto logicalDevice = vkx::createDevice(instance, surface, physicalDevice);
 	const vkx::SwapchainInfo swapchainInfo{physicalDevice, surface};
 	const auto clearRenderPass = vkx::createRenderPass(logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR);
 	const auto loadRenderPass = vkx::createRenderPass(logicalDevice, physicalDevice, swapchainInfo.chooseSurfaceFormat().format, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_LOAD);
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
-
 	const auto allocator = vkx::createAllocator(physicalDevice, logicalDevice, instance);
 
 	/*IMGUI_CHECKVERSION();
@@ -179,7 +177,7 @@ int main(void) {
 
 	ImGui_ImplVulkan_Init(&imguiVulkanInitInfo, clearRenderPass);*/
 
-	vkx::Camera camera({0, 0, 0});
+	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
 	const vkx::CommandSubmitter commandSubmitter{physicalDevice, logicalDevice, surface};
 
@@ -193,7 +191,7 @@ int main(void) {
 
 	const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(logicalDevice);
 
-	const vkx::Texture texture{"a.jpg", logicalDevice, maxSamplerAnisotropy, allocator, commandSubmitter};
+	const vkx::Texture texture{"a.jpg", logicalDevice, properties.limits.maxSamplerAnisotropy, allocator, commandSubmitter};
 
 	const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 	    "shader.vert.spv",
