@@ -145,8 +145,7 @@ int main(void) {
 	const auto instance = vkx::createInstance(window);
 	const auto surface = vkx::createSurface(window, instance);
 	const auto physicalDevice = vkx::getBestPhysicalDevice(instance, surface);
-	VkPhysicalDeviceProperties properties{};
-	vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
 	const float maxSamplerAnisotropy = properties.limits.maxSamplerAnisotropy;
 	const auto logicalDevice = vkx::createDevice(instance, surface, physicalDevice);
 	const vkx::SwapchainInfo swapchainInfo{physicalDevice, surface};
