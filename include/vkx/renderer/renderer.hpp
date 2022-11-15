@@ -79,7 +79,7 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] VkSampler createTextureSampler(VkDevice device, float samplerAnisotropy);
 
-[[nodiscard]] VkRenderPass createRenderPass(VkDevice device, VkPhysicalDevice physicalDevice, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout, VkAttachmentLoadOp loadOp);
+[[nodiscard]] VkRenderPass createRenderPass(VkPhysicalDevice physicalDevice, VkDevice device, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout, VkAttachmentLoadOp loadOp);
 
 [[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects(VkDevice device);
 

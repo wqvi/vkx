@@ -248,7 +248,7 @@ VkSampler vkx::createTextureSampler(VkDevice device, float samplerAnisotropy) {
 	return sampler;
 }
 
-VkRenderPass vkx::createRenderPass(VkDevice device, VkPhysicalDevice physicalDevice, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout, VkAttachmentLoadOp loadOp) {
+VkRenderPass vkx::createRenderPass(VkPhysicalDevice physicalDevice, VkDevice device, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout, VkAttachmentLoadOp loadOp) {
 	const VkAttachmentDescription colorAttachment{
 	    0,
 	    format,
