@@ -449,6 +449,9 @@ int main(void) {
 		commandSubmitter.destroy();
 		graphicsPipeline.destroy();
 		highlightGraphicsPipeline.destroy();
+
+		vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
+		vkDestroyDescriptorSetLayout(logicalDevice, highlightDescriptorSetLayout, nullptr);
 	}
 
 	vmaDestroyAllocator(allocator);
