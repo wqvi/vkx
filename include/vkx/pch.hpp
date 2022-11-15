@@ -1,11 +1,10 @@
 #pragma once
 
-#define VULKAN_HPP_NO_SPACESHIP_OPERATOR
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_log.h>
 #include <SDL2/SDL_vulkan.h>
 #include <vk_mem_alloc.h>
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.h>
 #define GLM_FORCE_LEFT_HANDED
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -15,6 +14,7 @@
 #include <chrono>
 #include <forward_list>
 #include <fstream>
+#include <functional>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -27,7 +27,6 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include <functional>
 
 #ifdef NDEBUG
 #define RELEASE
@@ -38,8 +37,13 @@
 namespace vkx {
 static constexpr std::uint32_t MAX_FRAMES_IN_FLIGHT = UINT32_C(2);
 
-static constexpr vk::DescriptorPoolSize UNIFORM_BUFFER_POOL_SIZE{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT};
-static constexpr vk::DescriptorPoolSize SAMPLER_BUFFER_POOL_SIZE{vk::DescriptorType::eCombinedImageSampler, MAX_FRAMES_IN_FLIGHT};
+static constexpr VkDescriptorPoolSize UNIFORM_BUFFER_POOL_SIZE{
+    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    MAX_FRAMES_IN_FLIGHT};
+
+static constexpr VkDescriptorPoolSize SAMPLER_BUFFER_POOL_SIZE{
+    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+	MAX_FRAMES_IN_FLIGHT};
 
 static constexpr std::array<glm::vec3, 24> CUBE_VERTICES = {
     glm::vec3{0.0f, 0.0f, 0.0f},
