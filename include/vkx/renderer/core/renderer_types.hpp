@@ -1,25 +1,7 @@
 #pragma once
 
 namespace vkx {
-class RendererContext;
-
-class RendererBootstrap;
-
 struct Vertex;
-
-template <class T>
-class Allocable;
-
-template <class T>
-class Allocation;
-
-class Allocator;
-
-class BufferBase;
-
-class VertexBuffer;
-
-class IndexBuffer;
 
 class Image;
 
@@ -28,10 +10,6 @@ class UniformBuffer;
 class CommandSubmitter;
 
 class Device;
-
-class SingleTimeCommand;
-
-class DrawCommand;
 
 class Swapchain;
 
