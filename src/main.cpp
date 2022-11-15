@@ -437,7 +437,7 @@ int main(void) {
 	}
 	vkDeviceWaitIdle(logicalDevice);
 
-	for (auto& syncObject : syncObjects) {
+	for (const auto& syncObject : syncObjects) {
 		syncObject.destroy();
 	}
 
