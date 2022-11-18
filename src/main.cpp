@@ -198,7 +198,6 @@ int main(int argc, char** argv) {
 	const auto syncObjects = vkx::createSyncObjects(logicalDevice);
 
 	vkx::VoxelChunk<16> chunk{{0, 0, 0}};
-	SDL_Log("%zu", sizeof(chunk));
 	for (int j = 0; j < 10; j++) {
 		for (int k = 0; k < 4; k++) {
 			for (int i = 0; i < 14; i++) {
