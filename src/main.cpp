@@ -128,7 +128,7 @@ auto getAttributeDescriptions() noexcept {
 	return attributeDescriptions;
 }
 
-int main(void) {
+int main(int argc, char** argv) {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0) {
 		return EXIT_FAILURE;
 	}
@@ -139,6 +139,7 @@ int main(void) {
 
 	SDL_Window* window = SDL_CreateWindow("vkx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
 	if (window == nullptr) {
+		SDL_Log("%s", SDL_GetError());
 		return EXIT_FAILURE;
 	}
 
@@ -197,6 +198,7 @@ int main(void) {
 	const auto syncObjects = vkx::createSyncObjects(logicalDevice);
 
 	vkx::VoxelChunk<16> chunk{{0, 0, 0}};
+	SDL_Log("%zu", sizeof(chunk));
 	for (int j = 0; j < 10; j++) {
 		for (int k = 0; k < 4; k++) {
 			for (int i = 0; i < 14; i++) {
@@ -208,7 +210,7 @@ int main(void) {
 	chunk.greedy();
 
 	vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
-	mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
+	mesh.indexCount = static_cast<std::uint32_t>(std::distance(chunk.indices.begin(), chunk.indexIter));
 
 	const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
@@ -381,7 +383,7 @@ int main(void) {
 					chunk.greedy();
 					std::memcpy(mesh.vertexAllocationInfo.pMappedData, chunk.vertices.data(), mesh.vertexAllocationInfo.size);
 					std::memcpy(mesh.indexAllocationInfo.pMappedData, chunk.indices.data(), mesh.indexAllocationInfo.size);
-					mesh.indexCount = std::distance(chunk.indices.begin(), chunk.indexIter);
+					mesh.indexCount = static_cast<std::uint32_t>(std::distance(chunk.indices.begin(), chunk.indexIter));
 				}
 			} break;
 			default:

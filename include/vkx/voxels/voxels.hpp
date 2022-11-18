@@ -52,6 +52,8 @@ public:
 
 	explicit VoxelChunk(const glm::vec3& chunkPosition)
 	    : chunkPosition(chunkPosition) {
+		vertices.resize(size * size * size * 4);
+		indices.resize(size * size * size * 6);
 		std::fill(voxels.begin(), voxels.end(), Voxel::Stone);
 		for (std::int32_t i = 0; i < size; i++) {
 			if (i % 3 == 0) {
@@ -95,6 +97,7 @@ public:
 		vertexCount = 0;
 
 		vertexIter = vertices.begin();
+
 		indexIter = indices.begin();
 
 		Mask mask;
@@ -119,13 +122,13 @@ public:
 		}
 	}
 
-	std::array<vkx::Vertex, size * size * size * 4> vertices;
-	std::array<std::uint32_t, size * size * size * 6> indices;
+	std::vector<vkx::Vertex> vertices;
+	std::vector<std::uint32_t> indices;
 
 	std::uint32_t vertexCount = 0;
 
-	vkx::Vertex* vertexIter;
-	std::uint32_t* indexIter;
+	std::vector<vkx::Vertex>::iterator vertexIter;
+	std::vector<std::uint32_t>::iterator indexIter;
 
 	std::array<Voxel, size * size * size> voxels;
 	glm::ivec3 chunkPosition = glm::vec3(0);

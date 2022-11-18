@@ -17,6 +17,8 @@ public:
 		indexAllocation = vkx::allocateBuffer(&indexAllocationInfo, &indexBuffer, allocator, indices.data(), sizeof(U) * Y, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 	}
 
+	explicit Mesh(const std::vector<vkx::Vertex>& vertices, const std::vector<std::uint32_t>& indices, VmaAllocator allocator);
+
 	void destroy(VmaAllocator allocator) const;
 
 	VkBuffer vertexBuffer = nullptr;
