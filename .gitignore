@@ -18,5 +18,6 @@ stb_image.h
 .cache
 compile_commands.json
 
-# For vscode users
+# For Microsoft development environments
 .vscode
+.vs
