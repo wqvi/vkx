@@ -29,8 +29,9 @@ target_link_libraries(vkx
 		Vulkan::Vulkan
 		VulkanMemoryAllocator
 		glm::glm
-		SDL2
-		)
+        $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+        $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+)
 
 target_include_directories(vkx
         PUBLIC
