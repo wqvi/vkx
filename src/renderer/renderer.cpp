@@ -53,7 +53,7 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	instanceCreateInfo.pNext = &debugUtilsMessengerCreateInfo;
 #endif
 
-	return create<VkInstance>(
+	return vkx::create<VkInstance>(
 	    vkCreateInstance, [](auto result) { if (result == VK_ERROR_LAYER_NOT_PRESENT) {
 		throw std::runtime_error("Instance layer not present.");
 	}
@@ -76,15 +76,11 @@ VkSurfaceKHR vkx::createSurface(SDL_Window* const window, VkInstance instance) {
 }
 
 VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR surface) {
-	std::uint32_t count = 0;
-	if (vkEnumeratePhysicalDevices(instance, &count, nullptr) != VK_SUCCESS) {
-		throw std::runtime_error("Failure to get count of physical devices.");
-	}
-
-	std::vector<VkPhysicalDevice> physicalDevices{count};
-	if (vkEnumeratePhysicalDevices(instance, &count, physicalDevices.data()) != VK_SUCCESS) {
-		throw std::runtime_error("Failure to enumerate physical devices.");
-	}
+	const auto physicalDevices = vkx::getArray<VkPhysicalDevice>(
+	    "Failed to enumerate physical devices.", 
+		vkEnumeratePhysicalDevices, 
+		[](auto a) { return a != VK_SUCCESS; },
+		instance);
 
 	std::optional<VkPhysicalDevice> physicalDevice;
 	std::uint32_t bestRating = 0;
@@ -101,8 +97,7 @@ VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR su
 			currentRating++;
 		}
 
-		VkPhysicalDeviceFeatures features{};
-		vkGetPhysicalDeviceFeatures(pDevice, &features);
+		const auto features = vkx::getObject<VkPhysicalDeviceFeatures>(vkGetPhysicalDeviceFeatures, pDevice);
 
 		if (features.samplerAnisotropy) {
 			currentRating++;
@@ -179,8 +174,7 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 
 VkFormat vkx::findSupportedFormat(VkPhysicalDevice physicalDevice, VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates) {
 	for (const auto format : candidates) {
-		VkFormatProperties formatProps{};
-		vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProps);
+		const auto formatProps = vkx::getObject<VkFormatProperties>(vkGetPhysicalDeviceFormatProperties, physicalDevice, format);
 
 		const bool isLinear = tiling == VK_IMAGE_TILING_LINEAR && (formatProps.linearTilingFeatures & features) == features;
 		const bool isOptimal = tiling == VK_IMAGE_TILING_OPTIMAL && (formatProps.optimalTilingFeatures & features) == features;
@@ -320,7 +314,7 @@ VkRenderPass vkx::createRenderPass(VkPhysicalDevice physicalDevice, VkDevice dev
 	return renderPass;
 }
 
-[[nodiscard]] std::vector<vkx::SyncObjects> vkx::createSyncObjects(VkDevice device) {
+std::vector<vkx::SyncObjects> vkx::createSyncObjects(VkDevice device) {
 	std::vector<vkx::SyncObjects> objs{vkx::MAX_FRAMES_IN_FLIGHT};
 
 	std::generate(objs.begin(), objs.end(), [&device]() { return vkx::SyncObjects{device}; });
@@ -432,13 +426,13 @@ VmaAllocation vkx::allocateImage(VmaAllocationInfo* allocationInfo, VkImage* ima
 	return allocation;
 }
 
-[[nodiscard]] VmaAllocation vkx::allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) {
+VmaAllocation vkx::allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) {
 	const VkBufferCreateInfo bufferCreateInfo{
 	    VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 	    nullptr,
 	    0,
 	    size,
-	    static_cast<VkBufferUsageFlags>(bufferUsage),
+	    bufferUsage,
 	    VK_SHARING_MODE_EXCLUSIVE,
 	    0,
 	    nullptr};
@@ -467,7 +461,7 @@ VmaAllocation vkx::allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* b
 	    nullptr,
 	    0,
 	    size,
-	    static_cast<VkBufferUsageFlags>(bufferUsage),
+	    bufferUsage,
 	    VK_SHARING_MODE_EXCLUSIVE,
 	    0,
 	    nullptr};
