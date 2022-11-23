@@ -43,7 +43,7 @@ constexpr auto index2D(T x, T y, std::size_t size) noexcept {
 
 template <std::int32_t size>
 class VoxelChunk {
-	using Mask = std::array<VoxelMask, size * size>;
+	using Mask = std::vector<vkx::VoxelMask>;
 
 public:
 	static_assert(size % 8 == 0, "Size must be a multiple of 8");
@@ -100,7 +100,7 @@ public:
 
 		indexIter = indices.begin();
 
-		Mask mask;
+		Mask mask{size * size};
 
 		for (int axis = 0; axis < 3; axis++) {
 			const int axis1 = (axis + 1) % 3;
