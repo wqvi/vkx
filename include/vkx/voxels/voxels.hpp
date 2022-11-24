@@ -52,25 +52,25 @@ public:
 
 	explicit VoxelChunk(const glm::vec3& chunkPosition)
 	    : chunkPosition(chunkPosition) {
-		vertices.resize(size * size * size * 4);
-		indices.resize(size * size * size * 6);
-		std::fill(voxels.begin(), voxels.end(), Voxel::Stone);
+		vertices.resize(static_cast<std::size_t>(size) * size * size * 4);
+		indices.resize(static_cast<std::size_t>(size) * size * size * 6);
+		std::fill(voxels.begin(), voxels.end(), vkx::Voxel::Stone);
 		for (std::int32_t i = 0; i < size; i++) {
 			if (i % 3 == 0) {
-				set(i, 0, 0, Voxel::Air);
+				set(i, 0, 0, vkx::Voxel::Air);
 			}
 		}
 
 		for (std::int32_t i = 0; i < size; i++) {
 			if (i % 3 == 0) {
-				set(i, size - 1, 0, Voxel::Air);
+				set(i, size - 1, 0, vkx::Voxel::Air);
 			}
 		}
 	}
 
 	constexpr auto at(const glm::ivec3& position) {
 		if (!validLocation(position.x, position.y, position.z)) {
-			return Voxel::Air;
+			return vkx::Voxel::Air;
 		}
 
 		return voxels[index3D(position.x, position.y, position.z, size)];
