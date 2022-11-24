@@ -32,13 +32,13 @@ constexpr void set(T array, K object, std::size_t index) {
 }
 
 template <class T>
-constexpr auto index3D(T x, T y, T z, std::size_t size) noexcept {
-	return static_cast<std::size_t>(z * size * size + y * size + x);
+constexpr auto index3D(std::size_t size, T x, T y, T z) noexcept {
+	return static_cast<std::size_t>(x) + y * size + z * size * size;
 }
 
 template <class T>
-constexpr auto index2D(T x, T y, std::size_t size) noexcept {
-	return static_cast<std::size_t>(y * size + x);
+constexpr auto index2D(std::size_t size, T x, T y) noexcept {
+	return static_cast<std::size_t>(x) + y * size;
 }
 
 template <std::int32_t size>
@@ -73,7 +73,7 @@ public:
 			return vkx::Voxel::Air;
 		}
 
-		return voxels[index3D(position.x, position.y, position.z, size)];
+		return voxels[index3D(size, position.x, position.y, position.z)];
 	}
 
 	constexpr void set(const glm::ivec3& position, Voxel voxel) {
@@ -81,7 +81,7 @@ public:
 			return;
 		}
 
-		voxels[index3D(position.x, position.y, position.z, size)] = voxel;
+		voxels[index3D(size, position.x, position.y, position.z)] = voxel;
 	}
 
 	template <class T>
@@ -90,7 +90,7 @@ public:
 			return;
 		}
 
-		voxels[index3D(x, y, z, size)] = voxel;
+		voxels[index3D(size, x, y, z)] = voxel;
 	}
 
 	void greedy() {
