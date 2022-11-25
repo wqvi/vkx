@@ -32,13 +32,20 @@ constexpr void set(T array, K object, std::size_t index) {
 }
 
 template <class T>
-constexpr auto index3D(std::size_t size, T x, T y, T z) noexcept {
-	return static_cast<std::size_t>(x) + y * size + z * size * size;
+constexpr std::size_t flattenIndex(std::size_t size, std::size_t accumulator, T index) {
+	return accumulator * index;
 }
 
-template <class T>
-constexpr auto index2D(std::size_t size, T x, T y) noexcept {
-	return static_cast<std::size_t>(x) + y * size;
+template <class T, class... Y>
+constexpr std::size_t flattenIndex(std::size_t size, std::size_t accumulator, T x, Y... indices) {
+	const auto index = flattenIndex(size, accumulator * size, indices...);
+	return static_cast<std::size_t>(x) * accumulator + index;
+}
+
+template <class T, class... Y>
+constexpr std::size_t flattenIndex(std::size_t size, T x, Y... indices) {
+	const auto index = flattenIndex(size, size, indices...);
+	return static_cast<std::size_t>(x) + index;
 }
 
 template <std::int32_t size>
@@ -73,7 +80,7 @@ public:
 			return vkx::Voxel::Air;
 		}
 
-		return voxels[index3D(size, position.x, position.y, position.z)];
+		return voxels[vkx::flattenIndex(size, position.x, position.y, position.z)];
 	}
 
 	constexpr void set(const glm::ivec3& position, Voxel voxel) {
@@ -81,7 +88,7 @@ public:
 			return;
 		}
 
-		voxels[index3D(size, position.x, position.y, position.z)] = voxel;
+		voxels[vkx::flattenIndex(size, position.x, position.y, position.z)] = voxel;
 	}
 
 	template <class T>
@@ -90,7 +97,7 @@ public:
 			return;
 		}
 
-		voxels[index3D(size, x, y, z)] = voxel;
+		voxels[vkx::flattenIndex(size, x, y, z)] = voxel;
 	}
 
 	void greedy() {
