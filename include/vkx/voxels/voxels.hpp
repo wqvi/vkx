@@ -42,6 +42,11 @@ constexpr std::size_t flattenIndex(std::size_t size, std::size_t accumulator, T 
 	return static_cast<std::size_t>(x) * accumulator + index;
 }
 
+template <class T>
+constexpr std::size_t flattenIndex(std::size_t size, T x) {
+	return static_cast<std::size_t>(x);
+}
+
 template <class T, class... Y>
 constexpr std::size_t flattenIndex(std::size_t size, T x, Y... indices) {
 	const auto index = flattenIndex(size, size, indices...);
