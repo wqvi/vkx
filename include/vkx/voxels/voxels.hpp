@@ -53,12 +53,13 @@ constexpr std::size_t flattenIndex(std::size_t size, T x, Y... indices) {
 	return static_cast<std::size_t>(x) + index;
 }
 
-template <std::int32_t size>
 class VoxelChunk {
 private:
 	using Mask = std::vector<vkx::VoxelMask>;
 
 public:
+	std::int32_t size;
+
 	glm::ivec3 chunkPosition;
 	std::vector<Voxel> voxels;
 	std::vector<vkx::Vertex> vertices;
@@ -75,19 +76,18 @@ public:
 	glm::ivec3 chunkItr;
 	glm::ivec3 axisMask;
 
-	static_assert(size % 8 == 0, "Size must be a multiple of 8");
-
 	VoxelChunk() = default;
 
-	explicit VoxelChunk(const glm::vec3& chunkPosition)
-	    : chunkPosition(chunkPosition),
+	explicit VoxelChunk(std::int32_t size, const glm::vec3& chunkPosition)
+	    : size(size),
+	      chunkPosition(chunkPosition),
 	      voxels(size * size * size, vkx::Voxel::Stone),
 	      vertices(size * size * size * 4),
 	      indices(size * size * size * 6),
 	      vertexCount(0),
 	      vertexIter(vertices.begin()),
 	      indexIter(indices.begin()),
-	      normalizedPosition(glm::ivec3(chunkPosition) * static_cast<std::int32_t>(size)),
+	      normalizedPosition(glm::ivec3(chunkPosition) * size),
 	      mask(size * size),
 	      chunkItr(0),
 	      axisMask(0) {
@@ -104,7 +104,7 @@ public:
 		}
 	}
 
-	constexpr auto at(const glm::ivec3& position) {
+	vkx::Voxel at(const glm::ivec3& position) {
 		if (!validLocation(position.x, position.y, position.z)) {
 			return vkx::Voxel::Air;
 		}
@@ -112,7 +112,7 @@ public:
 		return voxels[vkx::flattenIndex(size, position.x, position.y, position.z)];
 	}
 
-	constexpr void set(const glm::ivec3& position, Voxel voxel) {
+	void set(const glm::ivec3& position, vkx::Voxel voxel) {
 		if (!validLocation(position.x, position.y, position.z)) {
 			return;
 		}
@@ -138,8 +138,8 @@ public:
 			const auto axis1 = (axis + 1) % 3;
 			const auto axis2 = (axis + 2) % 3;
 
-			chunkItr = {0};
-			axisMask = {0};
+			chunkItr = glm::ivec3{0};
+			axisMask = glm::ivec3{0};
 
 			axisMask[axis] = 1;
 			chunkItr[axis] = -1;
@@ -155,7 +155,7 @@ public:
 	}
 
 private:
-	static constexpr bool validLocation(std::int32_t x, std::int32_t y, std::int32_t z) {
+	bool validLocation(std::int32_t x, std::int32_t y, std::int32_t z) {
 		return x >= 0 && x < size && y >= 0 && y < size && z >= 0 && z < size;
 	}
 
