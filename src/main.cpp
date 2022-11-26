@@ -229,7 +229,7 @@ int main(int argc, char** argv) {
 	bool framebufferResized = false;
 	SDL_ShowWindow(window);
 	while (isRunning) {
-		camera.position += camera.direction * 0.001f;
+		camera.position += camera.direction * 0.01f;
 
 		auto& mvpBuffer = mvpBuffers[currentFrame];
 		auto mvp = vkx::MVP{glm::mat4(1.0f), camera.viewMatrix(), proj};
