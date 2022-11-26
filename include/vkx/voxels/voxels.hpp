@@ -180,7 +180,7 @@ private:
 		}
 	}
 
-	static auto computeWidth(const Mask& mask, const VoxelMask& currentMask, int i, int n) {
+	auto computeWidth(const VoxelMask& currentMask, int i, int n) {
 		int width = 1;
 
 		while (i + width < size && mask[n + width] == currentMask) {
@@ -190,7 +190,7 @@ private:
 		return width;
 	}
 
-	static auto computeHeight(const Mask& mask, const VoxelMask& currentMask, int j, int n, int width) {
+	auto computeHeight(const VoxelMask& currentMask, int j, int n, int width) {
 		int height = 1;
 		bool done = false;
 
@@ -214,10 +214,10 @@ private:
 		return height;
 	}
 
-	static void clear(Mask& mask, int width, int height, int n) {
+	void clear(int width, int height, int n) {
 		for (int l = 0; l < height; l++) {
 			for (int k = 0; k < width; k++) {
-				mask[n + k + l * size] = VoxelMask{Voxel::Air, 0};
+				mask[n + k + l * size] = vkx::VoxelMask{vkx::Voxel::Air, 0};
 			}
 		}
 	}
@@ -231,13 +231,13 @@ private:
 					chunkItr[axis1] = i;
 					chunkItr[axis2] = j;
 
-					const int width = computeWidth(mask, currentMask, i, n);
+					const int width = computeWidth(currentMask, i, n);
 
-					const int height = computeHeight(mask, currentMask, j, n, width);
+					const int height = computeHeight(currentMask, j, n, width);
 
 					createQuad(currentMask.normal, axisMask, width, height, chunkItr, axis1, axis2);
 
-					clear(mask, width, height, n);
+					clear(width, height, n);
 
 					i += width;
 					n += width;
@@ -252,7 +252,7 @@ private:
 	void createQuad(int normal, const glm::ivec3& axisMask, int width, int height, const glm::ivec3& pos, std::int32_t axis1, std::int32_t axis2) {
 		const auto maskNormal = axisMask * normal;
 
-		glm::ivec3 deltaAxis(0, 0, 0);
+		glm::ivec3 deltaAxis{0, 0, 0};
 		deltaAxis[axis1] = width;
 
 		const auto v1 = vkx::Vertex{normalizedPosition + -pos, {0.0f, 0.0f}, -maskNormal};
