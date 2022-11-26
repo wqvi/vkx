@@ -72,6 +72,8 @@ public:
 	glm::ivec3 normalizedPosition;
 
 	std::vector<vkx::VoxelMask> mask;
+	glm::ivec3 chunkItr;
+	glm::ivec3 axisMask;
 
 	static_assert(size % 8 == 0, "Size must be a multiple of 8");
 
@@ -86,7 +88,9 @@ public:
 	      vertexIter(vertices.begin()),
 	      indexIter(indices.begin()),
 	      normalizedPosition(glm::ivec3(chunkPosition) * static_cast<std::int32_t>(size)),
-	      mask(size * size) {
+	      mask(size * size),
+	      chunkItr(0),
+	      axisMask(0) {
 		for (std::int32_t i = 0; i < size; i++) {
 			if (i % 3 == 0) {
 				set(i, 0, 0, vkx::Voxel::Air);
@@ -134,18 +138,18 @@ public:
 			const auto axis1 = (axis + 1) % 3;
 			const auto axis2 = (axis + 2) % 3;
 
-			glm::ivec3 chunkItr{0};
-			glm::ivec3 axisMask{0};
+			chunkItr = {0};
+			axisMask = {0};
 
 			axisMask[axis] = 1;
 			chunkItr[axis] = -1;
 
 			while (chunkItr[axis] < size) {
-				computeMask(chunkItr, axisMask, axis1, axis2);
+				computeMask(axis1, axis2);
 
 				chunkItr[axis]++;
 
-				computeMesh(chunkItr, axisMask, axis1, axis2);
+				computeMesh(axis1, axis2);
 			}
 		}
 	}
@@ -155,7 +159,7 @@ private:
 		return x >= 0 && x < size && y >= 0 && y < size && z >= 0 && z < size;
 	}
 
-	void computeMask(glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
+	void computeMask(int axis1, int axis2) {
 		int n = 0;
 		for (chunkItr[axis2] = 0; chunkItr[axis2] < size; chunkItr[axis2]++) {
 			for (chunkItr[axis1] = 0; chunkItr[axis1] < size; chunkItr[axis1]++) {
@@ -218,7 +222,7 @@ private:
 		}
 	}
 
-	void computeMesh(glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
+	void computeMesh(int axis1, int axis2) {
 		int n = 0;
 		for (int j = 0; j < size; j++) {
 			for (int i = 0; i < size;) {
