@@ -59,12 +59,12 @@ private:
 	using Mask = std::vector<vkx::VoxelMask>;
 
 public:
-	glm::ivec3 chunkPosition = glm::vec3(0);
+	glm::ivec3 chunkPosition;
 	std::vector<Voxel> voxels;
 	std::vector<vkx::Vertex> vertices;
 	std::vector<std::uint32_t> indices;
 
-	std::uint32_t vertexCount = 0;
+	std::uint32_t vertexCount;
 
 	std::vector<vkx::Vertex>::iterator vertexIter;
 	std::vector<std::uint32_t>::iterator indexIter;
@@ -80,6 +80,9 @@ public:
 	      voxels(size * size * size, vkx::Voxel::Stone),
 	      vertices(size * size * size * 4),
 	      indices(size * size * size * 6),
+	      vertexCount(0),
+	      vertexIter(vertices.begin()),
+	      indexIter(indices.begin()),
 	      normalizedPosition(glm::ivec3(chunkPosition) * static_cast<std::int32_t>(size)) {
 		for (std::int32_t i = 0; i < size; i++) {
 			if (i % 3 == 0) {
@@ -123,7 +126,6 @@ public:
 		vertexCount = 0;
 
 		vertexIter = vertices.begin();
-
 		indexIter = indices.begin();
 
 		Mask mask{size * size};
