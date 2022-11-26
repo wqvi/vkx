@@ -55,18 +55,32 @@ constexpr std::size_t flattenIndex(std::size_t size, T x, Y... indices) {
 
 template <std::int32_t size>
 class VoxelChunk {
+private:
 	using Mask = std::vector<vkx::VoxelMask>;
 
 public:
+	glm::ivec3 chunkPosition = glm::vec3(0);
+	std::vector<Voxel> voxels;
+	std::vector<vkx::Vertex> vertices;
+	std::vector<std::uint32_t> indices;
+
+	std::uint32_t vertexCount = 0;
+
+	std::vector<vkx::Vertex>::iterator vertexIter;
+	std::vector<std::uint32_t>::iterator indexIter;
+
+	glm::ivec3 normalizedPosition;
+
 	static_assert(size % 8 == 0, "Size must be a multiple of 8");
-	
+
 	VoxelChunk() = default;
 
 	explicit VoxelChunk(const glm::vec3& chunkPosition)
-	    : chunkPosition(chunkPosition) {
-		vertices.resize(static_cast<std::size_t>(size) * size * size * 4);
-		indices.resize(static_cast<std::size_t>(size) * size * size * 6);
-		std::fill(voxels.begin(), voxels.end(), vkx::Voxel::Stone);
+	    : chunkPosition(chunkPosition),
+	      voxels(size * size * size, vkx::Voxel::Stone),
+	      vertices(size * size * size * 4),
+	      indices(size * size * size * 6),
+	      normalizedPosition(glm::ivec3(chunkPosition) * static_cast<std::int32_t>(size)) {
 		for (std::int32_t i = 0; i < size; i++) {
 			if (i % 3 == 0) {
 				set(i, 0, 0, vkx::Voxel::Air);
@@ -133,18 +147,6 @@ public:
 			}
 		}
 	}
-
-	std::vector<vkx::Vertex> vertices;
-	std::vector<std::uint32_t> indices;
-
-	std::uint32_t vertexCount = 0;
-
-	std::vector<vkx::Vertex>::iterator vertexIter;
-	std::vector<std::uint32_t>::iterator indexIter;
-
-	std::array<Voxel, size * size * size> voxels;
-	glm::ivec3 chunkPosition = glm::vec3(0);
-	glm::ivec3 normalizedPosition = chunkPosition * static_cast<std::int32_t>(size);
 
 private:
 	static constexpr bool validLocation(std::int32_t x, std::int32_t y, std::int32_t z) {
