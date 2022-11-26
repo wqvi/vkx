@@ -198,9 +198,9 @@ int main(int argc, char** argv) {
 	const auto syncObjects = vkx::createSyncObjects(logicalDevice);
 
 	vkx::VoxelChunk chunk{8, {0, 0, 0}};
-	for (int j = 0; j < 10; j++) {
-		for (int k = 0; k < 4; k++) {
-			for (int i = 0; i < 14; i++) {
+	for (int j = 0; j < 3; j++) {
+		for (int k = 0; k < 2; k++) {
+			for (int i = 0; i < 2; i++) {
 				chunk.set(j, k, i, vkx::Voxel::Air);
 			}
 		}
