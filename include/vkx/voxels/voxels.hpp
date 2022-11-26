@@ -71,6 +71,8 @@ public:
 
 	glm::ivec3 normalizedPosition;
 
+	std::vector<vkx::VoxelMask> mask;
+
 	static_assert(size % 8 == 0, "Size must be a multiple of 8");
 
 	VoxelChunk() = default;
@@ -83,7 +85,8 @@ public:
 	      vertexCount(0),
 	      vertexIter(vertices.begin()),
 	      indexIter(indices.begin()),
-	      normalizedPosition(glm::ivec3(chunkPosition) * static_cast<std::int32_t>(size)) {
+	      normalizedPosition(glm::ivec3(chunkPosition) * static_cast<std::int32_t>(size)),
+	      mask(size * size) {
 		for (std::int32_t i = 0; i < size; i++) {
 			if (i % 3 == 0) {
 				set(i, 0, 0, vkx::Voxel::Air);
@@ -124,15 +127,12 @@ public:
 
 	void greedy() {
 		vertexCount = 0;
-
 		vertexIter = vertices.begin();
 		indexIter = indices.begin();
 
-		Mask mask{size * size};
-
-		for (int axis = 0; axis < 3; axis++) {
-			const int axis1 = (axis + 1) % 3;
-			const int axis2 = (axis + 2) % 3;
+		for (std::int32_t axis = 0; axis < 3; axis++) {
+			const auto axis1 = (axis + 1) % 3;
+			const auto axis2 = (axis + 2) % 3;
 
 			glm::ivec3 chunkItr{0};
 			glm::ivec3 axisMask{0};
@@ -141,11 +141,11 @@ public:
 			chunkItr[axis] = -1;
 
 			while (chunkItr[axis] < size) {
-				computeMask(mask, chunkItr, axisMask, axis1, axis2);
+				computeMask(chunkItr, axisMask, axis1, axis2);
 
 				chunkItr[axis]++;
 
-				computeMesh(mask, chunkItr, axisMask, axis1, axis2);
+				computeMesh(chunkItr, axisMask, axis1, axis2);
 			}
 		}
 	}
@@ -155,7 +155,7 @@ private:
 		return x >= 0 && x < size && y >= 0 && y < size && z >= 0 && z < size;
 	}
 
-	void computeMask(Mask& mask, glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
+	void computeMask(glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
 		int n = 0;
 		for (chunkItr[axis2] = 0; chunkItr[axis2] < size; chunkItr[axis2]++) {
 			for (chunkItr[axis1] = 0; chunkItr[axis1] < size; chunkItr[axis1]++) {
@@ -218,7 +218,7 @@ private:
 		}
 	}
 
-	void computeMesh(Mask& mask, glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
+	void computeMesh(glm::ivec3& chunkItr, const glm::ivec3& axisMask, int axis1, int axis2) {
 		int n = 0;
 		for (int j = 0; j < size; j++) {
 			for (int i = 0; i < size;) {
