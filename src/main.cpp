@@ -197,10 +197,10 @@ int main(int argc, char** argv) {
 
 	const auto syncObjects = vkx::createSyncObjects(logicalDevice);
 
-	vkx::VoxelChunk<16> chunk{{0, 0, 0}};
-	for (int j = 0; j < 10; j++) {
-		for (int k = 0; k < 4; k++) {
-			for (int i = 0; i < 14; i++) {
+	vkx::VoxelChunk chunk{8, {0, 0, 0}};
+	for (int j = 0; j < 3; j++) {
+		for (int k = 0; k < 2; k++) {
+			for (int i = 0; i < 2; i++) {
 				chunk.set(j, k, i, vkx::Voxel::Air);
 			}
 		}
@@ -229,7 +229,7 @@ int main(int argc, char** argv) {
 	bool framebufferResized = false;
 	SDL_ShowWindow(window);
 	while (isRunning) {
-		camera.position += camera.direction * 0.001f;
+		camera.position += camera.direction * 0.01f;
 
 		auto& mvpBuffer = mvpBuffers[currentFrame];
 		auto mvp = vkx::MVP{glm::mat4(1.0f), camera.viewMatrix(), proj};
