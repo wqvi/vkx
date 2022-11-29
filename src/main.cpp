@@ -223,10 +223,70 @@ int main(int argc, char** argv) {
 
 	auto highlightModel = glm::mat4(1.0f);
 
-	std::uint32_t currentFrame = 0;
 	SDL_Event event{};
 	bool isRunning = true;
+	std::uint32_t currentFrame = 0;
 	bool framebufferResized = false;
+
+	const auto sdlQuitEvent = [&isRunning]() {
+		isRunning = false;
+	};
+
+	const auto sdlWindowResizedEvent = [&framebufferResized, &proj](std::int32_t width, std::int32_t height) {
+		framebufferResized = true;
+		proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
+	};
+
+	const auto sdlWindowEvent = [&sdlWindowResizedEvent](SDL_WindowEvent window) {
+		if (window.event == SDL_WINDOWEVENT_RESIZED) {
+			const auto width = window.data1;
+			const auto height = window.data2;
+			sdlWindowResizedEvent(static_cast<std::int32_t>(width), static_cast<std::int32_t>(height));
+		}
+	};
+
+	const auto sdlMouseMotionEvent = [&camera, &chunk, &highlightModel](SDL_MouseMotionEvent motion) {
+		camera.updateMouse({-motion.xrel, -motion.yrel});
+		const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
+
+		const auto raycastResult = vkx::raycast(origin, camera.front, 4.0f, [&chunk](const auto& b) {
+			return chunk.at(b) != vkx::Voxel::Air;
+		});
+
+		if (raycastResult.success) {
+			highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
+		}
+	};
+
+	const auto sdlMousePressedEvent = [&camera, &chunk, &mesh](SDL_MouseButtonEvent button) {
+		const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
+		const auto raycastResult = vkx::raycast(origin, camera.front, 4.0f, [&chunk](const auto& b) {
+			return chunk.at(b) != vkx::Voxel::Air;
+		});
+
+		if (raycastResult.success) {
+			chunk.set(raycastResult.hitPos, vkx::Voxel::Air);
+			chunk.greedy();
+			std::memcpy(mesh.vertexAllocationInfo.pMappedData, chunk.vertices.data(), mesh.vertexAllocationInfo.size);
+			std::memcpy(mesh.indexAllocationInfo.pMappedData, chunk.indices.data(), mesh.indexAllocationInfo.size);
+			mesh.indexCount = static_cast<std::uint32_t>(std::distance(chunk.indices.begin(), chunk.indexIter));
+		}
+	};
+
+	const auto sdlKeyPressedEvent = [&camera, &isRunning](SDL_KeyboardEvent key) {
+		if (key.keysym.sym == SDLK_ESCAPE) {
+			isRunning = false;
+		} else {
+			camera.updateKey(key.keysym.sym);
+		}
+	};
+
+	const auto sdlKeyReleasedEvent = [&camera](SDL_KeyboardEvent key) {
+		if (key.keysym.sym != SDLK_ESCAPE) {
+			camera.direction = glm::vec3(0);
+		}
+	};
+
 	SDL_ShowWindow(window);
 	while (isRunning) {
 		camera.position += camera.direction * 0.01f;
@@ -338,53 +398,28 @@ int main(int argc, char** argv) {
 
 		currentFrame = (currentFrame + 1) % vkx::MAX_FRAMES_IN_FLIGHT;
 
-		vkx::RaycastResult raycastResult{};
-		auto a = [&chunk](const auto& b) {
-			return chunk.at(b) != vkx::Voxel::Air;
-		};
 		while (SDL_PollEvent(&event)) {
-			switch (event.type) {
+			const auto eventType = event.type;
+
+			switch (eventType) {
 			case SDL_QUIT:
-				isRunning = false;
+				sdlQuitEvent();
 				break;
 			case SDL_WINDOWEVENT:
-				if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-					framebufferResized = true;
-					int width = event.window.data1;
-					int height = event.window.data2;
-					proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
-				}
+				sdlWindowEvent(event.window);
 				break;
-			case SDL_MOUSEMOTION: {
-				camera.updateMouse({-event.motion.xrel, -event.motion.yrel});
-				const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
-
-				raycastResult = vkx::raycast(origin, camera.front, 4.0f, a);
-				if (raycastResult.success) {
-					highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
-				}
-			} break;
-			case SDL_KEYDOWN: {
-				camera.updateKey(event.key.keysym.sym);
-
-				if (event.key.keysym.sym == SDLK_ESCAPE) {
-					isRunning = false;
-				}
-			} break;
+			case SDL_MOUSEMOTION:
+				sdlMouseMotionEvent(event.motion);
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				sdlMousePressedEvent(event.button);
+				break;
+			case SDL_KEYDOWN:
+				sdlKeyPressedEvent(event.key);
+				break;
 			case SDL_KEYUP:
-				camera.direction = glm::vec3(0);
+				sdlKeyReleasedEvent(event.key);
 				break;
-			case SDL_MOUSEBUTTONDOWN: {
-				const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
-				raycastResult = vkx::raycast(origin, camera.front, 4.0f, a);
-				if (raycastResult.success) {
-					chunk.set(raycastResult.hitPos, vkx::Voxel::Air);
-					chunk.greedy();
-					std::memcpy(mesh.vertexAllocationInfo.pMappedData, chunk.vertices.data(), mesh.vertexAllocationInfo.size);
-					std::memcpy(mesh.indexAllocationInfo.pMappedData, chunk.indices.data(), mesh.indexAllocationInfo.size);
-					mesh.indexCount = static_cast<std::uint32_t>(std::distance(chunk.indices.begin(), chunk.indexIter));
-				}
-			} break;
 			default:
 				break;
 			}
