@@ -273,6 +273,8 @@ int main(int argc, char** argv) {
 		}
 	};
 
+	const auto sdlMouseReleasedEvent = [](SDL_MouseButtonEvent button) {};
+
 	const auto sdlKeyPressedEvent = [&camera, &isRunning](SDL_KeyboardEvent key) {
 		if (key.keysym.sym == SDLK_ESCAPE) {
 			isRunning = false;
@@ -413,6 +415,9 @@ int main(int argc, char** argv) {
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				sdlMousePressedEvent(event.button);
+				break;
+			case SDL_MOUSEBUTTONUP:
+				sdlMouseReleasedEvent(event.button);
 				break;
 			case SDL_KEYDOWN:
 				sdlKeyPressedEvent(event.key);
