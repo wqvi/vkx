@@ -228,10 +228,6 @@ int main(int argc, char** argv) {
 	std::uint32_t currentFrame = 0;
 	bool framebufferResized = false;
 
-	const auto sdlQuitEvent = [&isRunning]() {
-		isRunning = false;
-	};
-
 	const auto sdlWindowResizedEvent = [&framebufferResized, &proj](std::int32_t width, std::int32_t height) {
 		framebufferResized = true;
 		proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
@@ -405,7 +401,7 @@ int main(int argc, char** argv) {
 
 			switch (eventType) {
 			case SDL_QUIT:
-				sdlQuitEvent();
+				isRunning = false;
 				break;
 			case SDL_WINDOWEVENT:
 				sdlWindowEvent(event.window);
