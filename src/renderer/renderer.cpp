@@ -15,7 +15,8 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	    VK_API_VERSION_1_0};
 
 #ifdef RELEASE
-	const auto instanceExtensions = vkx::getArray<const char*>("Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, window);
+	const auto instanceExtensions = vkx::getArray<const char*>(
+	    "Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, window);
 #else
 	auto instanceExtensions = vkx::getArray<const char*>(
 	    "Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, window);
@@ -78,10 +79,10 @@ VkSurfaceKHR vkx::createSurface(SDL_Window* const window, VkInstance instance) {
 
 VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR surface) {
 	const auto physicalDevices = vkx::getArray<VkPhysicalDevice>(
-	    "Failed to enumerate physical devices.", 
-		vkEnumeratePhysicalDevices, 
-		[](auto a) { return a != VK_SUCCESS; },
-		instance);
+	    "Failed to enumerate physical devices.",
+	    vkEnumeratePhysicalDevices,
+	    [](auto a) { return a != VK_SUCCESS; },
+	    instance);
 
 	std::optional<VkPhysicalDevice> physicalDevice;
 	std::uint32_t bestRating = 0;
@@ -340,17 +341,17 @@ VkSwapchainKHR vkx::createSwapchain(VkDevice device, VkSurfaceKHR surface, SDL_W
 	    0,
 	    surface,
 	    imageCount,
-	    static_cast<VkFormat>(surfaceFormat.format),
-	    static_cast<VkColorSpaceKHR>(surfaceFormat.colorSpace),
-	    static_cast<VkExtent2D>(actualExtent),
+	    surfaceFormat.format,
+	    surfaceFormat.colorSpace,
+	    actualExtent,
 	    1,
 	    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-	    static_cast<VkSharingMode>(imageSharingMode),
+	    imageSharingMode,
 	    static_cast<std::uint32_t>(config.indices.size()),
 	    config.indices.data(),
-	    static_cast<VkSurfaceTransformFlagBitsKHR>(info.capabilities.currentTransform),
+	    info.capabilities.currentTransform,
 	    VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-	    static_cast<VkPresentModeKHR>(presentMode),
+	    presentMode,
 	    true};
 
 	VkSwapchainKHR swapchain = nullptr;
