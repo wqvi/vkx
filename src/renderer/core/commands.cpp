@@ -1,13 +1,13 @@
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
-#include <vkx/renderer/core/renderer_types.hpp>
+#include <vkx/renderer/renderer.hpp>
 
 vkx::CommandSubmitter::CommandSubmitter(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface)
     : device(device) {
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 
-	vkGetDeviceQueue(device, *queueConfig.graphicsIndex, 0, &graphicsQueue);
-	vkGetDeviceQueue(device, *queueConfig.presentIndex, 0, &presentQueue);
+	graphicsQueue = vkx::getObject<VkQueue>(vkGetDeviceQueue, device, *queueConfig.graphicsIndex, 0);
+	presentQueue = vkx::getObject<VkQueue>(vkGetDeviceQueue, device, *queueConfig.presentIndex, 0);
 
 	const VkCommandPoolCreateInfo commandPoolCreateInfo{
 	    VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -15,9 +15,14 @@ vkx::CommandSubmitter::CommandSubmitter(VkPhysicalDevice physicalDevice, VkDevic
 	    VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
 	    *queueConfig.graphicsIndex};
 
-	if (vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create command pool");
-	}
+	commandPool = vkx::create<VkCommandPool>(
+	    vkCreateCommandPool,
+	    [](auto result) {
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failed to create command pool");
+		    }
+	    },
+	    device, &commandPoolCreateInfo, nullptr);
 }
 
 void vkx::CommandSubmitter::submitImmediately(const std::function<void(VkCommandBuffer)>& command) const {
@@ -43,7 +48,7 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(VkCommand
 		throw std::runtime_error("Failed to begin command buffer");
 	}
 
-	command(static_cast<VkCommandBuffer>(commandBuffer));
+	command(commandBuffer);
 
 	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to end command buffer");
@@ -90,7 +95,7 @@ void vkx::CommandSubmitter::copyBufferToImage(VkBuffer buffer, VkImage image, st
 	    imageOffset,
 	    imageExtent};
 
-	submitImmediately([&buffer, &image, &region](VkCommandBuffer commandBuffer) {
+	submitImmediately([&buffer, &image, &region](auto commandBuffer) {
 		vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 	});
 }
@@ -137,7 +142,7 @@ void vkx::CommandSubmitter::transitionImageLayout(VkImage image, VkImageLayout o
 	    image,
 	    subresourceRange};
 
-	submitImmediately([&sourceStage, &destinationStage, &barrier](VkCommandBuffer commandBuffer) {
+	submitImmediately([&sourceStage, &destinationStage, &barrier](auto commandBuffer) {
 		vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 	});
 }
@@ -186,7 +191,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const VkCommandBuffer* beg
 
 	const VkRect2D renderArea{
 	    {0, 0},
-	    static_cast<VkExtent2D>(extent)};
+	    extent};
 
 	const VkClearColorValue clearColor{0.0f, 0.0f, 0.0f, 1.0f};
 	const VkClearDepthStencilValue clearDepthStencil{1.0f, 0};
@@ -230,9 +235,9 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const VkCommandBuffer* beg
 		vkCmdSetScissor(commandBuffer, 0, 1, &renderArea);
 
 		const VkDeviceSize offsets[1] = {0};
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, reinterpret_cast<const VkBuffer*>(&vertexBuffer), offsets);
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
 
-		vkCmdBindIndexBuffer(commandBuffer, static_cast<VkBuffer>(indexBuffer), 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawInfo.graphicsPipeline->pipelineLayout, 0, 1, &drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], 0, nullptr);
 
@@ -318,9 +323,9 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const VkCommandBuffer* b
 			vkCmdSetScissor(secondaryCommandBuffer, 0, 1, &renderArea);
 
 			const VkDeviceSize offsets[1] = {0};
-			vkCmdBindVertexBuffers(secondaryCommandBuffer, 0, 1, reinterpret_cast<const VkBuffer*>(&vertexBuffer), offsets);
+			vkCmdBindVertexBuffers(secondaryCommandBuffer, 0, 1, &vertexBuffer, offsets);
 
-			vkCmdBindIndexBuffer(secondaryCommandBuffer, static_cast<VkBuffer>(indexBuffer), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(secondaryCommandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 			vkCmdBindDescriptorSets(secondaryCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawInfo.graphicsPipeline->pipelineLayout, 0, 1, &drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], 0, nullptr);
 

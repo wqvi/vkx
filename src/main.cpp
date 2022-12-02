@@ -214,11 +214,11 @@ int main(int argc, char** argv) {
 
 	const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
-	auto mvpBuffers = graphicsPipeline.getUniformByIndex(0);
-	auto lightBuffers = graphicsPipeline.getUniformByIndex(1);
-	auto materialBuffers = graphicsPipeline.getUniformByIndex(2);
+	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
+	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
+	auto& materialBuffers = graphicsPipeline.getUniformByIndex(2);
 
-	auto highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
+	auto& highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
 
 	auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
