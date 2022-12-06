@@ -40,15 +40,15 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	    instanceExtensions.data()};
 
 #ifdef DEBUG
-	constexpr auto severity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-	constexpr auto type = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	constexpr auto messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	constexpr auto messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
 	constexpr VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
 	    VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
 	    nullptr,
 	    0,
-	    severity,
-	    type,
+	    messageSeverity,
+	    messageType,
 	    [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; },
 	    nullptr};
 
@@ -77,6 +77,32 @@ VkSurfaceKHR vkx::createSurface(SDL_Window* const window, VkInstance instance) {
 	return surface;
 }
 
+std::uint32_t vkx::ratePhysicalDevice(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice) {
+	std::uint32_t rating = 0;
+
+	const vkx::QueueConfig indices{physicalDevice, surface};
+	if (indices.isComplete()) {
+		rating++;
+	}
+
+	const vkx::SwapchainInfo info{physicalDevice, surface};
+	if (info.isComplete()) {
+		rating++;
+	}
+
+	const auto features = vkx::getObject<VkPhysicalDeviceFeatures>(vkGetPhysicalDeviceFeatures, physicalDevice);
+	if (features.samplerAnisotropy) {
+		rating++;
+	}
+
+	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
+	if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+		rating++;
+	}
+
+	return rating;
+}
+
 VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR surface) {
 	const auto physicalDevices = vkx::getArray<VkPhysicalDevice>(
 	    "Failed to enumerate physical devices.",
@@ -84,38 +110,22 @@ VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR su
 	    [](auto a) { return a != VK_SUCCESS; },
 	    instance);
 
-	std::optional<VkPhysicalDevice> physicalDevice;
+	VkPhysicalDevice bestPhysicalDevice = nullptr;
 	std::uint32_t bestRating = 0;
-	for (VkPhysicalDevice pDevice : physicalDevices) {
-		std::uint32_t currentRating = 0;
-
-		const vkx::QueueConfig indices{pDevice, surface};
-		if (indices.isComplete()) {
-			currentRating++;
-		}
-
-		const vkx::SwapchainInfo info{pDevice, surface};
-		if (info.isComplete()) {
-			currentRating++;
-		}
-
-		const auto features = vkx::getObject<VkPhysicalDeviceFeatures>(vkGetPhysicalDeviceFeatures, pDevice);
-
-		if (features.samplerAnisotropy) {
-			currentRating++;
-		}
+	for (VkPhysicalDevice physicalDevice : physicalDevices) {
+		std::uint32_t currentRating = ratePhysicalDevice(surface, physicalDevice);
 
 		if (currentRating > bestRating) {
 			bestRating = currentRating;
-			physicalDevice = pDevice;
+			bestPhysicalDevice = physicalDevice;
 		}
 	}
 
-	if (!physicalDevice.has_value()) {
+	if (!bestPhysicalDevice) {
 		throw std::runtime_error("Failure to find suitable physical device!");
 	}
 
-	return *physicalDevice;
+	return bestPhysicalDevice;
 }
 
 VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice) {

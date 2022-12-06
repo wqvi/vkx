@@ -65,6 +65,8 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] VkSurfaceKHR createSurface(SDL_Window* const window, VkInstance instance);
 
+[[nodiscard]] std::uint32_t ratePhysicalDevice(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
+
 [[nodiscard]] VkPhysicalDevice getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
 
 [[nodiscard]] VkDevice createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
