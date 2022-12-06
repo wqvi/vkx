@@ -4,6 +4,12 @@
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
+#ifdef DEBUG
+static constexpr std::array<const char*, 1> layers{"VK_LAYER_KHRONOS_validation"};
+#else
+static constexpr std::array<const char*, 0> layers{};
+#endif
+
 VkInstance vkx::createInstance(SDL_Window* const window) {
 	constexpr VkApplicationInfo applicationInfo{
 	    VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -23,19 +29,13 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-#ifdef DEBUG
-	constexpr std::array instanceLayers{"VK_LAYER_KHRONOS_validation"};
-#else
-	constexpr std::array<const char*, 0> instanceLayers{};
-#endif
-
 	VkInstanceCreateInfo instanceCreateInfo{
 	    VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 	    nullptr,
 	    0,
 	    &applicationInfo,
-	    static_cast<std::uint32_t>(instanceLayers.size()),
-	    instanceLayers.data(),
+	    static_cast<std::uint32_t>(layers.size()),
+	    layers.data(),
 	    static_cast<std::uint32_t>(instanceExtensions.size()),
 	    instanceExtensions.data()};
 
@@ -137,13 +137,7 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 	VkPhysicalDeviceFeatures features{};
 	features.samplerAnisotropy = true;
 
-#ifdef DEBUG
-	constexpr std::array layers = {"VK_LAYER_KHRONOS_validation"};
-#elif defined(RELEASE)
-	constexpr std::array<const char*, 0> layers = {};
-#endif
-
-	constexpr std::array extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+	constexpr std::array deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 	const VkDeviceCreateInfo deviceCreateInfo{
 	    VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -153,8 +147,8 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 	    queueCreateInfos.data(),
 	    static_cast<std::uint32_t>(layers.size()),
 	    layers.data(),
-	    static_cast<std::uint32_t>(extensions.size()),
-	    extensions.data(),
+	    static_cast<std::uint32_t>(deviceExtensions.size()),
+	    deviceExtensions.data(),
 	    &features};
 
 	VkDevice device = nullptr;
