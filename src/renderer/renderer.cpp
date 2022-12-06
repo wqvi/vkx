@@ -56,17 +56,20 @@ VkInstance vkx::createInstance(SDL_Window* const window) {
 #endif
 
 	return vkx::create<VkInstance>(
-	    vkCreateInstance, [](auto result) { if (result == VK_ERROR_LAYER_NOT_PRESENT) {
-		throw std::runtime_error("Instance layer not present.");
-	}
+	    vkCreateInstance, [](auto result) {
+		    if (result == VK_ERROR_LAYER_NOT_PRESENT) {
+			    throw std::runtime_error("Instance layer not present.");
+		    }
 
-	if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-		throw std::runtime_error("Instance extension not present.");
-	}
+		    if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
+			    throw std::runtime_error("Instance extension not present.");
+		    }
 
-	if (result != VK_SUCCESS) {
-		throw std::runtime_error("Failure to create instance.");
-	} }, &instanceCreateInfo, nullptr);
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failure to create instance.");
+		    }
+	    },
+	    &instanceCreateInfo, nullptr);
 }
 
 VkSurfaceKHR vkx::createSurface(SDL_Window* const window, VkInstance instance) {
@@ -151,20 +154,21 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 	    deviceExtensions.data(),
 	    &features};
 
-	VkDevice device = nullptr;
-	const auto result = vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
-	if (result == VK_ERROR_LAYER_NOT_PRESENT) {
-		throw std::runtime_error("Device layer not present.");
-	}
+	return vkx::create<VkDevice>(
+	    vkCreateDevice, [](auto result) {
+		    if (result == VK_ERROR_LAYER_NOT_PRESENT) {
+			    throw std::runtime_error("Device layer not present.");
+		    }
 
-	if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-		throw std::runtime_error("Device extension not present.");
-	}
+		    if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
+			    throw std::runtime_error("Device extension not present.");
+		    }
 
-	if (result != VK_SUCCESS) {
-		throw std::runtime_error("Failure to create logical device.");
-	}
-	return device;
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failure to create logical device.");
+		    }
+	    },
+	    physicalDevice, &deviceCreateInfo, nullptr);
 }
 
 VkFormat vkx::findSupportedFormat(VkPhysicalDevice physicalDevice, VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates) {
