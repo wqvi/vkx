@@ -132,18 +132,7 @@ VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysical
 	const QueueConfig queueConfig{physicalDevice, surface};
 
 	constexpr float queuePriority = 1.0f;
-	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-	for (const std::uint32_t index : queueConfig.indices) {
-		const VkDeviceQueueCreateInfo queueCreateInfo{
-		    VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-		    nullptr,
-		    0,
-		    index,
-		    1,
-		    &queuePriority};
-
-		queueCreateInfos.push_back(queueCreateInfo);
-	}
+	const auto queueCreateInfos = queueConfig.createQueueInfos(&queuePriority);
 
 	VkPhysicalDeviceFeatures features{};
 	features.samplerAnisotropy = true;
