@@ -24,12 +24,12 @@ vkx::QueueConfig::QueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surf
 			presentIndex = i;
 		}
 
-		if (isComplete()) {
+		if (graphicsIndex && presentIndex) {
 			break;
 		}
 	}
 
-	if (isComplete()) {
+	if (graphicsIndex && presentIndex) {
 		std::set uniqueIndices{*graphicsIndex, *presentIndex};
 
 		std::copy(uniqueIndices.begin(), uniqueIndices.end(), std::back_inserter(indices));
@@ -37,15 +37,16 @@ vkx::QueueConfig::QueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surf
 }
 
 bool vkx::QueueConfig::isComplete() const {
-	return graphicsIndex.has_value() && presentIndex.has_value();
+	return graphicsIndex && presentIndex;
 }
 
 bool vkx::QueueConfig::isUniversal() const {
 	return *graphicsIndex == *presentIndex;
 }
 
-std::vector<VkDeviceQueueCreateInfo> vkx::QueueConfig::createQueueInfos(float queuePriorities) const {
+std::vector<VkDeviceQueueCreateInfo> vkx::QueueConfig::createQueueInfos(const float* queuePriorities) const {
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	queueCreateInfos.reserve(indices.size());
 	for (const std::uint32_t index : indices) {
 		const VkDeviceQueueCreateInfo queueCreateInfo{
 		    VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -53,9 +54,9 @@ std::vector<VkDeviceQueueCreateInfo> vkx::QueueConfig::createQueueInfos(float qu
 		    0,
 		    index,
 		    1,
-		    &queuePriorities};
+		    queuePriorities};
 
-		queueCreateInfos.push_back(queueCreateInfo);
+		queueCreateInfos.emplace_back(queueCreateInfo);
 	}
 
 	return queueCreateInfos;
