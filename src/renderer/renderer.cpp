@@ -204,12 +204,14 @@ VkImageView vkx::createImageView(VkDevice device, VkImage image, VkFormat format
 	    {},
 	    subresourceRange};
 
-	VkImageView imageView = nullptr;
-	if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageView)) {
-		throw std::runtime_error("Failed to create image view.");
-	}
-
-	return imageView;
+	return vkx::create<VkImageView>(
+	    vkCreateImageView,
+	    [](auto result) {
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failed to create image view.");
+		    }
+	    },
+	    device, &imageViewCreateInfo, nullptr);
 }
 
 VkSampler vkx::createTextureSampler(VkDevice device, float samplerAnisotropy) {
