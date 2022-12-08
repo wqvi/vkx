@@ -130,18 +130,18 @@ auto getAttributeDescriptions() noexcept {
 
 static SDL_Window* init() {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		SDL_Log("SDL_Init error: %s", SDL_GetError());
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Init: %s", SDL_GetError());
 		return nullptr;
 	}
 
 	if (SDL_SetRelativeMouseMode(SDL_TRUE) != 0) {
-		SDL_Log("SDL_SetRelativeMouseMode error: %s", SDL_GetError());
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_SetRelativeMouseMode: %s", SDL_GetError());
 		return nullptr;
 	}
 
 	SDL_Window* window = SDL_CreateWindow("vkx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
 	if (window == nullptr) {
-		SDL_Log("SDL_CreateWindow error: %s", SDL_GetError());
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateWindow: %s", SDL_GetError());
 		return nullptr;
 	}
 
