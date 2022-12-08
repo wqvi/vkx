@@ -235,12 +235,14 @@ VkSampler vkx::createTextureSampler(VkDevice device, float samplerAnisotropy) {
 	    VK_BORDER_COLOR_INT_OPAQUE_BLACK,
 	    false};
 
-	VkSampler sampler = nullptr;
-	if (vkCreateSampler(device, &samplerCreateInfo, nullptr, &sampler) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create texture sampler");
-	}
-
-	return sampler;
+	return vkx::create<VkSampler>(
+	    vkCreateSampler,
+	    [](auto result) {
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failed to create texture sampler.");
+		    }
+	    },
+	    device, &samplerCreateInfo, nullptr);
 }
 
 VkRenderPass vkx::createRenderPass(VkPhysicalDevice physicalDevice, VkDevice device, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout, VkAttachmentLoadOp loadOp) {
@@ -307,12 +309,14 @@ VkRenderPass vkx::createRenderPass(VkPhysicalDevice physicalDevice, VkDevice dev
 	    1,
 	    &dependency};
 
-	VkRenderPass renderPass = nullptr;
-	if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create render pass.");
-	}
-
-	return renderPass;
+	return vkx::create<VkRenderPass>(
+	    vkCreateRenderPass,
+	    [](auto result) {
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failed to create render pass.");
+		    }
+	    },
+	    device, &renderPassCreateInfo, nullptr);
 }
 
 std::vector<vkx::SyncObjects> vkx::createSyncObjects(VkDevice device) {
@@ -353,12 +357,14 @@ VkSwapchainKHR vkx::createSwapchain(VkDevice device, VkSurfaceKHR surface, SDL_W
 	    presentMode,
 	    true};
 
-	VkSwapchainKHR swapchain = nullptr;
-	if (vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchain)) {
-		throw std::runtime_error("Failed to create swapchain");
-	}
-
-	return swapchain;
+	return vkx::create<VkSwapchainKHR>(
+	    vkCreateSwapchainKHR,
+	    [](auto result) {
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failed to create swapchain.");
+		    }
+	    },
+	    device, &swapchainCreateInfo, nullptr);
 }
 
 VmaAllocator vkx::createAllocator(VkPhysicalDevice physicalDevice, VkDevice device, VkInstance instance) {
@@ -381,12 +387,14 @@ VmaAllocator vkx::createAllocator(VkPhysicalDevice physicalDevice, VkDevice devi
 	allocatorCreateInfo.pTypeExternalMemoryHandleTypes = nullptr;
 #endif
 
-	VmaAllocator allocator = nullptr;
-	if (vmaCreateAllocator(&allocatorCreateInfo, &allocator) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create vulkan memory allocator.");
-	}
-
-	return allocator;
+	return vkx::create<VmaAllocator>(
+	    vmaCreateAllocator,
+	    [](auto result) {
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failed to create vulkan memory allocator.");
+		    }
+	    },
+	    &allocatorCreateInfo);
 }
 
 VmaAllocation vkx::allocateImage(VmaAllocationInfo* allocationInfo, VkImage* image, VmaAllocator allocator, std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags imageUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) {
