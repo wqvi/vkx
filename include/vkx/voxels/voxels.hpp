@@ -84,4 +84,23 @@ private:
 
 	void createQuad(std::int32_t normal, const glm::ivec3& axisMask, std::int32_t width, std::int32_t height, const glm::ivec3& pos, std::int32_t axis1, std::int32_t axis2);
 };
+
+class VoxelChunk2D {
+public:
+	static constexpr std::size_t SIZE = 16;
+
+	explicit VoxelChunk2D(const glm::vec3& chunkPosition);
+
+	void generateTerrain();
+
+	void generateMesh();
+
+	[[nodiscard]]
+	Voxel at(std::size_t i) const;
+
+	void set(std::size_t i, Voxel voxel);
+
+private:
+	std::vector<Voxel> voxels;
+};
 } // namespace vkx

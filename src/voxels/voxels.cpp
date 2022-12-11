@@ -215,3 +215,18 @@ void vkx::VoxelChunk::createQuad(std::int32_t normal, const glm::ivec3& axisMask
 
 	vertexCount += 4;
 }
+
+vkx::VoxelChunk2D::VoxelChunk2D(const glm::vec3& chunkPosition) {
+	voxels.reserve(SIZE * SIZE);
+}
+
+void vkx::VoxelChunk2D::generateMesh() {
+}
+
+vkx::Voxel vkx::VoxelChunk2D::at(std::size_t i) const {
+
+}
+
+void vkx::VoxelChunk2D::set(std::size_t i, vkx::Voxel voxel) {
+
+}
