@@ -85,22 +85,34 @@ private:
 	void createQuad(std::int32_t normal, const glm::ivec3& axisMask, std::int32_t width, std::int32_t height, const glm::ivec3& pos, std::int32_t axis1, std::int32_t axis2);
 };
 
-class VoxelChunk2D {
-public:
-	static constexpr std::size_t SIZE = 16;
+static constexpr std::size_t CHUNK_SIZE = 16;
 
-	explicit VoxelChunk2D(const glm::vec3& chunkPosition);
+struct VoxelVertex {
+	glm::vec2 pos;
+	glm::vec2 uv;
+	glm::vec2 normal;
+};
+
+class VoxelChunk2D {
+private:
+	glm::vec2 position;
+	std::vector<vkx::Voxel> voxels;
+	std::vector<vkx::VoxelVertex> vertices;
+	std::vector<std::uint32_t> indices;
+	std::size_t vertexCount = 0;
+
+public:
+	explicit VoxelChunk2D(const glm::vec2& chunkPosition);
 
 	void generateTerrain();
 
 	void generateMesh();
 
-	[[nodiscard]]
-	Voxel at(std::size_t i) const;
+	[[nodiscard]] vkx::Voxel at(std::size_t i) const;
 
-	void set(std::size_t i, Voxel voxel);
+	void set(std::size_t i, vkx::Voxel voxel);
 
 private:
-	std::vector<Voxel> voxels;
+	void createQuad(const vkx::VoxelMask& Mask, const glm::vec3& AxisMask, int Width, int Height, const glm::vec3& V1, const glm::vec3& V2, const glm::vec3& V3, const glm::vec3& V4);
 };
 } // namespace vkx

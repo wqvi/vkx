@@ -152,6 +152,10 @@ int main(int argc, char** argv) {
 	auto* window = init();
 	assert(window != nullptr);
 
+	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
+	voxelChunk2D.generateTerrain();
+	voxelChunk2D.generateMesh();
+
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
 	const auto instance = vkx::createInstance(window);
