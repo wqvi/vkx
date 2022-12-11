@@ -377,28 +377,5 @@ void vkx::VoxelChunk2D::createQuad(const vkx::VoxelMask& Mask, const glm::vec3& 
 	indices.emplace_back(vertexCount + 1 - Mask.normal);
 	indices.emplace_back(vertexCount + 1 + Mask.normal);
 
-	/*
-	MeshData.Normals.Append({Normal,
-				 Normal,
-				 Normal,
-				 Normal});
-
-	if (Normal.X == 1 || Normal.X == -1) {
-		MeshData.UV0.Append({
-		    FVector2D(Width, Height),
-		    FVector2D(0, Height),
-		    FVector2D(Width, 0),
-		    FVector2D(0, 0),
-		});
-	} else {
-		MeshData.UV0.Append({
-		    FVector2D(Height, Width),
-		    FVector2D(Height, 0),
-		    FVector2D(0, Width),
-		    FVector2D(0, 0),
-		});
-	}
-
-	VertexCount += 4;*/
 	vertexCount += 4;
 }
