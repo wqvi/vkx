@@ -19,6 +19,8 @@ public:
 
 	explicit Mesh(const std::vector<vkx::Vertex>& vertices, const std::vector<std::uint32_t>& indices, VmaAllocator allocator);
 
+	explicit Mesh(const void* vertexData, std::size_t vertexSize, const void* indexData, std::size_t indexSize, VmaAllocator allocator);
+
 	void destroy(VmaAllocator allocator) const;
 
 	VkBuffer vertexBuffer = nullptr;

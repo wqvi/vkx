@@ -217,6 +217,40 @@ void vkx::VoxelChunk::createQuad(std::int32_t normal, const glm::ivec3& axisMask
 	vertexCount += 4;
 }
 
+vkx::VoxelVertex::VoxelVertex(const glm::vec2& pos, const glm::vec2& uv, const glm::vec2& normal)
+    : pos(pos), uv(uv), normal(normal) {}
+
+vkx::VoxelMesh2D::VoxelMesh2D() {
+	vertices.resize(CHUNK_SIZE * CHUNK_SIZE * 4);
+	indices.resize(CHUNK_SIZE * CHUNK_SIZE * 6);
+}
+
+void vkx::VoxelMesh2D::createQuad(const vkx::VoxelMask& mask, const glm::vec2& axisMask, std::int32_t width, std::int32_t height, const glm::vec2& v1, const glm::vec2& v2, const glm::vec2& v3, const glm::vec2& v4) {
+	const auto normal = axisMask * static_cast<float>(mask.normal);
+
+	if (normal.x == 1 || normal.x == -1) {
+		vertices.emplace_back(v1, glm::vec2{width, height}, normal);
+		vertices.emplace_back(v2, glm::vec2{0, height}, normal);
+		vertices.emplace_back(v3, glm::vec2{width, 0}, normal);
+		vertices.emplace_back(v4, glm::vec2{0, 0}, normal);
+	} else {
+		vertices.emplace_back(v1, glm::vec2{height, width}, normal);
+		vertices.emplace_back(v2, glm::vec2{height, 0}, normal);
+		vertices.emplace_back(v3, glm::vec2{0, width}, normal);
+		vertices.emplace_back(v4, glm::vec2{0, 0}, normal);
+	}
+
+	indices.emplace_back(vertexCount);
+	indices.emplace_back(vertexCount + 2 + mask.normal);
+	indices.emplace_back(vertexCount + 2 - mask.normal);
+	indices.emplace_back(vertexCount + 3);
+	indices.emplace_back(vertexCount + 1 - mask.normal);
+	indices.emplace_back(vertexCount + 1 + mask.normal);
+
+	vertexCount += 4;
+	indexCount += 6;
+}
+
 vkx::VoxelChunk2D::VoxelChunk2D(const glm::vec2& chunkPosition)
     : position(chunkPosition) {
 	voxels.resize(CHUNK_SIZE * CHUNK_SIZE);
@@ -240,105 +274,104 @@ void vkx::VoxelChunk2D::generateTerrain() {
 	}
 }
 
-void vkx::VoxelChunk2D::generateMesh() {
-	std::vector<VoxelMask> mask{CHUNK_SIZE * CHUNK_SIZE};
+vkx::VoxelMesh2D vkx::VoxelChunk2D::generateMesh() {
+	vkx::VoxelMesh2D voxelMesh{};
 
-	for (std::int32_t axis = 0; axis < 3; ++axis) {
-		const int axis1 = (axis + 1) % 3;
-		const int axis2 = (axis + 2) % 3;
+	std::vector<vkx::VoxelMask> mask{CHUNK_SIZE * CHUNK_SIZE};
 
-		glm::vec3 deltaAxis1{0};
-		glm::vec3 deltaAxis2{0};
+	for (std::int32_t axis1 = 0; axis1 < 2; axis1++) {
+		const auto axis2 = (axis1 + 1) % 2;
 
-		glm::vec3 chunkItr{0};
-		glm::vec3 axisMask{0};
+		glm::vec2 deltaAxis1{0};
+		glm::vec2 deltaAxis2{0};
 
-		axisMask[axis] = 1;
+		glm::vec2 chunkItr{0};
+		glm::vec2 axisMask{0};
 
-		// Check each slice of the chunk
-		for (chunkItr[axis] = -1; chunkItr[axis] < CHUNK_SIZE;) {
-			int N = 0;
+		axisMask[axis1] = 1;
 
-			// Compute Mask
-			for (chunkItr[axis2] = 0; chunkItr[axis2] < CHUNK_SIZE; ++chunkItr[axis2]) {
-				for (chunkItr[axis1] = 0; chunkItr[axis1] < CHUNK_SIZE; ++chunkItr[axis1]) {
-					const auto CurrentBlock = at(0); // at(ChunkItr.x, ChunkItr.y, ChunkItr.z);
-					const auto CompareBlock = at(0); // at(ChunkItr + AxisMask);
+		auto n = 0;
 
-					const bool CurrentBlockOpaque = CurrentBlock != vkx::Voxel::Air;
-					const bool CompareBlockOpaque = CompareBlock != vkx::Voxel::Air;
+		for (chunkItr[axis2] = 0; chunkItr[axis2] < CHUNK_SIZE; chunkItr[axis2]++) {
+			for (chunkItr[axis1] = 0; chunkItr[axis1] < CHUNK_SIZE; chunkItr[axis1]++) {
+				const auto currentVoxel = at(static_cast<std::size_t>(chunkItr.x) + chunkItr.y * CHUNK_SIZE);
+				const auto compareVoxel = at(static_cast<std::size_t>(chunkItr.x + axisMask.x) + (chunkItr.y + axisMask.y) * CHUNK_SIZE);
 
-					if (CurrentBlockOpaque == CompareBlockOpaque) {
-						mask[N++] = vkx::VoxelMask{vkx::Voxel::Air, 0};
-					} else if (CurrentBlockOpaque) {
-						mask[N++] = vkx::VoxelMask{CurrentBlock, 1};
-					} else {
-						mask[N++] = vkx::VoxelMask{CompareBlock, -1};
-					}
+				const auto currentVoxelOpaque = currentVoxel != vkx::Voxel::Air;
+				const auto compareVoxelOpaque = compareVoxel != vkx::Voxel::Air;
+
+				if (currentVoxelOpaque == compareVoxelOpaque) {
+					mask[n++] = vkx::VoxelMask{vkx::Voxel::Air, 0};
+				} else if (currentVoxelOpaque) {
+					mask[n++] = vkx::VoxelMask{currentVoxel, 1};
+				} else {
+					mask[n++] = vkx::VoxelMask{compareVoxel, -1};
 				}
 			}
+		}
 
-			++chunkItr[axis];
-			N = 0;
+		n = 0;
 
-			// Generate Mesh From Mask
-			for (int j = 0; j < CHUNK_SIZE; ++j) {
-				for (int i = 0; i < CHUNK_SIZE;) {
-					if (mask[N].normal != 0) {
-						const auto& currentMask = mask[N];
-						chunkItr[axis1] = i;
-						chunkItr[axis2] = j;
+		for (std::int32_t j = 0; j < CHUNK_SIZE; j++) {
+			for (std::int32_t i = 0; i < CHUNK_SIZE;) {
+				if (mask[n].normal != 0) {
+					const auto& currentMask = mask[n];
+					chunkItr[axis1] = i;
+					chunkItr[axis2] = j;
 
-						int Width;
+					std::int32_t width = 1;
 
-						for (Width = 1; i + Width < CHUNK_SIZE && (mask[N + Width] == currentMask); ++Width) {
-						}
-
-						int Height;
-						bool Done = false;
-
-						for (Height = 1; j + Height < CHUNK_SIZE; ++Height) {
-							for (int k = 0; k < Width; ++k) {
-								if ((mask[N + k + Height * CHUNK_SIZE] == currentMask))
-									continue;
-
-								Done = true;
-								break;
-							}
-
-							if (Done)
-								break;
-						}
-
-						deltaAxis1[axis1] = Width;
-						deltaAxis2[axis2] = Height;
-
-						/*CreateQuad(
-						    CurrentMask, AxisMask, Width, Height,
-						    ChunkItr,
-						    ChunkItr + DeltaAxis1,
-						    ChunkItr + DeltaAxis2,
-						    ChunkItr + DeltaAxis1 + DeltaAxis2);*/
-
-						deltaAxis1 = glm::vec3{0};
-						deltaAxis2 = glm::vec3{0};
-
-						for (int l = 0; l < Height; ++l) {
-							for (int k = 0; k < Width; ++k) {
-								mask[N + k + l * CHUNK_SIZE] = vkx::VoxelMask{vkx::Voxel::Air, 0};
-							}
-						}
-
-						i += Width;
-						N += Width;
-					} else {
-						i++;
-						N++;
+					for (; i + width < CHUNK_SIZE && mask[n + width] == currentMask; width++) {
 					}
+
+					std::int32_t height = 1;
+					auto done = false;
+
+					for (; j + height < CHUNK_SIZE; height++) {
+						for (std::int32_t k = 0; k < width; k++) {
+							if (mask[n + k + height * CHUNK_SIZE] == currentMask) {
+								continue;
+							}
+
+							done = true;
+							break;
+						}
+
+						if (done) {
+							break;
+						}
+					}
+
+					deltaAxis1[axis1] = width;
+					deltaAxis2[axis2] = height;
+
+					voxelMesh.createQuad(
+					    currentMask, axisMask, width, height,
+					    chunkItr,
+					    chunkItr + deltaAxis1,
+					    chunkItr + deltaAxis2,
+					    chunkItr + deltaAxis1 + deltaAxis2);
+
+					deltaAxis1 = glm::vec3{0};
+					deltaAxis2 = glm::vec3{0};
+
+					for (std::int32_t l = 0; l < height; l++) {
+						for (std::int32_t k = 0; k < width; k++) {
+							mask[n + k + l * CHUNK_SIZE] = vkx::VoxelMask{vkx::Voxel::Air, 0};
+						}
+					}
+
+					i += width;
+					n += width;
+				} else {
+					i++;
+					n++;
 				}
 			}
 		}
 	}
+
+	return voxelMesh;
 }
 
 vkx::Voxel vkx::VoxelChunk2D::at(std::size_t i) const {
@@ -355,27 +388,27 @@ void vkx::VoxelChunk2D::set(std::size_t i, vkx::Voxel voxel) {
 	}
 }
 
-void vkx::VoxelChunk2D::createQuad(const vkx::VoxelMask& Mask, const glm::vec3& AxisMask, int Width, int Height, const glm::vec3& V1, const glm::vec3& V2, const glm::vec3& V3, const glm::vec3& V4) {
-	const auto Normal = AxisMask * static_cast<float>(Mask.normal);
+void vkx::VoxelChunk2D::createQuad(const vkx::VoxelMask& mask, const glm::vec2& axisMask, std::int32_t width, std::int32_t height, const glm::vec2& v1, const glm::vec2& v2, const glm::vec2& v3, const glm::vec2& v4) {
+	const auto normal = axisMask * static_cast<float>(mask.normal);
 
-	if (Normal.x == 1 || Normal.x == -1) {
-		vertices.emplace_back(V1, glm::vec2{Width, Height}, Normal);
-		vertices.emplace_back(V2, glm::vec2{0, Height}, Normal);
-		vertices.emplace_back(V3, glm::vec2{Width, 0}, Normal);
-		vertices.emplace_back(V4, glm::vec2{0, 0}, Normal);
+	if (normal.x == 1 || normal.x == -1) {
+		vertices.emplace_back(v1, glm::vec2{width, height}, normal);
+		vertices.emplace_back(v2, glm::vec2{0, height}, normal);
+		vertices.emplace_back(v3, glm::vec2{width, 0}, normal);
+		vertices.emplace_back(v4, glm::vec2{0, 0}, normal);
 	} else {
-		vertices.emplace_back(V1, glm::vec2{Height, Width}, Normal);
-		vertices.emplace_back(V2, glm::vec2{Height, 0}, Normal);
-		vertices.emplace_back(V3, glm::vec2{0, Width}, Normal);
-		vertices.emplace_back(V4, glm::vec2{0, 0}, Normal);
+		vertices.emplace_back(v1, glm::vec2{height, width}, normal);
+		vertices.emplace_back(v2, glm::vec2{height, 0}, normal);
+		vertices.emplace_back(v3, glm::vec2{0, width}, normal);
+		vertices.emplace_back(v4, glm::vec2{0, 0}, normal);
 	}
 
 	indices.emplace_back(vertexCount);
-	indices.emplace_back(vertexCount + 2 + Mask.normal);
-	indices.emplace_back(vertexCount + 2 - Mask.normal);
+	indices.emplace_back(vertexCount + 2 + mask.normal);
+	indices.emplace_back(vertexCount + 2 - mask.normal);
 	indices.emplace_back(vertexCount + 3);
-	indices.emplace_back(vertexCount + 1 - Mask.normal);
-	indices.emplace_back(vertexCount + 1 + Mask.normal);
+	indices.emplace_back(vertexCount + 1 - mask.normal);
+	indices.emplace_back(vertexCount + 1 + mask.normal);
 
 	vertexCount += 4;
 }

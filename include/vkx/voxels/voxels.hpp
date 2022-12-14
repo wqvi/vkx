@@ -85,12 +85,45 @@ private:
 	void createQuad(std::int32_t normal, const glm::ivec3& axisMask, std::int32_t width, std::int32_t height, const glm::ivec3& pos, std::int32_t axis1, std::int32_t axis2);
 };
 
-static constexpr std::size_t CHUNK_SIZE = 16;
-
 struct VoxelVertex {
 	glm::vec2 pos;
 	glm::vec2 uv;
 	glm::vec2 normal;
+
+	VoxelVertex() = default;
+
+	explicit VoxelVertex(const glm::vec2& pos, const glm::vec2& uv, const glm::vec2& normal);
+
+	static auto getBindingDescription() noexcept {
+		std::vector<VkVertexInputBindingDescription> bindingDescriptions{};
+
+		bindingDescriptions.push_back({0, sizeof(VoxelVertex), VK_VERTEX_INPUT_RATE_VERTEX});
+
+		return bindingDescriptions;
+	}
+
+	static auto getAttributeDescriptions() noexcept {
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
+
+		attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VoxelVertex, pos)});
+		attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VoxelVertex, uv)});
+		attributeDescriptions.push_back({2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VoxelVertex, normal)});
+
+		return attributeDescriptions;
+	}
+};
+
+static constexpr std::size_t CHUNK_SIZE = 16;
+
+struct VoxelMesh2D {
+	std::vector<vkx::VoxelVertex> vertices;
+	std::vector<std::uint32_t> indices;
+	std::int32_t vertexCount = 0;
+	std::int32_t indexCount = 0;
+
+	VoxelMesh2D();
+
+	void createQuad(const vkx::VoxelMask& mask, const glm::vec2& axisMask, std::int32_t width, std::int32_t height, const glm::vec2& v1, const glm::vec2& v2, const glm::vec2& v3, const glm::vec2& v4);
 };
 
 class VoxelChunk2D {
@@ -99,20 +132,20 @@ private:
 	std::vector<vkx::Voxel> voxels;
 	std::vector<vkx::VoxelVertex> vertices;
 	std::vector<std::uint32_t> indices;
-	std::size_t vertexCount = 0;
+	std::int32_t vertexCount = 0;
 
 public:
 	explicit VoxelChunk2D(const glm::vec2& chunkPosition);
 
 	void generateTerrain();
 
-	void generateMesh();
+	[[nodiscard]] vkx::VoxelMesh2D generateMesh();
 
 	[[nodiscard]] vkx::Voxel at(std::size_t i) const;
 
 	void set(std::size_t i, vkx::Voxel voxel);
 
 private:
-	void createQuad(const vkx::VoxelMask& Mask, const glm::vec3& AxisMask, int Width, int Height, const glm::vec3& V1, const glm::vec3& V2, const glm::vec3& V3, const glm::vec3& V4);
+	void createQuad(const vkx::VoxelMask& mask, const glm::vec2& axisMask, std::int32_t width, std::int32_t height, const glm::vec2& v1, const glm::vec2& v2, const glm::vec2& v3, const glm::vec2& v4);
 };
 } // namespace vkx

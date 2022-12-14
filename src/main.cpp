@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
 
 	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
 	voxelChunk2D.generateTerrain();
-	voxelChunk2D.generateMesh();
+	const auto voxelMesh2D = voxelChunk2D.generateMesh();
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
@@ -180,11 +180,11 @@ int main(int argc, char** argv) {
 	const vkx::Texture texture{"a.jpg", logicalDevice, properties.limits.maxSamplerAnisotropy, allocator, commandSubmitter};
 
 	const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
-	    "shader.vert.spv",
-	    "shader.frag.spv",
+	    "shader2D.vert.spv",
+	    "shader2D.frag.spv",
 	    createShaderBindings(),
-	    vkx::Vertex::getBindingDescription(),
-	    vkx::Vertex::getAttributeDescriptions(),
+	    vkx::VoxelVertex::getBindingDescription(),
+	    vkx::VoxelVertex::getAttributeDescriptions(),
 	    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
 	    {&texture}};
 
@@ -222,15 +222,17 @@ int main(int argc, char** argv) {
 
 	chunk.greedy();
 
-	vkx::Mesh mesh{chunk.vertices, chunk.indices, allocator};
-	mesh.indexCount = static_cast<std::uint32_t>(std::distance(chunk.indices.begin(), chunk.indexIter));
+	SDL_Log("%i", voxelMesh2D.vertices.size());
+
+	vkx::Mesh mesh{voxelMesh2D.vertices.data(), sizeof(vkx::VoxelVertex) * voxelMesh2D.vertices.size(), voxelMesh2D.indices.data(), sizeof(std::uint32_t) * voxelMesh2D.indices.size(), allocator};
+	mesh.indexCount = voxelMesh2D.indexCount;
 
 	const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
 	auto& materialBuffers = graphicsPipeline.getUniformByIndex(2);
-
+	
 	auto& highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
 
 	auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);

@@ -52,6 +52,8 @@ void main()
     diffuse *= attenuation;
     specular *= attenuation;
 
-    vec3 result = ambient + diffuse + specular;
-    outColor = vec4(result, 1.0);
+    //vec3 result = ambient + diffuse + specular;
+    //outColor = vec4(result, 1.0);
+
+    outColor = vec4(1.0);
 }
