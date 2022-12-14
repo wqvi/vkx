@@ -220,37 +220,6 @@ void vkx::VoxelChunk::createQuad(std::int32_t normal, const glm::ivec3& axisMask
 vkx::VoxelVertex::VoxelVertex(const glm::vec2& pos, const glm::vec2& uv, const glm::vec2& normal)
     : pos(pos), uv(uv), normal(normal) {}
 
-vkx::VoxelMesh2D::VoxelMesh2D() {
-	vertices.resize(CHUNK_SIZE * CHUNK_SIZE * 4);
-	indices.resize(CHUNK_SIZE * CHUNK_SIZE * 6);
-}
-
-void vkx::VoxelMesh2D::createQuad(const vkx::VoxelMask& mask, const glm::vec2& axisMask, std::int32_t width, std::int32_t height, const glm::vec2& v1, const glm::vec2& v2, const glm::vec2& v3, const glm::vec2& v4) {
-	const auto normal = axisMask * static_cast<float>(mask.normal);
-
-	if (normal.x == 1 || normal.x == -1) {
-		vertices.emplace_back(v1, glm::vec2{width, height}, normal);
-		vertices.emplace_back(v2, glm::vec2{0, height}, normal);
-		vertices.emplace_back(v3, glm::vec2{width, 0}, normal);
-		vertices.emplace_back(v4, glm::vec2{0, 0}, normal);
-	} else {
-		vertices.emplace_back(v1, glm::vec2{height, width}, normal);
-		vertices.emplace_back(v2, glm::vec2{height, 0}, normal);
-		vertices.emplace_back(v3, glm::vec2{0, width}, normal);
-		vertices.emplace_back(v4, glm::vec2{0, 0}, normal);
-	}
-
-	indices.emplace_back(vertexCount);
-	indices.emplace_back(vertexCount + 2 + mask.normal);
-	indices.emplace_back(vertexCount + 2 - mask.normal);
-	indices.emplace_back(vertexCount + 3);
-	indices.emplace_back(vertexCount + 1 - mask.normal);
-	indices.emplace_back(vertexCount + 1 + mask.normal);
-
-	vertexCount += 4;
-	indexCount += 6;
-}
-
 vkx::VoxelChunk2D::VoxelChunk2D(const glm::vec2& chunkPosition)
     : position(chunkPosition) {
 	voxels.resize(CHUNK_SIZE * CHUNK_SIZE);
@@ -261,21 +230,25 @@ vkx::VoxelChunk2D::VoxelChunk2D(const glm::vec2& chunkPosition)
 void vkx::VoxelChunk2D::generateTerrain() {
 	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
 		for (std::size_t y = 0; y < CHUNK_SIZE; y++) {
-			const auto value = (glm::perlin(position + glm::vec2(x, y)) + 1) / 2;
+			const auto value = glm::perlin(position + glm::vec2(x, y));
 
 			auto voxel = vkx::Voxel::Air;
 
-			if (value < 0.5f) {
+			if (value < 0.0f) {
 				voxel = vkx::Voxel::Stone;
 			}
+
+			voxel = vkx::Voxel::Stone;
 
 			voxels[x + y * CHUNK_SIZE] = voxel;
 		}
 	}
 }
 
-vkx::VoxelMesh2D vkx::VoxelChunk2D::generateMesh() {
-	vkx::VoxelMesh2D voxelMesh{};
+vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
+	vertexIter = vertices.begin();
+	indexIter = indices.begin();
+	vertexCount = 0;
 
 	std::vector<vkx::VoxelMask> mask{CHUNK_SIZE * CHUNK_SIZE};
 
@@ -345,12 +318,7 @@ vkx::VoxelMesh2D vkx::VoxelChunk2D::generateMesh() {
 					deltaAxis1[axis1] = width;
 					deltaAxis2[axis2] = height;
 
-					voxelMesh.createQuad(
-					    currentMask, axisMask, width, height,
-					    chunkItr,
-					    chunkItr + deltaAxis1,
-					    chunkItr + deltaAxis2,
-					    chunkItr + deltaAxis1 + deltaAxis2);
+					createQuad(currentMask.normal, axisMask, width, height, chunkItr, axis1, axis2);
 
 					deltaAxis1 = glm::vec3{0};
 					deltaAxis2 = glm::vec3{0};
@@ -371,6 +339,9 @@ vkx::VoxelMesh2D vkx::VoxelChunk2D::generateMesh() {
 		}
 	}
 
+	vkx::Mesh voxelMesh{vertices.data(), sizeof(vkx::VoxelVertex) * vertices.size(), indices.data(), sizeof(std::uint32_t) * indices.size(), allocator};
+	voxelMesh.indexCount = static_cast<std::size_t>(std::distance(indices.begin(), indexIter));
+
 	return voxelMesh;
 }
 
@@ -388,27 +359,53 @@ void vkx::VoxelChunk2D::set(std::size_t i, vkx::Voxel voxel) {
 	}
 }
 
-void vkx::VoxelChunk2D::createQuad(const vkx::VoxelMask& mask, const glm::vec2& axisMask, std::int32_t width, std::int32_t height, const glm::vec2& v1, const glm::vec2& v2, const glm::vec2& v3, const glm::vec2& v4) {
-	const auto normal = axisMask * static_cast<float>(mask.normal);
+void vkx::VoxelChunk2D::createQuad(std::int32_t normal, const glm::vec2& axisMask, std::int32_t width, std::int32_t height, const glm::vec2& pos, std::int32_t axis1, std::int32_t axis2) {
+	const auto maskNormal = axisMask * static_cast<float>(normal);
 
-	if (normal.x == 1 || normal.x == -1) {
-		vertices.emplace_back(v1, glm::vec2{width, height}, normal);
-		vertices.emplace_back(v2, glm::vec2{0, height}, normal);
-		vertices.emplace_back(v3, glm::vec2{width, 0}, normal);
-		vertices.emplace_back(v4, glm::vec2{0, 0}, normal);
+	glm::vec2 deltaAxis{0};
+	deltaAxis[axis1] = width;
+
+	const auto v2 = pos + deltaAxis;
+	deltaAxis[axis1] = 0;
+	deltaAxis[axis2] = height;
+	const auto v3 = pos + deltaAxis;
+	deltaAxis[axis1] = width;
+	const auto v4 = pos + deltaAxis;
+
+	if (maskNormal.x == 1.0f || maskNormal.x == -1.0f) {
+		*vertexIter = vkx::VoxelVertex{pos, glm::vec2{width, height}, maskNormal};
+		vertexIter++;
+		*vertexIter = vkx::VoxelVertex{v2, glm::vec2{0, height}, maskNormal};
+		vertexIter++;
+		*vertexIter = vkx::VoxelVertex{v3, glm::vec2{width, 0}, maskNormal};
+		vertexIter++;
+		*vertexIter = vkx::VoxelVertex{v4, glm::vec2{0, 0}, maskNormal};
+		vertexIter++;
 	} else {
-		vertices.emplace_back(v1, glm::vec2{height, width}, normal);
-		vertices.emplace_back(v2, glm::vec2{height, 0}, normal);
-		vertices.emplace_back(v3, glm::vec2{0, width}, normal);
-		vertices.emplace_back(v4, glm::vec2{0, 0}, normal);
+		*vertexIter = vkx::VoxelVertex{pos, glm::vec2{height, width}, maskNormal};
+		vertexIter++;
+		*vertexIter = vkx::VoxelVertex{v2, glm::vec2{height, 0}, maskNormal};
+		vertexIter++;
+		*vertexIter = vkx::VoxelVertex{v3, glm::vec2{0, width}, maskNormal};
+		vertexIter++;
+		*vertexIter = vkx::VoxelVertex{v4, glm::vec2{0, 0}, maskNormal};
+		vertexIter++;
 	}
 
-	indices.emplace_back(vertexCount);
-	indices.emplace_back(vertexCount + 2 + mask.normal);
-	indices.emplace_back(vertexCount + 2 - mask.normal);
-	indices.emplace_back(vertexCount + 3);
-	indices.emplace_back(vertexCount + 1 - mask.normal);
-	indices.emplace_back(vertexCount + 1 + mask.normal);
+	*indexIter = vertexCount;
+	indexIter++;
+	*indexIter = vertexCount + 2 + normal;
+	indexIter++;
+	*indexIter = vertexCount + 2 - normal;
+	indexIter++;
+	*indexIter = vertexCount + 3;
+	indexIter++;
+	*indexIter = vertexCount + 1 - normal;
+	indexIter++;
+	*indexIter = vertexCount + 1 + normal;
+	indexIter++;
 
 	vertexCount += 4;
+
+	SDL_Log("%i, %i", width, height);
 }

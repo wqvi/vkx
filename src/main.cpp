@@ -154,7 +154,6 @@ int main(int argc, char** argv) {
 
 	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
 	voxelChunk2D.generateTerrain();
-	const auto voxelMesh2D = voxelChunk2D.generateMesh();
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
@@ -222,10 +221,7 @@ int main(int argc, char** argv) {
 
 	chunk.greedy();
 
-	SDL_Log("%i", voxelMesh2D.vertices.size());
-
-	vkx::Mesh mesh{voxelMesh2D.vertices.data(), sizeof(vkx::VoxelVertex) * voxelMesh2D.vertices.size(), voxelMesh2D.indices.data(), sizeof(std::uint32_t) * voxelMesh2D.indices.size(), allocator};
-	mesh.indexCount = voxelMesh2D.indexCount;
+	auto mesh = voxelChunk2D.generateMesh(allocator);
 
 	const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
 
@@ -266,7 +262,7 @@ int main(int argc, char** argv) {
 		});
 
 		if (raycastResult.success) {
-			highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
+			//highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
 		}
 	};
 
