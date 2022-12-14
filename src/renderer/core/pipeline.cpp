@@ -207,13 +207,16 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    1,
 	    nullptr};
 
+	constexpr auto fill = VK_POLYGON_MODE_FILL;
+	constexpr auto wireframe = VK_POLYGON_MODE_LINE;
+
 	const VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo{
 	    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
 	    nullptr,
 	    0,
 	    false,
 	    false,
-	    VK_POLYGON_MODE_FILL,
+	    wireframe,
 	    VK_CULL_MODE_BACK_BIT,
 	    VK_FRONT_FACE_COUNTER_CLOCKWISE,
 	    false,

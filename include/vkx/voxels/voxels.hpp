@@ -114,7 +114,7 @@ struct VoxelVertex {
 	}
 };
 
-static constexpr std::size_t CHUNK_SIZE = 8;
+static constexpr std::size_t CHUNK_SIZE = 4;
 
 class VoxelChunk2D {
 private:
@@ -130,6 +130,8 @@ public:
 	explicit VoxelChunk2D(const glm::vec2& chunkPosition);
 
 	void generateTerrain();
+
+	void generateTest();
 
 	[[nodiscard]] vkx::Mesh generateMesh(VmaAllocator allocator);
 

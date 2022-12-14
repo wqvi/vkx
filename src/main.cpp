@@ -153,7 +153,8 @@ int main(int argc, char** argv) {
 	assert(window != nullptr);
 
 	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
-	voxelChunk2D.generateTerrain();
+	//voxelChunk2D.generateTerrain();
+	voxelChunk2D.generateTest();
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
@@ -233,7 +234,7 @@ int main(int argc, char** argv) {
 
 	auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
 
-	auto highlightModel = glm::mat4(1.0f);
+	auto highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(0, -1, 0));
 
 	SDL_Event event{};
 	bool isRunning = true;

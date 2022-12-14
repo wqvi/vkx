@@ -230,19 +230,35 @@ vkx::VoxelChunk2D::VoxelChunk2D(const glm::vec2& chunkPosition)
 void vkx::VoxelChunk2D::generateTerrain() {
 	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
 		for (std::size_t y = 0; y < CHUNK_SIZE; y++) {
-			const auto value = glm::perlin(position + glm::vec2(x, y));
+			const auto value = (glm::simplex(position + glm::vec2(x, y)) + 1.0f) / 2.0f;
 
 			auto voxel = vkx::Voxel::Air;
 
-			if (value < 0.0f) {
+			if (value < 0.5f) {
 				voxel = vkx::Voxel::Stone;
 			}
-
-			voxel = vkx::Voxel::Stone;
 
 			voxels[x + y * CHUNK_SIZE] = voxel;
 		}
 	}
+}
+
+void vkx::VoxelChunk2D::generateTest() {
+	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
+		for (std::size_t y = 0; y < CHUNK_SIZE; y++) {
+			voxels[x + y * CHUNK_SIZE] = vkx::Voxel::Stone;
+		}
+	}
+
+	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
+		voxels[x + 0 * CHUNK_SIZE] = vkx::Voxel::Air;
+	}
+
+	for (std::size_t i = 0; i < CHUNK_SIZE; i++) {
+		voxels[0 + i * CHUNK_SIZE] = vkx::Voxel::Air;
+	}
+
+	voxels[0] = vkx::Voxel::Stone;
 }
 
 vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
@@ -252,23 +268,20 @@ vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
 
 	std::vector<vkx::VoxelMask> mask{CHUNK_SIZE * CHUNK_SIZE};
 
-	for (std::int32_t axis1 = 0; axis1 < 2; axis1++) {
-		const auto axis2 = (axis1 + 1) % 2;
+	const auto at = [&voxels = this->voxels](auto i) {
+		if (i >= 0 && i < CHUNK_SIZE * CHUNK_SIZE) {
+			return voxels[i];
+		}
 
-		glm::vec2 deltaAxis1{0};
-		glm::vec2 deltaAxis2{0};
+		return vkx::Voxel::Air;
+	};
 
-		glm::vec2 chunkItr{0};
-		glm::vec2 axisMask{0};
-
-		axisMask[axis1] = 1;
-
+	const auto computeMask = [&mask, &at](auto axis1, auto axis2) {
 		auto n = 0;
-
-		for (chunkItr[axis2] = 0; chunkItr[axis2] < CHUNK_SIZE; chunkItr[axis2]++) {
-			for (chunkItr[axis1] = 0; chunkItr[axis1] < CHUNK_SIZE; chunkItr[axis1]++) {
-				const auto currentVoxel = at(static_cast<std::size_t>(chunkItr.x) + chunkItr.y * CHUNK_SIZE);
-				const auto compareVoxel = at(static_cast<std::size_t>(chunkItr.x + axisMask.x) + (chunkItr.y + axisMask.y) * CHUNK_SIZE);
+		for (auto y = 0; y < CHUNK_SIZE; y++) {
+			for (auto x = 0; x < CHUNK_SIZE; x++) {
+				const auto currentVoxel = at(x + y * CHUNK_SIZE);
+				const auto compareVoxel = at((static_cast<std::size_t>(x) + axis1) + (static_cast<std::size_t>(y) + axis2) * CHUNK_SIZE);
 
 				const auto currentVoxelOpaque = currentVoxel != vkx::Voxel::Air;
 				const auto compareVoxelOpaque = compareVoxel != vkx::Voxel::Air;
@@ -282,27 +295,27 @@ vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
 				}
 			}
 		}
+	};
 
-		n = 0;
+	for (auto axis1 = 0; axis1 < 2; axis1++) {
+		const auto axis2 = (axis1 + 1) % 2;
+		computeMask(axis1, axis2);
 
-		for (std::int32_t j = 0; j < CHUNK_SIZE; j++) {
-			for (std::int32_t i = 0; i < CHUNK_SIZE;) {
+		auto n = 0;
+		for (int j = 0; j < CHUNK_SIZE; j++) {
+			for (int i = 0; i < CHUNK_SIZE;) {
 				if (mask[n].normal != 0) {
 					const auto& currentMask = mask[n];
-					chunkItr[axis1] = i;
-					chunkItr[axis2] = j;
 
-					std::int32_t width = 1;
-
-					for (; i + width < CHUNK_SIZE && mask[n + width] == currentMask; width++) {
+					auto width = 1;
+					for (; i + width < CHUNK_SIZE && (mask[n + width] == currentMask); width++) {
 					}
 
-					std::int32_t height = 1;
-					auto done = false;
-
+					auto height = 1;
+					bool done = false;
 					for (; j + height < CHUNK_SIZE; height++) {
-						for (std::int32_t k = 0; k < width; k++) {
-							if (mask[n + k + height * CHUNK_SIZE] == currentMask) {
+						for (int k = 0; k < width; ++k) {
+							if ((mask[n + k + height * CHUNK_SIZE] == currentMask)) {
 								continue;
 							}
 
@@ -315,19 +328,8 @@ vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
 						}
 					}
 
-					deltaAxis1[axis1] = width;
-					deltaAxis2[axis2] = height;
-
-					createQuad(currentMask.normal, axisMask, width, height, chunkItr, axis1, axis2);
-
-					deltaAxis1 = glm::vec3{0};
-					deltaAxis2 = glm::vec3{0};
-
-					for (std::int32_t l = 0; l < height; l++) {
-						for (std::int32_t k = 0; k < width; k++) {
-							mask[n + k + l * CHUNK_SIZE] = vkx::VoxelMask{vkx::Voxel::Air, 0};
-						}
-					}
+					std::printf("width and height = %i, %i\n", width, height);
+					//createQuad(currentMask.normal, glm::vec2(axis1, axis2), width, height, {i, j}, axis1, axis2);
 
 					i += width;
 					n += width;
