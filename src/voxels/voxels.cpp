@@ -268,75 +268,65 @@ vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
 
 	std::vector<vkx::VoxelMask> mask{CHUNK_SIZE * CHUNK_SIZE};
 
-	const auto at = [&voxels = this->voxels](auto i) {
-		if (i >= 0 && i < CHUNK_SIZE * CHUNK_SIZE) {
-			return voxels[i];
-		}
+	auto n = 0;
+	for (auto y = 0; y < CHUNK_SIZE; y++) {
+		for (auto x = 0; x < CHUNK_SIZE; x++) {
+			const auto currentVoxel = at(x + y * CHUNK_SIZE);
+			const auto compareVoxel = at((static_cast<std::size_t>(x) + 1) + y * CHUNK_SIZE);
 
-		return vkx::Voxel::Air;
-	};
+			const auto currentVoxelOpaque = currentVoxel != vkx::Voxel::Air;
+			const auto compareVoxelOpaque = compareVoxel != vkx::Voxel::Air;
 
-	const auto computeMask = [&mask, &at](auto axis1, auto axis2) {
-		auto n = 0;
-		for (auto y = 0; y < CHUNK_SIZE; y++) {
-			for (auto x = 0; x < CHUNK_SIZE; x++) {
-				const auto currentVoxel = at(x + y * CHUNK_SIZE);
-				const auto compareVoxel = at((static_cast<std::size_t>(x) + axis1) + (static_cast<std::size_t>(y) + axis2) * CHUNK_SIZE);
-
-				const auto currentVoxelOpaque = currentVoxel != vkx::Voxel::Air;
-				const auto compareVoxelOpaque = compareVoxel != vkx::Voxel::Air;
-
-				if (currentVoxelOpaque == compareVoxelOpaque) {
-					mask[n++] = vkx::VoxelMask{vkx::Voxel::Air, 0};
-				} else if (currentVoxelOpaque) {
-					mask[n++] = vkx::VoxelMask{currentVoxel, 1};
-				} else {
-					mask[n++] = vkx::VoxelMask{compareVoxel, -1};
-				}
+			if (currentVoxelOpaque == compareVoxelOpaque) {
+				mask[n++] = vkx::VoxelMask{vkx::Voxel::Air, 0};
+			} else if (currentVoxelOpaque) {
+				mask[n++] = vkx::VoxelMask{currentVoxel, 1};
+			} else {
+				mask[n++] = vkx::VoxelMask{compareVoxel, -1};
 			}
 		}
-	};
+	}
 
-	for (auto axis1 = 0; axis1 < 2; axis1++) {
-		const auto axis2 = (axis1 + 1) % 2;
-		computeMask(axis1, axis2);
+	n = 0;
+	for (int j = 0; j < CHUNK_SIZE; j++) {
+		for (int i = 0; i < CHUNK_SIZE;) {
+			if (mask[n].normal != 0) {
+				const auto& currentMask = mask[n];
 
-		auto n = 0;
-		for (int j = 0; j < CHUNK_SIZE; j++) {
-			for (int i = 0; i < CHUNK_SIZE;) {
-				if (mask[n].normal != 0) {
-					const auto& currentMask = mask[n];
-
-					auto width = 1;
-					for (; i + width < CHUNK_SIZE && (mask[n + width] == currentMask); width++) {
-					}
-
-					auto height = 1;
-					bool done = false;
-					for (; j + height < CHUNK_SIZE; height++) {
-						for (int k = 0; k < width; ++k) {
-							if ((mask[n + k + height * CHUNK_SIZE] == currentMask)) {
-								continue;
-							}
-
-							done = true;
-							break;
-						}
-
-						if (done) {
-							break;
-						}
-					}
-
-					std::printf("width and height = %i, %i\n", width, height);
-					//createQuad(currentMask.normal, glm::vec2(axis1, axis2), width, height, {i, j}, axis1, axis2);
-
-					i += width;
-					n += width;
-				} else {
-					i++;
-					n++;
+				auto width = 1;
+				for (; i + width < CHUNK_SIZE && (mask[n + width] == currentMask); width++) {
 				}
+
+				auto height = 1;
+				bool done = false;
+				for (; j + height < CHUNK_SIZE; height++) {
+					for (int k = 0; k < width; ++k) {
+						if ((mask[n + k + height * CHUNK_SIZE] == currentMask)) {
+							continue;
+						}
+
+						done = true;
+						break;
+					}
+
+					if (done) {
+						break;
+					}
+				}
+
+				createQuad(currentMask.normal, width, height, {i, j});
+
+				for (int l = 0; l < height; ++l) {
+					for (int k = 0; k < width; ++k) {
+						mask[n + k + l * CHUNK_SIZE] = vkx::VoxelMask{vkx::Voxel::Air, 0};
+					}
+				}
+
+				i += width;
+				n += width;
+			} else {
+				i++;
+				n++;
 			}
 		}
 	}
@@ -361,53 +351,44 @@ void vkx::VoxelChunk2D::set(std::size_t i, vkx::Voxel voxel) {
 	}
 }
 
-void vkx::VoxelChunk2D::createQuad(std::int32_t normal, const glm::vec2& axisMask, std::int32_t width, std::int32_t height, const glm::vec2& pos, std::int32_t axis1, std::int32_t axis2) {
-	const auto maskNormal = axisMask * static_cast<float>(normal);
+// FIX ME YOU KNOW THE ISSUE
+void vkx::VoxelChunk2D::createQuad(std::int32_t normal, std::int32_t width, std::int32_t height, const glm::vec2& pos) {
+	const auto v2 = pos + glm::vec2{width, 0};
+	const auto v3 = pos + glm::vec2{width, height};
+	const auto v4 = pos + glm::vec2{0, height};
 
-	glm::vec2 deltaAxis{0};
-	deltaAxis[axis1] = width;
-
-	const auto v2 = pos + deltaAxis;
-	deltaAxis[axis1] = 0;
-	deltaAxis[axis2] = height;
-	const auto v3 = pos + deltaAxis;
-	deltaAxis[axis1] = width;
-	const auto v4 = pos + deltaAxis;
-
-	if (maskNormal.x == 1.0f || maskNormal.x == -1.0f) {
-		*vertexIter = vkx::VoxelVertex{pos, glm::vec2{width, height}, maskNormal};
+	if (normal == 1.0f || normal == -1.0f) {
+		*vertexIter = vkx::VoxelVertex{pos, glm::vec2{width, height}, {}};
 		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v2, glm::vec2{0, height}, maskNormal};
+		*vertexIter = vkx::VoxelVertex{v2, glm::vec2{0, height}, {}};
 		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v3, glm::vec2{width, 0}, maskNormal};
+		*vertexIter = vkx::VoxelVertex{v3, glm::vec2{width, 0}, {}};
 		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v4, glm::vec2{0, 0}, maskNormal};
+		*vertexIter = vkx::VoxelVertex{v4, glm::vec2{0, 0}, {}};
 		vertexIter++;
 	} else {
-		*vertexIter = vkx::VoxelVertex{pos, glm::vec2{height, width}, maskNormal};
+		*vertexIter = vkx::VoxelVertex{pos, glm::vec2{height, width}, {}};
 		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v2, glm::vec2{height, 0}, maskNormal};
+		*vertexIter = vkx::VoxelVertex{v2, glm::vec2{height, 0}, {}};
 		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v3, glm::vec2{0, width}, maskNormal};
+		*vertexIter = vkx::VoxelVertex{v3, glm::vec2{0, width}, {}};
 		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v4, glm::vec2{0, 0}, maskNormal};
+		*vertexIter = vkx::VoxelVertex{v4, glm::vec2{0, 0}, {}};
 		vertexIter++;
 	}
 
 	*indexIter = vertexCount;
 	indexIter++;
-	*indexIter = vertexCount + 2 + normal;
+	*indexIter = vertexCount + 1;
 	indexIter++;
-	*indexIter = vertexCount + 2 - normal;
+	*indexIter = vertexCount + 2;
+	indexIter++;
+	*indexIter = vertexCount + 2;
 	indexIter++;
 	*indexIter = vertexCount + 3;
 	indexIter++;
-	*indexIter = vertexCount + 1 - normal;
-	indexIter++;
-	*indexIter = vertexCount + 1 + normal;
+	*indexIter = vertexCount;
 	indexIter++;
 
 	vertexCount += 4;
-
-	SDL_Log("%i, %i", width, height);
 }

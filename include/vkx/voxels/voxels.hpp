@@ -140,6 +140,6 @@ public:
 	void set(std::size_t i, vkx::Voxel voxel);
 
 private:
-	void createQuad(std::int32_t normal, const glm::vec2& axisMask, std::int32_t width, std::int32_t height, const glm::vec2& pos, std::int32_t axis1, std::int32_t axis2);
+	void createQuad(std::int32_t normal, std::int32_t width, std::int32_t height, const glm::vec2& pos);
 };
 } // namespace vkx
