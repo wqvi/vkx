@@ -74,11 +74,7 @@ public:
 
 	void set(std::size_t i, vkx::Voxel voxel);
 
-	void printTest() const;
-
 private:
-	[[nodiscard]] bool valid(std::size_t i) const;
-
 	void createQuad(std::int32_t width, std::int32_t height, const glm::vec2& pos);
 };
 } // namespace vkx

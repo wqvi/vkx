@@ -271,7 +271,6 @@ int main(int argc, char** argv) {
 			mesh.indexCount = static_cast<std::uint32_t>(std::distance(chunk.indices.begin(), chunk.indexIter));
 		}*/
 
-		std::srand(std::time(nullptr));
 		static auto current = 0;
 		auto choice = current++ % 3;
 		switch (choice) {

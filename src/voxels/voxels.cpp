@@ -62,8 +62,6 @@ void vkx::VoxelChunk2D::generateTest() {
 }
 
 vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
-	printTest();
-
 	vertexIter = vertices.begin();
 	indexIter = indices.begin();
 	vertexCount = 0;
@@ -135,20 +133,6 @@ void vkx::VoxelChunk2D::set(std::size_t i, vkx::Voxel voxel) {
 	}
 }
 
-void vkx::VoxelChunk2D::printTest() const {
-	std::printf("Voxel contents %i x %i\n", static_cast<int>(CHUNK_SIZE), static_cast<int>(CHUNK_SIZE));
-	for (auto y = 0; y < CHUNK_SIZE; y++) {
-		for (auto x = 0; x < CHUNK_SIZE; x++) {
-			std::printf("[%i]", static_cast<int>(voxels[x + y * CHUNK_SIZE]));
-		}
-		std::printf("\n");
-	}
-}
-
-bool vkx::VoxelChunk2D::valid(std::size_t i) const {
-	return at(i) != vkx::Voxel::Air;
-}
-
 void vkx::VoxelChunk2D::createQuad(std::int32_t width, std::int32_t height, const glm::vec2& pos) {
 	const auto v2 = pos + glm::vec2{width, 0};
 	const auto v3 = pos + glm::vec2{width, height};
@@ -177,6 +161,4 @@ void vkx::VoxelChunk2D::createQuad(std::int32_t width, std::int32_t height, cons
 	indexIter++;
 
 	vertexCount += 4;
-
-	std::printf("%i  x  %i\n", width, height);
 }
