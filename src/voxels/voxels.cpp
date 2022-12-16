@@ -243,6 +243,12 @@ void vkx::VoxelChunk2D::generateTerrain() {
 	}
 }
 
+void vkx::VoxelChunk2D::generateBox() {
+	std::fill(voxels.begin(), voxels.end(), vkx::Voxel::Stone);
+	voxels[0] = vkx::Voxel::Air;
+	voxels[2] = vkx::Voxel::Dirt;
+}
+
 void vkx::VoxelChunk2D::generateTest() {
 	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
 		for (std::size_t y = 0; y < CHUNK_SIZE; y++) {
@@ -258,55 +264,39 @@ void vkx::VoxelChunk2D::generateTest() {
 		voxels[0 + i * CHUNK_SIZE] = vkx::Voxel::Air;
 	}
 
-	voxels[0] = vkx::Voxel::Stone;
+	voxels[0] = vkx::Voxel::Dirt;
 }
 
 vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
+	printTest();
+
 	vertexIter = vertices.begin();
 	indexIter = indices.begin();
 	vertexCount = 0;
 
-	std::vector<vkx::VoxelMask> mask{CHUNK_SIZE * CHUNK_SIZE};
+	auto* mask = new bool[CHUNK_SIZE * CHUNK_SIZE];
+	for (auto i = 0; i < CHUNK_SIZE * CHUNK_SIZE; i++) {
+		mask[i] = voxels[i] != vkx::Voxel::Air;
+	}
 
 	auto n = 0;
 	for (auto y = 0; y < CHUNK_SIZE; y++) {
-		for (auto x = 0; x < CHUNK_SIZE; x++) {
-			const auto currentVoxel = at(x + y * CHUNK_SIZE);
-			const auto compareVoxel = at((static_cast<std::size_t>(x) + 1) + y * CHUNK_SIZE);
-
-			const auto currentVoxelOpaque = currentVoxel != vkx::Voxel::Air;
-			const auto compareVoxelOpaque = compareVoxel != vkx::Voxel::Air;
-
-			if (currentVoxelOpaque == compareVoxelOpaque) {
-				mask[n++] = vkx::VoxelMask{vkx::Voxel::Air, 0};
-			} else if (currentVoxelOpaque) {
-				mask[n++] = vkx::VoxelMask{currentVoxel, 1};
-			} else {
-				mask[n++] = vkx::VoxelMask{compareVoxel, -1};
-			}
-		}
-	}
-
-	n = 0;
-	for (int j = 0; j < CHUNK_SIZE; j++) {
-		for (int i = 0; i < CHUNK_SIZE;) {
-			if (mask[n].normal != 0) {
-				const auto& currentMask = mask[n];
+		for (auto x = 0; x < CHUNK_SIZE;) {
+			if (mask[n]) {
+				const auto currentVoxel = voxels[n];
 
 				auto width = 1;
-				for (; i + width < CHUNK_SIZE && (mask[n + width] == currentMask); width++) {
+				for (; x + width < CHUNK_SIZE && mask[n + width] && voxels[n + width] == currentVoxel; width++) {
 				}
 
 				auto height = 1;
-				bool done = false;
-				for (; j + height < CHUNK_SIZE; height++) {
-					for (int k = 0; k < width; ++k) {
-						if ((mask[n + k + height * CHUNK_SIZE] == currentMask)) {
-							continue;
+				auto done = false;
+				for (; y + height < CHUNK_SIZE; height++) {
+					for (auto i = 0; i < width; i++) {
+						if (!mask[n + i + height * CHUNK_SIZE] || voxels[n + width] != currentVoxel) {
+							done = true;
+							break;
 						}
-
-						done = true;
-						break;
 					}
 
 					if (done) {
@@ -314,22 +304,24 @@ vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
 					}
 				}
 
-				createQuad(currentMask.normal, width, height, {i, j});
+				createQuad(width, height, {x, y});
 
-				for (int l = 0; l < height; ++l) {
-					for (int k = 0; k < width; ++k) {
-						mask[n + k + l * CHUNK_SIZE] = vkx::VoxelMask{vkx::Voxel::Air, 0};
+				for (auto j = 0; j < height; j++) {
+					for (auto i = 0; i < width; i++) {
+						mask[n + i + j * CHUNK_SIZE] = false;
 					}
 				}
 
-				i += width;
+				x += width;
 				n += width;
 			} else {
-				i++;
+				x++;
 				n++;
 			}
 		}
 	}
+
+	delete[] mask;
 
 	vkx::Mesh voxelMesh{vertices.data(), sizeof(vkx::VoxelVertex) * vertices.size(), indices.data(), sizeof(std::uint32_t) * indices.size(), allocator};
 	voxelMesh.indexCount = static_cast<std::size_t>(std::distance(indices.begin(), indexIter));
@@ -351,31 +343,33 @@ void vkx::VoxelChunk2D::set(std::size_t i, vkx::Voxel voxel) {
 	}
 }
 
-// FIX ME YOU KNOW THE ISSUE
-void vkx::VoxelChunk2D::createQuad(std::int32_t normal, std::int32_t width, std::int32_t height, const glm::vec2& pos) {
+void vkx::VoxelChunk2D::printTest() const {
+	std::printf("Voxel contents %i x %i\n", static_cast<int>(CHUNK_SIZE), static_cast<int>(CHUNK_SIZE));
+	for (auto y = 0; y < CHUNK_SIZE; y++) {
+		for (auto x = 0; x < CHUNK_SIZE; x++) {
+			std::printf("[%i]", static_cast<int>(voxels[x + y * CHUNK_SIZE]));
+		}
+		std::printf("\n");
+	}
+}
+
+bool vkx::VoxelChunk2D::valid(std::size_t i) const {
+	return at(i) != vkx::Voxel::Air;
+}
+
+void vkx::VoxelChunk2D::createQuad(std::int32_t width, std::int32_t height, const glm::vec2& pos) {
 	const auto v2 = pos + glm::vec2{width, 0};
 	const auto v3 = pos + glm::vec2{width, height};
 	const auto v4 = pos + glm::vec2{0, height};
 
-	if (normal == 1.0f || normal == -1.0f) {
-		*vertexIter = vkx::VoxelVertex{pos, glm::vec2{width, height}, {}};
-		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v2, glm::vec2{0, height}, {}};
-		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v3, glm::vec2{width, 0}, {}};
-		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v4, glm::vec2{0, 0}, {}};
-		vertexIter++;
-	} else {
-		*vertexIter = vkx::VoxelVertex{pos, glm::vec2{height, width}, {}};
-		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v2, glm::vec2{height, 0}, {}};
-		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v3, glm::vec2{0, width}, {}};
-		vertexIter++;
-		*vertexIter = vkx::VoxelVertex{v4, glm::vec2{0, 0}, {}};
-		vertexIter++;
-	}
+	*vertexIter = vkx::VoxelVertex{pos, glm::vec2{width, height}, {}};
+	vertexIter++;
+	*vertexIter = vkx::VoxelVertex{v2, glm::vec2{0, height}, {}};
+	vertexIter++;
+	*vertexIter = vkx::VoxelVertex{v3, glm::vec2{width, 0}, {}};
+	vertexIter++;
+	*vertexIter = vkx::VoxelVertex{v4, glm::vec2{0, 0}, {}};
+	vertexIter++;
 
 	*indexIter = vertexCount;
 	indexIter++;
@@ -391,4 +385,6 @@ void vkx::VoxelChunk2D::createQuad(std::int32_t normal, std::int32_t width, std:
 	indexIter++;
 
 	vertexCount += 4;
+
+	std::printf("%i  x  %i\n", width, height);
 }

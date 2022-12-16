@@ -153,8 +153,9 @@ int main(int argc, char** argv) {
 	assert(window != nullptr);
 
 	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
-	//voxelChunk2D.generateTerrain();
 	voxelChunk2D.generateTest();
+	voxelChunk2D.generateTerrain();
+	voxelChunk2D.generateBox();
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
@@ -211,17 +212,6 @@ int main(int argc, char** argv) {
 
 	const auto syncObjects = vkx::createSyncObjects(logicalDevice);
 
-	vkx::VoxelChunk chunk{8, {0, 0, 0}};
-	for (int j = 0; j < 3; j++) {
-		for (int k = 0; k < 2; k++) {
-			for (int i = 0; i < 2; i++) {
-				chunk.set(j, k, i, vkx::Voxel::Air);
-			}
-		}
-	}
-
-	chunk.greedy();
-
 	auto mesh = voxelChunk2D.generateMesh(allocator);
 
 	const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
@@ -254,21 +244,21 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	const auto sdlMouseMotionEvent = [&camera, &chunk, &highlightModel](SDL_MouseMotionEvent motion) {
+	const auto sdlMouseMotionEvent = [&camera, &highlightModel](SDL_MouseMotionEvent motion) {
 		camera.updateMouse({-motion.xrel, -motion.yrel});
-		const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
+		/*const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
 
 		const auto raycastResult = vkx::raycast(origin, camera.front, 4.0f, [&chunk](const auto& b) {
 			return chunk.at(b) != vkx::Voxel::Air;
 		});
 
 		if (raycastResult.success) {
-			//highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
-		}
+			highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
+		}*/
 	};
 
-	const auto sdlMousePressedEvent = [&camera, &chunk, &mesh](SDL_MouseButtonEvent button) {
-		const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
+	const auto sdlMousePressedEvent = [&camera, &mesh](SDL_MouseButtonEvent button) {
+		/*const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
 		const auto raycastResult = vkx::raycast(origin, camera.front, 4.0f, [&chunk](const auto& b) {
 			return chunk.at(b) != vkx::Voxel::Air;
 		});
@@ -279,7 +269,7 @@ int main(int argc, char** argv) {
 			std::memcpy(mesh.vertexAllocationInfo.pMappedData, chunk.vertices.data(), mesh.vertexAllocationInfo.size);
 			std::memcpy(mesh.indexAllocationInfo.pMappedData, chunk.indices.data(), mesh.indexAllocationInfo.size);
 			mesh.indexCount = static_cast<std::uint32_t>(std::distance(chunk.indices.begin(), chunk.indexIter));
-		}
+		}*/
 	};
 
 	const auto sdlMouseReleasedEvent = [](SDL_MouseButtonEvent button) {};

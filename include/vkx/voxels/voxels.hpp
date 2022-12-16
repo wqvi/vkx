@@ -23,7 +23,8 @@ constexpr std::size_t flattenIndex(std::size_t size, T x, Y... indices) {
 
 enum class Voxel : std::uint32_t {
 	Air,
-	Stone
+	Stone,
+	Dirt
 };
 
 struct VoxelMask {
@@ -131,6 +132,8 @@ public:
 
 	void generateTerrain();
 
+	void generateBox();
+
 	void generateTest();
 
 	[[nodiscard]] vkx::Mesh generateMesh(VmaAllocator allocator);
@@ -139,7 +142,11 @@ public:
 
 	void set(std::size_t i, vkx::Voxel voxel);
 
+	void printTest() const;
+
 private:
-	void createQuad(std::int32_t normal, std::int32_t width, std::int32_t height, const glm::vec2& pos);
+	[[nodiscard]] bool valid(std::size_t i) const;
+
+	void createQuad(std::int32_t width, std::int32_t height, const glm::vec2& pos);
 };
 } // namespace vkx
