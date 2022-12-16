@@ -257,7 +257,7 @@ int main(int argc, char** argv) {
 		}*/
 	};
 
-	const auto sdlMousePressedEvent = [&camera, &mesh](SDL_MouseButtonEvent button) {
+	const auto sdlMousePressedEvent = [&voxelChunk2D, &mesh, &allocator](SDL_MouseButtonEvent button) {
 		/*const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
 		const auto raycastResult = vkx::raycast(origin, camera.front, 4.0f, [&chunk](const auto& b) {
 			return chunk.at(b) != vkx::Voxel::Air;
@@ -270,6 +270,25 @@ int main(int argc, char** argv) {
 			std::memcpy(mesh.indexAllocationInfo.pMappedData, chunk.indices.data(), mesh.indexAllocationInfo.size);
 			mesh.indexCount = static_cast<std::uint32_t>(std::distance(chunk.indices.begin(), chunk.indexIter));
 		}*/
+
+		std::srand(std::time(nullptr));
+		static auto current = 0;
+		auto choice = current++ % 3;
+		switch (choice) {
+		case 0:
+			voxelChunk2D.generateBox();
+			break;
+		case 1:
+			voxelChunk2D.generateTerrain();
+			break;
+		case 2:
+			voxelChunk2D.generateTest();
+			break;
+		default:
+			break;
+		}
+		mesh.destroy(allocator);
+		mesh = voxelChunk2D.generateMesh(allocator);
 	};
 
 	const auto sdlMouseReleasedEvent = [](SDL_MouseButtonEvent button) {};

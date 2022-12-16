@@ -115,7 +115,7 @@ struct VoxelVertex {
 	}
 };
 
-static constexpr std::size_t CHUNK_SIZE = 4;
+static constexpr std::size_t CHUNK_SIZE = 32;
 
 class VoxelChunk2D {
 private:
