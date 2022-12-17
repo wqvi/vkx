@@ -154,8 +154,8 @@ int main(int argc, char** argv) {
 
 	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
 	voxelChunk2D.generateTest();
-	voxelChunk2D.generateTerrain();
 	voxelChunk2D.generateBox();
+	voxelChunk2D.generateTerrain();
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
@@ -219,10 +219,10 @@ int main(int argc, char** argv) {
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
 	auto& materialBuffers = graphicsPipeline.getUniformByIndex(2);
-	
+
 	auto& highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
 
-	auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 100.0f);
+	auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 1000.0f);
 
 	auto highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(0, -1, 0));
 
@@ -231,9 +231,13 @@ int main(int argc, char** argv) {
 	std::uint32_t currentFrame = 0;
 	bool framebufferResized = false;
 
-	const auto sdlWindowResizedEvent = [&framebufferResized, &proj](std::int32_t width, std::int32_t height) {
+	glm::mat4 view{1.0f};
+	glm::mat4 projection = glm::ortho(0.0f, 640.0f, 480.0f, 0.0f, 0.1f, 100.0f);
+
+	const auto sdlWindowResizedEvent = [&framebufferResized, &proj, &projection](std::int32_t width, std::int32_t height) {
 		framebufferResized = true;
 		proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
+		projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 0.1f, 100.0f);
 	};
 
 	const auto sdlWindowEvent = [&sdlWindowResizedEvent](SDL_WindowEvent window) {
@@ -244,50 +248,28 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	const auto sdlMouseMotionEvent = [&camera, &highlightModel](SDL_MouseMotionEvent motion) {
+	const auto sdlMouseMotionEvent = [&camera, &highlightModel, &view](SDL_MouseMotionEvent motion) {
 		camera.updateMouse({-motion.xrel, -motion.yrel});
-		/*const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
 
-		const auto raycastResult = vkx::raycast(origin, camera.front, 4.0f, [&chunk](const auto& b) {
-			return chunk.at(b) != vkx::Voxel::Air;
-		});
+		const auto m = camera.viewMatrix();
+		std::printf("Camera view matrix\n");
+		for (auto y = 0; y < 4; y++) {
+			for (auto x = 0; x < 4; x++) {
+				std::printf("[%.2f]", m[y][x]);
+			}
+			std::printf("\n");
+		}
 
-		if (raycastResult.success) {
-			highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(chunk.normalizedPosition - raycastResult.hitPos) + glm::vec3(-1.0f));
-		}*/
+		std::printf("Test View\n");
+		for (auto y = 0; y < 4; y++) {
+			for (auto x = 0; x < 4; x++) {
+				std::printf("[%.2f]", view[y][x]);
+			}
+			std::printf("\n");
+		}
 	};
 
-	const auto sdlMousePressedEvent = [&voxelChunk2D, &mesh, &allocator](SDL_MouseButtonEvent button) {
-		/*const auto origin = glm::vec3(chunk.normalizedPosition) - camera.position;
-		const auto raycastResult = vkx::raycast(origin, camera.front, 4.0f, [&chunk](const auto& b) {
-			return chunk.at(b) != vkx::Voxel::Air;
-		});
-
-		if (raycastResult.success) {
-			chunk.set(raycastResult.hitPos, vkx::Voxel::Air);
-			chunk.greedy();
-			std::memcpy(mesh.vertexAllocationInfo.pMappedData, chunk.vertices.data(), mesh.vertexAllocationInfo.size);
-			std::memcpy(mesh.indexAllocationInfo.pMappedData, chunk.indices.data(), mesh.indexAllocationInfo.size);
-			mesh.indexCount = static_cast<std::uint32_t>(std::distance(chunk.indices.begin(), chunk.indexIter));
-		}*/
-
-		static auto current = 0;
-		auto choice = current++ % 3;
-		switch (choice) {
-		case 0:
-			voxelChunk2D.generateBox();
-			break;
-		case 1:
-			voxelChunk2D.generateTerrain();
-			break;
-		case 2:
-			voxelChunk2D.generateTest();
-			break;
-		default:
-			break;
-		}
-		mesh.destroy(allocator);
-		mesh = voxelChunk2D.generateMesh(allocator);
+	const auto sdlMousePressedEvent = [](SDL_MouseButtonEvent button) {
 	};
 
 	const auto sdlMouseReleasedEvent = [](SDL_MouseButtonEvent button) {};
@@ -311,7 +293,7 @@ int main(int argc, char** argv) {
 		camera.position += camera.direction * 0.01f;
 
 		auto& mvpBuffer = mvpBuffers[currentFrame];
-		auto mvp = vkx::MVP{glm::mat4(1.0f), camera.viewMatrix(), proj};
+		auto mvp = vkx::MVP{glm::mat4(1.0f), view, projection};
 
 		auto& lightBuffer = lightBuffers[currentFrame];
 		auto light = vkx::DirectionalLight{

@@ -216,7 +216,7 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    0,
 	    false,
 	    false,
-	    wireframe,
+	    fill,
 	    VK_CULL_MODE_BACK_BIT,
 	    VK_FRONT_FACE_COUNTER_CLOCKWISE,
 	    false,
