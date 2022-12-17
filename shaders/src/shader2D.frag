@@ -20,12 +20,8 @@ layout(binding = 3) uniform Material {
     float shininess;
 } material;
 
-layout(location = 0) in Data {
-	vec2 worldPos;
-	vec2 uv;
-	vec2 worldNormal;
-} data;
+layout (location = 0) in vec2 fragUV;
 
 void main() {
-    outColor = vec4(1.0);
+    outColor = texture(materialDiffuse, fragUV);
 }
