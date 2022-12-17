@@ -159,17 +159,14 @@ int main(int argc, char** argv) {
 	const auto logicalDevice = vkx::createDevice(instance, surface, physicalDevice);
 	const vkx::SwapchainInfo swapchainInfo{physicalDevice, surface};
 	const auto renderPassFormat = swapchainInfo.chooseSurfaceFormat().format;
-	const auto clearRenderPass = vkx::createRenderPass(physicalDevice, logicalDevice, renderPassFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR);
-	const auto loadRenderPass = vkx::createRenderPass(physicalDevice, logicalDevice, renderPassFormat, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_LOAD);
+	const auto clearRenderPass = vkx::createRenderPass(physicalDevice, logicalDevice, renderPassFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_CLEAR);
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 	const auto allocator = vkx::createAllocator(physicalDevice, logicalDevice, instance);
 	const vkx::CommandSubmitter commandSubmitter{physicalDevice, logicalDevice, surface};
 	vkx::Swapchain swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, window};
 
 	const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
-	const std::vector highlightPoolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE};
 	const auto descriptorSetLayout = createShaderDescriptorSetLayout(logicalDevice);
-	const auto highlightDescriptorSetLayout = createHighlightDescriptorSetLayout(logicalDevice);
 
 	const vkx::Texture texture{"a.jpg", logicalDevice, properties.limits.maxSamplerAnisotropy, allocator, commandSubmitter};
 
@@ -184,38 +181,18 @@ int main(int argc, char** argv) {
 
 	const vkx::GraphicsPipeline graphicsPipeline{logicalDevice, clearRenderPass, allocator, graphicsPipelineInformation};
 
-	const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
-	    "highlight.vert.spv",
-	    "highlight.frag.spv",
-	    createHighlightShaderBindings(),
-	    getBindingDescription(),
-	    getAttributeDescriptions(),
-	    {sizeof(vkx::MVP)},
-	    {}};
-
-	const vkx::GraphicsPipeline highlightGraphicsPipeline{logicalDevice, clearRenderPass, allocator, highlightGraphicsPipelineInformation};
-
 	constexpr std::uint32_t chunkDrawCommandAmount = 1;
-	constexpr std::uint32_t highlightDrawCommandAmount = 1;
 
-	constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount + highlightDrawCommandAmount;
-	constexpr std::uint32_t secondaryDrawCommandAmount = 1;
+	constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount;
 	const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
-	const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 
 	const auto syncObjects = vkx::createSyncObjects(logicalDevice);
 
 	auto mesh = voxelChunk2D.generateMesh(allocator);
 
-	const vkx::Mesh highlightMesh{vkx::CUBE_VERTICES, vkx::CUBE_INDICES, allocator};
-
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
 	auto& materialBuffers = graphicsPipeline.getUniformByIndex(2);
-
-	auto& highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
-
-	auto highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(0, -1, 0));
 
 	SDL_Event event{};
 	bool isRunning = true;
@@ -275,13 +252,9 @@ int main(int argc, char** argv) {
 		auto& materialBuffer = materialBuffers[currentFrame];
 		auto material = vkx::Material{glm::vec3(0.2f), 100.0f};
 
-		auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
-		auto highlightMVP = vkx::MVP{highlightModel, mvp.view, mvp.proj};
-
 		mvpBuffer.mapMemory(mvp);
 		lightBuffer.mapMemory(light);
 		materialBuffer.mapMemory(material);
-		highlightMVPBuffer.mapMemory(highlightMVP);
 
 		const auto& syncObject = syncObjects[currentFrame];
 		syncObject.waitForFence();
@@ -318,27 +291,11 @@ int main(int argc, char** argv) {
 		    {mesh.indexBuffer},
 		    {static_cast<std::uint32_t>(mesh.indexCount)}};
 
-		const vkx::DrawInfo highlightDrawInfo = {
-		    imageIndex,
-		    currentFrame,
-		    &swapchain,
-		    &highlightGraphicsPipeline,
-		    loadRenderPass,
-		    {highlightMesh.vertexBuffer},
-		    {highlightMesh.indexBuffer},
-		    {static_cast<std::uint32_t>(highlightMesh.indexCount)}};
-
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 
 		const auto* chunkBegin = begin;
 
-		const auto* highlightBegin = chunkBegin + chunkDrawCommandAmount;
-
-		const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
-
-		commandSubmitter.recordSecondaryDrawCommands(chunkBegin, chunkDrawCommandAmount, secondaryBegin, secondaryDrawCommandAmount, chunkDrawInfo);
-
-		commandSubmitter.recordPrimaryDrawCommands(highlightBegin, highlightDrawCommandAmount, highlightDrawInfo);
+		commandSubmitter.recordPrimaryDrawCommands(chunkBegin, chunkDrawCommandAmount, chunkDrawInfo);
 
 		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
@@ -404,17 +361,13 @@ int main(int argc, char** argv) {
 
 	texture.destroy();
 	mesh.destroy(allocator);
-	highlightMesh.destroy(allocator);
 	swapchain.destroy();
 	commandSubmitter.destroy();
 	vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
 	graphicsPipeline.destroy();
-	vkDestroyDescriptorSetLayout(logicalDevice, highlightDescriptorSetLayout, nullptr);
-	highlightGraphicsPipeline.destroy();
 
 	vmaDestroyAllocator(allocator);
 	vkDestroyRenderPass(logicalDevice, clearRenderPass, nullptr);
-	vkDestroyRenderPass(logicalDevice, loadRenderPass, nullptr);
 	vkDestroyDevice(logicalDevice, nullptr);
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
