@@ -1,4 +1,3 @@
-#include <glm/gtc/noise.hpp>
 #include <vkx/voxels/voxels.hpp>
 
 bool vkx::VoxelMask::operator==(const vkx::VoxelMask& other) const {
