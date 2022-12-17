@@ -137,13 +137,13 @@ void vkx::VoxelChunk2D::createQuad(std::int32_t width, std::int32_t height, cons
 	const auto v3 = pos + glm::vec2{width, height};
 	const auto v4 = pos + glm::vec2{0, height};
 
-	*vertexIter = vkx::VoxelVertex{pos * 16.0f, glm::vec2{width, height}, {}};
+	*vertexIter = vkx::VoxelVertex{pos * 16.0f, glm::vec2{0, 0}, {}};
 	vertexIter++;
-	*vertexIter = vkx::VoxelVertex{v2 * 16.0f, glm::vec2{0, height}, {}};
+	*vertexIter = vkx::VoxelVertex{v2 * 16.0f, glm::vec2{width, 0}, {}};
 	vertexIter++;
-	*vertexIter = vkx::VoxelVertex{v3 * 16.0f, glm::vec2{width, 0}, {}};
+	*vertexIter = vkx::VoxelVertex{v3 * 16.0f, glm::vec2{width, height}, {}};
 	vertexIter++;
-	*vertexIter = vkx::VoxelVertex{v4 * 16.0f, glm::vec2{0, 0}, {}};
+	*vertexIter = vkx::VoxelVertex{v4 * 16.0f, glm::vec2{0, height}, {}};
 	vertexIter++;
 
 	*indexIter = vertexCount;
