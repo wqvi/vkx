@@ -134,11 +134,6 @@ static SDL_Window* init() {
 		return nullptr;
 	}
 
-	if (SDL_SetRelativeMouseMode(SDL_TRUE) != 0) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_SetRelativeMouseMode: %s", SDL_GetError());
-		return nullptr;
-	}
-
 	SDL_Window* window = SDL_CreateWindow("vkx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
 	if (window == nullptr) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateWindow: %s", SDL_GetError());
@@ -153,8 +148,6 @@ int main(int argc, char** argv) {
 	assert(window != nullptr);
 
 	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
-	voxelChunk2D.generateTest();
-	voxelChunk2D.generateBox();
 	voxelChunk2D.generateTerrain();
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
@@ -222,8 +215,6 @@ int main(int argc, char** argv) {
 
 	auto& highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
 
-	auto proj = glm::perspective(70.0f, 640.0f / 480.0f, 0.1f, 1000.0f);
-
 	auto highlightModel = glm::translate(glm::mat4(1.0f), glm::vec3(0, -1, 0));
 
 	SDL_Event event{};
@@ -232,11 +223,10 @@ int main(int argc, char** argv) {
 	bool framebufferResized = false;
 
 	glm::mat4 view{1.0f};
-	glm::mat4 projection = glm::ortho(0.0f, 640.0f, 480.0f, 0.0f, 0.1f, 100.0f);
+	auto projection = glm::ortho(0.0f, 640.0f, 480.0f, 0.0f, 0.1f, 100.0f);
 
-	const auto sdlWindowResizedEvent = [&framebufferResized, &proj, &projection](std::int32_t width, std::int32_t height) {
+	const auto sdlWindowResizedEvent = [&framebufferResized, &projection](std::int32_t width, std::int32_t height) {
 		framebufferResized = true;
-		proj = glm::perspective(70.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
 		projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 0.1f, 100.0f);
 	};
 
@@ -248,25 +238,7 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	const auto sdlMouseMotionEvent = [&camera, &highlightModel, &view](SDL_MouseMotionEvent motion) {
-		camera.updateMouse({-motion.xrel, -motion.yrel});
-
-		const auto m = camera.viewMatrix();
-		std::printf("Camera view matrix\n");
-		for (auto y = 0; y < 4; y++) {
-			for (auto x = 0; x < 4; x++) {
-				std::printf("[%.2f]", m[y][x]);
-			}
-			std::printf("\n");
-		}
-
-		std::printf("Test View\n");
-		for (auto y = 0; y < 4; y++) {
-			for (auto x = 0; x < 4; x++) {
-				std::printf("[%.2f]", view[y][x]);
-			}
-			std::printf("\n");
-		}
+	const auto sdlMouseMotionEvent = [](SDL_MouseMotionEvent motion) {
 	};
 
 	const auto sdlMousePressedEvent = [](SDL_MouseButtonEvent button) {
@@ -274,19 +246,13 @@ int main(int argc, char** argv) {
 
 	const auto sdlMouseReleasedEvent = [](SDL_MouseButtonEvent button) {};
 
-	const auto sdlKeyPressedEvent = [&camera, &isRunning](SDL_KeyboardEvent key) {
+	const auto sdlKeyPressedEvent = [&isRunning](SDL_KeyboardEvent key) {
 		if (key.keysym.sym == SDLK_ESCAPE) {
 			isRunning = false;
-		} else {
-			camera.updateKey(key.keysym.sym);
 		}
 	};
 
-	const auto sdlKeyReleasedEvent = [&camera](SDL_KeyboardEvent key) {
-		if (key.keysym.sym != SDLK_ESCAPE) {
-			camera.direction = glm::vec3(0);
-		}
-	};
+	const auto sdlKeyReleasedEvent = [](SDL_KeyboardEvent key) {};
 
 	SDL_ShowWindow(window);
 	while (isRunning) {
