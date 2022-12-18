@@ -1,7 +1,5 @@
 #include <vkx/voxels/voxels.hpp>
 
-#include <vkx/noise.hpp>
-
 bool vkx::VoxelMask::operator==(const vkx::VoxelMask& other) const {
 	return voxel == other.voxel && normal == other.normal;
 }
