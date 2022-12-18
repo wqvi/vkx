@@ -64,10 +64,6 @@ public:
 
 	void generateTerrain();
 
-	void generateBox();
-
-	void generateTest();
-
 	[[nodiscard]] vkx::Mesh generateMesh(VmaAllocator allocator);
 
 	[[nodiscard]] vkx::Voxel at(std::size_t i) const;

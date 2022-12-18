@@ -36,30 +36,6 @@ void vkx::VoxelChunk2D::generateTerrain() {
 	}
 }
 
-void vkx::VoxelChunk2D::generateBox() {
-	std::fill(voxels.begin(), voxels.end(), vkx::Voxel::Stone);
-	voxels[0] = vkx::Voxel::Dirt;
-	voxels[2] = vkx::Voxel::Dirt;
-}
-
-void vkx::VoxelChunk2D::generateTest() {
-	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
-		for (std::size_t y = 0; y < CHUNK_SIZE; y++) {
-			voxels[x + y * CHUNK_SIZE] = vkx::Voxel::Stone;
-		}
-	}
-
-	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
-		voxels[x + 0 * CHUNK_SIZE] = vkx::Voxel::Air;
-	}
-
-	for (std::size_t i = 0; i < CHUNK_SIZE; i++) {
-		voxels[0 + i * CHUNK_SIZE] = vkx::Voxel::Air;
-	}
-
-	voxels[0] = vkx::Voxel::Dirt;
-}
-
 vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
 	vertexIter = vertices.begin();
 	indexIter = indices.begin();
