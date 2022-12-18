@@ -1,5 +1,7 @@
 #include <vkx/voxels/voxels.hpp>
 
+#include <vkx/noise.hpp>
+
 bool vkx::VoxelMask::operator==(const vkx::VoxelMask& other) const {
 	return voxel == other.voxel && normal == other.normal;
 }
@@ -21,14 +23,13 @@ vkx::VoxelChunk2D::VoxelChunk2D(const glm::vec2& chunkPosition)
 void vkx::VoxelChunk2D::generateTerrain() {
 	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
 		for (std::size_t y = 0; y < CHUNK_SIZE; y++) {
-			const auto value = (glm::simplex(position + glm::vec2(x, y)) + 1.0f) / 2.0f;
+			const auto global = position * static_cast<float>(CHUNK_SIZE) + glm::vec2(x, y);
+			const auto height = static_cast<std::uint32_t>((glm::simplex(global) + 1) / 2 * CHUNK_SIZE);
 
 			auto voxel = vkx::Voxel::Air;
 
-			if (value < 0.25f) {
+			if (y < height) {
 				voxel = vkx::Voxel::Stone;
-			} else if (value < 0.5f) {
-				voxel = vkx::Voxel::Dirt;
 			}
 
 			voxels[x + y * CHUNK_SIZE] = voxel;
