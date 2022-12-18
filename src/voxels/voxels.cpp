@@ -73,8 +73,8 @@ vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
 	auto n = 0;
 	for (auto y = 0; y < CHUNK_SIZE; y++) {
 		for (auto x = 0; x < CHUNK_SIZE;) {
-			if (voxelMask[n].normal) {
-				const auto currentMask = voxelMask[n];
+			if (voxelMask[n].normal != 0) {
+				const auto& currentMask = voxelMask[n];
 
 				auto width = 1;
 				for (; x + width < CHUNK_SIZE && voxelMask[n + width] == currentMask; width++) {
