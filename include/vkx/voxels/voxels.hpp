@@ -47,7 +47,7 @@ struct VoxelVertex {
 	}
 };
 
-static constexpr std::size_t CHUNK_SIZE = 32;
+static constexpr std::size_t CHUNK_SIZE = 64;
 
 class VoxelChunk2D {
 private:
@@ -72,5 +72,10 @@ public:
 
 private:
 	void createQuad(std::int32_t width, std::int32_t height, const glm::vec2& pos);
+};
+
+class ChunkLoader {
+public:
+	ChunkLoader() = default;
 };
 } // namespace vkx
