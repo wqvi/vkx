@@ -25,9 +25,9 @@ class HostHeapMesh {
 	friend class vkx::Mesh;
 
 private:
-	std::vector<vkx::VoxelVertex> vertices;
+	std::vector<vkx::Vertex> vertices;
 	std::vector<std::uint32_t> indices;
-	std::vector<vkx::VoxelVertex>::iterator vertexIter;
+	std::vector<vkx::Vertex>::iterator vertexIter;
 	std::vector<std::uint32_t>::iterator indexIter;
 	std::size_t vertexCount = 0;
 	std::size_t indexCount = 0;
@@ -40,9 +40,9 @@ class VoxelChunk2D {
 private:
 	glm::vec2 position;
 	std::vector<vkx::Voxel> voxels;
-	std::vector<vkx::VoxelVertex> vertices;
+	std::vector<vkx::Vertex> vertices;
 	std::vector<std::uint32_t> indices;
-	std::vector<vkx::VoxelVertex>::iterator vertexIter;
+	std::vector<vkx::Vertex>::iterator vertexIter;
 	std::vector<std::uint32_t>::iterator indexIter;
 	std::int32_t vertexCount = 0;
 
@@ -58,7 +58,7 @@ public:
 	void set(std::size_t i, vkx::Voxel voxel);
 
 private:
-	static std::uint32_t createQuad(std::vector<vkx::VoxelVertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos);
+	static std::uint32_t createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos);
 };
 
 class ChunkLoader {

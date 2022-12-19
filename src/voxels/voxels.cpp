@@ -86,7 +86,7 @@ vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
 		}
 	}
 
-	vkx::Mesh voxelMesh{vertices.data(), sizeof(vkx::VoxelVertex) * vertices.size(), indices.data(), sizeof(std::uint32_t) * indices.size(), allocator};
+	vkx::Mesh voxelMesh{vertices.data(), sizeof(vkx::Vertex) * vertices.size(), indices.data(), sizeof(std::uint32_t) * indices.size(), allocator};
 	voxelMesh.indexCount = static_cast<std::size_t>(std::distance(indices.begin(), indexIter));
 
 	return voxelMesh;
@@ -106,18 +106,18 @@ void vkx::VoxelChunk2D::set(std::size_t i, vkx::Voxel voxel) {
 	}
 }
 
-std::uint32_t vkx::VoxelChunk2D::createQuad(std::vector<vkx::VoxelVertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) {
+std::uint32_t vkx::VoxelChunk2D::createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) {
 	const auto v2 = pos + glm::vec2{width, 0};
 	const auto v3 = pos + glm::vec2{width, height};
 	const auto v4 = pos + glm::vec2{0, height};
 
-	*vertexIter = vkx::VoxelVertex{pos * 16.0f, glm::vec2{0, 0}, {}};
+	*vertexIter = vkx::Vertex{pos * 16.0f, glm::vec2{0, 0}, {}};
 	vertexIter++;
-	*vertexIter = vkx::VoxelVertex{v2 * 16.0f, glm::vec2{width, 0}, {}};
+	*vertexIter = vkx::Vertex{v2 * 16.0f, glm::vec2{width, 0}, {}};
 	vertexIter++;
-	*vertexIter = vkx::VoxelVertex{v3 * 16.0f, glm::vec2{width, height}, {}};
+	*vertexIter = vkx::Vertex{v3 * 16.0f, glm::vec2{width, height}, {}};
 	vertexIter++;
-	*vertexIter = vkx::VoxelVertex{v4 * 16.0f, glm::vec2{0, height}, {}};
+	*vertexIter = vkx::Vertex{v4 * 16.0f, glm::vec2{0, height}, {}};
 	vertexIter++;
 
 	*indexIter = vertexCount;

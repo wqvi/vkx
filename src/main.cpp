@@ -171,8 +171,8 @@ int main(int argc, char** argv) {
 	    "shader2D.vert.spv",
 	    "shader2D.frag.spv",
 	    createShaderBindings(),
-	    vkx::VoxelVertex::getBindingDescription(),
-	    vkx::VoxelVertex::getAttributeDescriptions(),
+	    vkx::Vertex::getBindingDescription(),
+	    vkx::Vertex::getAttributeDescriptions(),
 	    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
 	    {&texture}};
 
