@@ -1,11 +1,5 @@
 #include <vkx/renderer/model.hpp>
 
-vkx::Mesh::Mesh(const std::vector<vkx::Vertex>& vertices, const std::vector<std::uint32_t>& indices, VmaAllocator allocator) 
-	: indexCount(indices.size()) {
-	vertexAllocation = vkx::allocateBuffer(&vertexAllocationInfo, &vertexBuffer, allocator, vertices.data(), sizeof(vkx::Vertex) * vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-	indexAllocation = vkx::allocateBuffer(&indexAllocationInfo, &indexBuffer, allocator, indices.data(), sizeof(std::uint32_t) * indices.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-}
-
 vkx::Mesh::Mesh(const void* vertexData, std::size_t vertexSize, const void* indexData, std::size_t indexSize, VmaAllocator allocator) {
 	vertexAllocation = vkx::allocateBuffer(&vertexAllocationInfo, &vertexBuffer, allocator, vertexData, vertexSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 	indexAllocation = vkx::allocateBuffer(&indexAllocationInfo, &indexBuffer, allocator, indexData, indexSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);

@@ -49,6 +49,21 @@ struct VoxelVertex {
 
 static constexpr std::size_t CHUNK_SIZE = 64;
 
+class HostHeapMesh {
+	friend class vkx::Mesh;
+
+private:
+	std::vector<vkx::VoxelVertex> vertices;
+	std::vector<std::uint32_t> indices;
+	std::vector<vkx::VoxelVertex>::iterator vertexIter;
+	std::vector<std::uint32_t>::iterator indexIter;
+	std::size_t vertexCount = 0;
+	std::size_t indexCount = 0;
+
+public:
+	explicit HostHeapMesh(std::size_t maximumVertexCount, std::size_t maximumIndexCount);
+};
+
 class VoxelChunk2D {
 private:
 	glm::vec2 position;

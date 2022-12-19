@@ -10,15 +10,6 @@ class Mesh {
 public:
 	Mesh() = default;
 
-	template <class T, std::size_t K, class U, std::size_t Y>
-	explicit Mesh(const std::array<T, K>& vertices, const std::array<U, Y>& indices, VmaAllocator allocator)
-	    : indexCount(indices.size()) {
-		vertexAllocation = vkx::allocateBuffer(&vertexAllocationInfo, &vertexBuffer, allocator, vertices.data(), sizeof(T) * K, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-		indexAllocation = vkx::allocateBuffer(&indexAllocationInfo, &indexBuffer, allocator, indices.data(), sizeof(U) * Y, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-	}
-
-	explicit Mesh(const std::vector<vkx::Vertex>& vertices, const std::vector<std::uint32_t>& indices, VmaAllocator allocator);
-
 	explicit Mesh(const void* vertexData, std::size_t vertexSize, const void* indexData, std::size_t indexSize, VmaAllocator allocator);
 
 	void destroy(VmaAllocator allocator) const;

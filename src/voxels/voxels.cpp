@@ -138,3 +138,10 @@ std::uint32_t vkx::VoxelChunk2D::createQuad(std::vector<vkx::VoxelVertex>::itera
 
 	return vertexCount + 4;
 }
+
+vkx::HostHeapMesh::HostHeapMesh(std::size_t maximumVertexCount, std::size_t maximumIndexCount) {
+	vertices.resize(maximumVertexCount);
+	indices.resize(maximumIndexCount);
+	vertexIter = vertices.begin();
+	indexIter = indices.begin();
+}
