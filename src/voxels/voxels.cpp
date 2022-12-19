@@ -8,9 +8,6 @@ bool vkx::VoxelMask::operator!=(const vkx::VoxelMask& other) const {
 	return voxel != other.voxel || normal != other.normal;
 }
 
-vkx::VoxelVertex::VoxelVertex(const glm::vec2& pos, const glm::vec2& uv, const glm::vec2& normal)
-    : pos(pos), uv(uv), normal(normal) {}
-
 vkx::VoxelChunk2D::VoxelChunk2D(const glm::vec2& chunkPosition)
     : position(chunkPosition) {
 	voxels.resize(CHUNK_SIZE * CHUNK_SIZE);
