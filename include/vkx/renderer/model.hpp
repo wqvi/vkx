@@ -6,11 +6,35 @@
 #include <vkx/renderer/renderer.hpp>
 
 namespace vkx {
+class Buffer {
+private:
+	VmaAllocator allocator = nullptr;
+	VkBuffer buffer = nullptr;
+	VmaAllocation allocation = nullptr;
+	VmaAllocationInfo allocationInfo{};
+
+public:
+	Buffer() = delete;
+
+	explicit Buffer(VmaAllocator allocator,
+			const void* data,
+			std::size_t memorySize,
+			VkBufferUsageFlags bufferFlags,
+			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
+
+	~Buffer();
+
+	void mapMemory(const void* data);
+};
+
 class Mesh {
 public:
 	Mesh() = default;
 
 	explicit Mesh(const void* vertexData, std::size_t vertexSize, const void* indexData, std::size_t indexSize, VmaAllocator allocator);
+
+	explicit Mesh(const std::vector<vkx::Vertex>& vertices, const std::vector<std::uint32_t>& indices, VmaAllocator allocator);
 
 	void destroy(VmaAllocator allocator) const;
 
