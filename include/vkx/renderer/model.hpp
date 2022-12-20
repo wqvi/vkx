@@ -14,7 +14,7 @@ private:
 	VmaAllocationInfo allocationInfo{};
 
 public:
-	Buffer() = delete;
+	Buffer() = default;
 
 	explicit Buffer(VmaAllocator allocator,
 			const void* data,
@@ -23,7 +23,15 @@ public:
 			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
 			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
 
+	Buffer(const Buffer& buffer) = delete;
+
+	Buffer(Buffer&& buffer) = default;
+
 	~Buffer();
+
+	Buffer& operator=(const Buffer& buffer) = delete;
+
+	Buffer& operator=(Buffer&& buffer) = default;
 
 	void mapMemory(const void* data);
 };
@@ -45,6 +53,20 @@ public:
 	VmaAllocation indexAllocation = nullptr;
 	VmaAllocationInfo indexAllocationInfo{};
 	std::size_t indexCount = 0;
+};
+
+class TestMesh {
+private:
+	vkx::Buffer vertexBuffer{};
+	vkx::Buffer indexBuffer{};
+	std::vector<vkx::Vertex> vertices{};
+	std::vector<std::uint32_t> indices{};
+	std::size_t activeIndexCount = 0;
+
+public:
+	TestMesh() = default;
+
+	explicit TestMesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, VmaAllocator allocator);
 };
 
 class Texture {

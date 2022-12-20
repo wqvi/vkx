@@ -86,3 +86,6 @@ void vkx::Texture::destroy() const {
 	vkDestroyImageView(device, view, nullptr);
 	vkDestroySampler(device, sampler, nullptr);
 }
+
+vkx::TestMesh::TestMesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, VmaAllocator allocator) {
+}
