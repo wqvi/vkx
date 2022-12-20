@@ -32,7 +32,7 @@ void vkx::VoxelChunk2D::generateTerrain() {
 	}
 }
 
-vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
+vkx::TestMesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
 	vertexIter = vertices.begin();
 	indexIter = indices.begin();
 	vertexCount = 0;
@@ -86,8 +86,8 @@ vkx::Mesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
 		}
 	}
 
-	vkx::Mesh voxelMesh{vertices.data(), sizeof(vkx::Vertex) * vertices.size(), indices.data(), sizeof(std::uint32_t) * indices.size(), allocator};
-	voxelMesh.indexCount = static_cast<std::size_t>(std::distance(indices.begin(), indexIter));
+	const auto activeIndexCount = static_cast<std::size_t>(std::distance(indices.begin(), indexIter));
+	vkx::TestMesh voxelMesh{std::move(vertices), std::move(indices), activeIndexCount, allocator};
 
 	return voxelMesh;
 }
