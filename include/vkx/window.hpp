@@ -24,5 +24,7 @@ public:
 	explicit operator SDL_Window*() const;
 
 	std::pair<std::int32_t, std::int32_t> getDimensions() const;
+
+	void waitForUpdate() const;
 };
 } // namespace vkx
