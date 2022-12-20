@@ -36,10 +36,38 @@ vkx::Buffer::Buffer(VmaAllocator allocator,
 	}
 }
 
+vkx::Buffer::Buffer(Buffer&& other) noexcept
+    : allocator(std::move(other.allocator)),
+      buffer(std::move(other.buffer)),
+      allocation(std::move(other.allocation)),
+      allocationInfo(std::move(other.allocationInfo)) {
+	other.allocator = nullptr;
+	other.buffer = nullptr;
+	other.allocation = nullptr;
+	std::memset(&other.allocationInfo, 0, sizeof(VmaAllocationInfo));
+}
+
 vkx::Buffer::~Buffer() {
-	if (buffer != nullptr) {
+	if (buffer) {
 		vmaDestroyBuffer(allocator, buffer, allocation);
 	}
+}
+
+vkx::Buffer& vkx::Buffer::operator=(Buffer&& other) noexcept {
+	allocator = std::move(other.allocator);
+	buffer = std::move(other.buffer);
+	allocation = std::move(other.allocation);
+	allocationInfo = std::move(other.allocationInfo);
+
+	other.allocator = nullptr;
+	other.buffer = nullptr;
+	other.allocation = nullptr;
+	std::memset(&other.allocationInfo, 0, sizeof(VmaAllocationInfo));
+	return *this;
+}
+
+vkx::Buffer::operator VkBuffer() const {
+	return buffer;
 }
 
 void vkx::Buffer::mapMemory(const void* data) {
@@ -93,4 +121,16 @@ vkx::TestMesh::TestMesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::ui
       vertices(std::move(vertices)),
       indices(std::move(indices)),
       activeIndexCount(activeIndexCount) {
+}
+
+const vkx::Buffer& vkx::TestMesh::getVertexBuffer() const {
+	return vertexBuffer;
+}
+
+const vkx::Buffer& vkx::TestMesh::getIndexBuffer() const {
+	return indexBuffer;
+}
+
+std::size_t vkx::TestMesh::getActiveIndexCount() const {
+	return activeIndexCount;
 }
