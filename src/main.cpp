@@ -286,9 +286,9 @@ int main(int argc, char** argv) {
 		    &swapchain,
 		    &graphicsPipeline,
 		    clearRenderPass,
-		    {mesh.vertexBuffer},
-		    {mesh.indexBuffer},
-		    {static_cast<std::uint32_t>(mesh.indexCount)}};
+		    {static_cast<VkBuffer>(mesh.getVertexBuffer())},
+		    {static_cast<VkBuffer>(mesh.getIndexBuffer())},
+		    {static_cast<std::uint32_t>(mesh.getActiveIndexCount())}};
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 
@@ -359,7 +359,6 @@ int main(int argc, char** argv) {
 	}
 
 	texture.destroy();
-	mesh.destroy(allocator);
 	swapchain.destroy();
 	commandSubmitter.destroy();
 	vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
