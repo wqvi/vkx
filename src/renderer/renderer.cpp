@@ -508,6 +508,79 @@ std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocat
 	return buffers;
 }
 
+vkx::VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice)
+    : instance(instance),
+      surface(surface),
+      physicalDevice(physicalDevice) {
+	const vkx::QueueConfig queueConfig{physicalDevice, surface};
+
+	constexpr float queuePriority = 1.0f;
+	const auto queueCreateInfos = queueConfig.createQueueInfos(&queuePriority);
+
+	VkPhysicalDeviceFeatures features{};
+	features.samplerAnisotropy = true;
+
+	constexpr std::array deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+	const VkDeviceCreateInfo deviceCreateInfo{
+	    VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    static_cast<std::uint32_t>(queueCreateInfos.size()),
+	    queueCreateInfos.data(),
+	    static_cast<std::uint32_t>(layers.size()),
+	    layers.data(),
+	    static_cast<std::uint32_t>(deviceExtensions.size()),
+	    deviceExtensions.data(),
+	    &features};
+
+	logicalDevice = vkx::create<VkDevice>(
+	    vkCreateDevice, [](auto result) {
+		    if (result == VK_ERROR_LAYER_NOT_PRESENT) {
+			    throw std::runtime_error("Device layer not present.");
+		    }
+
+		    if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
+			    throw std::runtime_error("Device extension not present.");
+		    }
+
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failure to create logical device.");
+		    }
+	    },
+	    physicalDevice, &deviceCreateInfo, nullptr);
+}
+
+vkx::VulkanDevice::VulkanDevice(VulkanDevice&& other) noexcept
+    : instance(std::move(other.instance)),
+      surface(std::move(other.surface)),
+      physicalDevice(std::move(other.physicalDevice)),
+      logicalDevice(std::move(other.logicalDevice)) {
+	other.instance = nullptr;
+	other.surface = nullptr;
+	other.physicalDevice = nullptr;
+	other.logicalDevice = nullptr;
+}
+
+vkx::VulkanDevice::~VulkanDevice() {
+	if (logicalDevice) {
+		vkDestroyDevice(logicalDevice, nullptr);
+	}
+}
+
+vkx::VulkanDevice& vkx::VulkanDevice::operator=(VulkanDevice&& other) noexcept {
+	instance = std::move(other.instance);
+	surface = std::move(other.surface);
+	physicalDevice = std::move(other.physicalDevice);
+	logicalDevice = std::move(other.logicalDevice);
+
+	other.instance = nullptr;
+	other.surface = nullptr;
+	other.physicalDevice = nullptr;
+	other.logicalDevice = nullptr;
+	return *this;
+}
+
 vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
     : window(static_cast<SDL_Window*>(window)) {
 	constexpr VkApplicationInfo applicationInfo{
@@ -573,11 +646,12 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	    &instanceCreateInfo, nullptr);
 
 	surface = vkx::create<VkSurfaceKHR>(
-		SDL_Vulkan_CreateSurface, [](auto result) {
+	    SDL_Vulkan_CreateSurface, [](auto result) {
 		    if (result != SDL_TRUE) {
 			    throw std::runtime_error("Failed to create SDL Vulkan surface.");
-			}
-		}, this->window, instance);
+		    }
+	    },
+	    this->window, instance);
 }
 
 vkx::VulkanInstance::VulkanInstance(VulkanInstance&& other) noexcept
@@ -605,4 +679,55 @@ vkx::VulkanInstance& vkx::VulkanInstance::operator=(VulkanInstance&& other) noex
 	other.instance = nullptr;
 	other.surface = nullptr;
 	return *this;
+}
+
+vkx::VulkanDevice vkx::VulkanInstance::createDevice() const {
+	const auto physicalDevices = vkx::getArray<VkPhysicalDevice>(
+	    "Failed to enumerate physical devices.",
+	    vkEnumeratePhysicalDevices,
+	    [](auto a) { return a != VK_SUCCESS; },
+	    instance);
+
+	VkPhysicalDevice bestPhysicalDevice = nullptr;
+	std::uint32_t bestRating = 0;
+	for (VkPhysicalDevice physicalDevice : physicalDevices) {
+		std::uint32_t currentRating = ratePhysicalDevice(physicalDevice);
+
+		if (currentRating > bestRating) {
+			bestRating = currentRating;
+			bestPhysicalDevice = physicalDevice;
+		}
+	}
+
+	if (!bestPhysicalDevice) {
+		throw std::runtime_error("Failure to find suitable physical device!");
+	}
+
+	return vkx::VulkanDevice{instance, surface, bestPhysicalDevice};
+}
+
+std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(VkPhysicalDevice physicalDevice) const {
+	std::uint32_t rating = 0;
+
+	const vkx::QueueConfig indices{physicalDevice, surface};
+	if (indices.isComplete()) {
+		rating++;
+	}
+
+	const vkx::SwapchainInfo info{physicalDevice, surface};
+	if (info.isComplete()) {
+		rating++;
+	}
+
+	const auto features = vkx::getObject<VkPhysicalDeviceFeatures>(vkGetPhysicalDeviceFeatures, physicalDevice);
+	if (features.samplerAnisotropy) {
+		rating++;
+	}
+
+	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
+	if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+		rating++;
+	}
+
+	return rating;
 }

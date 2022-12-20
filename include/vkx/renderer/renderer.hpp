@@ -98,6 +98,29 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(VmaAllocator allocator, std::size_t size);
 
+class VulkanDevice {
+private:
+	VkInstance instance = nullptr;
+	VkSurfaceKHR surface = nullptr;
+	VkPhysicalDevice physicalDevice = nullptr;
+	VkDevice logicalDevice = nullptr;
+
+public:
+	VulkanDevice() = default;
+
+	explicit VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
+
+	VulkanDevice(const VulkanDevice& other) = delete;
+
+	VulkanDevice(VulkanDevice&& other) noexcept;
+
+	~VulkanDevice();
+
+	VulkanDevice& operator=(const VulkanDevice& other) = delete;
+
+	VulkanDevice& operator=(VulkanDevice&& other) noexcept;
+};
+
 class VulkanInstance {
 private:
 	SDL_Window* window = nullptr;
@@ -118,5 +141,10 @@ public:
 	VulkanInstance& operator=(const VulkanInstance& other) = delete;
 
 	VulkanInstance& operator=(VulkanInstance&& other) noexcept;
+
+	VulkanDevice createDevice() const;
+
+private:
+	std::uint32_t ratePhysicalDevice(VkPhysicalDevice physicalDevice) const;
 };
 } // namespace vkx
