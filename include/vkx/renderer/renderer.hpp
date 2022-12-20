@@ -3,6 +3,7 @@
 #include "core/queue_config.hpp"
 #include "core/swapchain_info.hpp"
 #include "core/sync_objects.hpp"
+#include <vkx/window.hpp>
 
 namespace vkx {
 template <class ObjectType, class Function, class Predicate, class... Parameters>
@@ -96,4 +97,26 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 [[nodiscard]] VmaAllocation allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, const void* ptr, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
 
 [[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(VmaAllocator allocator, std::size_t size);
+
+class VulkanInstance {
+private:
+	const SDL_Window* window = nullptr;
+	VkInstance instance = nullptr;
+	VkSurfaceKHR surface = nullptr;
+
+public:
+	VulkanInstance() = default;
+
+	explicit VulkanInstance(const vkx::Window& window);
+
+	VulkanInstance(const VulkanInstance& other) = delete;
+
+	VulkanInstance(VulkanInstance&& other) noexcept;
+
+	~VulkanInstance();
+
+	VulkanInstance& operator=(const VulkanInstance& other) = delete;
+
+	VulkanInstance& operator=(VulkanInstance&& other) noexcept;
+};
 } // namespace vkx

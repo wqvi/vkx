@@ -507,3 +507,35 @@ std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocat
 	}
 	return buffers;
 }
+
+vkx::VulkanInstance::VulkanInstance(const vkx::Window& window) 
+	: window(static_cast<SDL_Window*>(window)) {
+
+}
+
+vkx::VulkanInstance::VulkanInstance(VulkanInstance&& other) noexcept 
+	: window(std::move(other.window)), 
+	instance(std::move(other.instance)), 
+	surface(std::move(other.surface)) {
+	other.window = nullptr;
+	other.instance = nullptr;
+	other.surface = nullptr;
+}
+
+vkx::VulkanInstance::~VulkanInstance() {
+	if (instance && surface) {
+		vkDestroySurfaceKHR(instance, surface, nullptr);
+		vkDestroyInstance(instance, nullptr);
+	}
+}
+
+vkx::VulkanInstance& vkx::VulkanInstance::operator=(VulkanInstance&& other) noexcept {
+	window = std::move(other.window);
+	instance = std::move(other.instance);
+	surface = std::move(other.surface);
+
+	other.window = nullptr;
+	other.instance = nullptr;
+	other.surface = nullptr;
+	return *this;
+}
