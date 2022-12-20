@@ -144,7 +144,7 @@ static SDL_Window* init() {
 }
 
 int main(int argc, char** argv) {
-	vkx::Window window{"vkx", 640, 480};
+	const vkx::Window window{"vkx", 640, 480};
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
