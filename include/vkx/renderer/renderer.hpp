@@ -103,6 +103,7 @@ private:
 	VkInstance instance = nullptr;
 	VkSurfaceKHR surface = nullptr;
 	VkPhysicalDevice physicalDevice = nullptr;
+	VkPhysicalDeviceProperties physicalDeviceProperties{};
 	VkDevice logicalDevice = nullptr;
 
 public:

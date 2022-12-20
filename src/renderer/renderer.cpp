@@ -511,7 +511,8 @@ std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocat
 vkx::VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice)
     : instance(instance),
       surface(surface),
-      physicalDevice(physicalDevice) {
+      physicalDevice(physicalDevice),
+      physicalDeviceProperties(vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice)) {
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 
 	constexpr float queuePriority = 1.0f;
