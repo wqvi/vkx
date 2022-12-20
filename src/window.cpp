@@ -14,6 +14,11 @@ vkx::Window::Window(const char* name, std::int32_t width, std::int32_t height) {
 				throw std::runtime_error("Failed to register SDL_Quit at exit.");
 		    }
 		}, SDL_INIT_EVERYTHING);
+
+	windowHandle = SDL_CreateWindow(name, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, static_cast<int>(width), static_cast<int>(height), SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+	if (windowHandle == nullptr) {
+		throw std::runtime_error(SDL_GetError());
+	}
 }
 
 vkx::Window::Window(Window&& other) noexcept 
@@ -50,4 +55,12 @@ void vkx::Window::waitForUpdate() const {
 		std::tie(width, height) = getDimensions();
 		SDL_WaitEvent(nullptr);
 	}
+}
+
+void vkx::Window::show() const {
+	SDL_ShowWindow(windowHandle);
+}
+
+void vkx::Window::hide() const {
+	SDL_HideWindow(windowHandle);
 }

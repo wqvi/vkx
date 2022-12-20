@@ -144,13 +144,12 @@ static SDL_Window* init() {
 }
 
 int main(int argc, char** argv) {
-	auto* window = init();
-	assert(window != nullptr);
+	vkx::Window window{"vkx", 640, 360};
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
-	const auto instance = vkx::createInstance(window);
-	const auto surface = vkx::createSurface(window, instance);
+	const auto instance = vkx::createInstance(static_cast<SDL_Window*>(window));
+	const auto surface = vkx::createSurface(static_cast<SDL_Window*>(window), instance);
 	const auto physicalDevice = vkx::getBestPhysicalDevice(instance, surface);
 	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
 	const auto logicalDevice = vkx::createDevice(instance, surface, physicalDevice);
@@ -160,7 +159,7 @@ int main(int argc, char** argv) {
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 	const auto allocator = vkx::createAllocator(physicalDevice, logicalDevice, instance);
 	const vkx::CommandSubmitter commandSubmitter{physicalDevice, logicalDevice, surface};
-	vkx::Swapchain swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, window};
+	vkx::Swapchain swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, static_cast<SDL_Window*>(window)};
 
 	const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
 	const auto descriptorSetLayout = createShaderDescriptorSetLayout(logicalDevice);
@@ -230,7 +229,7 @@ int main(int argc, char** argv) {
 
 	const auto sdlKeyReleasedEvent = [](SDL_KeyboardEvent key) {};
 
-	SDL_ShowWindow(window);
+	window.show();
 	while (isRunning) {
 		camera.position += camera.direction * 0.01f;
 
@@ -261,18 +260,13 @@ int main(int argc, char** argv) {
 		auto result = swapchain.acquireNextImage(logicalDevice, syncObject, &imageIndex);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-			int newWidth, newHeight;
-			SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
-			while (newWidth == 0 || newHeight == 0) {
-				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
-				SDL_WaitEvent(nullptr);
-			}
+			window.waitForUpdate();
 
 			vkDeviceWaitIdle(logicalDevice);
 
 			swapchain.destroy();
 
-			swapchain = vkx::Swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, window};
+			swapchain = vkx::Swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, static_cast<SDL_Window*>(window)};
 			continue;
 		} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("Failed to acquire next image.");
@@ -303,18 +297,13 @@ int main(int argc, char** argv) {
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
 			framebufferResized = false;
 
-			int newWidth, newHeight;
-			SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
-			while (newWidth == 0 || newHeight == 0) {
-				SDL_Vulkan_GetDrawableSize(window, &newWidth, &newHeight);
-				SDL_WaitEvent(nullptr);
-			}
+			window.waitForUpdate();
 
 			vkDeviceWaitIdle(logicalDevice);
 
 			swapchain.destroy();
 
-			swapchain = vkx::Swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, window};
+			swapchain = vkx::Swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, static_cast<SDL_Window*>(window)};
 		} else if (result != VK_SUCCESS) {
 			throw std::runtime_error("Failed to present.");
 		}
@@ -369,8 +358,6 @@ int main(int argc, char** argv) {
 	vkDestroyDevice(logicalDevice, nullptr);
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
 
 	return EXIT_SUCCESS;
 }

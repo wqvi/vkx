@@ -26,5 +26,9 @@ public:
 	std::pair<std::int32_t, std::int32_t> getDimensions() const;
 
 	void waitForUpdate() const;
+
+	void show() const;
+
+	void hide() const;
 };
 } // namespace vkx
