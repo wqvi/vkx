@@ -87,5 +87,10 @@ void vkx::Texture::destroy() const {
 	vkDestroySampler(device, sampler, nullptr);
 }
 
-vkx::TestMesh::TestMesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, VmaAllocator allocator) {
+vkx::TestMesh::TestMesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, VmaAllocator allocator)
+    : vertexBuffer(allocator, vertices.data(), vertices.size() * sizeof(vkx::Vertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT),
+      indexBuffer(allocator, indices.data(), indices.size() * sizeof(std::uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT),
+      vertices(std::move(vertices)),
+      indices(std::move(indices)),
+      activeIndexCount(activeIndexCount) {
 }
