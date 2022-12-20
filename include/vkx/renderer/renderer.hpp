@@ -100,7 +100,7 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 class VulkanInstance {
 private:
-	const SDL_Window* window = nullptr;
+	SDL_Window* window = nullptr;
 	VkInstance instance = nullptr;
 	VkSurfaceKHR surface = nullptr;
 
