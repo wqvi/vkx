@@ -148,6 +148,11 @@ int main(int argc, char** argv) {
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
+	/*
+	const vkx::VulkanInstance vulkanInstance{window};
+	const auto vulkanDevice = vulkanInstance.createDevice();
+	*/
+
 	const auto instance = vkx::createInstance(static_cast<SDL_Window*>(window));
 	const auto surface = vkx::createSurface(static_cast<SDL_Window*>(window), instance);
 	const auto physicalDevice = vkx::getBestPhysicalDevice(instance, surface);
