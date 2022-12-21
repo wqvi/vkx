@@ -600,6 +600,10 @@ vkx::VulkanRenderPass& vkx::VulkanRenderPass::operator=(VulkanRenderPass&& other
 	return *this;
 }
 
+vkx::VulkanRenderPass::operator VkRenderPass() const {
+	return renderPass;
+}
+
 vkx::VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice)
     : instance(instance),
       surface(surface),

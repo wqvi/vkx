@@ -117,6 +117,8 @@ public:
 	VulkanRenderPass& operator=(const VulkanRenderPass& other) = delete;
 
 	VulkanRenderPass& operator=(VulkanRenderPass&& other) noexcept;
+
+	explicit operator VkRenderPass() const;
 };
 
 class VulkanDevice {
