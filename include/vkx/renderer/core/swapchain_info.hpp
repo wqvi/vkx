@@ -4,20 +4,13 @@
 
 namespace vkx {
 struct SwapchainInfo {
-	VkSurfaceCapabilitiesKHR capabilities;
-	std::vector<VkSurfaceFormatKHR> formats;
-	std::vector<VkPresentModeKHR> presentModes;
+	VkSurfaceCapabilitiesKHR capabilities{};
+	VkSurfaceFormatKHR surfaceFormat{};
+	VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+	std::uint32_t imageCount = 0;
 
 	explicit SwapchainInfo(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 
-	[[nodiscard]] VkSurfaceFormatKHR chooseSurfaceFormat() const;
-
-	[[nodiscard]] VkPresentModeKHR choosePresentMode() const;
-
-	[[nodiscard]] VkExtent2D chooseExtent(int width, int height) const;
-
-	[[nodiscard]] std::uint32_t getImageCount() const;
-    
-	[[nodiscard]] bool isComplete() const;
+	[[nodiscard]] VkExtent2D chooseExtent(std::uint32_t width, std::uint32_t height) const;
 };
 } // namespace vkx
