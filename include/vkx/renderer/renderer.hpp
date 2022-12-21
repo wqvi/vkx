@@ -98,6 +98,31 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(VmaAllocator allocator, std::size_t size);
 
+class VulkanAllocator {
+private:
+	VkInstance instance = nullptr;
+	VkPhysicalDevice physicalDevice = nullptr;
+	VkDevice logicalDevice = nullptr;
+	VmaAllocator allocator = nullptr;
+
+public:
+	VulkanAllocator() = default;
+
+	explicit VulkanAllocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice logicalDevice);
+
+	VulkanAllocator(const VulkanAllocator& other) = delete;
+
+	VulkanAllocator(VulkanAllocator&& other) noexcept;
+
+	~VulkanAllocator();
+
+	VulkanAllocator& operator=(const VulkanAllocator& other) = delete;
+
+	VulkanAllocator& operator=(VulkanAllocator&& other) noexcept;
+
+	explicit operator VmaAllocator() const;
+};
+
 class VulkanRenderPass {
 private:
 	VkDevice logicalDevice = nullptr;

@@ -363,24 +363,25 @@ VkSwapchainKHR vkx::createSwapchain(VkDevice device, VkSurfaceKHR surface, SDL_W
 }
 
 VmaAllocator vkx::createAllocator(VkPhysicalDevice physicalDevice, VkDevice device, VkInstance instance) {
-	VmaVulkanFunctions vulkanFunctions{};
-	vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
-	vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
+	const VmaVulkanFunctions vulkanFunctions{
+	    &vkGetInstanceProcAddr,
+	    &vkGetDeviceProcAddr};
 
-	VmaAllocatorCreateInfo allocatorCreateInfo{};
-	allocatorCreateInfo.flags = 0;
-	allocatorCreateInfo.physicalDevice = physicalDevice;
-	allocatorCreateInfo.device = device;
-	allocatorCreateInfo.preferredLargeHeapBlockSize = 0;
-	allocatorCreateInfo.pAllocationCallbacks = nullptr;
-	allocatorCreateInfo.pDeviceMemoryCallbacks = nullptr;
-	allocatorCreateInfo.pHeapSizeLimit = nullptr;
-	allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
-	allocatorCreateInfo.instance = instance;
-	allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_0;
-#if VMA_EXTERNAL_MEMORY
-	allocatorCreateInfo.pTypeExternalMemoryHandleTypes = nullptr;
+	const VmaAllocatorCreateInfo allocatorCreateInfo{
+	    0,
+	    physicalDevice,
+	    device,
+	    0,
+	    nullptr,
+	    nullptr,
+	    nullptr,
+	    &vulkanFunctions,
+	    instance,
+	    VK_API_VERSION_1_0,
+#ifdef VMA_EXTERNAL_MEMORY
+	    nullptr
 #endif
+	};
 
 	return vkx::create<VmaAllocator>(
 	    vmaCreateAllocator,
@@ -501,6 +502,74 @@ std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocat
 		buffers.emplace_back(allocator, buffer, allocation, allocationInfo);
 	}
 	return buffers;
+}
+
+vkx::VulkanAllocator::VulkanAllocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice logicalDevice)
+    : instance(instance),
+      physicalDevice(physicalDevice),
+      logicalDevice(logicalDevice) {
+	const VmaVulkanFunctions vulkanFunctions{
+	    &vkGetInstanceProcAddr,
+	    &vkGetDeviceProcAddr};
+
+	const VmaAllocatorCreateInfo allocatorCreateInfo{
+	    0,
+	    physicalDevice,
+	    logicalDevice,
+	    0,
+	    nullptr,
+	    nullptr,
+	    nullptr,
+	    &vulkanFunctions,
+	    instance,
+	    VK_API_VERSION_1_0,
+#ifdef VMA_EXTERNAL_MEMORY
+	    nullptr
+#endif
+	};
+
+	allocator = vkx::create<VmaAllocator>(
+	    vmaCreateAllocator,
+	    [](auto result) {
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failed to create vulkan memory allocator.");
+		    }
+	    },
+	    &allocatorCreateInfo);
+}
+
+vkx::VulkanAllocator::VulkanAllocator(VulkanAllocator&& other) noexcept
+    : instance(std::move(other.instance)),
+      physicalDevice(std::move(other.physicalDevice)),
+      logicalDevice(std::move(other.logicalDevice)),
+      allocator(std::move(other.allocator)) {
+	other.instance = nullptr;
+	other.physicalDevice = nullptr;
+	other.logicalDevice = nullptr;
+	other.allocator = nullptr;
+}
+
+vkx::VulkanAllocator::~VulkanAllocator() {
+	if (allocator) {
+		vmaDestroyAllocator(allocator);
+	}
+}
+
+vkx::VulkanAllocator& vkx::VulkanAllocator::operator=(VulkanAllocator&& other) noexcept {
+	instance = std::move(other.instance);
+	physicalDevice = std::move(other.physicalDevice);
+	logicalDevice = std::move(other.logicalDevice);
+	allocator = std::move(other.allocator);
+
+	other.instance = nullptr;
+	other.physicalDevice = nullptr;
+	other.logicalDevice = nullptr;
+	other.allocator = nullptr;
+	return *this;
+}
+
+vkx::VulkanAllocator::operator VmaAllocator() const {
+	return allocator;
 }
 
 vkx::VulkanRenderPass::VulkanRenderPass(VkDevice logicalDevice, VkFormat depthFormat, VkFormat colorFormat, VkAttachmentLoadOp loadOp, VkImageLayout initialLayout, VkImageLayout finalLayout)
