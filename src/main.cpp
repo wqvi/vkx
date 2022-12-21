@@ -151,6 +151,7 @@ int main(int argc, char** argv) {
 	/*
 	const vkx::VulkanInstance vulkanInstance{window};
 	const auto vulkanDevice = vulkanInstance.createDevice();
+	const auto swapchainInfo = vulkanDevice.getSwapchainInfo();
 	*/
 
 	const auto instance = vkx::createInstance(static_cast<SDL_Window*>(window));

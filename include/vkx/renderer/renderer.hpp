@@ -98,6 +98,27 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(VmaAllocator allocator, std::size_t size);
 
+class VulkanRenderPass {
+private:
+	VkDevice logicalDevice = nullptr;
+	VkRenderPass renderPass = nullptr;
+
+public:
+	VulkanRenderPass() = default;
+
+	explicit VulkanRenderPass(VkDevice logicalDevice, VkFormat depthFormat, VkFormat colorFormat, VkAttachmentLoadOp loadOp, VkImageLayout initialLayout, VkImageLayout finalLayout);
+
+	VulkanRenderPass(const VulkanRenderPass& other) = delete;
+
+	VulkanRenderPass(VulkanRenderPass&& other) noexcept;
+
+	~VulkanRenderPass();
+
+	VulkanRenderPass& operator=(const VulkanRenderPass& other) = delete;
+
+	VulkanRenderPass& operator=(VulkanRenderPass&& other) noexcept;
+};
+
 class VulkanDevice {
 private:
 	VkInstance instance = nullptr;
@@ -121,11 +142,17 @@ public:
 
 	VulkanDevice& operator=(VulkanDevice&& other) noexcept;
 
-	[[nodiscard]]
-	vkx::QueueConfig getQueueConfig() const;
+	[[nodiscard]] vkx::QueueConfig getQueueConfig() const;
 
-	[[nodiscard]]
-	vkx::SwapchainInfo getSwapchainInfo() const;
+	[[nodiscard]] vkx::SwapchainInfo getSwapchainInfo() const;
+
+	[[nodiscard]] vkx::VulkanRenderPass createRenderPass(VkFormat colorFormat, VkAttachmentLoadOp loadOp, VkImageLayout initialLayout, VkImageLayout finalLayout) const;
+
+	[[nodiscard]] VkFormat findSupportedFormat(VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates) const;
+
+	[[nodiscard]] inline auto findDepthFormat() const {
+		return findSupportedFormat(VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT});
+	}
 
 	void waitIdle() const;
 };

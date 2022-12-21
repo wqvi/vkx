@@ -503,6 +503,103 @@ std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocat
 	return buffers;
 }
 
+vkx::VulkanRenderPass::VulkanRenderPass(VkDevice logicalDevice, VkFormat depthFormat, VkFormat colorFormat, VkAttachmentLoadOp loadOp, VkImageLayout initialLayout, VkImageLayout finalLayout)
+    : logicalDevice(logicalDevice) {
+	const VkAttachmentDescription colorAttachment{
+	    0,
+	    colorFormat,
+	    VK_SAMPLE_COUNT_1_BIT,
+	    loadOp,
+	    VK_ATTACHMENT_STORE_OP_STORE,
+	    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+	    VK_ATTACHMENT_STORE_OP_DONT_CARE,
+	    initialLayout,
+	    finalLayout};
+
+	const VkAttachmentReference colorAttachmentRef{
+	    0,
+	    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+
+	const VkAttachmentDescription depthAttachment{
+	    0,
+	    depthFormat,
+	    VK_SAMPLE_COUNT_1_BIT,
+	    VK_ATTACHMENT_LOAD_OP_CLEAR,
+	    VK_ATTACHMENT_STORE_OP_DONT_CARE,
+	    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+	    VK_ATTACHMENT_STORE_OP_DONT_CARE,
+	    VK_IMAGE_LAYOUT_UNDEFINED,
+	    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
+
+	const VkAttachmentReference depthAttachmentRef{
+	    1,
+	    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
+
+	const VkSubpassDescription subpass{
+	    0,
+	    VK_PIPELINE_BIND_POINT_GRAPHICS,
+	    0,
+	    nullptr,
+	    1,
+	    &colorAttachmentRef,
+	    nullptr,
+	    &depthAttachmentRef,
+	    0,
+	    nullptr};
+
+	const VkSubpassDependency dependency{
+	    VK_SUBPASS_EXTERNAL,
+	    0,
+	    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+	    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+	    0,
+	    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT};
+
+	const std::array renderPassAttachments = {colorAttachment, depthAttachment};
+
+	const VkRenderPassCreateInfo renderPassCreateInfo{
+	    VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+	    nullptr,
+	    0,
+	    static_cast<std::uint32_t>(renderPassAttachments.size()),
+	    renderPassAttachments.data(),
+	    1,
+	    &subpass,
+	    1,
+	    &dependency};
+
+	renderPass = vkx::create<VkRenderPass>(
+	    vkCreateRenderPass,
+	    [](auto result) {
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failed to create render pass.");
+		    }
+	    },
+	    logicalDevice, &renderPassCreateInfo, nullptr);
+}
+
+vkx::VulkanRenderPass::VulkanRenderPass(VulkanRenderPass&& other) noexcept
+    : logicalDevice(std::move(other.logicalDevice)),
+      renderPass(std::move(other.renderPass)) {
+	other.logicalDevice = nullptr;
+	other.renderPass = nullptr;
+}
+
+vkx::VulkanRenderPass::~VulkanRenderPass() {
+	if (renderPass) {
+		vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
+	}
+}
+
+vkx::VulkanRenderPass& vkx::VulkanRenderPass::operator=(VulkanRenderPass&& other) noexcept {
+	logicalDevice = std::move(other.logicalDevice);
+	renderPass = std::move(other.renderPass);
+
+	other.logicalDevice = nullptr;
+	other.renderPass = nullptr;
+	return *this;
+}
+
 vkx::VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice)
     : instance(instance),
       surface(surface),
@@ -583,6 +680,25 @@ vkx::QueueConfig vkx::VulkanDevice::getQueueConfig() const {
 
 vkx::SwapchainInfo vkx::VulkanDevice::getSwapchainInfo() const {
 	return vkx::SwapchainInfo{physicalDevice, surface};
+}
+
+vkx::VulkanRenderPass vkx::VulkanDevice::createRenderPass(VkFormat colorFormat, VkAttachmentLoadOp loadOp, VkImageLayout initialLayout, VkImageLayout finalLayout) const {
+	return vkx::VulkanRenderPass{logicalDevice, findDepthFormat(), colorFormat, loadOp, initialLayout, finalLayout};
+}
+
+VkFormat vkx::VulkanDevice::findSupportedFormat(VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates) const {
+	for (const auto format : candidates) {
+		const auto formatProps = vkx::getObject<VkFormatProperties>(vkGetPhysicalDeviceFormatProperties, physicalDevice, format);
+
+		const bool isLinear = tiling == VK_IMAGE_TILING_LINEAR && (formatProps.linearTilingFeatures & features) == features;
+		const bool isOptimal = tiling == VK_IMAGE_TILING_OPTIMAL && (formatProps.optimalTilingFeatures & features) == features;
+
+		if (isLinear || isOptimal) {
+			return format;
+		}
+	}
+
+	return VK_FORMAT_UNDEFINED;
 }
 
 void vkx::VulkanDevice::waitIdle() const {
