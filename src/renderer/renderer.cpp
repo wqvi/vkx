@@ -715,6 +715,9 @@ vkx::VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhy
 		    }
 	    },
 	    physicalDevice, &deviceCreateInfo, nullptr);
+
+	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
+	maxSamplerAnisotropy = properties.limits.maxSamplerAnisotropy;
 }
 
 vkx::VulkanDevice::VulkanDevice(VulkanDevice&& other) noexcept
@@ -776,6 +779,10 @@ VkFormat vkx::VulkanDevice::findSupportedFormat(VkImageTiling tiling, VkFormatFe
 	}
 
 	return VK_FORMAT_UNDEFINED;
+}
+
+float vkx::VulkanDevice::getMaxSamplerAnisotropy() const {
+	return maxSamplerAnisotropy;
 }
 
 void vkx::VulkanDevice::waitIdle() const {
