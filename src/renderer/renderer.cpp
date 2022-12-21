@@ -759,6 +759,10 @@ vkx::VulkanRenderPass vkx::VulkanDevice::createRenderPass(VkFormat colorFormat, 
 	return vkx::VulkanRenderPass{logicalDevice, findDepthFormat(), colorFormat, loadOp, initialLayout, finalLayout};
 }
 
+vkx::VulkanAllocator vkx::VulkanDevice::createAllocator() const {
+	return vkx::VulkanAllocator{instance, physicalDevice, logicalDevice};
+}
+
 VkFormat vkx::VulkanDevice::findSupportedFormat(VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates) const {
 	for (const auto format : candidates) {
 		const auto formatProps = vkx::getObject<VkFormatProperties>(vkGetPhysicalDeviceFormatProperties, physicalDevice, format);

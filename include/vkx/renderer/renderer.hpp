@@ -175,6 +175,8 @@ public:
 
 	[[nodiscard]] vkx::VulkanRenderPass createRenderPass(VkFormat colorFormat, VkAttachmentLoadOp loadOp, VkImageLayout initialLayout, VkImageLayout finalLayout) const;
 
+	[[nodiscard]] vkx::VulkanAllocator createAllocator() const;
+
 	[[nodiscard]] VkFormat findSupportedFormat(VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates) const;
 
 	[[nodiscard]] inline auto findDepthFormat() const {
