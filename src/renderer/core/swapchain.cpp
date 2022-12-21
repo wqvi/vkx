@@ -14,7 +14,7 @@ vkx::Swapchain::Swapchain(VkPhysicalDevice physicalDevice, VkDevice device, VkRe
 	int height;
 	SDL_Vulkan_GetDrawableSize(window, &width, &height);
 
-	const auto imageFormat = info.chooseSurfaceFormat().format;
+	const auto imageFormat = info.surfaceFormat.format;
 	imageExtent = static_cast<VkExtent2D>(info.chooseExtent(width, height));
 
 	for (const auto image : images) {

@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
 	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
 	const auto logicalDevice = vkx::createDevice(instance, surface, physicalDevice);
 	const vkx::SwapchainInfo swapchainInfo{physicalDevice, surface};
-	const auto renderPassFormat = swapchainInfo.chooseSurfaceFormat().format;
+	const auto renderPassFormat = swapchainInfo.surfaceFormat.format;
 	const auto clearRenderPass = vkx::createRenderPass(physicalDevice, logicalDevice, renderPassFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_CLEAR);
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 	const auto allocator = vkx::createAllocator(physicalDevice, logicalDevice, instance);

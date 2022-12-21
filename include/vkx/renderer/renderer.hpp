@@ -120,6 +120,14 @@ public:
 	VulkanDevice& operator=(const VulkanDevice& other) = delete;
 
 	VulkanDevice& operator=(VulkanDevice&& other) noexcept;
+
+	[[nodiscard]]
+	vkx::QueueConfig getQueueConfig() const;
+
+	[[nodiscard]]
+	vkx::SwapchainInfo getSwapchainInfo() const;
+
+	void waitIdle() const;
 };
 
 class VulkanInstance {

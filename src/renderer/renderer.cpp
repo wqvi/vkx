@@ -88,11 +88,6 @@ std::uint32_t vkx::ratePhysicalDevice(VkSurfaceKHR surface, VkPhysicalDevice phy
 		rating++;
 	}
 
-	const vkx::SwapchainInfo info{physicalDevice, surface};
-	if (info.isComplete()) {
-		rating++;
-	}
-
 	const auto features = vkx::getObject<VkPhysicalDeviceFeatures>(vkGetPhysicalDeviceFeatures, physicalDevice);
 	if (features.samplerAnisotropy) {
 		rating++;
@@ -332,10 +327,10 @@ VkSwapchainKHR vkx::createSwapchain(VkDevice device, VkSurfaceKHR surface, SDL_W
 	int height;
 	SDL_Vulkan_GetDrawableSize(window, &width, &height);
 
-	const auto surfaceFormat = info.chooseSurfaceFormat();
-	const auto presentMode = info.choosePresentMode();
+	const auto surfaceFormat = info.surfaceFormat;
+	const auto presentMode = info.presentMode;
 	const auto actualExtent = info.chooseExtent(width, height);
-	const auto imageCount = info.getImageCount();
+	const auto imageCount = info.imageCount;
 	const auto imageSharingMode = config.getImageSharingMode();
 
 	const VkSwapchainCreateInfoKHR swapchainCreateInfo{
@@ -582,6 +577,20 @@ vkx::VulkanDevice& vkx::VulkanDevice::operator=(VulkanDevice&& other) noexcept {
 	return *this;
 }
 
+vkx::QueueConfig vkx::VulkanDevice::getQueueConfig() const {
+	return vkx::QueueConfig{physicalDevice, surface};
+}
+
+vkx::SwapchainInfo vkx::VulkanDevice::getSwapchainInfo() const {
+	return vkx::SwapchainInfo{physicalDevice, surface};
+}
+
+void vkx::VulkanDevice::waitIdle() const {
+	if (vkDeviceWaitIdle(logicalDevice) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to wait for device.");
+	}
+}
+
 vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
     : window(static_cast<SDL_Window*>(window)) {
 	constexpr VkApplicationInfo applicationInfo{
@@ -712,11 +721,6 @@ std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(VkPhysicalDevice physicalD
 
 	const vkx::QueueConfig indices{physicalDevice, surface};
 	if (indices.isComplete()) {
-		rating++;
-	}
-
-	const vkx::SwapchainInfo info{physicalDevice, surface};
-	if (info.isComplete()) {
 		rating++;
 	}
 
