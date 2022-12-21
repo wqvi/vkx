@@ -152,6 +152,8 @@ int main(int argc, char** argv) {
 	const vkx::VulkanInstance vulkanInstance{window};
 	const auto vulkanDevice = vulkanInstance.createDevice();
 	const auto swapchainInfo = vulkanDevice.getSwapchainInfo();
+	const auto clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_CLEAR);
+	const auto allocator = vulkanDevice.createAllocator();
 	*/
 
 	const auto instance = vkx::createInstance(static_cast<SDL_Window*>(window));
