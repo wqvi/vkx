@@ -1,51 +1,5 @@
 #include <vkx/vkx.hpp>
 
-auto createShaderDescriptorSetLayout(VkDevice device) {
-	constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
-	    0,
-	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-	    1,
-	    VK_SHADER_STAGE_VERTEX_BIT,
-	    nullptr};
-
-	constexpr VkDescriptorSetLayoutBinding samplerLayoutBinding{
-	    1,
-	    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-	    1,
-	    VK_SHADER_STAGE_FRAGMENT_BIT,
-	    nullptr};
-
-	constexpr VkDescriptorSetLayoutBinding lightLayoutBinding{
-	    2,
-	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-	    1,
-	    VK_SHADER_STAGE_FRAGMENT_BIT,
-	    nullptr};
-
-	constexpr VkDescriptorSetLayoutBinding materialLayoutBinding{
-	    3,
-	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-	    1,
-	    VK_SHADER_STAGE_FRAGMENT_BIT,
-	    nullptr};
-
-	constexpr VkDescriptorSetLayoutBinding bindings[4] = {uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
-
-	const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
-	    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-	    nullptr,
-	    0,
-	    4,
-	    bindings};
-
-	VkDescriptorSetLayout descriptorSetLayout = nullptr;
-	if (vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create descriptor set layout.");
-	}
-
-	return descriptorSetLayout;
-}
-
 auto createShaderBindings() {
 	constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
@@ -76,56 +30,6 @@ auto createShaderBindings() {
 	    nullptr};
 
 	return std::vector{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
-}
-
-auto createHighlightDescriptorSetLayout(VkDevice device) {
-	constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
-	    0,
-	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-	    1,
-	    VK_SHADER_STAGE_VERTEX_BIT,
-	    nullptr};
-
-	const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
-	    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-	    nullptr,
-	    0,
-	    1,
-	    &uboLayoutBinding};
-
-	VkDescriptorSetLayout descriptorSetLayout = nullptr;
-	if (vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create descriptor set layout.");
-	}
-
-	return descriptorSetLayout;
-}
-
-auto createHighlightShaderBindings() noexcept {
-	constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
-	    0,
-	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-	    1,
-	    VK_SHADER_STAGE_VERTEX_BIT,
-	    nullptr};
-
-	return std::vector{uboLayoutBinding};
-}
-
-auto getBindingDescription() noexcept {
-	std::vector<VkVertexInputBindingDescription> bindingDescriptions{};
-
-	bindingDescriptions.push_back({0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX});
-
-	return bindingDescriptions;
-}
-
-auto getAttributeDescriptions() noexcept {
-	std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
-
-	attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0});
-
-	return attributeDescriptions;
 }
 
 static SDL_Window* init() {
@@ -181,9 +85,6 @@ int main(int argc, char** argv) {
 	const auto allocator = vkx::createAllocator(physicalDevice, logicalDevice, instance);
 	const vkx::CommandSubmitter commandSubmitter{physicalDevice, logicalDevice, surface};
 	vkx::Swapchain swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, static_cast<SDL_Window*>(window)};
-
-	const std::vector poolSizes = {vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::SAMPLER_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE, vkx::UNIFORM_BUFFER_POOL_SIZE};
-	const auto descriptorSetLayout = createShaderDescriptorSetLayout(logicalDevice);
 
 	const vkx::Texture texture{"a.jpg", logicalDevice, properties.limits.maxSamplerAnisotropy, allocator, commandSubmitter};
 
@@ -371,7 +272,6 @@ int main(int argc, char** argv) {
 	texture.destroy();
 	swapchain.destroy();
 	commandSubmitter.destroy();
-	vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
 	graphicsPipeline.destroy();
 
 	vmaDestroyAllocator(allocator);
