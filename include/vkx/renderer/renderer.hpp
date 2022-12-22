@@ -3,8 +3,8 @@
 #include "core/queue_config.hpp"
 #include "core/swapchain_info.hpp"
 #include "core/sync_objects.hpp"
-#include <vkx/window.hpp>
 #include <vkx/renderer/core/pipeline.hpp>
+#include <vkx/window.hpp>
 
 namespace vkx {
 template <class ObjectType, class Function, class Predicate, class... Parameters>
@@ -152,7 +152,6 @@ private:
 	VkInstance instance = nullptr;
 	VkSurfaceKHR surface = nullptr;
 	VkPhysicalDevice physicalDevice = nullptr;
-	VkPhysicalDeviceProperties physicalDeviceProperties{};
 	VkDevice logicalDevice = nullptr;
 	float maxSamplerAnisotropy = 0;
 
@@ -222,6 +221,6 @@ public:
 	VulkanDevice createDevice() const;
 
 private:
-	std::uint32_t ratePhysicalDevice(VkPhysicalDevice physicalDevice) const;
+	[[nodiscard]] std::uint32_t ratePhysicalDevice(VkPhysicalDevice physicalDevice) const;
 };
 } // namespace vkx

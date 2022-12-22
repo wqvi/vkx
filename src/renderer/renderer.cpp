@@ -1,7 +1,7 @@
+#include <vkx/renderer/core/commands.hpp>
+#include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/renderer.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
-#include <vkx/renderer/core/swapchain.hpp>
-#include <vkx/renderer/core/commands.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
@@ -541,10 +541,10 @@ vkx::VulkanAllocator::VulkanAllocator(VkInstance instance, VkPhysicalDevice phys
 }
 
 vkx::VulkanAllocator::VulkanAllocator(VulkanAllocator&& other) noexcept
-    : instance(std::move(other.instance)),
-      physicalDevice(std::move(other.physicalDevice)),
-      logicalDevice(std::move(other.logicalDevice)),
-      allocator(std::move(other.allocator)) {
+    : instance(other.instance),
+      physicalDevice(other.physicalDevice),
+      logicalDevice(other.logicalDevice),
+      allocator(other.allocator) {
 	other.instance = nullptr;
 	other.physicalDevice = nullptr;
 	other.logicalDevice = nullptr;
@@ -558,10 +558,10 @@ vkx::VulkanAllocator::~VulkanAllocator() {
 }
 
 vkx::VulkanAllocator& vkx::VulkanAllocator::operator=(VulkanAllocator&& other) noexcept {
-	instance = std::move(other.instance);
-	physicalDevice = std::move(other.physicalDevice);
-	logicalDevice = std::move(other.logicalDevice);
-	allocator = std::move(other.allocator);
+	instance = other.instance;
+	physicalDevice = other.physicalDevice;
+	logicalDevice = other.logicalDevice;
+	allocator = other.allocator;
 
 	other.instance = nullptr;
 	other.physicalDevice = nullptr;
@@ -650,8 +650,8 @@ vkx::VulkanRenderPass::VulkanRenderPass(VkDevice logicalDevice, VkFormat depthFo
 }
 
 vkx::VulkanRenderPass::VulkanRenderPass(VulkanRenderPass&& other) noexcept
-    : logicalDevice(std::move(other.logicalDevice)),
-      renderPass(std::move(other.renderPass)) {
+    : logicalDevice(other.logicalDevice),
+      renderPass(other.renderPass) {
 	other.logicalDevice = nullptr;
 	other.renderPass = nullptr;
 }
@@ -663,8 +663,8 @@ vkx::VulkanRenderPass::~VulkanRenderPass() {
 }
 
 vkx::VulkanRenderPass& vkx::VulkanRenderPass::operator=(VulkanRenderPass&& other) noexcept {
-	logicalDevice = std::move(other.logicalDevice);
-	renderPass = std::move(other.renderPass);
+	logicalDevice = other.logicalDevice;
+	renderPass = other.renderPass;
 
 	other.logicalDevice = nullptr;
 	other.renderPass = nullptr;
@@ -678,8 +678,7 @@ vkx::VulkanRenderPass::operator VkRenderPass() const {
 vkx::VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice)
     : instance(instance),
       surface(surface),
-      physicalDevice(physicalDevice),
-      physicalDeviceProperties(vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice)) {
+      physicalDevice(physicalDevice) {
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 
 	constexpr float queuePriority = 1.0f;
@@ -723,14 +722,16 @@ vkx::VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhy
 }
 
 vkx::VulkanDevice::VulkanDevice(VulkanDevice&& other) noexcept
-    : instance(std::move(other.instance)),
-      surface(std::move(other.surface)),
-      physicalDevice(std::move(other.physicalDevice)),
-      logicalDevice(std::move(other.logicalDevice)) {
+    : instance(other.instance),
+      surface(other.surface),
+      physicalDevice(other.physicalDevice),
+      logicalDevice(other.logicalDevice),
+      maxSamplerAnisotropy(other.maxSamplerAnisotropy) {
 	other.instance = nullptr;
 	other.surface = nullptr;
 	other.physicalDevice = nullptr;
 	other.logicalDevice = nullptr;
+	other.maxSamplerAnisotropy = 0.0f;
 }
 
 vkx::VulkanDevice::~VulkanDevice() {
@@ -740,15 +741,17 @@ vkx::VulkanDevice::~VulkanDevice() {
 }
 
 vkx::VulkanDevice& vkx::VulkanDevice::operator=(VulkanDevice&& other) noexcept {
-	instance = std::move(other.instance);
-	surface = std::move(other.surface);
-	physicalDevice = std::move(other.physicalDevice);
-	logicalDevice = std::move(other.logicalDevice);
+	instance = other.instance;
+	surface = other.surface;
+	physicalDevice = other.physicalDevice;
+	logicalDevice = other.logicalDevice;
+	maxSamplerAnisotropy = other.maxSamplerAnisotropy;
 
 	other.instance = nullptr;
 	other.surface = nullptr;
 	other.physicalDevice = nullptr;
 	other.logicalDevice = nullptr;
+	other.maxSamplerAnisotropy = 0.0f;
 	return *this;
 }
 
@@ -883,9 +886,9 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 }
 
 vkx::VulkanInstance::VulkanInstance(VulkanInstance&& other) noexcept
-    : window(std::move(other.window)),
-      instance(std::move(other.instance)),
-      surface(std::move(other.surface)) {
+    : window(other.window),
+      instance(other.instance),
+      surface(other.surface) {
 	other.window = nullptr;
 	other.instance = nullptr;
 	other.surface = nullptr;
@@ -899,9 +902,9 @@ vkx::VulkanInstance::~VulkanInstance() {
 }
 
 vkx::VulkanInstance& vkx::VulkanInstance::operator=(VulkanInstance&& other) noexcept {
-	window = std::move(other.window);
-	instance = std::move(other.instance);
-	surface = std::move(other.surface);
+	window = other.window;
+	instance = other.instance;
+	surface = other.surface;
 
 	other.window = nullptr;
 	other.instance = nullptr;
