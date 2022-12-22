@@ -4,6 +4,7 @@
 #include "core/swapchain_info.hpp"
 #include "core/sync_objects.hpp"
 #include <vkx/window.hpp>
+#include <vkx/renderer/core/pipeline.hpp>
 
 namespace vkx {
 template <class ObjectType, class Function, class Predicate, class... Parameters>
@@ -170,6 +171,8 @@ public:
 
 	VulkanDevice& operator=(VulkanDevice&& other) noexcept;
 
+	explicit operator VkDevice() const;
+
 	[[nodiscard]] vkx::QueueConfig getQueueConfig() const;
 
 	[[nodiscard]] vkx::SwapchainInfo getSwapchainInfo() const;
@@ -187,6 +190,10 @@ public:
 	[[nodiscard]] float getMaxSamplerAnisotropy() const;
 
 	[[nodiscard]] vkx::Swapchain createSwapchain(const vkx::VulkanAllocator& allocator, const vkx::VulkanRenderPass& renderPass, const vkx::Window& window) const;
+
+	[[nodiscard]] vkx::CommandSubmitter createCommandSubmitter() const;
+
+	[[nodiscard]] vkx::GraphicsPipeline createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& information) const;
 
 	void waitIdle() const;
 };

@@ -148,6 +148,7 @@ int main(int argc, char** argv) {
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
+	
 	/*
 	const vkx::VulkanInstance vulkanInstance{window};
 	const auto vulkanDevice = vulkanInstance.createDevice();
@@ -155,6 +156,17 @@ int main(int argc, char** argv) {
 	const auto clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat.format, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	const auto allocator = vulkanDevice.createAllocator();
 	auto swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
+	const auto commandSubmitter = vulkanDevice.createCommandSubmitter();
+	const vkx::Texture texture{"a.jpg", static_cast<VkDevice>(vulkanDevice), vulkanDevice.getMaxSamplerAnisotropy(), static_cast<VmaAllocator>(allocator), commandSubmitter};
+	const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
+	    "shader2D.vert.spv",
+	    "shader2D.frag.spv",
+	    createShaderBindings(),
+	    vkx::Vertex::getBindingDescription(),
+	    vkx::Vertex::getAttributeDescriptions(),
+	    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
+	    {&texture}};
+	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
 	*/
 
 	const auto instance = vkx::createInstance(static_cast<SDL_Window*>(window));

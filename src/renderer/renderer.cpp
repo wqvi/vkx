@@ -1,6 +1,7 @@
 #include <vkx/renderer/renderer.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 #include <vkx/renderer/core/swapchain.hpp>
+#include <vkx/renderer/core/commands.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
@@ -751,6 +752,10 @@ vkx::VulkanDevice& vkx::VulkanDevice::operator=(VulkanDevice&& other) noexcept {
 	return *this;
 }
 
+vkx::VulkanDevice::operator VkDevice() const {
+	return logicalDevice;
+}
+
 vkx::QueueConfig vkx::VulkanDevice::getQueueConfig() const {
 	return vkx::QueueConfig{physicalDevice, surface};
 }
@@ -788,6 +793,14 @@ float vkx::VulkanDevice::getMaxSamplerAnisotropy() const {
 
 vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& allocator, const vkx::VulkanRenderPass& renderPass, const vkx::Window& window) const {
 	return vkx::Swapchain{physicalDevice, logicalDevice, static_cast<VkRenderPass>(renderPass), surface, static_cast<VmaAllocator>(allocator), static_cast<SDL_Window*>(window)};
+}
+
+vkx::CommandSubmitter vkx::VulkanDevice::createCommandSubmitter() const {
+	return vkx::CommandSubmitter{physicalDevice, logicalDevice, surface};
+}
+
+vkx::GraphicsPipeline vkx::VulkanDevice::createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& information) const {
+	return vkx::GraphicsPipeline{logicalDevice, static_cast<VkRenderPass>(renderPass), static_cast<VmaAllocator>(allocator), information};
 }
 
 void vkx::VulkanDevice::waitIdle() const {
