@@ -28,4 +28,6 @@ class Texture;
 class Model;
 
 struct SyncObjects;
+
+class Buffer;
 } // namespace vkx
