@@ -1,7 +1,6 @@
 # Vulkan Voxel Project - VKX
 
-## Purpose
-A game that draws inspiration from Minecraft, Starbound, Astroneer, and No Man's Sky. Think of it like a 3D starbound or a Minecraft with a builtin advanced rocketry modpack. C++17 is employed due to Starbound's philosophy. Built from the ground up with a singular purpose, to be as good as possible at it's job. The Vulkan rendering API and AMDs Vulkan Memory Allocator library are used for finely tuned graphics to support the mass amounts of voxels needed to be rendered.
+VKX is a 2D voxel engine that uses the Vulkan rendering API. Its primary purpose is to create a game with inspiration from Minecraft, Valheim, Terraria, and Starbound. Its primary target platform is desktop gaming and mobile gaming. Thus this will compile for the x86 and ARM architectures.
 
 ### Libraries used
 1. [Vulkan](https://www.vulkan.org/) Rendering API by Khronos Group
