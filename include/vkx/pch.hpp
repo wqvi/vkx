@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <cstring>
 
 #ifdef NDEBUG
 #define RELEASE
