@@ -52,8 +52,6 @@ int main(int argc, char** argv) {
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
-	
-	/*
 	const vkx::VulkanInstance vulkanInstance{window};
 	const auto vulkanDevice = vulkanInstance.createDevice();
 	const auto swapchainInfo = vulkanDevice.getSwapchainInfo();
@@ -71,44 +69,17 @@ int main(int argc, char** argv) {
 	    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
 	    {&texture}};
 	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
-	*/
-
-	const auto instance = vkx::createInstance(static_cast<SDL_Window*>(window));
-	const auto surface = vkx::createSurface(static_cast<SDL_Window*>(window), instance);
-	const auto physicalDevice = vkx::getBestPhysicalDevice(instance, surface);
-	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
-	const auto logicalDevice = vkx::createDevice(instance, surface, physicalDevice);
-	const vkx::SwapchainInfo swapchainInfo{physicalDevice, surface};
-	const auto renderPassFormat = swapchainInfo.surfaceFormat.format;
-	const auto clearRenderPass = vkx::createRenderPass(physicalDevice, logicalDevice, renderPassFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_CLEAR);
-	const vkx::QueueConfig queueConfig{physicalDevice, surface};
-	const auto allocator = vkx::createAllocator(physicalDevice, logicalDevice, instance);
-	const vkx::CommandSubmitter commandSubmitter{physicalDevice, logicalDevice, surface};
-	vkx::Swapchain swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, static_cast<SDL_Window*>(window)};
-
-	const vkx::Texture texture{"a.jpg", logicalDevice, properties.limits.maxSamplerAnisotropy, allocator, commandSubmitter};
-
-	const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
-	    "shader2D.vert.spv",
-	    "shader2D.frag.spv",
-	    createShaderBindings(),
-	    vkx::Vertex::getBindingDescription(),
-	    vkx::Vertex::getAttributeDescriptions(),
-	    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
-	    {&texture}};
-
-	const vkx::GraphicsPipeline graphicsPipeline{logicalDevice, clearRenderPass, allocator, graphicsPipelineInformation};
-
+	
 	constexpr std::uint32_t chunkDrawCommandAmount = 1;
 
 	constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount;
 	const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
 
-	const auto syncObjects = vkx::createSyncObjects(logicalDevice);
+	const auto syncObjects = vkx::createSyncObjects(static_cast<VkDevice>(vulkanDevice));
 
 	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
 	voxelChunk2D.generateTerrain();
-	auto mesh = voxelChunk2D.generateMesh(allocator);
+	auto mesh = voxelChunk2D.generateMesh(static_cast<VmaAllocator>(allocator));
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
@@ -179,16 +150,16 @@ int main(int argc, char** argv) {
 		const auto& syncObject = syncObjects[currentFrame];
 		syncObject.waitForFence();
 		std::uint32_t imageIndex = 0;
-		auto result = swapchain.acquireNextImage(logicalDevice, syncObject, &imageIndex);
+		auto result = swapchain.acquireNextImage(static_cast<VkDevice>(vulkanDevice), syncObject, &imageIndex);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 			window.waitForUpdate();
 
-			vkDeviceWaitIdle(logicalDevice);
+			vulkanDevice.waitIdle();
 
 			swapchain.destroy();
 
-			swapchain = vkx::Swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, static_cast<SDL_Window*>(window)};
+			swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 			continue;
 		} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("Failed to acquire next image.");
@@ -201,7 +172,7 @@ int main(int argc, char** argv) {
 		    currentFrame,
 		    &swapchain,
 		    &graphicsPipeline,
-		    clearRenderPass,
+		    static_cast<VkRenderPass>(clearRenderPass),
 		    {static_cast<VkBuffer>(mesh.getVertexBuffer())},
 		    {static_cast<VkBuffer>(mesh.getIndexBuffer())},
 		    {static_cast<std::uint32_t>(mesh.getActiveIndexCount())}};
@@ -221,11 +192,11 @@ int main(int argc, char** argv) {
 
 			window.waitForUpdate();
 
-			vkDeviceWaitIdle(logicalDevice);
+			vulkanDevice.waitIdle();
 
 			swapchain.destroy();
 
-			swapchain = vkx::Swapchain{physicalDevice, logicalDevice, clearRenderPass, surface, allocator, static_cast<SDL_Window*>(window)};
+			swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 		} else if (result != VK_SUCCESS) {
 			throw std::runtime_error("Failed to present.");
 		}
@@ -263,7 +234,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	vkDeviceWaitIdle(logicalDevice);
+	vulkanDevice.waitIdle();
 
 	for (const auto& syncObject : syncObjects) {
 		syncObject.destroy();
@@ -273,12 +244,6 @@ int main(int argc, char** argv) {
 	swapchain.destroy();
 	commandSubmitter.destroy();
 	graphicsPipeline.destroy();
-
-	vmaDestroyAllocator(allocator);
-	vkDestroyRenderPass(logicalDevice, clearRenderPass, nullptr);
-	vkDestroyDevice(logicalDevice, nullptr);
-	vkDestroySurfaceKHR(instance, surface, nullptr);
-	vkDestroyInstance(instance, nullptr);
 
 	return EXIT_SUCCESS;
 }
