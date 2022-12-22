@@ -6,38 +6,6 @@
 #include <vkx/renderer/renderer.hpp>
 
 namespace vkx {
-class Buffer {
-private:
-	VmaAllocator allocator = nullptr;
-	VkBuffer buffer = nullptr;
-	VmaAllocation allocation = nullptr;
-	VmaAllocationInfo allocationInfo{};
-
-public:
-	Buffer() = default;
-
-	explicit Buffer(VmaAllocator allocator,
-			const void* data,
-			std::size_t memorySize,
-			VkBufferUsageFlags bufferFlags,
-			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
-
-	Buffer(const Buffer& other) = delete;
-
-	Buffer(Buffer&& other) noexcept;
-
-	~Buffer();
-
-	Buffer& operator=(const Buffer& other) = delete;
-
-	Buffer& operator=(Buffer&& other) noexcept;
-
-	explicit operator VkBuffer() const;
-
-	void mapMemory(const void* data);
-};
-
 class Mesh {
 public:
 	Mesh() = default;
@@ -55,26 +23,6 @@ public:
 	VmaAllocation indexAllocation = nullptr;
 	VmaAllocationInfo indexAllocationInfo{};
 	std::size_t indexCount = 0;
-};
-
-class TestMesh {
-private:
-	vkx::Buffer vertexBuffer{};
-	vkx::Buffer indexBuffer{};
-	std::vector<vkx::Vertex> vertices{};
-	std::vector<std::uint32_t> indices{};
-	std::size_t activeIndexCount = 0;
-
-public:
-	TestMesh() = default;
-
-	explicit TestMesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, VmaAllocator allocator);
-
-	[[nodiscard]] const vkx::Buffer& getVertexBuffer() const;
-
-	[[nodiscard]] const vkx::Buffer& getIndexBuffer() const;
-
-	[[nodiscard]] std::size_t getActiveIndexCount() const;
 };
 
 class Texture {

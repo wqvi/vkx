@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
 
 	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
 	voxelChunk2D.generateTerrain();
-	auto mesh = voxelChunk2D.generateMesh(static_cast<VmaAllocator>(allocator));
+	auto mesh = voxelChunk2D.generateMesh(allocator);
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);

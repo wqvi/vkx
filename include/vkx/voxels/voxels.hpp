@@ -51,7 +51,7 @@ public:
 
 	void generateTerrain();
 
-	[[nodiscard]] vkx::TestMesh generateMesh(VmaAllocator allocator);
+	[[nodiscard]] vkx::TestMesh generateMesh(const vkx::VulkanAllocator& allocator);
 
 	[[nodiscard]] vkx::Voxel at(std::size_t i) const;
 

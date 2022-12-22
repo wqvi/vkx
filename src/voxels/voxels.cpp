@@ -32,7 +32,7 @@ void vkx::VoxelChunk2D::generateTerrain() {
 	}
 }
 
-vkx::TestMesh vkx::VoxelChunk2D::generateMesh(VmaAllocator allocator) {
+vkx::TestMesh vkx::VoxelChunk2D::generateMesh(const vkx::VulkanAllocator& allocator) {
 	vertexIter = vertices.begin();
 	indexIter = indices.begin();
 	vertexCount = 0;
