@@ -12,177 +12,6 @@ static constexpr std::array<const char*, 1> layers{"VK_LAYER_KHRONOS_validation"
 static constexpr std::array<const char*, 0> layers{};
 #endif
 
-VkInstance vkx::createInstance(SDL_Window* const window) {
-	constexpr VkApplicationInfo applicationInfo{
-	    VK_STRUCTURE_TYPE_APPLICATION_INFO,
-	    nullptr,
-	    "VKX",
-	    VK_MAKE_VERSION(0, 0, 1),
-	    "VKX",
-	    VK_MAKE_VERSION(0, 0, 1),
-	    VK_API_VERSION_1_0};
-
-#ifdef RELEASE
-	const auto instanceExtensions = vkx::getArray<const char*>(
-	    "Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, window);
-#else
-	auto instanceExtensions = vkx::getArray<const char*>(
-	    "Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, window);
-	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
-
-	VkInstanceCreateInfo instanceCreateInfo{
-	    VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-	    nullptr,
-	    0,
-	    &applicationInfo,
-	    static_cast<std::uint32_t>(layers.size()),
-	    layers.data(),
-	    static_cast<std::uint32_t>(instanceExtensions.size()),
-	    instanceExtensions.data()};
-
-#ifdef DEBUG
-	constexpr auto messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-	constexpr auto messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-
-	constexpr VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
-	    VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-	    nullptr,
-	    0,
-	    messageSeverity,
-	    messageType,
-	    [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; },
-	    nullptr};
-
-	instanceCreateInfo.pNext = &debugUtilsMessengerCreateInfo;
-#endif
-
-	return vkx::create<VkInstance>(
-	    vkCreateInstance, [](auto result) {
-		    if (result == VK_ERROR_LAYER_NOT_PRESENT) {
-			    throw std::runtime_error("Instance layer not present.");
-		    }
-
-		    if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-			    throw std::runtime_error("Instance extension not present.");
-		    }
-
-		    if (result != VK_SUCCESS) {
-			    throw std::runtime_error("Failure to create instance.");
-		    }
-	    },
-	    &instanceCreateInfo, nullptr);
-}
-
-VkSurfaceKHR vkx::createSurface(SDL_Window* const window, VkInstance instance) {
-	VkSurfaceKHR surface = nullptr;
-	if (SDL_Vulkan_CreateSurface(window, instance, &surface) != SDL_TRUE) {
-		throw std::runtime_error("Failed to create vulkan surface.");
-	}
-	return surface;
-}
-
-std::uint32_t vkx::ratePhysicalDevice(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice) {
-	std::uint32_t rating = 0;
-
-	const vkx::QueueConfig indices{physicalDevice, surface};
-	if (indices.isComplete()) {
-		rating++;
-	}
-
-	const auto features = vkx::getObject<VkPhysicalDeviceFeatures>(vkGetPhysicalDeviceFeatures, physicalDevice);
-	if (features.samplerAnisotropy) {
-		rating++;
-	}
-
-	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
-	if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-		rating++;
-	}
-
-	return rating;
-}
-
-VkPhysicalDevice vkx::getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR surface) {
-	const auto physicalDevices = vkx::getArray<VkPhysicalDevice>(
-	    "Failed to enumerate physical devices.",
-	    vkEnumeratePhysicalDevices,
-	    [](auto a) { return a != VK_SUCCESS; },
-	    instance);
-
-	VkPhysicalDevice bestPhysicalDevice = nullptr;
-	std::uint32_t bestRating = 0;
-	for (VkPhysicalDevice physicalDevice : physicalDevices) {
-		std::uint32_t currentRating = ratePhysicalDevice(surface, physicalDevice);
-
-		if (currentRating > bestRating) {
-			bestRating = currentRating;
-			bestPhysicalDevice = physicalDevice;
-		}
-	}
-
-	if (!bestPhysicalDevice) {
-		throw std::runtime_error("Failure to find suitable physical device!");
-	}
-
-	return bestPhysicalDevice;
-}
-
-VkDevice vkx::createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice) {
-	const QueueConfig queueConfig{physicalDevice, surface};
-
-	constexpr float queuePriority = 1.0f;
-	const auto queueCreateInfos = queueConfig.createQueueInfos(&queuePriority);
-
-	VkPhysicalDeviceFeatures features{};
-	features.samplerAnisotropy = true;
-
-	constexpr std::array deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
-	const VkDeviceCreateInfo deviceCreateInfo{
-	    VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-	    nullptr,
-	    0,
-	    static_cast<std::uint32_t>(queueCreateInfos.size()),
-	    queueCreateInfos.data(),
-	    static_cast<std::uint32_t>(layers.size()),
-	    layers.data(),
-	    static_cast<std::uint32_t>(deviceExtensions.size()),
-	    deviceExtensions.data(),
-	    &features};
-
-	return vkx::create<VkDevice>(
-	    vkCreateDevice, [](auto result) {
-		    if (result == VK_ERROR_LAYER_NOT_PRESENT) {
-			    throw std::runtime_error("Device layer not present.");
-		    }
-
-		    if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-			    throw std::runtime_error("Device extension not present.");
-		    }
-
-		    if (result != VK_SUCCESS) {
-			    throw std::runtime_error("Failure to create logical device.");
-		    }
-	    },
-	    physicalDevice, &deviceCreateInfo, nullptr);
-}
-
-VkFormat vkx::findSupportedFormat(VkPhysicalDevice physicalDevice, VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates) {
-	for (const auto format : candidates) {
-		const auto formatProps = vkx::getObject<VkFormatProperties>(vkGetPhysicalDeviceFormatProperties, physicalDevice, format);
-
-		const bool isLinear = tiling == VK_IMAGE_TILING_LINEAR && (formatProps.linearTilingFeatures & features) == features;
-		const bool isOptimal = tiling == VK_IMAGE_TILING_OPTIMAL && (formatProps.optimalTilingFeatures & features) == features;
-
-		if (isLinear || isOptimal) {
-			return format;
-		}
-	}
-
-	return VK_FORMAT_UNDEFINED;
-}
-
 VkImageView vkx::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
 	const VkImageSubresourceRange subresourceRange{
 	    aspectFlags,
@@ -240,80 +69,6 @@ VkSampler vkx::createTextureSampler(VkDevice device, float samplerAnisotropy) {
 		    }
 	    },
 	    device, &samplerCreateInfo, nullptr);
-}
-
-VkRenderPass vkx::createRenderPass(VkPhysicalDevice physicalDevice, VkDevice device, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout, VkAttachmentLoadOp loadOp) {
-	const VkAttachmentDescription colorAttachment{
-	    0,
-	    format,
-	    VK_SAMPLE_COUNT_1_BIT,
-	    loadOp,
-	    VK_ATTACHMENT_STORE_OP_STORE,
-	    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-	    VK_ATTACHMENT_STORE_OP_DONT_CARE,
-	    initialLayout,
-	    finalLayout};
-
-	const VkAttachmentReference colorAttachmentRef{
-	    0,
-	    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
-
-	const VkAttachmentDescription depthAttachment{
-	    0,
-	    findDepthFormat(physicalDevice),
-	    VK_SAMPLE_COUNT_1_BIT,
-	    VK_ATTACHMENT_LOAD_OP_CLEAR,
-	    VK_ATTACHMENT_STORE_OP_DONT_CARE,
-	    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-	    VK_ATTACHMENT_STORE_OP_DONT_CARE,
-	    VK_IMAGE_LAYOUT_UNDEFINED,
-	    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
-
-	const VkAttachmentReference depthAttachmentRef{
-	    1,
-	    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
-
-	const VkSubpassDescription subpass{
-	    0,
-	    VK_PIPELINE_BIND_POINT_GRAPHICS,
-	    0,
-	    nullptr,
-	    1,
-	    &colorAttachmentRef,
-	    nullptr,
-	    &depthAttachmentRef,
-	    0,
-	    nullptr};
-
-	const VkSubpassDependency dependency{
-	    VK_SUBPASS_EXTERNAL,
-	    0,
-	    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-	    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-	    0,
-	    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT};
-
-	const std::array renderPassAttachments = {colorAttachment, depthAttachment};
-
-	const VkRenderPassCreateInfo renderPassCreateInfo{
-	    VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-	    nullptr,
-	    0,
-	    static_cast<std::uint32_t>(renderPassAttachments.size()),
-	    renderPassAttachments.data(),
-	    1,
-	    &subpass,
-	    1,
-	    &dependency};
-
-	return vkx::create<VkRenderPass>(
-	    vkCreateRenderPass,
-	    [](auto result) {
-		    if (result != VK_SUCCESS) {
-			    throw std::runtime_error("Failed to create render pass.");
-		    }
-	    },
-	    device, &renderPassCreateInfo, nullptr);
 }
 
 std::vector<vkx::SyncObjects> vkx::createSyncObjects(VkDevice device) {
@@ -780,7 +535,46 @@ float vkx::VulkanDevice::getMaxSamplerAnisotropy() const {
 }
 
 vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& allocator, const vkx::VulkanRenderPass& renderPass, const vkx::Window& window) const {
-	return vkx::Swapchain{physicalDevice, logicalDevice, static_cast<VkRenderPass>(renderPass), surface, static_cast<VmaAllocator>(allocator), static_cast<SDL_Window*>(window)};
+	const auto info = getSwapchainInfo();
+	const auto config = getQueueConfig();
+
+	const auto [width, height] = window.getDimensions();
+
+	const auto surfaceFormat = info.surfaceFormat;
+	const auto presentMode = info.presentMode;
+	const auto actualExtent = info.chooseExtent(width, height);
+	const auto imageCount = info.imageCount;
+	const auto imageSharingMode = config.getImageSharingMode();
+
+	const VkSwapchainCreateInfoKHR swapchainCreateInfo{
+	    VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+	    nullptr,
+	    0,
+	    surface,
+	    imageCount,
+	    surfaceFormat.format,
+	    surfaceFormat.colorSpace,
+	    actualExtent,
+	    1,
+	    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+	    imageSharingMode,
+	    static_cast<std::uint32_t>(config.indices.size()),
+	    config.indices.data(),
+	    info.capabilities.currentTransform,
+	    VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+	    presentMode,
+	    true};
+
+	const auto swapchain = vkx::create<VkSwapchainKHR>(
+	    vkCreateSwapchainKHR,
+	    [](auto result) {
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failed to create swapchain.");
+		    }
+	    },
+	    logicalDevice, &swapchainCreateInfo, nullptr);
+
+	return vkx::Swapchain{logicalDevice, static_cast<VkRenderPass>(renderPass), static_cast<VmaAllocator>(allocator), swapchain, actualExtent, info.surfaceFormat.format, findDepthFormat()};
 }
 
 vkx::CommandSubmitter vkx::VulkanDevice::createCommandSubmitter() const {

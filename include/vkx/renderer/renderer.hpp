@@ -63,27 +63,9 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 	return object;
 }
 
-[[nodiscard]] VkInstance createInstance(SDL_Window* const window);
-
-[[nodiscard]] VkSurfaceKHR createSurface(SDL_Window* const window, VkInstance instance);
-
-[[nodiscard]] std::uint32_t ratePhysicalDevice(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
-
-[[nodiscard]] VkPhysicalDevice getBestPhysicalDevice(VkInstance instance, VkSurfaceKHR surface);
-
-[[nodiscard]] VkDevice createDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
-
-[[nodiscard]] VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates);
-
-[[nodiscard]] inline auto findDepthFormat(VkPhysicalDevice physicalDevice) {
-	return findSupportedFormat(physicalDevice, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT});
-}
-
 [[nodiscard]] VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
 [[nodiscard]] VkSampler createTextureSampler(VkDevice device, float samplerAnisotropy);
-
-[[nodiscard]] VkRenderPass createRenderPass(VkPhysicalDevice physicalDevice, VkDevice device, VkFormat format, VkImageLayout initialLayout, VkImageLayout finalLayout, VkAttachmentLoadOp loadOp);
 
 [[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects(VkDevice device);
 

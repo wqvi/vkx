@@ -3,6 +3,7 @@
 #include <vkx/renderer/core/sync_objects.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
+#include <vkx/renderer/renderer.hpp>
 
 namespace vkx {
 class Swapchain {
@@ -26,7 +27,7 @@ private:
 public:
 	Swapchain() = default;
 
-	explicit Swapchain(VkPhysicalDevice physicalDevice, VkDevice device, VkRenderPass renderPass, VkSurfaceKHR surface, VmaAllocator allocator, SDL_Window* window);
+	explicit Swapchain(VkDevice logicalDevice, VkRenderPass renderPass, VmaAllocator allocator, VkSwapchainKHR swapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat);
 
 	inline VkFramebuffer operator[](std::size_t index) const noexcept {
 		return framebuffers[index];
