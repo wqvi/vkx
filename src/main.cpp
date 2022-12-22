@@ -80,9 +80,7 @@ int main(int argc, char** argv) {
 	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
 	voxelChunk2D.generateTerrain();
 	vkx::Mesh mesh{vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator};
-	mesh.activeIndexCount = voxelChunk2D.generateMesh(mesh.vertices.begin(), mesh.indices.begin());
-	mesh.vertexBuffer.mapMemory(mesh.vertices.data());
-	mesh.indexBuffer.mapMemory(mesh.indices.data());
+	voxelChunk2D.generateMesh(mesh);
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
