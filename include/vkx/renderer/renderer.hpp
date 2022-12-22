@@ -249,23 +249,17 @@ public:
 	void mapMemory(const void* data);
 };
 
-class Mesh {
-private:
+struct Mesh {
 	vkx::Buffer vertexBuffer{};
 	vkx::Buffer indexBuffer{};
 	std::vector<vkx::Vertex> vertices{};
 	std::vector<std::uint32_t> indices{};
 	std::size_t activeIndexCount = 0;
 
-public:
 	Mesh() = default;
 
 	explicit Mesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, const vkx::VulkanAllocator& allocator);
 
-	[[nodiscard]] const vkx::Buffer& getVertexBuffer() const;
-
-	[[nodiscard]] const vkx::Buffer& getIndexBuffer() const;
-
-	[[nodiscard]] std::size_t getActiveIndexCount() const;
+	explicit Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanAllocator& allocator);
 };
 } // namespace vkx

@@ -32,9 +32,7 @@ void vkx::VoxelChunk2D::generateTerrain() {
 	}
 }
 
-vkx::Mesh vkx::VoxelChunk2D::generateMesh(const vkx::VulkanAllocator& allocator) {
-	vertexIter = vertices.begin();
-	indexIter = indices.begin();
+std::size_t vkx::VoxelChunk2D::generateMesh(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter) {
 	vertexCount = 0;
 
 	std::vector<vkx::VoxelMask> voxelMask{CHUNK_SIZE * CHUNK_SIZE};
@@ -86,10 +84,7 @@ vkx::Mesh vkx::VoxelChunk2D::generateMesh(const vkx::VulkanAllocator& allocator)
 		}
 	}
 
-	const auto activeIndexCount = static_cast<std::size_t>(std::distance(indices.begin(), indexIter));
-	vkx::Mesh voxelMesh{std::move(vertices), std::move(indices), activeIndexCount, allocator};
-
-	return voxelMesh;
+	return vertexCount;
 }
 
 vkx::Voxel vkx::VoxelChunk2D::at(std::size_t i) const {

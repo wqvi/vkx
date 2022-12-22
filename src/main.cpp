@@ -79,7 +79,10 @@ int main(int argc, char** argv) {
 
 	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
 	voxelChunk2D.generateTerrain();
-	auto mesh = voxelChunk2D.generateMesh(allocator);
+	vkx::Mesh mesh{vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator};
+	mesh.activeIndexCount = voxelChunk2D.generateMesh(mesh.vertices.begin(), mesh.indices.begin());
+	mesh.vertexBuffer.mapMemory(mesh.vertices.data());
+	mesh.indexBuffer.mapMemory(mesh.indices.data());
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
@@ -173,9 +176,9 @@ int main(int argc, char** argv) {
 		    &swapchain,
 		    &graphicsPipeline,
 		    static_cast<VkRenderPass>(clearRenderPass),
-		    {static_cast<VkBuffer>(mesh.getVertexBuffer())},
-		    {static_cast<VkBuffer>(mesh.getIndexBuffer())},
-		    {static_cast<std::uint32_t>(mesh.getActiveIndexCount())}};
+		    {static_cast<VkBuffer>(mesh.vertexBuffer)},
+		    {static_cast<VkBuffer>(mesh.indexBuffer)},
+		    {static_cast<std::uint32_t>(mesh.activeIndexCount)}};
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 

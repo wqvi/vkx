@@ -753,14 +753,9 @@ vkx::Mesh::Mesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&
       activeIndexCount(activeIndexCount) {
 }
 
-const vkx::Buffer& vkx::Mesh::getVertexBuffer() const {
-	return vertexBuffer;
-}
-
-const vkx::Buffer& vkx::Mesh::getIndexBuffer() const {
-	return indexBuffer;
-}
-
-std::size_t vkx::Mesh::getActiveIndexCount() const {
-	return activeIndexCount;
+vkx::Mesh::Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanAllocator& allocator)
+    : vertexBuffer(allocator.allocateBuffer(nullptr, vertexCount * sizeof(vkx::Vertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)),
+      indexBuffer(allocator.allocateBuffer(nullptr, indexCount * sizeof(std::uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT)),
+      vertices(vertexCount),
+      indices(indexCount) {
 }

@@ -36,7 +36,7 @@ public:
 
 	void generateTerrain();
 
-	[[nodiscard]] vkx::Mesh generateMesh(const vkx::VulkanAllocator& allocator);
+	[[nodiscard]] std::size_t generateMesh(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter);
 
 	[[nodiscard]] vkx::Voxel at(std::size_t i) const;
 

@@ -21,7 +21,7 @@ struct DirectionalLight;
 
 struct Material;
 
-class Mesh;
+struct Mesh;
 
 class Texture;
 
