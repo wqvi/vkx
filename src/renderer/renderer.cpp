@@ -1,5 +1,6 @@
 #include <vkx/renderer/renderer.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
+#include <vkx/renderer/core/swapchain.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
@@ -783,6 +784,10 @@ VkFormat vkx::VulkanDevice::findSupportedFormat(VkImageTiling tiling, VkFormatFe
 
 float vkx::VulkanDevice::getMaxSamplerAnisotropy() const {
 	return maxSamplerAnisotropy;
+}
+
+vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& allocator, const vkx::VulkanRenderPass& renderPass, const vkx::Window& window) const {
+	return vkx::Swapchain{physicalDevice, logicalDevice, static_cast<VkRenderPass>(renderPass), surface, static_cast<VmaAllocator>(allocator), static_cast<SDL_Window*>(window)};
 }
 
 void vkx::VulkanDevice::waitIdle() const {

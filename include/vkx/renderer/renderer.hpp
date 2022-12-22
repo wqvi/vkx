@@ -186,6 +186,8 @@ public:
 
 	[[nodiscard]] float getMaxSamplerAnisotropy() const;
 
+	[[nodiscard]] vkx::Swapchain createSwapchain(const vkx::VulkanAllocator& allocator, const vkx::VulkanRenderPass& renderPass, const vkx::Window& window) const;
+
 	void waitIdle() const;
 };
 
