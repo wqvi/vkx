@@ -6,25 +6,6 @@
 #include <vkx/renderer/renderer.hpp>
 
 namespace vkx {
-class Mesh {
-public:
-	Mesh() = default;
-
-	explicit Mesh(const void* vertexData, std::size_t vertexSize, const void* indexData, std::size_t indexSize, VmaAllocator allocator);
-
-	explicit Mesh(const std::vector<vkx::Vertex>& vertices, const std::vector<std::uint32_t>& indices, VmaAllocator allocator);
-
-	void destroy(VmaAllocator allocator) const;
-
-	VkBuffer vertexBuffer = nullptr;
-	VmaAllocation vertexAllocation = nullptr;
-	VmaAllocationInfo vertexAllocationInfo{};
-	VkBuffer indexBuffer = nullptr;
-	VmaAllocation indexAllocation = nullptr;
-	VmaAllocationInfo indexAllocationInfo{};
-	std::size_t indexCount = 0;
-};
-
 class Texture {
 public:
 	explicit Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter);

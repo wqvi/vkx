@@ -249,7 +249,7 @@ public:
 	void mapMemory(const void* data);
 };
 
-class TestMesh {
+class Mesh {
 private:
 	vkx::Buffer vertexBuffer{};
 	vkx::Buffer indexBuffer{};
@@ -258,9 +258,9 @@ private:
 	std::size_t activeIndexCount = 0;
 
 public:
-	TestMesh() = default;
+	Mesh() = default;
 
-	explicit TestMesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, const vkx::VulkanAllocator& allocator);
+	explicit Mesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, const vkx::VulkanAllocator& allocator);
 
 	[[nodiscard]] const vkx::Buffer& getVertexBuffer() const;
 

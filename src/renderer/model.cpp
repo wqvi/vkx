@@ -1,25 +1,5 @@
 #include <vkx/renderer/model.hpp>
 
-vkx::Mesh::Mesh(const void* vertexData, std::size_t vertexSize, const void* indexData, std::size_t indexSize, VmaAllocator allocator) {
-	vertexAllocation = vkx::allocateBuffer(&vertexAllocationInfo, &vertexBuffer, allocator, vertexData, vertexSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-	indexAllocation = vkx::allocateBuffer(&indexAllocationInfo, &indexBuffer, allocator, indexData, indexSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-}
-
-vkx::Mesh::Mesh(const std::vector<vkx::Vertex>& vertices, const std::vector<std::uint32_t>& indices, VmaAllocator allocator) {
-	const auto* vertexData = vertices.data();
-	const auto vertexSize = vertices.size() * sizeof(vkx::Vertex);
-	const auto* indexData = indices.data();
-	const auto indexSize = indices.size() * sizeof(std::uint32_t);
-
-	vertexAllocation = vkx::allocateBuffer(&vertexAllocationInfo, &vertexBuffer, allocator, vertexData, vertexSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-	indexAllocation = vkx::allocateBuffer(&indexAllocationInfo, &indexBuffer, allocator, indexData, indexSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-}
-
-void vkx::Mesh::destroy(VmaAllocator allocator) const {
-	vmaDestroyBuffer(allocator, vertexBuffer, vertexAllocation);
-	vmaDestroyBuffer(allocator, indexBuffer, indexAllocation);
-}
-
 vkx::Texture::Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter)
     : image(file, allocator, commandSubmitter),
       view(image.createTextureImageView(device)),

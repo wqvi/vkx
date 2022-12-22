@@ -745,7 +745,7 @@ void vkx::Buffer::mapMemory(const void* data) {
 	std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
 }
 
-vkx::TestMesh::TestMesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, const vkx::VulkanAllocator& allocator)
+vkx::Mesh::Mesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, const vkx::VulkanAllocator& allocator)
     : vertexBuffer(allocator.allocateBuffer(vertices.data(), vertices.size() * sizeof(vkx::Vertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)),
       indexBuffer(allocator.allocateBuffer(indices.data(), indices.size() * sizeof(std::uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT)),
       vertices(std::move(vertices)),
@@ -753,14 +753,14 @@ vkx::TestMesh::TestMesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::ui
       activeIndexCount(activeIndexCount) {
 }
 
-const vkx::Buffer& vkx::TestMesh::getVertexBuffer() const {
+const vkx::Buffer& vkx::Mesh::getVertexBuffer() const {
 	return vertexBuffer;
 }
 
-const vkx::Buffer& vkx::TestMesh::getIndexBuffer() const {
+const vkx::Buffer& vkx::Mesh::getIndexBuffer() const {
 	return indexBuffer;
 }
 
-std::size_t vkx::TestMesh::getActiveIndexCount() const {
+std::size_t vkx::Mesh::getActiveIndexCount() const {
 	return activeIndexCount;
 }

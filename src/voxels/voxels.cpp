@@ -32,7 +32,7 @@ void vkx::VoxelChunk2D::generateTerrain() {
 	}
 }
 
-vkx::TestMesh vkx::VoxelChunk2D::generateMesh(const vkx::VulkanAllocator& allocator) {
+vkx::Mesh vkx::VoxelChunk2D::generateMesh(const vkx::VulkanAllocator& allocator) {
 	vertexIter = vertices.begin();
 	indexIter = indices.begin();
 	vertexCount = 0;
@@ -87,7 +87,7 @@ vkx::TestMesh vkx::VoxelChunk2D::generateMesh(const vkx::VulkanAllocator& alloca
 	}
 
 	const auto activeIndexCount = static_cast<std::size_t>(std::distance(indices.begin(), indexIter));
-	vkx::TestMesh voxelMesh{std::move(vertices), std::move(indices), activeIndexCount, allocator};
+	vkx::Mesh voxelMesh{std::move(vertices), std::move(indices), activeIndexCount, allocator};
 
 	return voxelMesh;
 }
@@ -134,11 +134,4 @@ std::uint32_t vkx::VoxelChunk2D::createQuad(std::vector<vkx::Vertex>::iterator v
 	indexIter++;
 
 	return vertexCount + 4;
-}
-
-vkx::HostHeapMesh::HostHeapMesh(std::size_t maximumVertexCount, std::size_t maximumIndexCount) {
-	vertices.resize(maximumVertexCount);
-	indices.resize(maximumIndexCount);
-	vertexIter = vertices.begin();
-	indexIter = indices.begin();
 }
