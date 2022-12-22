@@ -100,11 +100,11 @@ public:
 
 	explicit operator VmaAllocator() const;
 
-	vkx::Buffer allocateBuffer(const void* data,
-				   std::size_t memorySize,
-				   VkBufferUsageFlags bufferFlags,
-				   VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-				   VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
+	[[nodiscard]] vkx::Buffer allocateBuffer(const void* data,
+						 std::size_t memorySize,
+						 VkBufferUsageFlags bufferFlags,
+						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
 };
 
 class VulkanRenderPass {
