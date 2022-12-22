@@ -32,21 +32,6 @@ auto createShaderBindings() {
 	return std::vector{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 }
 
-static SDL_Window* init() {
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Init: %s", SDL_GetError());
-		return nullptr;
-	}
-
-	SDL_Window* window = SDL_CreateWindow("vkx", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
-	if (window == nullptr) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_CreateWindow: %s", SDL_GetError());
-		return nullptr;
-	}
-
-	return window;
-}
-
 int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
 
