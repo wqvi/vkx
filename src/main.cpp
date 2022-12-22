@@ -84,29 +84,19 @@ int main(int argc, char** argv) {
 		projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 0.1f, 100.0f);
 	};
 
-	const auto sdlWindowEvent = [&sdlWindowResizedEvent](SDL_WindowEvent window) {
-		if (window.event == SDL_WINDOWEVENT_RESIZED) {
-			const auto width = window.data1;
-			const auto height = window.data2;
-			sdlWindowResizedEvent(static_cast<std::int32_t>(width), static_cast<std::int32_t>(height));
+	const auto sdlWindowEvent = [&sdlWindowResizedEvent](SDL_WindowEvent windowEvent) {
+		if (windowEvent.event == SDL_WINDOWEVENT_RESIZED) {
+			const auto width = windowEvent.data1;
+			const auto height = windowEvent.data2;
+			sdlWindowResizedEvent(width, height);
 		}
 	};
 
-	const auto sdlMouseMotionEvent = [](SDL_MouseMotionEvent motion) {
-	};
-
-	const auto sdlMousePressedEvent = [](SDL_MouseButtonEvent button) {
-	};
-
-	const auto sdlMouseReleasedEvent = [](SDL_MouseButtonEvent button) {};
-
-	const auto sdlKeyPressedEvent = [&isRunning](SDL_KeyboardEvent key) {
+	const auto sdlKeyPressedEvent = [&isRunning](const SDL_KeyboardEvent& key) {
 		if (key.keysym.sym == SDLK_ESCAPE) {
 			isRunning = false;
 		}
 	};
-
-	const auto sdlKeyReleasedEvent = [](SDL_KeyboardEvent key) {};
 
 	window.show();
 	while (isRunning) {
@@ -199,20 +189,8 @@ int main(int argc, char** argv) {
 			case SDL_WINDOWEVENT:
 				sdlWindowEvent(event.window);
 				break;
-			case SDL_MOUSEMOTION:
-				sdlMouseMotionEvent(event.motion);
-				break;
-			case SDL_MOUSEBUTTONDOWN:
-				sdlMousePressedEvent(event.button);
-				break;
-			case SDL_MOUSEBUTTONUP:
-				sdlMouseReleasedEvent(event.button);
-				break;
 			case SDL_KEYDOWN:
 				sdlKeyPressedEvent(event.key);
-				break;
-			case SDL_KEYUP:
-				sdlKeyReleasedEvent(event.key);
 				break;
 			default:
 				break;
