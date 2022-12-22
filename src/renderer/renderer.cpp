@@ -671,42 +671,6 @@ std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(VkPhysicalDevice physicalD
 	return rating;
 }
 
-vkx::Buffer::Buffer(VmaAllocator allocator,
-		    const void* data,
-		    std::size_t memorySize,
-		    VkBufferUsageFlags bufferFlags,
-		    VmaAllocationCreateFlags allocationFlags,
-		    VmaMemoryUsage memoryUsage)
-    : allocator(allocator) {
-	const VkBufferCreateInfo bufferCreateInfo{
-	    VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-	    nullptr,
-	    0,
-	    memorySize,
-	    bufferFlags,
-	    VK_SHARING_MODE_EXCLUSIVE,
-	    0,
-	    nullptr};
-
-	const VmaAllocationCreateInfo allocationCreateInfo{
-	    allocationFlags,
-	    memoryUsage,
-	    0,
-	    0,
-	    0,
-	    nullptr,
-	    nullptr,
-	    {}};
-
-	if (vmaCreateBuffer(allocator, &bufferCreateInfo, &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocate GPU buffer.");
-	}
-
-	if (data != nullptr) {
-		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
-	}
-}
-
 vkx::Buffer::Buffer(Buffer&& other) noexcept
     : allocator(std::move(other.allocator)),
       buffer(std::move(other.buffer)),

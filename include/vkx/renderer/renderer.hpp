@@ -227,12 +227,42 @@ private:
 public:
 	Buffer() = default;
 
+	template <class T>
 	explicit Buffer(VmaAllocator allocator,
-			const void* data,
+			const T* data,
 			std::size_t memorySize,
 			VkBufferUsageFlags bufferFlags,
 			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
+			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO)
+	    : allocator(allocator) {
+		const VkBufferCreateInfo bufferCreateInfo{
+		    VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		    nullptr,
+		    0,
+		    memorySize,
+		    bufferFlags,
+		    VK_SHARING_MODE_EXCLUSIVE,
+		    0,
+		    nullptr};
+
+		const VmaAllocationCreateInfo allocationCreateInfo{
+		    allocationFlags,
+		    memoryUsage,
+		    0,
+		    0,
+		    0,
+		    nullptr,
+		    nullptr,
+		    {}};
+
+		if (vmaCreateBuffer(allocator, &bufferCreateInfo, &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to allocate GPU buffer.");
+		}
+
+		if (data != nullptr) {
+			std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
+		}
+	}
 
 	Buffer(const Buffer& other) = delete;
 
