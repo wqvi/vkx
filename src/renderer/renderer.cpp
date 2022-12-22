@@ -506,10 +506,7 @@ std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocat
 	return buffers;
 }
 
-vkx::VulkanAllocator::VulkanAllocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice logicalDevice)
-    : instance(instance),
-      physicalDevice(physicalDevice),
-      logicalDevice(logicalDevice) {
+vkx::VulkanAllocator::VulkanAllocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice logicalDevice) {
 	const VmaVulkanFunctions vulkanFunctions{
 	    &vkGetInstanceProcAddr,
 	    &vkGetDeviceProcAddr};
@@ -541,13 +538,7 @@ vkx::VulkanAllocator::VulkanAllocator(VkInstance instance, VkPhysicalDevice phys
 }
 
 vkx::VulkanAllocator::VulkanAllocator(VulkanAllocator&& other) noexcept
-    : instance(other.instance),
-      physicalDevice(other.physicalDevice),
-      logicalDevice(other.logicalDevice),
-      allocator(other.allocator) {
-	other.instance = nullptr;
-	other.physicalDevice = nullptr;
-	other.logicalDevice = nullptr;
+    : allocator(other.allocator) {
 	other.allocator = nullptr;
 }
 
@@ -558,14 +549,8 @@ vkx::VulkanAllocator::~VulkanAllocator() {
 }
 
 vkx::VulkanAllocator& vkx::VulkanAllocator::operator=(VulkanAllocator&& other) noexcept {
-	instance = other.instance;
-	physicalDevice = other.physicalDevice;
-	logicalDevice = other.logicalDevice;
 	allocator = other.allocator;
 
-	other.instance = nullptr;
-	other.physicalDevice = nullptr;
-	other.logicalDevice = nullptr;
 	other.allocator = nullptr;
 	return *this;
 }

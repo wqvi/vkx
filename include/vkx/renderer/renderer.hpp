@@ -101,9 +101,6 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 class VulkanAllocator {
 private:
-	VkInstance instance = nullptr;
-	VkPhysicalDevice physicalDevice = nullptr;
-	VkDevice logicalDevice = nullptr;
 	VmaAllocator allocator = nullptr;
 
 public:
