@@ -84,7 +84,9 @@ private:
 public:
 	VulkanAllocator() = default;
 
-	explicit VulkanAllocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice logicalDevice);
+	explicit VulkanAllocator(VkInstance instance,
+				 VkPhysicalDevice physicalDevice,
+				 VkDevice logicalDevice);
 
 	VulkanAllocator(const VulkanAllocator& other) = delete;
 
@@ -97,6 +99,12 @@ public:
 	VulkanAllocator& operator=(VulkanAllocator&& other) noexcept;
 
 	explicit operator VmaAllocator() const;
+
+	vkx::Buffer allocateBuffer(const void* data,
+				   std::size_t memorySize,
+				   VkBufferUsageFlags bufferFlags,
+				   VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+				   VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
 };
 
 class VulkanRenderPass {
@@ -107,7 +115,12 @@ private:
 public:
 	VulkanRenderPass() = default;
 
-	explicit VulkanRenderPass(VkDevice logicalDevice, VkFormat depthFormat, VkFormat colorFormat, VkAttachmentLoadOp loadOp, VkImageLayout initialLayout, VkImageLayout finalLayout);
+	explicit VulkanRenderPass(VkDevice logicalDevice,
+				  VkFormat depthFormat,
+				  VkFormat colorFormat,
+				  VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+				  VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				  VkImageLayout finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 	VulkanRenderPass(const VulkanRenderPass& other) = delete;
 
@@ -133,7 +146,9 @@ private:
 public:
 	VulkanDevice() = default;
 
-	explicit VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice);
+	explicit VulkanDevice(VkInstance instance,
+			      VkSurfaceKHR surface,
+			      VkPhysicalDevice physicalDevice);
 
 	VulkanDevice(const VulkanDevice& other) = delete;
 
@@ -151,7 +166,10 @@ public:
 
 	[[nodiscard]] vkx::SwapchainInfo getSwapchainInfo() const;
 
-	[[nodiscard]] vkx::VulkanRenderPass createRenderPass(VkFormat colorFormat, VkAttachmentLoadOp loadOp, VkImageLayout initialLayout, VkImageLayout finalLayout) const;
+	[[nodiscard]] vkx::VulkanRenderPass createRenderPass(VkFormat colorFormat,
+							     VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+							     VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+							     VkImageLayout finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) const;
 
 	[[nodiscard]] vkx::VulkanAllocator createAllocator() const;
 

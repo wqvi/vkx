@@ -1,5 +1,6 @@
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/swapchain.hpp>
+#include <vkx/renderer/model.hpp>
 #include <vkx/renderer/renderer.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 
@@ -241,6 +242,10 @@ vkx::VulkanAllocator& vkx::VulkanAllocator::operator=(VulkanAllocator&& other) n
 
 vkx::VulkanAllocator::operator VmaAllocator() const {
 	return allocator;
+}
+
+vkx::Buffer vkx::VulkanAllocator::allocateBuffer(const void* data, std::size_t memorySize, VkBufferUsageFlags bufferFlags, VmaAllocationCreateFlags allocationFlags, VmaMemoryUsage memoryUsage) {
+	return vkx::Buffer{allocator, data, memorySize, bufferFlags, allocationFlags, memoryUsage};
 }
 
 vkx::VulkanRenderPass::VulkanRenderPass(VkDevice logicalDevice, VkFormat depthFormat, VkFormat colorFormat, VkAttachmentLoadOp loadOp, VkImageLayout initialLayout, VkImageLayout finalLayout)
