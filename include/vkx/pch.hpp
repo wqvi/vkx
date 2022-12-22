@@ -14,6 +14,7 @@
 #define GLM_FORCE_LEFT_HANDED
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <cstring>
 #include <glm/glm.hpp>
 #include <glm/gtc/noise.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -24,7 +25,6 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <cstring>
 
 #ifdef NDEBUG
 #define RELEASE
