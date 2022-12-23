@@ -195,7 +195,8 @@ void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexc
 	vmaDestroyAllocator(allocator);
 }
 
-vkx::VulkanAllocator::VulkanAllocator(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::Device logicalDevice) {
+vkx::VulkanAllocator::VulkanAllocator(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::Device logicalDevice)
+    : logicalDevice(logicalDevice) {
 	constexpr VmaVulkanFunctions vulkanFunctions{
 	    &vkGetInstanceProcAddr,
 	    &vkGetDeviceProcAddr};
@@ -233,7 +234,7 @@ vkx::VulkanAllocator::operator VmaAllocator() const {
 }
 
 vkx::Buffer vkx::VulkanAllocator::allocateBuffer(const void* data, std::size_t memorySize, vk::BufferUsageFlags bufferFlags, VmaAllocationCreateFlags allocationFlags, VmaMemoryUsage memoryUsage) const {
-	return vkx::Buffer{allocator.get(), data, memorySize, bufferFlags, allocationFlags, memoryUsage};
+	return vkx::Buffer{logicalDevice, allocator.get(), data, memorySize, bufferFlags, allocationFlags, memoryUsage};
 }
 
 vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
@@ -524,38 +525,18 @@ std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(vk::PhysicalDevice physica
 	return rating;
 }
 
-vkx::Buffer::Buffer(Buffer&& other) noexcept
-    : allocator(std::move(other.allocator)),
-      buffer(std::move(other.buffer)),
-      allocation(std::move(other.allocation)),
-      allocationInfo(std::move(other.allocationInfo)) {
-	other.allocator = nullptr;
-	other.buffer = nullptr;
-	other.allocation = nullptr;
-	std::memset(&other.allocationInfo, 0, sizeof(VmaAllocationInfo));
+vkx::BufferAllocationDeleter::BufferAllocationDeleter(VmaAllocator allocator)
+    : allocator(allocator) {
 }
 
-vkx::Buffer::~Buffer() {
-	if (buffer) {
-		vmaDestroyBuffer(allocator, buffer, allocation);
+void vkx::BufferAllocationDeleter::operator()(VmaAllocation allocation) const noexcept {
+	if (allocator) {
+		vmaFreeMemory(allocator, allocation);
 	}
 }
 
-vkx::Buffer& vkx::Buffer::operator=(Buffer&& other) noexcept {
-	allocator = std::move(other.allocator);
-	buffer = std::move(other.buffer);
-	allocation = std::move(other.allocation);
-	allocationInfo = std::move(other.allocationInfo);
-
-	other.allocator = nullptr;
-	other.buffer = nullptr;
-	other.allocation = nullptr;
-	std::memset(&other.allocationInfo, 0, sizeof(VmaAllocationInfo));
-	return *this;
-}
-
 vkx::Buffer::operator VkBuffer() const {
-	return buffer;
+	return *buffer;
 }
 
 void vkx::Buffer::mapMemory(const void* data) {

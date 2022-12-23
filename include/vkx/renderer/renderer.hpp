@@ -89,6 +89,7 @@ struct VulkanAllocatorDeleter {
 
 class VulkanAllocator {
 private:
+	vk::Device logicalDevice = nullptr;
 	std::unique_ptr<std::remove_pointer_t<VmaAllocator>, VulkanAllocatorDeleter> allocator;
 
 public:
@@ -186,18 +187,31 @@ private:
 	[[nodiscard]] std::uint32_t ratePhysicalDevice(vk::PhysicalDevice physicalDevice) const;
 };
 
+class BufferAllocationDeleter {
+private:
+	VmaAllocator allocator = nullptr;
+
+public:
+	BufferAllocationDeleter() = default;
+
+	explicit BufferAllocationDeleter(VmaAllocator allocator);
+
+	void operator()(VmaAllocation allocation) const noexcept;
+};
+
 class Buffer {
 private:
 	VmaAllocator allocator = nullptr;
-	VkBuffer buffer = nullptr;
-	VmaAllocation allocation = nullptr;
+	vk::UniqueBuffer buffer;
+	std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter> allocation;
 	VmaAllocationInfo allocationInfo{};
 
 public:
 	Buffer() = default;
 
 	template <class T>
-	explicit Buffer(VmaAllocator allocator,
+	explicit Buffer(vk::Device logicalDevice,
+			VmaAllocator allocator,
 			const T* data,
 			std::size_t memorySize,
 			vk::BufferUsageFlags bufferFlags,
@@ -216,24 +230,19 @@ public:
 		    nullptr,
 		    {}};
 
-		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
+		VkBuffer cBuffer = nullptr;
+		VmaAllocation cAllocation = nullptr;
+		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &allocationInfo) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to allocate GPU buffer.");
 		}
+
+		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
+		allocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>(cAllocation, BufferAllocationDeleter{allocator});
 
 		if (data != nullptr) {
 			std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
 		}
 	}
-
-	Buffer(const Buffer& other) = delete;
-
-	Buffer(Buffer&& other) noexcept;
-
-	~Buffer();
-
-	Buffer& operator=(const Buffer& other) = delete;
-
-	Buffer& operator=(Buffer&& other) noexcept;
 
 	explicit operator VkBuffer() const;
 
