@@ -115,28 +115,17 @@ public:
 
 class VulkanRenderPass {
 private:
-	VkDevice logicalDevice = nullptr;
-	VkRenderPass renderPass = nullptr;
+	vk::UniqueRenderPass renderPass;
 
 public:
 	VulkanRenderPass() = default;
 
-	explicit VulkanRenderPass(VkDevice logicalDevice,
-				  VkFormat depthFormat,
-				  VkFormat colorFormat,
-				  VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-				  VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-				  VkImageLayout finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-
-	VulkanRenderPass(const VulkanRenderPass& other) = delete;
-
-	VulkanRenderPass(VulkanRenderPass&& other) noexcept;
-
-	~VulkanRenderPass();
-
-	VulkanRenderPass& operator=(const VulkanRenderPass& other) = delete;
-
-	VulkanRenderPass& operator=(VulkanRenderPass&& other) noexcept;
+	explicit VulkanRenderPass(vk::Device logicalDevice,
+				  vk::Format depthFormat,
+				  vk::Format colorFormat,
+				  vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear,
+				  vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined,
+				  vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR);
 
 	explicit operator VkRenderPass() const;
 };
@@ -162,10 +151,10 @@ public:
 
 	[[nodiscard]] vkx::SwapchainInfo getSwapchainInfo() const;
 
-	[[nodiscard]] vkx::VulkanRenderPass createRenderPass(VkFormat colorFormat,
-							     VkAttachmentLoadOp loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-							     VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-							     VkImageLayout finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) const;
+	[[nodiscard]] vkx::VulkanRenderPass createRenderPass(vk::Format colorFormat,
+							     vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear,
+							     vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined,
+							     vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR) const;
 
 	[[nodiscard]] vkx::VulkanAllocator createAllocator() const;
 
