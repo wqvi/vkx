@@ -8,11 +8,11 @@ struct QueueConfig {
 	std::optional<std::uint32_t> presentIndex;
 	std::vector<std::uint32_t> indices;
 
-	explicit QueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+	explicit QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
 
-	[[nodiscard]] std::vector<VkDeviceQueueCreateInfo> createQueueInfos(const float* queuePriorities) const;
+	[[nodiscard]] std::vector<vk::DeviceQueueCreateInfo> createQueueInfos(const float* queuePriorities) const;
 
-	[[nodiscard]] VkSharingMode getImageSharingMode() const;
+	[[nodiscard]] vk::SharingMode getImageSharingMode() const;
 
 	[[nodiscard]] bool isUniversal() const;
 

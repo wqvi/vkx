@@ -143,28 +143,18 @@ public:
 
 class VulkanDevice {
 private:
-	VkInstance instance = nullptr;
-	VkSurfaceKHR surface = nullptr;
-	VkPhysicalDevice physicalDevice = nullptr;
-	VkDevice logicalDevice = nullptr;
+	vk::Instance instance = nullptr;
+	vk::SurfaceKHR surface = nullptr;
+	vk::PhysicalDevice physicalDevice = nullptr;
+	vk::UniqueDevice logicalDevice;
 	float maxSamplerAnisotropy = 0;
 
 public:
 	VulkanDevice() = default;
 
-	explicit VulkanDevice(VkInstance instance,
-			      VkSurfaceKHR surface,
-			      VkPhysicalDevice physicalDevice);
-
-	VulkanDevice(const VulkanDevice& other) = delete;
-
-	VulkanDevice(VulkanDevice&& other) noexcept;
-
-	~VulkanDevice();
-
-	VulkanDevice& operator=(const VulkanDevice& other) = delete;
-
-	VulkanDevice& operator=(VulkanDevice&& other) noexcept;
+	explicit VulkanDevice(vk::Instance instance,
+			      vk::SurfaceKHR surface,
+			      vk::PhysicalDevice physicalDevice);
 
 	explicit operator VkDevice() const;
 

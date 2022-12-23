@@ -349,7 +349,7 @@ vkx::VulkanRenderPass::operator VkRenderPass() const {
 	return renderPass;
 }
 
-vkx::VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhysicalDevice physicalDevice)
+vkx::VulkanDevice::VulkanDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice)
     : instance(instance),
       surface(surface),
       physicalDevice(physicalDevice) {
@@ -358,79 +358,25 @@ vkx::VulkanDevice::VulkanDevice(VkInstance instance, VkSurfaceKHR surface, VkPhy
 	constexpr float queuePriority = 1.0f;
 	const auto queueCreateInfos = queueConfig.createQueueInfos(&queuePriority);
 
-	VkPhysicalDeviceFeatures features{};
+	vk::PhysicalDeviceFeatures features{};
 	features.samplerAnisotropy = true;
 
 	constexpr std::array deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-	const VkDeviceCreateInfo deviceCreateInfo{
-	    VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-	    nullptr,
-	    0,
-	    static_cast<std::uint32_t>(queueCreateInfos.size()),
-	    queueCreateInfos.data(),
-	    static_cast<std::uint32_t>(layers.size()),
-	    layers.data(),
-	    static_cast<std::uint32_t>(deviceExtensions.size()),
-	    deviceExtensions.data(),
+	const vk::DeviceCreateInfo deviceCreateInfo{
+	    {},
+	    queueCreateInfos,
+	    layers,
+	    deviceExtensions,
 	    &features};
 
-	logicalDevice = vkx::create<VkDevice>(
-	    vkCreateDevice, [](auto result) {
-		    if (result == VK_ERROR_LAYER_NOT_PRESENT) {
-			    throw std::runtime_error("Device layer not present.");
-		    }
+	logicalDevice = physicalDevice.createDeviceUnique(deviceCreateInfo);
 
-		    if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-			    throw std::runtime_error("Device extension not present.");
-		    }
-
-		    if (result != VK_SUCCESS) {
-			    throw std::runtime_error("Failure to create logical device.");
-		    }
-	    },
-	    physicalDevice, &deviceCreateInfo, nullptr);
-
-	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
-	maxSamplerAnisotropy = properties.limits.maxSamplerAnisotropy;
-}
-
-vkx::VulkanDevice::VulkanDevice(VulkanDevice&& other) noexcept
-    : instance(other.instance),
-      surface(other.surface),
-      physicalDevice(other.physicalDevice),
-      logicalDevice(other.logicalDevice),
-      maxSamplerAnisotropy(other.maxSamplerAnisotropy) {
-	other.instance = nullptr;
-	other.surface = nullptr;
-	other.physicalDevice = nullptr;
-	other.logicalDevice = nullptr;
-	other.maxSamplerAnisotropy = 0.0f;
-}
-
-vkx::VulkanDevice::~VulkanDevice() {
-	if (logicalDevice) {
-		vkDestroyDevice(logicalDevice, nullptr);
-	}
-}
-
-vkx::VulkanDevice& vkx::VulkanDevice::operator=(VulkanDevice&& other) noexcept {
-	instance = other.instance;
-	surface = other.surface;
-	physicalDevice = other.physicalDevice;
-	logicalDevice = other.logicalDevice;
-	maxSamplerAnisotropy = other.maxSamplerAnisotropy;
-
-	other.instance = nullptr;
-	other.surface = nullptr;
-	other.physicalDevice = nullptr;
-	other.logicalDevice = nullptr;
-	other.maxSamplerAnisotropy = 0.0f;
-	return *this;
+	maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
 }
 
 vkx::VulkanDevice::operator VkDevice() const {
-	return logicalDevice;
+	return *logicalDevice;
 }
 
 vkx::QueueConfig vkx::VulkanDevice::getQueueConfig() const {
@@ -442,11 +388,11 @@ vkx::SwapchainInfo vkx::VulkanDevice::getSwapchainInfo() const {
 }
 
 vkx::VulkanRenderPass vkx::VulkanDevice::createRenderPass(VkFormat colorFormat, VkAttachmentLoadOp loadOp, VkImageLayout initialLayout, VkImageLayout finalLayout) const {
-	return vkx::VulkanRenderPass{logicalDevice, findDepthFormat(), colorFormat, loadOp, initialLayout, finalLayout};
+	return vkx::VulkanRenderPass{*logicalDevice, findDepthFormat(), colorFormat, loadOp, initialLayout, finalLayout};
 }
 
 vkx::VulkanAllocator vkx::VulkanDevice::createAllocator() const {
-	return vkx::VulkanAllocator{instance, physicalDevice, logicalDevice};
+	return vkx::VulkanAllocator{instance, physicalDevice, *logicalDevice};
 }
 
 VkFormat vkx::VulkanDevice::findSupportedFormat(VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates) const {
@@ -491,7 +437,7 @@ vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& al
 	    actualExtent,
 	    1,
 	    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-	    imageSharingMode,
+	    static_cast<VkSharingMode>(imageSharingMode),
 	    static_cast<std::uint32_t>(config.indices.size()),
 	    config.indices.data(),
 	    info.capabilities.currentTransform,
@@ -506,23 +452,21 @@ vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& al
 			    throw std::runtime_error("Failed to create swapchain.");
 		    }
 	    },
-	    logicalDevice, &swapchainCreateInfo, nullptr);
+	    *logicalDevice, &swapchainCreateInfo, nullptr);
 
-	return vkx::Swapchain{logicalDevice, static_cast<VkRenderPass>(renderPass), static_cast<VmaAllocator>(allocator), swapchain, actualExtent, info.surfaceFormat.format, findDepthFormat()};
+	return vkx::Swapchain{*logicalDevice, static_cast<VkRenderPass>(renderPass), static_cast<VmaAllocator>(allocator), swapchain, actualExtent, info.surfaceFormat.format, findDepthFormat()};
 }
 
 vkx::CommandSubmitter vkx::VulkanDevice::createCommandSubmitter() const {
-	return vkx::CommandSubmitter{physicalDevice, logicalDevice, surface};
+	return vkx::CommandSubmitter{physicalDevice, *logicalDevice, surface};
 }
 
 vkx::GraphicsPipeline vkx::VulkanDevice::createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& information) const {
-	return vkx::GraphicsPipeline{logicalDevice, static_cast<VkRenderPass>(renderPass), static_cast<VmaAllocator>(allocator), information};
+	return vkx::GraphicsPipeline{*logicalDevice, static_cast<VkRenderPass>(renderPass), static_cast<VmaAllocator>(allocator), information};
 }
 
 void vkx::VulkanDevice::waitIdle() const {
-	if (vkDeviceWaitIdle(logicalDevice) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to wait for device.");
-	}
+	logicalDevice->waitIdle();
 }
 
 vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)

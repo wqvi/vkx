@@ -1,26 +1,16 @@
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::QueueConfig::QueueConfig(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
-	const auto queueFamilies = vkx::getArray<VkQueueFamilyProperties>(
-	    vkGetPhysicalDeviceQueueFamilyProperties,
-	    physicalDevice);
+vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
+	const auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
-	for (std::uint32_t i = 0; i < static_cast<std::uint32_t>(queueFamilies.size()); i++) {
+	for (auto i = 0; i < queueFamilies.size(); i++) {
 		const auto flags = queueFamilies[i].queueFlags;
-		if (flags & VK_QUEUE_GRAPHICS_BIT) {
+		if (flags & vk::QueueFlagBits::eGraphics) {
 			graphicsIndex = i;
 		}
 
-		const auto surfaceSupport = vkx::getObject<VkBool32>(
-		    "Failed to get physical device surface support.",
-		    vkGetPhysicalDeviceSurfaceSupportKHR,
-		    [](auto a) {
-			    return a != VK_SUCCESS;
-		    },
-		    physicalDevice, i, surface);
-
-		if (surfaceSupport) {
+		if (physicalDevice.getSurfaceSupportKHR(i, surface)) {
 			presentIndex = i;
 		}
 
@@ -44,28 +34,20 @@ bool vkx::QueueConfig::isUniversal() const {
 	return *graphicsIndex == *presentIndex;
 }
 
-std::vector<VkDeviceQueueCreateInfo> vkx::QueueConfig::createQueueInfos(const float* queuePriorities) const {
-	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+std::vector<vk::DeviceQueueCreateInfo> vkx::QueueConfig::createQueueInfos(const float* queuePriorities) const {
+	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 	queueCreateInfos.reserve(indices.size());
 	for (const std::uint32_t index : indices) {
-		const VkDeviceQueueCreateInfo queueCreateInfo{
-		    VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-		    nullptr,
-		    0,
-		    index,
-		    1,
-		    queuePriorities};
-
-		queueCreateInfos.emplace_back(queueCreateInfo);
+		queueCreateInfos.emplace_back(vk::DeviceQueueCreateFlags{}, index, 1, queuePriorities);
 	}
 
 	return queueCreateInfos;
 }
 
-VkSharingMode vkx::QueueConfig::getImageSharingMode() const {
+vk::SharingMode vkx::QueueConfig::getImageSharingMode() const {
 	if (isUniversal()) {
-		return VK_SHARING_MODE_EXCLUSIVE;
+		return vk::SharingMode::eExclusive;
 	}
 
-	return VK_SHARING_MODE_CONCURRENT;
+	return vk::SharingMode::eConcurrent;
 }
