@@ -529,9 +529,9 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
     : window(static_cast<SDL_Window*>(window)) {
 	constexpr vk::ApplicationInfo applicationInfo{
 	    "VKX",
-	    VK_MAKE_VERSION(0, 0, 1),
+	    vkx::VERSION,
 	    "VKX",
-	    VK_MAKE_VERSION(0, 0, 2),
+	    vkx::VERSION,
 	    VK_API_VERSION_1_0};
 
 #ifdef DEBUG
@@ -552,8 +552,7 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	    {},
 	    debugMessageSeverity,
 	    debugMessageType,
-	    [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; },
-	    nullptr};
+	    [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; }};
 
 #else
 	const auto instanceExtensions = vkx::getArray<const char*>(

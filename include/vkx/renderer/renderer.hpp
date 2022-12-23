@@ -7,6 +7,13 @@
 #include <vkx/window.hpp>
 
 namespace vkx {
+
+static constexpr std::uint32_t VARIANT = UINT32_C(0);
+static constexpr std::uint32_t MAJOR = UINT32_C(0);
+static constexpr std::uint32_t MINOR = UINT32_C(1);
+static constexpr std::uint32_t PATCH = UINT32_C(0);
+static constexpr auto VERSION = VK_MAKE_API_VERSION(VARIANT, MAJOR, MINOR, PATCH);
+
 template <class ObjectType, class Function, class Predicate, class... Parameters>
 constexpr std::enable_if_t<std::is_same_v<std::invoke_result_t<Function, Parameters..., ObjectType*>, VkResult>, ObjectType> getObject(const char* errorMessage, Function function, Predicate predicate, Parameters... param) {
 	ObjectType object{};
