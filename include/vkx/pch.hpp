@@ -10,7 +10,7 @@
 #include <fstream>
 #include <functional>
 #include <vk_mem_alloc.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #define GLM_FORCE_LEFT_HANDED
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
