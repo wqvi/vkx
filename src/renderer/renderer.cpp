@@ -191,6 +191,20 @@ std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocat
 	return buffers;
 }
 
+vkx::BufferAllocationDeleter::BufferAllocationDeleter(VmaAllocator allocator)
+    : allocator(allocator) {
+}
+
+void vkx::BufferAllocationDeleter::operator()(VmaAllocation allocation) const noexcept {
+	if (allocator) {
+		vmaFreeMemory(allocator, allocation);
+	}
+}
+
+vkx::Buffer::operator VkBuffer() const {
+	return *buffer;
+}
+
 void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
 	vmaDestroyAllocator(allocator);
 }
@@ -519,20 +533,6 @@ std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(vk::PhysicalDevice physica
 	}
 
 	return rating;
-}
-
-vkx::BufferAllocationDeleter::BufferAllocationDeleter(VmaAllocator allocator)
-    : allocator(allocator) {
-}
-
-void vkx::BufferAllocationDeleter::operator()(VmaAllocation allocation) const noexcept {
-	if (allocator) {
-		vmaFreeMemory(allocator, allocation);
-	}
-}
-
-vkx::Buffer::operator VkBuffer() const {
-	return *buffer;
 }
 
 vkx::Mesh::Mesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, const vkx::VulkanAllocator& allocator)
