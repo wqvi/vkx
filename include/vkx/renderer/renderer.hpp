@@ -133,9 +133,35 @@ public:
 		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
 		allocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>(cAllocation, BufferAllocationDeleter{allocator});
 
-		if (data != nullptr) {
-			std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
+		mapMemory(data);
+	}
+
+	explicit Buffer(vk::Device logicalDevice,
+			VmaAllocator allocator,
+			std::size_t memorySize,
+			vk::BufferUsageFlags bufferFlags,
+			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) {
+		const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
+
+		const VmaAllocationCreateInfo allocationCreateInfo{
+		    allocationFlags,
+		    memoryUsage,
+		    0,
+		    0,
+		    0,
+		    nullptr,
+		    nullptr,
+		    {}};
+
+		VkBuffer cBuffer = nullptr;
+		VmaAllocation cAllocation = nullptr;
+		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &allocationInfo) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to allocate GPU buffer.");
 		}
+
+		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
+		allocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>(cAllocation, BufferAllocationDeleter{allocator});
 	}
 
 	explicit operator VkBuffer() const;
@@ -143,6 +169,11 @@ public:
 	template <class T>
 	void mapMemory(const T* data) {
 		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
+	}
+
+	template <std::nullptr_t>
+	void mapMemory(std::nullptr_t) {
+		std::memset(allocationInfo.pMappedData, 0, allocationInfo.size);
 	}
 };
 
@@ -164,13 +195,22 @@ public:
 
 	explicit operator VmaAllocator() const;
 
-	[[nodiscard]] vkx::Buffer allocateBuffer(const void* data,
+	template <class T>
+	[[nodiscard]] vkx::Buffer allocateBuffer(const T* data,
 						 std::size_t memorySize,
 						 vk::BufferUsageFlags bufferFlags,
 						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
 						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const {
-							return vkx::Buffer{logicalDevice, allocator.get(), data, memorySize, bufferFlags, allocationFlags, memoryUsage};
-						 }
+		return vkx::Buffer{logicalDevice, allocator.get(), data, memorySize, bufferFlags, allocationFlags, memoryUsage};
+	}
+
+	[[nodiscard]] vkx::Buffer allocateBuffer(
+						 std::size_t memorySize,
+						 vk::BufferUsageFlags bufferFlags,
+						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const {
+		return vkx::Buffer{logicalDevice, allocator.get(), memorySize, bufferFlags, allocationFlags, memoryUsage};
+	}
 };
 
 class VulkanRenderPass {
