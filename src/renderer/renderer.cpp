@@ -191,6 +191,10 @@ std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocat
 	return buffers;
 }
 
+void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
+	vmaDestroyAllocator(allocator);
+}
+
 vkx::VulkanAllocator::VulkanAllocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice logicalDevice) {
 	const VmaVulkanFunctions vulkanFunctions{
 	    &vkGetInstanceProcAddr,
@@ -212,7 +216,7 @@ vkx::VulkanAllocator::VulkanAllocator(VkInstance instance, VkPhysicalDevice phys
 #endif
 	};
 
-	allocator = vkx::create<VmaAllocator>(
+	auto cAllocator = vkx::create<VmaAllocator>(
 	    vmaCreateAllocator,
 	    [](auto result) {
 		    if (result != VK_SUCCESS) {
@@ -220,32 +224,16 @@ vkx::VulkanAllocator::VulkanAllocator(VkInstance instance, VkPhysicalDevice phys
 		    }
 	    },
 	    &allocatorCreateInfo);
-}
 
-vkx::VulkanAllocator::VulkanAllocator(VulkanAllocator&& other) noexcept
-    : allocator(other.allocator) {
-	other.allocator = nullptr;
-}
-
-vkx::VulkanAllocator::~VulkanAllocator() {
-	if (allocator) {
-		vmaDestroyAllocator(allocator);
-	}
-}
-
-vkx::VulkanAllocator& vkx::VulkanAllocator::operator=(VulkanAllocator&& other) noexcept {
-	allocator = other.allocator;
-
-	other.allocator = nullptr;
-	return *this;
+	allocator.reset(cAllocator);
 }
 
 vkx::VulkanAllocator::operator VmaAllocator() const {
-	return allocator;
+	return allocator.get();
 }
 
 vkx::Buffer vkx::VulkanAllocator::allocateBuffer(const void* data, std::size_t memorySize, VkBufferUsageFlags bufferFlags, VmaAllocationCreateFlags allocationFlags, VmaMemoryUsage memoryUsage) const {
-	return vkx::Buffer{allocator, data, memorySize, bufferFlags, allocationFlags, memoryUsage};
+	return vkx::Buffer{allocator.get(), data, memorySize, bufferFlags, allocationFlags, memoryUsage};
 }
 
 vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
@@ -255,7 +243,7 @@ vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format dep
 	using Layout = vk::ImageLayout;
 	using Stage = vk::PipelineStageFlagBits;
 	using Access = vk::AccessFlagBits;
-	
+
 	const vk::AttachmentDescription colorAttachment{
 	    {},
 	    colorFormat,
@@ -290,7 +278,7 @@ vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format dep
 	    {},
 	    vk::PipelineBindPoint::eGraphics,
 	    {},
-		colorAttachmentRef,
+	    colorAttachmentRef,
 	    {},
 	    &depthAttachmentRef};
 
@@ -306,7 +294,7 @@ vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format dep
 
 	const vk::RenderPassCreateInfo renderPassCreateInfo{
 	    {},
-		renderPassAttachments,
+	    renderPassAttachments,
 	    subpass,
 	    dependency};
 
