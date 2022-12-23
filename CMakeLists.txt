@@ -23,6 +23,7 @@ set_target_properties(vkx PROPERTIES
 find_package(Vulkan REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
 target_link_libraries(vkx
 	PUBLIC
@@ -31,6 +32,7 @@ target_link_libraries(vkx
 		glm::glm
         $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+        GTest::gtest GTest::gtest_main
 )
 
 target_include_directories(vkx
