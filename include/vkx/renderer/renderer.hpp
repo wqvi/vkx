@@ -7,7 +7,6 @@
 #include <vkx/window.hpp>
 
 namespace vkx {
-
 static constexpr std::uint32_t VARIANT = UINT32_C(0);
 static constexpr std::uint32_t MAJOR = UINT32_C(0);
 static constexpr std::uint32_t MINOR = UINT32_C(1);
