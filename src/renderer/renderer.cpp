@@ -527,9 +527,7 @@ void vkx::VulkanDevice::waitIdle() const {
 
 vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
     : window(static_cast<SDL_Window*>(window)) {
-	constexpr VkApplicationInfo applicationInfo{
-	    VK_STRUCTURE_TYPE_APPLICATION_INFO,
-	    nullptr,
+	constexpr vk::ApplicationInfo applicationInfo{
 	    "VKX",
 	    VK_MAKE_VERSION(0, 0, 1),
 	    "VKX",
@@ -537,105 +535,61 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	    VK_API_VERSION_1_0};
 
 #ifdef DEBUG
-	constexpr auto messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-	constexpr auto messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	auto instanceExtensions = vkx::getArray<const char*>(
+	    "Failed to enumerate vulkan extensions",
+	    SDL_Vulkan_GetInstanceExtensions,
+	    [](auto a) { return a != SDL_TRUE; },
+	    this->window);
+	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-	constexpr VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
-	    VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-	    nullptr,
-	    0,
-	    messageSeverity,
-	    messageType,
+	using Severity = vk::DebugUtilsMessageSeverityFlagBitsEXT;
+	using Type = vk::DebugUtilsMessageTypeFlagBitsEXT;
+
+	constexpr auto debugMessageSeverity = Severity::eInfo | Severity::eVerbose | Severity::eWarning | Severity::eError;
+	constexpr auto debugMessageType = Type::eGeneral | Type::eValidation | Type::ePerformance;
+
+	constexpr vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
+	    {},
+	    debugMessageSeverity,
+	    debugMessageType,
 	    [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; },
 	    nullptr};
 
-	const void* pNext = static_cast<const void*>(&debugUtilsMessengerCreateInfo);
 #else
-	constexpr void* pNext = nullptr;
-#endif
-
-#ifdef RELEASE
 	const auto instanceExtensions = vkx::getArray<const char*>(
-	    "Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, this->window);
-#else
-	auto instanceExtensions = vkx::getArray<const char*>(
-	    "Failed to enumerate vulkan extensions", SDL_Vulkan_GetInstanceExtensions, [](auto a) { return a != SDL_TRUE; }, this->window);
-	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	    "Failed to enumerate vulkan extensions",
+	    SDL_Vulkan_GetInstanceExtensions,
+	    [](auto a) { return a != SDL_TRUE; },
+	    this->window);
 #endif
 
-	const VkInstanceCreateInfo instanceCreateInfo{
-	    VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-	    pNext,
-	    0,
-	    &applicationInfo,
-	    static_cast<std::uint32_t>(layers.size()),
-	    layers.data(),
-	    static_cast<std::uint32_t>(instanceExtensions.size()),
-	    instanceExtensions.data()};
+	const vk::InstanceCreateInfo instanceCreateInfo{{}, &applicationInfo, layers, instanceExtensions};
 
-	instance = vkx::create<VkInstance>(
-	    vkCreateInstance, [](auto result) {
-		    if (result == VK_ERROR_LAYER_NOT_PRESENT) {
-			    throw std::runtime_error("Instance layer not present.");
-		    }
+#ifdef DEBUG
+	const vk::StructureChain structureChain{instanceCreateInfo, debugUtilsMessengerCreateInfo};
+	instance = vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
+#else
+	instance = vk::createInstanceUnique(instanceCreateInfo);
+#endif
 
-		    if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-			    throw std::runtime_error("Instance extension not present.");
-		    }
-
-		    if (result != VK_SUCCESS) {
-			    throw std::runtime_error("Failure to create instance.");
-		    }
-	    },
-	    &instanceCreateInfo, nullptr);
-
-	surface = vkx::create<VkSurfaceKHR>(
+	const auto cSurface = vkx::create<VkSurfaceKHR>(
 	    SDL_Vulkan_CreateSurface, [](auto result) {
 		    if (result != SDL_TRUE) {
 			    throw std::runtime_error("Failed to create SDL Vulkan surface.");
 		    }
 	    },
-	    this->window, instance);
-}
+	    this->window, *instance);
 
-vkx::VulkanInstance::VulkanInstance(VulkanInstance&& other) noexcept
-    : window(other.window),
-      instance(other.instance),
-      surface(other.surface) {
-	other.window = nullptr;
-	other.instance = nullptr;
-	other.surface = nullptr;
-}
-
-vkx::VulkanInstance::~VulkanInstance() {
-	if (instance && surface) {
-		vkDestroySurfaceKHR(instance, surface, nullptr);
-		vkDestroyInstance(instance, nullptr);
-	}
-}
-
-vkx::VulkanInstance& vkx::VulkanInstance::operator=(VulkanInstance&& other) noexcept {
-	window = other.window;
-	instance = other.instance;
-	surface = other.surface;
-
-	other.window = nullptr;
-	other.instance = nullptr;
-	other.surface = nullptr;
-	return *this;
+	surface = vk::UniqueSurfaceKHR(cSurface, *instance);
 }
 
 vkx::VulkanDevice vkx::VulkanInstance::createDevice() const {
-	const auto physicalDevices = vkx::getArray<VkPhysicalDevice>(
-	    "Failed to enumerate physical devices.",
-	    vkEnumeratePhysicalDevices,
-	    [](auto a) { return a != VK_SUCCESS; },
-	    instance);
+	const auto physicalDevices = instance->enumeratePhysicalDevices();
 
-	VkPhysicalDevice bestPhysicalDevice = nullptr;
+	vk::PhysicalDevice bestPhysicalDevice = nullptr;
 	std::uint32_t bestRating = 0;
-	for (VkPhysicalDevice physicalDevice : physicalDevices) {
-		std::uint32_t currentRating = ratePhysicalDevice(physicalDevice);
+	for (vk::PhysicalDevice physicalDevice : physicalDevices) {
+		const auto currentRating = ratePhysicalDevice(physicalDevice);
 
 		if (currentRating > bestRating) {
 			bestRating = currentRating;
@@ -647,24 +601,24 @@ vkx::VulkanDevice vkx::VulkanInstance::createDevice() const {
 		throw std::runtime_error("Failure to find suitable physical device!");
 	}
 
-	return vkx::VulkanDevice{instance, surface, bestPhysicalDevice};
+	return vkx::VulkanDevice{*instance, *surface, bestPhysicalDevice};
 }
 
-std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(VkPhysicalDevice physicalDevice) const {
+std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(vk::PhysicalDevice physicalDevice) const {
 	std::uint32_t rating = 0;
 
-	const vkx::QueueConfig indices{physicalDevice, surface};
+	const vkx::QueueConfig indices{physicalDevice, *surface};
 	if (indices.isComplete()) {
 		rating++;
 	}
 
-	const auto features = vkx::getObject<VkPhysicalDeviceFeatures>(vkGetPhysicalDeviceFeatures, physicalDevice);
+	const auto features = physicalDevice.getFeatures();
 	if (features.samplerAnisotropy) {
 		rating++;
 	}
 
-	const auto properties = vkx::getObject<VkPhysicalDeviceProperties>(vkGetPhysicalDeviceProperties, physicalDevice);
-	if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+	const auto properties = physicalDevice.getProperties();
+	if (properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
 		rating++;
 	}
 

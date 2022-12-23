@@ -193,28 +193,18 @@ public:
 class VulkanInstance {
 private:
 	SDL_Window* window = nullptr;
-	VkInstance instance = nullptr;
-	VkSurfaceKHR surface = nullptr;
+	vk::UniqueInstance instance;
+	vk::UniqueSurfaceKHR surface;
 
 public:
 	VulkanInstance() = default;
 
 	explicit VulkanInstance(const vkx::Window& window);
 
-	VulkanInstance(const VulkanInstance& other) = delete;
-
-	VulkanInstance(VulkanInstance&& other) noexcept;
-
-	~VulkanInstance();
-
-	VulkanInstance& operator=(const VulkanInstance& other) = delete;
-
-	VulkanInstance& operator=(VulkanInstance&& other) noexcept;
-
 	VulkanDevice createDevice() const;
 
 private:
-	[[nodiscard]] std::uint32_t ratePhysicalDevice(VkPhysicalDevice physicalDevice) const;
+	[[nodiscard]] std::uint32_t ratePhysicalDevice(vk::PhysicalDevice physicalDevice) const;
 };
 
 class Buffer {
