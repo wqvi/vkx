@@ -195,8 +195,8 @@ void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexc
 	vmaDestroyAllocator(allocator);
 }
 
-vkx::VulkanAllocator::VulkanAllocator(VkInstance instance, VkPhysicalDevice physicalDevice, VkDevice logicalDevice) {
-	const VmaVulkanFunctions vulkanFunctions{
+vkx::VulkanAllocator::VulkanAllocator(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::Device logicalDevice) {
+	constexpr VmaVulkanFunctions vulkanFunctions{
 	    &vkGetInstanceProcAddr,
 	    &vkGetDeviceProcAddr};
 
@@ -232,8 +232,8 @@ vkx::VulkanAllocator::operator VmaAllocator() const {
 	return allocator.get();
 }
 
-vkx::Buffer vkx::VulkanAllocator::allocateBuffer(const void* data, std::size_t memorySize, VkBufferUsageFlags bufferFlags, VmaAllocationCreateFlags allocationFlags, VmaMemoryUsage memoryUsage) const {
-	return vkx::Buffer{allocator.get(), data, memorySize, bufferFlags, allocationFlags, memoryUsage};
+vkx::Buffer vkx::VulkanAllocator::allocateBuffer(const void* data, std::size_t memorySize, vk::BufferUsageFlags bufferFlags, VmaAllocationCreateFlags allocationFlags, VmaMemoryUsage memoryUsage) const {
+	return vkx::Buffer{allocator.get(), data, memorySize, static_cast<VkBufferUsageFlags>(bufferFlags), allocationFlags, memoryUsage};
 }
 
 vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
@@ -563,16 +563,16 @@ void vkx::Buffer::mapMemory(const void* data) {
 }
 
 vkx::Mesh::Mesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, const vkx::VulkanAllocator& allocator)
-    : vertexBuffer(allocator.allocateBuffer(vertices.data(), vertices.size() * sizeof(vkx::Vertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)),
-      indexBuffer(allocator.allocateBuffer(indices.data(), indices.size() * sizeof(std::uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT)),
+    : vertexBuffer(allocator.allocateBuffer(vertices.data(), vertices.size() * sizeof(vkx::Vertex), vk::BufferUsageFlagBits::eVertexBuffer)),
+      indexBuffer(allocator.allocateBuffer(indices.data(), indices.size() * sizeof(std::uint32_t), vk::BufferUsageFlagBits::eIndexBuffer)),
       vertices(std::move(vertices)),
       indices(std::move(indices)),
       activeIndexCount(activeIndexCount) {
 }
 
 vkx::Mesh::Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanAllocator& allocator)
-    : vertexBuffer(allocator.allocateBuffer(nullptr, vertexCount * sizeof(vkx::Vertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)),
-      indexBuffer(allocator.allocateBuffer(nullptr, indexCount * sizeof(std::uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT)),
+    : vertexBuffer(allocator.allocateBuffer(nullptr, vertexCount * sizeof(vkx::Vertex), vk::BufferUsageFlagBits::eVertexBuffer)),
+      indexBuffer(allocator.allocateBuffer(nullptr, indexCount * sizeof(std::uint32_t), vk::BufferUsageFlagBits::eIndexBuffer)),
       vertices(vertexCount),
       indices(indexCount) {
 }

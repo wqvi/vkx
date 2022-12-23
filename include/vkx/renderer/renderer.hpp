@@ -94,15 +94,15 @@ private:
 public:
 	VulkanAllocator() = default;
 
-	explicit VulkanAllocator(VkInstance instance,
-				 VkPhysicalDevice physicalDevice,
-				 VkDevice logicalDevice);
+	explicit VulkanAllocator(vk::Instance instance,
+				 vk::PhysicalDevice physicalDevice,
+				 vk::Device logicalDevice);
 
 	explicit operator VmaAllocator() const;
 
 	[[nodiscard]] vkx::Buffer allocateBuffer(const void* data,
 						 std::size_t memorySize,
-						 VkBufferUsageFlags bufferFlags,
+						 vk::BufferUsageFlags bufferFlags,
 						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
 						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
 };
