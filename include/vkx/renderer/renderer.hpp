@@ -201,7 +201,6 @@ public:
 
 class Buffer {
 private:
-	VmaAllocator allocator = nullptr;
 	vk::UniqueBuffer buffer;
 	std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter> allocation;
 	VmaAllocationInfo allocationInfo{};
@@ -216,8 +215,7 @@ public:
 			std::size_t memorySize,
 			vk::BufferUsageFlags bufferFlags,
 			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO)
-	    : allocator(allocator) {
+			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) {
 		const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
 
 		const VmaAllocationCreateInfo allocationCreateInfo{
@@ -246,7 +244,10 @@ public:
 
 	explicit operator VkBuffer() const;
 
-	void mapMemory(const void* data);
+	template <class T>
+	void mapMemory(const T* data) {
+		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
+	}
 };
 
 struct Mesh {
