@@ -83,6 +83,69 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(VmaAllocator allocator, std::size_t size);
 
+class BufferAllocationDeleter {
+private:
+	VmaAllocator allocator = nullptr;
+
+public:
+	BufferAllocationDeleter() = default;
+
+	explicit BufferAllocationDeleter(VmaAllocator allocator);
+
+	void operator()(VmaAllocation allocation) const noexcept;
+};
+
+class Buffer {
+private:
+	vk::UniqueBuffer buffer;
+	std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter> allocation;
+	VmaAllocationInfo allocationInfo{};
+
+public:
+	Buffer() = default;
+
+	template <class T>
+	explicit Buffer(vk::Device logicalDevice,
+			VmaAllocator allocator,
+			const T* data,
+			std::size_t memorySize,
+			vk::BufferUsageFlags bufferFlags,
+			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) {
+		const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
+
+		const VmaAllocationCreateInfo allocationCreateInfo{
+		    allocationFlags,
+		    memoryUsage,
+		    0,
+		    0,
+		    0,
+		    nullptr,
+		    nullptr,
+		    {}};
+
+		VkBuffer cBuffer = nullptr;
+		VmaAllocation cAllocation = nullptr;
+		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &allocationInfo) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to allocate GPU buffer.");
+		}
+
+		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
+		allocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>(cAllocation, BufferAllocationDeleter{allocator});
+
+		if (data != nullptr) {
+			std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
+		}
+	}
+
+	explicit operator VkBuffer() const;
+
+	template <class T>
+	void mapMemory(const T* data) {
+		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
+	}
+};
+
 struct VulkanAllocatorDeleter {
 	void operator()(VmaAllocator allocator) const noexcept;
 };
@@ -105,7 +168,9 @@ public:
 						 std::size_t memorySize,
 						 vk::BufferUsageFlags bufferFlags,
 						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
+						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const {
+							return vkx::Buffer{logicalDevice, allocator.get(), data, memorySize, bufferFlags, allocationFlags, memoryUsage};
+						 }
 };
 
 class VulkanRenderPass {
@@ -185,69 +250,6 @@ public:
 
 private:
 	[[nodiscard]] std::uint32_t ratePhysicalDevice(vk::PhysicalDevice physicalDevice) const;
-};
-
-class BufferAllocationDeleter {
-private:
-	VmaAllocator allocator = nullptr;
-
-public:
-	BufferAllocationDeleter() = default;
-
-	explicit BufferAllocationDeleter(VmaAllocator allocator);
-
-	void operator()(VmaAllocation allocation) const noexcept;
-};
-
-class Buffer {
-private:
-	vk::UniqueBuffer buffer;
-	std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter> allocation;
-	VmaAllocationInfo allocationInfo{};
-
-public:
-	Buffer() = default;
-
-	template <class T>
-	explicit Buffer(vk::Device logicalDevice,
-			VmaAllocator allocator,
-			const T* data,
-			std::size_t memorySize,
-			vk::BufferUsageFlags bufferFlags,
-			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) {
-		const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
-
-		const VmaAllocationCreateInfo allocationCreateInfo{
-		    allocationFlags,
-		    memoryUsage,
-		    0,
-		    0,
-		    0,
-		    nullptr,
-		    nullptr,
-		    {}};
-
-		VkBuffer cBuffer = nullptr;
-		VmaAllocation cAllocation = nullptr;
-		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &allocationInfo) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocate GPU buffer.");
-		}
-
-		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
-		allocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>(cAllocation, BufferAllocationDeleter{allocator});
-
-		if (data != nullptr) {
-			std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
-		}
-	}
-
-	explicit operator VkBuffer() const;
-
-	template <class T>
-	void mapMemory(const T* data) {
-		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
-	}
 };
 
 struct Mesh {

@@ -233,10 +233,6 @@ vkx::VulkanAllocator::operator VmaAllocator() const {
 	return allocator.get();
 }
 
-vkx::Buffer vkx::VulkanAllocator::allocateBuffer(const void* data, std::size_t memorySize, vk::BufferUsageFlags bufferFlags, VmaAllocationCreateFlags allocationFlags, VmaMemoryUsage memoryUsage) const {
-	return vkx::Buffer{logicalDevice, allocator.get(), data, memorySize, bufferFlags, allocationFlags, memoryUsage};
-}
-
 vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
 	using Sample = vk::SampleCountFlagBits;
 	using Load = vk::AttachmentLoadOp;
