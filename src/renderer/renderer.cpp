@@ -7,6 +7,9 @@
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #ifdef DEBUG
 static constexpr std::array<const char*, 1> layers{"VK_LAYER_KHRONOS_validation"};
 #else
@@ -203,6 +206,41 @@ void vkx::BufferAllocationDeleter::operator()(VmaAllocation allocation) const no
 
 vkx::Buffer::operator VkBuffer() const {
 	return *buffer;
+}
+
+vkx::Image::Image(const std::string& file, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter)
+    : allocator(allocator) {
+	int textureWidth = 0;
+	int textureHeight = 0;
+	int textureChannels = 0;
+	auto* pixels = stbi_load(file.c_str(), &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha);
+	if (!pixels) {
+		throw std::runtime_error("Failed to load texture image.");
+	}
+
+	const auto imageSize = static_cast<vk::DeviceSize>(textureWidth) * textureHeight * STBI_rgb_alpha;
+
+	VmaAllocationInfo allocationInfo{};
+	VkBuffer stagingBuffer = nullptr;
+	const auto stagingAllocation = vkx::allocateBuffer(&allocationInfo, &stagingBuffer, allocator, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
+
+	std::memcpy(allocationInfo.pMappedData, pixels, allocationInfo.size);
+
+	resourceAllocation = vkx::allocateImage(nullptr, &resourceImage, allocator, textureWidth, textureHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+
+	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+	commandSubmitter.copyBufferToImage(stagingBuffer, resourceImage, textureWidth, textureHeight);
+
+	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
+
+	stbi_image_free(pixels);
+}
+
+void vkx::Image::destroy() const {
+	vmaDestroyImage(allocator, resourceImage, resourceAllocation);
 }
 
 void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
