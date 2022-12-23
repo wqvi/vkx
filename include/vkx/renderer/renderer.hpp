@@ -200,19 +200,11 @@ public:
 	explicit Buffer(VmaAllocator allocator,
 			const T* data,
 			std::size_t memorySize,
-			VkBufferUsageFlags bufferFlags,
+			vk::BufferUsageFlags bufferFlags,
 			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
 			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO)
 	    : allocator(allocator) {
-		const VkBufferCreateInfo bufferCreateInfo{
-		    VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-		    nullptr,
-		    0,
-		    memorySize,
-		    bufferFlags,
-		    VK_SHARING_MODE_EXCLUSIVE,
-		    0,
-		    nullptr};
+		const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
 
 		const VmaAllocationCreateInfo allocationCreateInfo{
 		    allocationFlags,
@@ -224,7 +216,7 @@ public:
 		    nullptr,
 		    {}};
 
-		if (vmaCreateBuffer(allocator, &bufferCreateInfo, &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
+		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &buffer, &allocation, &allocationInfo) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to allocate GPU buffer.");
 		}
 
