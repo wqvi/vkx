@@ -194,34 +194,24 @@ std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocat
 	return buffers;
 }
 
-vkx::BufferAllocationDeleter::BufferAllocationDeleter(VmaAllocator allocator)
+vkx::VulkanAllocationDeleter::VulkanAllocationDeleter(VmaAllocator allocator)
     : allocator(allocator) {
 }
 
-void vkx::BufferAllocationDeleter::operator()(VmaAllocation allocation) const noexcept {
+void vkx::VulkanAllocationDeleter::operator()(VmaAllocation allocation) const noexcept {
 	if (allocator) {
 		vmaFreeMemory(allocator, allocation);
 	}
 }
 
-vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueBufferAllocation&& allocation, VmaAllocationInfo&& allocationInfo)
+vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo)
     : buffer(std::move(buffer)), allocation(std::move(allocation)), allocationInfo(std::move(allocationInfo)) {}
 
 vkx::Buffer::operator VkBuffer() const {
 	return *buffer;
 }
 
-vkx::ImageAllocationDeleter::ImageAllocationDeleter(VmaAllocator allocator)
-    : allocator(allocator) {
-}
-
-void vkx::ImageAllocationDeleter::operator()(VmaAllocation allocation) const noexcept {
-	if (allocator) {
-		vmaFreeMemory(allocator, allocation);
-	}
-}
-
-vkx::Image::Image(vk::UniqueImage&& image, vkx::UniqueImageAllocation&& allocation)
+vkx::Image::Image(vk::UniqueImage&& image, vkx::UniqueVulkanAllocation&& allocation)
     : resourceImage(std::move(image)),
       resourceAllocation(std::move(allocation)) {
 }

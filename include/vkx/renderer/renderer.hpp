@@ -88,30 +88,30 @@ class VulkanDevice;
 class VulkanRenderPass;
 class VulkanAllocator;
 
-class BufferAllocationDeleter {
+class VulkanAllocationDeleter {
 private:
 	VmaAllocator allocator = nullptr;
 
 public:
-	BufferAllocationDeleter() = default;
+	VulkanAllocationDeleter() = default;
 
-	explicit BufferAllocationDeleter(VmaAllocator allocator);
+	explicit VulkanAllocationDeleter(VmaAllocator allocator);
 
 	void operator()(VmaAllocation allocation) const noexcept;
 };
 
-using UniqueBufferAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>;
+using UniqueVulkanAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, VulkanAllocationDeleter>;
 
 class Buffer {
 private:
 	vk::UniqueBuffer buffer;
-	UniqueBufferAllocation allocation;
+	vkx::UniqueVulkanAllocation allocation;
 	VmaAllocationInfo allocationInfo{};
 
 public:
 	Buffer() = default;
 
-	explicit Buffer(vk::UniqueBuffer&& buffer, UniqueBufferAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
+	explicit Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
 
 	template <class T>
 	explicit Buffer(vk::Device logicalDevice,
@@ -170,7 +170,7 @@ public:
 		}
 
 		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
-		allocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>(cAllocation, BufferAllocationDeleter{allocator});
+		allocation = UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator});
 	}
 
 	explicit operator VkBuffer() const;
@@ -186,25 +186,11 @@ public:
 	}
 };
 
-class ImageAllocationDeleter {
-private:
-	VmaAllocator allocator = nullptr;
-
-public:
-	ImageAllocationDeleter() = default;
-
-	explicit ImageAllocationDeleter(VmaAllocator allocator);
-
-	void operator()(VmaAllocation allocation) const noexcept;
-};
-
-using UniqueImageAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, ImageAllocationDeleter>;
-
 class Image {
 public:
 	Image() = default;
 
-	explicit Image(vk::UniqueImage&& image, UniqueImageAllocation&& allocation);
+	explicit Image(vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation);
 
 	inline VkImageView createTextureImageView(VkDevice device) const {
 		return vkx::createImageView(device, *resourceImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
@@ -214,7 +200,7 @@ public:
 
 private:
 	vk::UniqueImage resourceImage;
-	UniqueImageAllocation resourceAllocation;
+	UniqueVulkanAllocation resourceAllocation;
 };
 
 struct VulkanAllocatorDeleter {
