@@ -147,10 +147,12 @@ struct VulkanAllocatorDeleter {
 	void operator()(VmaAllocator allocator) const noexcept;
 };
 
+using UniqueVulkanAllocator = std::unique_ptr<std::remove_pointer_t<VmaAllocator>, VulkanAllocatorDeleter>;
+
 class VulkanAllocator {
 private:
 	vk::Device logicalDevice = nullptr;
-	std::unique_ptr<std::remove_pointer_t<VmaAllocator>, VulkanAllocatorDeleter> allocator;
+	UniqueVulkanAllocator allocator;
 
 public:
 	VulkanAllocator() = default;
