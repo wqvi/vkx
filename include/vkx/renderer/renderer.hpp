@@ -184,6 +184,8 @@ public:
 
 class Image {
 public:
+	Image() = default;
+
 	explicit Image(const std::string& file, vk::Format format, vk::ImageTiling tiling, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
 
 	inline VkImageView createTextureImageView(VkDevice device) const {
@@ -225,13 +227,20 @@ public:
 		return vkx::Buffer{logicalDevice, allocator.get(), data, memorySize, bufferFlags, allocationFlags, memoryUsage};
 	}
 
-	[[nodiscard]] vkx::Buffer allocateBuffer(
-						 std::size_t memorySize,
+	[[nodiscard]] vkx::Buffer allocateBuffer(std::size_t memorySize,
 						 vk::BufferUsageFlags bufferFlags,
 						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
 						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const {
 		return vkx::Buffer{logicalDevice, allocator.get(), memorySize, bufferFlags, allocationFlags, memoryUsage};
 	}
+
+	[[nodiscard]] vkx::Image allocateImage(const vkx::CommandSubmitter& commandSubmitter,
+					       const std::string& file,
+					       vk::Format format,
+					       vk::ImageTiling tiling,
+					       vk::ImageUsageFlags imageUsage,
+					       VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+					       VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
 };
 
 class VulkanRenderPass {

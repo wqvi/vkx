@@ -285,6 +285,16 @@ vkx::VulkanAllocator::operator VmaAllocator() const {
 	return allocator.get();
 }
 
+vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& commandSubmitter,
+			 const std::string& file,
+			 vk::Format format,
+			 vk::ImageTiling tiling,
+			 vk::ImageUsageFlags imageUsage,
+			 VmaAllocationCreateFlags flags,
+			 VmaMemoryUsage memoryUsage) const {
+	return {};
+}
+
 vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
 	using Sample = vk::SampleCountFlagBits;
 	using Load = vk::AttachmentLoadOp;
