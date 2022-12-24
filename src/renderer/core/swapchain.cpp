@@ -1,15 +1,14 @@
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::Swapchain::Swapchain(VkDevice logicalDevice, VkRenderPass renderPass, VmaAllocator allocator, VkSwapchainKHR swapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat)
+vkx::Swapchain::Swapchain(vk::Device logicalDevice, VkRenderPass renderPass, VmaAllocator allocator, VkSwapchainKHR swapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat)
     : device(logicalDevice),
       allocator(allocator),
       swapchain(swapchain),
       imageExtent(extent) {
-	images = vkx::getArray<VkImage>(
-	    "Failed to retrieve swapchain images", vkGetSwapchainImagesKHR, [](auto a) { return a != VK_SUCCESS; }, device, swapchain);
+	const auto images = logicalDevice.getSwapchainImagesKHR(swapchain);
 
-	for (const auto image : images) {
+	for (const vk::Image image : images) {
 		imageViews.push_back(vkx::createImageView(device, image, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT));
 	}
 
