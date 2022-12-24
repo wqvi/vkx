@@ -301,7 +301,35 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 			 vk::ImageUsageFlags imageUsage,
 			 VmaAllocationCreateFlags flags,
 			 VmaMemoryUsage memoryUsage) const {
-	return {};
+	int textureWidth = 0;
+	int textureHeight = 0;
+	int textureChannels = 0;
+	auto* pixels = stbi_load(file.c_str(), &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha);
+	if (!pixels) {
+		throw std::runtime_error("Failed to load texture image.");
+	}
+
+	const auto imageSize = static_cast<vk::DeviceSize>(textureWidth) * textureHeight * STBI_rgb_alpha;
+
+	VmaAllocationInfo allocationInfo{};
+	VkBuffer stagingBuffer = nullptr;
+	const auto stagingAllocation = vkx::allocateBuffer(&allocationInfo, &stagingBuffer, allocator.get(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
+
+	std::memcpy(allocationInfo.pMappedData, pixels, allocationInfo.size);
+
+	VkImage resourceImage = nullptr;
+	auto resourceAllocation = vkx::allocateImage(nullptr, &resourceImage, allocator.get(), textureWidth, textureHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+
+	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+	commandSubmitter.copyBufferToImage(stagingBuffer, resourceImage, textureWidth, textureHeight);
+
+	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	vmaDestroyBuffer(allocator.get(), stagingBuffer, stagingAllocation);
+
+	stbi_image_free(pixels);
+	return vkx::Image{vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(stagingAllocation, BufferAllocationDeleter{allocator.get()})};
 }
 
 vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
