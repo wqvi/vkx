@@ -216,9 +216,6 @@ vkx::Image::Image(vk::UniqueImage&& image, vkx::UniqueVulkanAllocation&& allocat
       resourceAllocation(std::move(allocation)) {
 }
 
-void vkx::Image::destroy() const {
-}
-
 void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
 	vmaDestroyAllocator(allocator);
 }

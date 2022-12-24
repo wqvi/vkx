@@ -16,7 +16,6 @@ const VkDescriptorImageInfo* vkx::Texture::getInfo() const {
 }
 
 void vkx::Texture::destroy() const {
-	image.destroy();
 	vkDestroyImageView(device, view, nullptr);
 	vkDestroySampler(device, sampler, nullptr);
 }
