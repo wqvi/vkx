@@ -113,66 +113,6 @@ public:
 
 	explicit Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
 
-	template <class T>
-	explicit Buffer(vk::Device logicalDevice,
-			VmaAllocator allocator,
-			const T* data,
-			std::size_t memorySize,
-			vk::BufferUsageFlags bufferFlags,
-			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) {
-		const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
-
-		const VmaAllocationCreateInfo allocationCreateInfo{
-		    allocationFlags,
-		    memoryUsage,
-		    0,
-		    0,
-		    0,
-		    nullptr,
-		    nullptr,
-		    {}};
-
-		VkBuffer cBuffer = nullptr;
-		VmaAllocation cAllocation = nullptr;
-		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &allocationInfo) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocate GPU buffer.");
-		}
-
-		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
-		allocation = UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator});
-
-		mapMemory(data);
-	}
-
-	explicit Buffer(vk::Device logicalDevice,
-			VmaAllocator allocator,
-			std::size_t memorySize,
-			vk::BufferUsageFlags bufferFlags,
-			VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-			VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) {
-		const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
-
-		const VmaAllocationCreateInfo allocationCreateInfo{
-		    allocationFlags,
-		    memoryUsage,
-		    0,
-		    0,
-		    0,
-		    nullptr,
-		    nullptr,
-		    {}};
-
-		VkBuffer cBuffer = nullptr;
-		VmaAllocation cAllocation = nullptr;
-		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &allocationInfo) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocate GPU buffer.");
-		}
-
-		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
-		allocation = UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator});
-	}
-
 	explicit operator VkBuffer() const;
 
 	template <class T>
