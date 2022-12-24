@@ -17,7 +17,7 @@ public:
 	void destroy() const;
 
 private:
-	Image image;
+	vkx::Image image;
 	VkImageView view = nullptr;
 	VkSampler sampler = nullptr;
 	VkDescriptorImageInfo info{};

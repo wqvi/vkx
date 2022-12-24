@@ -204,14 +204,24 @@ void vkx::BufferAllocationDeleter::operator()(VmaAllocation allocation) const no
 	}
 }
 
-vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo)
+vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueBufferAllocation&& allocation, VmaAllocationInfo&& allocationInfo)
     : buffer(std::move(buffer)), allocation(std::move(allocation)), allocationInfo(std::move(allocationInfo)) {}
 
 vkx::Buffer::operator VkBuffer() const {
 	return *buffer;
 }
 
-vkx::Image::Image(vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation)
+vkx::ImageAllocationDeleter::ImageAllocationDeleter(VmaAllocator allocator)
+    : allocator(allocator) {
+}
+
+void vkx::ImageAllocationDeleter::operator()(VmaAllocation allocation) const noexcept {
+	if (allocator) {
+		vmaFreeMemory(allocator, allocation);
+	}
+}
+
+vkx::Image::Image(vk::UniqueImage&& image, vkx::UniqueImageAllocation&& allocation)
     : resourceImage(std::move(image)),
       resourceAllocation(std::move(allocation)) {
 }
@@ -278,35 +288,31 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 
 	const auto imageSize = static_cast<vk::DeviceSize>(textureWidth) * textureHeight * STBI_rgb_alpha;
 
-	VmaAllocationInfo allocationInfo{};
-	VkBuffer stagingBuffer = nullptr;
-	const auto stagingAllocation = vkx::allocateBuffer(&allocationInfo, &stagingBuffer, allocator.get(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
-
-	std::memcpy(allocationInfo.pMappedData, pixels, allocationInfo.size);
+	const auto stagingBuffer = allocateBuffer(pixels, imageSize, vk::BufferUsageFlagBits::eTransferSrc, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
 
 	const vk::Extent3D imageExtent{static_cast<std::uint32_t>(textureWidth), static_cast<std::uint32_t>(textureHeight), 1};
 
 	const vk::ImageCreateInfo imageCreateInfo{
 	    {},
-		vk::ImageType::e2D,
+	    vk::ImageType::e2D,
 	    format,
 	    imageExtent,
 	    1,
 	    1,
-		vk::SampleCountFlagBits::e1,
+	    vk::SampleCountFlagBits::e1,
 	    tiling,
 	    imageUsage,
 	    vk::SharingMode::eExclusive};
 
-	VmaAllocationCreateInfo allocationCreateInfo{};
-	allocationCreateInfo.flags = flags;
-	allocationCreateInfo.usage = memoryUsage;
-	allocationCreateInfo.requiredFlags = 0;
-	allocationCreateInfo.preferredFlags = 0;
-	allocationCreateInfo.memoryTypeBits = 0;
-	allocationCreateInfo.pool = nullptr;
-	allocationCreateInfo.pUserData = nullptr;
-	allocationCreateInfo.priority = {};
+	VmaAllocationCreateInfo allocationCreateInfo{
+	    flags,
+	    memoryUsage,
+	    0,
+	    0,
+	    0,
+	    nullptr,
+	    nullptr,
+	    {}};
 
 	VkImage resourceImage = nullptr;
 	VmaAllocation resourceAllocation = nullptr;
@@ -316,14 +322,12 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 
 	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-	commandSubmitter.copyBufferToImage(stagingBuffer, resourceImage, textureWidth, textureHeight);
+	commandSubmitter.copyBufferToImage(static_cast<VkBuffer>(stagingBuffer), resourceImage, textureWidth, textureHeight);
 
 	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	vmaDestroyBuffer(allocator.get(), stagingBuffer, stagingAllocation);
-
 	stbi_image_free(pixels);
-	return vkx::Image{vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(stagingAllocation, BufferAllocationDeleter{allocator.get()})};
+	return vkx::Image{vk::UniqueImage(resourceImage, logicalDevice), UniqueImageAllocation(resourceAllocation, ImageAllocationDeleter{allocator.get()})};
 }
 
 vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {

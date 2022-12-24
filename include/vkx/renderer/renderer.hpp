@@ -100,18 +100,18 @@ public:
 	void operator()(VmaAllocation allocation) const noexcept;
 };
 
-using UniqueVulkanAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>;
+using UniqueBufferAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>;
 
 class Buffer {
 private:
 	vk::UniqueBuffer buffer;
-	UniqueVulkanAllocation allocation;
+	UniqueBufferAllocation allocation;
 	VmaAllocationInfo allocationInfo{};
 
 public:
 	Buffer() = default;
 
-	explicit Buffer(vk::UniqueBuffer&& buffer, UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
+	explicit Buffer(vk::UniqueBuffer&& buffer, UniqueBufferAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
 
 	template <class T>
 	explicit Buffer(vk::Device logicalDevice,
@@ -140,7 +140,7 @@ public:
 		}
 
 		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
-		allocation = UniqueVulkanAllocation(cAllocation, BufferAllocationDeleter{allocator});
+		allocation = UniqueBufferAllocation(cAllocation, BufferAllocationDeleter{allocator});
 
 		mapMemory(data);
 	}
@@ -186,11 +186,25 @@ public:
 	}
 };
 
+class ImageAllocationDeleter {
+private:
+	VmaAllocator allocator = nullptr;
+
+public:
+	ImageAllocationDeleter() = default;
+
+	explicit ImageAllocationDeleter(VmaAllocator allocator);
+
+	void operator()(VmaAllocation allocation) const noexcept;
+};
+
+using UniqueImageAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, ImageAllocationDeleter>;
+
 class Image {
 public:
 	Image() = default;
 
-	explicit Image(vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation);
+	explicit Image(vk::UniqueImage&& image, UniqueImageAllocation&& allocation);
 
 	inline VkImageView createTextureImageView(VkDevice device) const {
 		return vkx::createImageView(device, *resourceImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
@@ -200,7 +214,7 @@ public:
 
 private:
 	vk::UniqueImage resourceImage;
-	UniqueVulkanAllocation resourceAllocation;
+	UniqueImageAllocation resourceAllocation;
 };
 
 struct VulkanAllocatorDeleter {
