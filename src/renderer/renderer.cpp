@@ -368,7 +368,7 @@ vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format dep
 	    UINT32_C(0),
 	    Stage::eColorAttachmentOutput | Stage::eEarlyFragmentTests,
 	    Stage::eColorAttachmentOutput | Stage::eEarlyFragmentTests,
-	    Access::eNone,
+	    {},
 	    Access::eColorAttachmentWrite | Access::eDepthStencilAttachmentWrite};
 
 	const std::array renderPassAttachments = {colorAttachment, depthAttachment};
