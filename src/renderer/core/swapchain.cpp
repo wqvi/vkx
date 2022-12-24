@@ -1,7 +1,7 @@
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device, VkRenderPass renderPass, const vkx::VulkanAllocator& allocator, vk::UniqueSwapchainKHR&& uniqueSwapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat)
+vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device, const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, vk::UniqueSwapchainKHR&& uniqueSwapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat)
     : logicalDevice(static_cast<VkDevice>(device)),
       allocator(allocator),
       swapchain(std::move(uniqueSwapchain)),
@@ -22,13 +22,13 @@ vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device, VkRenderPass renderPa
 
 		const vk::FramebufferCreateInfo framebufferCreateInfo{
 		    {},
-		    renderPass,
+		    static_cast<VkRenderPass>(renderPass),
 		    framebufferAttachments,
 		    imageExtent.width,
 		    imageExtent.height,
 		    1};
 
-		framebuffers.emplace_back(logicalDevice.createFramebuffer(framebufferCreateInfo));
+		framebuffers.emplace_back(logicalDevice.createFramebufferUnique(framebufferCreateInfo));
 	}
 }
 

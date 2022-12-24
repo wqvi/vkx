@@ -38,17 +38,25 @@ int main(int argc, char** argv) {
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
 
 	const vkx::VulkanInstance vulkanInstance{window};
+
 	vkx::VulkanDevice vulkanDevice;
 	vulkanDevice = vulkanInstance.createDevice();
+	
 	vkx::VulkanAllocator allocator;
 	allocator = vulkanDevice.createAllocator();
+	
 	const auto swapchainInfo = vulkanDevice.getSwapchainInfo();
+	
 	vkx::VulkanRenderPass clearRenderPass;
 	clearRenderPass = vulkanDevice.createRenderPass(static_cast<vk::Format>(swapchainInfo.surfaceFormat.format), vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
+	
 	vkx::Swapchain swapchain;
 	swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
+	
 	const auto commandSubmitter = vulkanDevice.createCommandSubmitter();
+	
 	const vkx::Texture texture{"a.jpg", static_cast<VkDevice>(vulkanDevice), vulkanDevice.getMaxSamplerAnisotropy(), allocator, commandSubmitter};
+	
 	const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 	    "shader2D.vert.spv",
 	    "shader2D.frag.spv",
