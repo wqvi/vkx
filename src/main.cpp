@@ -137,8 +137,6 @@ int main(int argc, char** argv) {
 
 			vulkanDevice.waitIdle();
 
-			swapchain.destroy();
-
 			swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 			continue;
 		} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
@@ -174,8 +172,6 @@ int main(int argc, char** argv) {
 
 			vulkanDevice.waitIdle();
 
-			swapchain.destroy();
-
 			swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 		} else if (result != VK_SUCCESS) {
 			throw std::runtime_error("Failed to present.");
@@ -209,7 +205,6 @@ int main(int argc, char** argv) {
 	}
 
 	texture.destroy();
-	swapchain.destroy();
 	commandSubmitter.destroy();
 	graphicsPipeline.destroy();
 

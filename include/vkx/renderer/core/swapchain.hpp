@@ -10,12 +10,12 @@ class Swapchain {
 private:
 	friend class CommandSubmitter;
 
-	vk::Device device{};
+	vk::Device logicalDevice{};
 	VmaAllocator allocator{};
 
 	vk::UniqueSwapchainKHR swapchain{};
 	vk::Extent2D imageExtent{};
-	std::vector<vk::ImageView> imageViews{};
+	std::vector<vk::UniqueImageView> imageViews{};
 
 	vkx::Image depthImage;
 	vk::UniqueImageView depthImageView{};
@@ -25,7 +25,7 @@ private:
 public:
 	Swapchain() = default;
 
-	explicit Swapchain(vk::Device logicalDevice, VkRenderPass renderPass, const vkx::VulkanAllocator& allocator, vk::UniqueSwapchainKHR&& uniqueSwapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat);
+	explicit Swapchain(const vkx::VulkanDevice& device, VkRenderPass renderPass, const vkx::VulkanAllocator& allocator, vk::UniqueSwapchainKHR&& uniqueSwapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat);
 
 	inline VkFramebuffer operator[](std::size_t index) const noexcept {
 		return *framebuffers[index];
@@ -36,7 +36,5 @@ public:
 	inline VkExtent2D extent() const noexcept {
 		return imageExtent;
 	}
-
-	void destroy();
 };
 } // namespace vkx
