@@ -190,6 +190,8 @@ class Image {
 public:
 	Image() = default;
 
+	explicit Image(vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation);
+
 	explicit Image(const std::string& file, vk::Format format, vk::ImageTiling tiling, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
 
 	inline VkImageView createTextureImageView(VkDevice device) const {
