@@ -207,49 +207,16 @@ void vkx::BufferAllocationDeleter::operator()(VmaAllocation allocation) const no
 vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo)
     : buffer(std::move(buffer)), allocation(std::move(allocation)), allocationInfo(std::move(allocationInfo)) {}
 
-
 vkx::Buffer::operator VkBuffer() const {
 	return *buffer;
 }
 
-vkx::Image::Image(vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation) 
-	: resourceImage(nullptr),
-	resourceAllocation(nullptr) {
-}
-
-vkx::Image::Image(const std::string& file, vk::Format format, vk::ImageTiling tiling, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter)
-    : allocator(allocator) {
-	int textureWidth = 0;
-	int textureHeight = 0;
-	int textureChannels = 0;
-	auto* pixels = stbi_load(file.c_str(), &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha);
-	if (!pixels) {
-		throw std::runtime_error("Failed to load texture image.");
-	}
-
-	const auto imageSize = static_cast<vk::DeviceSize>(textureWidth) * textureHeight * STBI_rgb_alpha;
-
-	VmaAllocationInfo allocationInfo{};
-	VkBuffer stagingBuffer = nullptr;
-	const auto stagingAllocation = vkx::allocateBuffer(&allocationInfo, &stagingBuffer, static_cast<VmaAllocator>(allocator), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
-
-	std::memcpy(allocationInfo.pMappedData, pixels, allocationInfo.size);
-
-	resourceAllocation = vkx::allocateImage(nullptr, &resourceImage, static_cast<VmaAllocator>(allocator), textureWidth, textureHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
-
-	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-	commandSubmitter.copyBufferToImage(stagingBuffer, resourceImage, textureWidth, textureHeight);
-
-	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-	vmaDestroyBuffer(static_cast<VmaAllocator>(allocator), stagingBuffer, stagingAllocation);
-
-	stbi_image_free(pixels);
+vkx::Image::Image(vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation)
+    : resourceImage(std::move(image)),
+      resourceAllocation(std::move(allocation)) {
 }
 
 void vkx::Image::destroy() const {
-	vmaDestroyImage(allocator, resourceImage, resourceAllocation);
 }
 
 void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
@@ -295,12 +262,12 @@ vkx::VulkanAllocator::operator VmaAllocator() const {
 }
 
 vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& commandSubmitter,
-			 const std::string& file,
-			 vk::Format format,
-			 vk::ImageTiling tiling,
-			 vk::ImageUsageFlags imageUsage,
-			 VmaAllocationCreateFlags flags,
-			 VmaMemoryUsage memoryUsage) const {
+					       const std::string& file,
+					       vk::Format format,
+					       vk::ImageTiling tiling,
+					       vk::ImageUsageFlags imageUsage,
+					       VmaAllocationCreateFlags flags,
+					       VmaMemoryUsage memoryUsage) const {
 	int textureWidth = 0;
 	int textureHeight = 0;
 	int textureChannels = 0;
@@ -317,8 +284,35 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 
 	std::memcpy(allocationInfo.pMappedData, pixels, allocationInfo.size);
 
+	const vk::Extent3D imageExtent{static_cast<std::uint32_t>(textureWidth), static_cast<std::uint32_t>(textureHeight), 1};
+
+	const vk::ImageCreateInfo imageCreateInfo{
+	    {},
+		vk::ImageType::e2D,
+	    format,
+	    imageExtent,
+	    1,
+	    1,
+		vk::SampleCountFlagBits::e1,
+	    tiling,
+	    imageUsage,
+	    vk::SharingMode::eExclusive};
+
+	VmaAllocationCreateInfo allocationCreateInfo{};
+	allocationCreateInfo.flags = flags;
+	allocationCreateInfo.usage = memoryUsage;
+	allocationCreateInfo.requiredFlags = 0;
+	allocationCreateInfo.preferredFlags = 0;
+	allocationCreateInfo.memoryTypeBits = 0;
+	allocationCreateInfo.pool = nullptr;
+	allocationCreateInfo.pUserData = nullptr;
+	allocationCreateInfo.priority = {};
+
 	VkImage resourceImage = nullptr;
-	auto resourceAllocation = vkx::allocateImage(nullptr, &resourceImage, allocator.get(), textureWidth, textureHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+	VmaAllocation resourceAllocation = nullptr;
+	if (vmaCreateImage(allocator.get(), reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &resourceImage, &resourceAllocation, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate image memory resources.");
+	}
 
 	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 

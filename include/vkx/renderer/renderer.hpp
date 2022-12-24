@@ -192,18 +192,15 @@ public:
 
 	explicit Image(vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation);
 
-	explicit Image(const std::string& file, vk::Format format, vk::ImageTiling tiling, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
-
 	inline VkImageView createTextureImageView(VkDevice device) const {
-		return vkx::createImageView(device, resourceImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+		return vkx::createImageView(device, *resourceImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 
 	void destroy() const;
 
 private:
-	VkImage resourceImage = nullptr;
-	VmaAllocation resourceAllocation = nullptr;
-	VmaAllocator allocator = nullptr;
+	vk::UniqueImage resourceImage;
+	UniqueVulkanAllocation resourceAllocation;
 };
 
 struct VulkanAllocatorDeleter {
