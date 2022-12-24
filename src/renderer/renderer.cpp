@@ -208,7 +208,7 @@ vkx::Buffer::operator VkBuffer() const {
 	return *buffer;
 }
 
-vkx::Image::Image(const std::string& file, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter)
+vkx::Image::Image(const std::string& file, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter)
     : allocator(allocator) {
 	int textureWidth = 0;
 	int textureHeight = 0;
@@ -222,11 +222,11 @@ vkx::Image::Image(const std::string& file, VmaAllocator allocator, const vkx::Co
 
 	VmaAllocationInfo allocationInfo{};
 	VkBuffer stagingBuffer = nullptr;
-	const auto stagingAllocation = vkx::allocateBuffer(&allocationInfo, &stagingBuffer, allocator, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
+	const auto stagingAllocation = vkx::allocateBuffer(&allocationInfo, &stagingBuffer, static_cast<VmaAllocator>(allocator), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
 
 	std::memcpy(allocationInfo.pMappedData, pixels, allocationInfo.size);
 
-	resourceAllocation = vkx::allocateImage(nullptr, &resourceImage, allocator, textureWidth, textureHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+	resourceAllocation = vkx::allocateImage(nullptr, &resourceImage, static_cast<VmaAllocator>(allocator), textureWidth, textureHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
 
 	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
@@ -234,7 +234,7 @@ vkx::Image::Image(const std::string& file, VmaAllocator allocator, const vkx::Co
 
 	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
+	vmaDestroyBuffer(static_cast<VmaAllocator>(allocator), stagingBuffer, stagingAllocation);
 
 	stbi_image_free(pixels);
 }

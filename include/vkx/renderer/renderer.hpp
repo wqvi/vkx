@@ -83,6 +83,11 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(VmaAllocator allocator, std::size_t size);
 
+class VulkanInstance;
+class VulkanDevice;
+class VulkanRenderPass;
+class VulkanAllocator;
+
 class BufferAllocationDeleter {
 private:
 	VmaAllocator allocator = nullptr;
@@ -179,7 +184,7 @@ public:
 
 class Image {
 public:
-	explicit Image(const std::string& file, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter);
+	explicit Image(const std::string& file, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
 
 	inline VkImageView createTextureImageView(VkDevice device) const {
 		return vkx::createImageView(device, resourceImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);

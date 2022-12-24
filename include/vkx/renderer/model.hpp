@@ -8,7 +8,7 @@
 namespace vkx {
 class Texture {
 public:
-	explicit Texture(const char* file, VkDevice device, float maxAnisotropy, VmaAllocator allocator, const vkx::CommandSubmitter& commandSubmitter);
+	explicit Texture(const char* file, VkDevice device, float maxAnisotropy, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
 
 	[[nodiscard]] VkDescriptorImageInfo createDescriptorImageInfo() const;
 

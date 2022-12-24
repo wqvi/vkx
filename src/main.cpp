@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 	const auto allocator = vulkanDevice.createAllocator();
 	auto swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 	const auto commandSubmitter = vulkanDevice.createCommandSubmitter();
-	const vkx::Texture texture{"a.jpg", static_cast<VkDevice>(vulkanDevice), vulkanDevice.getMaxSamplerAnisotropy(), static_cast<VmaAllocator>(allocator), commandSubmitter};
+	const vkx::Texture texture{"a.jpg", static_cast<VkDevice>(vulkanDevice), vulkanDevice.getMaxSamplerAnisotropy(), allocator, commandSubmitter};
 	const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 	    "shader2D.vert.spv",
 	    "shader2D.frag.spv",
