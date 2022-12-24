@@ -211,9 +211,29 @@ vkx::Buffer::operator VkBuffer() const {
 	return *buffer;
 }
 
-vkx::Image::Image(vk::UniqueImage&& image, vkx::UniqueVulkanAllocation&& allocation)
-    : resourceImage(std::move(image)),
+vkx::Image::Image(vk::Device logicalDevice, vk::UniqueImage&& image, vkx::UniqueVulkanAllocation&& allocation)
+    : logicalDevice(logicalDevice),
+      resourceImage(std::move(image)),
       resourceAllocation(std::move(allocation)) {
+}
+
+vk::UniqueImageView vkx::Image::createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const {
+	const vk::ImageSubresourceRange subresourceRange{
+	    aspectFlags,
+	    0,
+	    1,
+	    0,
+	    1};
+
+	const vk::ImageViewCreateInfo imageViewCreateInfo{
+	    {},
+	    *resourceImage,
+	    vk::ImageViewType::e2D,
+	    format,
+	    {},
+	    subresourceRange};
+
+	return logicalDevice.createImageViewUnique(imageViewCreateInfo);
 }
 
 void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
@@ -294,7 +314,7 @@ vkx::Image vkx::VulkanAllocator::allocateImage(vk::Extent2D extent,
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
-	return vkx::Image{vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(resourceAllocation, VulkanAllocationDeleter{allocator.get()})};
+	return vkx::Image{logicalDevice, vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(resourceAllocation, VulkanAllocationDeleter{allocator.get()})};
 }
 
 vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& commandSubmitter,
@@ -353,7 +373,7 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 	commandSubmitter.transitionImageLayout(resourceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	stbi_image_free(pixels);
-	return vkx::Image{vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(resourceAllocation, VulkanAllocationDeleter{allocator.get()})};
+	return vkx::Image{logicalDevice, vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(resourceAllocation, VulkanAllocationDeleter{allocator.get()})};
 }
 
 vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
@@ -518,7 +538,7 @@ vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& al
 	    static_cast<vk::PresentModeKHR>(presentMode),
 	    true};
 
-	auto swapchain = logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo); 
+	auto swapchain = logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo);
 
 	return vkx::Swapchain{*logicalDevice, static_cast<VkRenderPass>(renderPass), allocator, std::move(swapchain), actualExtent, info.surfaceFormat.format, findDepthFormat()};
 }
@@ -533,6 +553,25 @@ vkx::GraphicsPipeline vkx::VulkanDevice::createGraphicsPipeline(const vkx::Vulka
 
 void vkx::VulkanDevice::waitIdle() const {
 	logicalDevice->waitIdle();
+}
+
+vk::UniqueImageView vkx::VulkanDevice::createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const {
+	const vk::ImageSubresourceRange subresourceRange{
+	    aspectFlags,
+	    0,
+	    1,
+	    0,
+	    1};
+
+	const vk::ImageViewCreateInfo imageViewCreateInfo{
+	    {},
+	    image,
+	    vk::ImageViewType::e2D,
+	    format,
+	    {},
+	    subresourceRange};
+
+	return logicalDevice->createImageViewUnique(imageViewCreateInfo);
 }
 
 vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)

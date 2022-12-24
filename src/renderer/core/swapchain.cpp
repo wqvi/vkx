@@ -1,10 +1,10 @@
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::Swapchain::Swapchain(vk::Device logicalDevice, VkRenderPass renderPass, const vkx::VulkanAllocator& allocator, vk::UniqueSwapchainKHR&& swapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat)
+vkx::Swapchain::Swapchain(vk::Device logicalDevice, VkRenderPass renderPass, const vkx::VulkanAllocator& allocator, vk::UniqueSwapchainKHR&& uniqueSwapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat)
     : device(logicalDevice),
       allocator(allocator),
-      swapchain(std::move(swapchain)),
+      swapchain(std::move(uniqueSwapchain)),
       imageExtent(extent) {
 	const auto images = logicalDevice.getSwapchainImagesKHR(*swapchain);
 
@@ -14,8 +14,7 @@ vkx::Swapchain::Swapchain(vk::Device logicalDevice, VkRenderPass renderPass, con
 	}
 
 	depthImage = allocator.allocateImage(static_cast<vk::Extent2D>(imageExtent), static_cast<vk::Format>(depthFormat), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
-	//depthImageView = vkx::createImageView(device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
-	throw std::runtime_error("Needs to have depth image view be created");
+	depthImageView = depthImage.createView(static_cast<vk::Format>(depthFormat), vk::ImageAspectFlagBits::eDepth);
 	framebuffers.reserve(imageViews.size());
 
 	for (std::size_t i = 0; i < imageViews.size(); i++) {

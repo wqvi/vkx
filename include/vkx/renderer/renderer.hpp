@@ -128,17 +128,20 @@ public:
 
 class Image {
 private:
+	vk::Device logicalDevice = nullptr;
 	vk::UniqueImage resourceImage;
 	UniqueVulkanAllocation resourceAllocation;
 
 public:
 	Image() = default;
 
-	explicit Image(vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation);
+	explicit Image(vk::Device logicalDevice, vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation);
 
 	inline VkImageView createTextureImageView(VkDevice device) const {
 		return vkx::createImageView(device, *resourceImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
+
+	vk::UniqueImageView createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 };
 
 struct VulkanAllocatorDeleter {
@@ -283,6 +286,8 @@ public:
 	[[nodiscard]] inline auto findDepthFormat() const {
 		return findSupportedFormat(VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT});
 	}
+
+	[[nodiscard]] vk::UniqueImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
 	[[nodiscard]] float getMaxSamplerAnisotropy() const;
 

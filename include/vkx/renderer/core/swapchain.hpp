@@ -25,7 +25,7 @@ private:
 public:
 	Swapchain() = default;
 
-	explicit Swapchain(vk::Device logicalDevice, VkRenderPass renderPass, const vkx::VulkanAllocator& allocator, vk::UniqueSwapchainKHR&& swapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat);
+	explicit Swapchain(vk::Device logicalDevice, VkRenderPass renderPass, const vkx::VulkanAllocator& allocator, vk::UniqueSwapchainKHR&& uniqueSwapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat);
 
 	inline VkFramebuffer operator[](std::size_t index) const noexcept {
 		return *framebuffers[index];
