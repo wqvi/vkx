@@ -208,7 +208,7 @@ vkx::Buffer::operator VkBuffer() const {
 	return *buffer;
 }
 
-vkx::Image::Image(const std::string& file, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter)
+vkx::Image::Image(const std::string& file, vk::Format format, vk::ImageTiling tiling, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter)
     : allocator(allocator) {
 	int textureWidth = 0;
 	int textureHeight = 0;
