@@ -140,7 +140,7 @@ public:
 		}
 
 		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
-		allocation = UniqueBufferAllocation(cAllocation, BufferAllocationDeleter{allocator});
+		allocation = UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator});
 
 		mapMemory(data);
 	}
@@ -227,14 +227,54 @@ public:
 						 vk::BufferUsageFlags bufferFlags,
 						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
 						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const {
-		return vkx::Buffer{logicalDevice, allocator.get(), data, memorySize, bufferFlags, allocationFlags, memoryUsage};
+		const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
+
+		const VmaAllocationCreateInfo allocationCreateInfo{
+		    allocationFlags,
+		    memoryUsage,
+		    0,
+		    0,
+		    0,
+		    nullptr,
+		    nullptr,
+		    {}};
+
+		VkBuffer cBuffer = nullptr;
+		VmaAllocation cAllocation = nullptr;
+		VmaAllocationInfo cAllocationInfo;
+		if (vmaCreateBuffer(allocator.get(), reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to allocate GPU buffer.");
+		}
+
+		vkx::Buffer buffer{vk::UniqueBuffer(cBuffer, logicalDevice), UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator.get()}), std::move(cAllocationInfo)};
+		buffer.mapMemory(data);
+		return buffer;
 	}
 
 	[[nodiscard]] vkx::Buffer allocateBuffer(std::size_t memorySize,
 						 vk::BufferUsageFlags bufferFlags,
 						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
 						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const {
-		return vkx::Buffer{logicalDevice, allocator.get(), memorySize, bufferFlags, allocationFlags, memoryUsage};
+		const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
+
+		const VmaAllocationCreateInfo allocationCreateInfo{
+		    allocationFlags,
+		    memoryUsage,
+		    0,
+		    0,
+		    0,
+		    nullptr,
+		    nullptr,
+		    {}};
+
+		VkBuffer cBuffer = nullptr;
+		VmaAllocation cAllocation = nullptr;
+		VmaAllocationInfo cAllocationInfo;
+		if (vmaCreateBuffer(allocator.get(), reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to allocate GPU buffer.");
+		}
+
+		return vkx::Buffer{vk::UniqueBuffer(cBuffer, logicalDevice), UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator.get()}), std::move(cAllocationInfo)};
 	}
 
 	[[nodiscard]] vkx::Image allocateImage(const vkx::CommandSubmitter& commandSubmitter,
