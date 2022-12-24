@@ -204,6 +204,10 @@ void vkx::BufferAllocationDeleter::operator()(VmaAllocation allocation) const no
 	}
 }
 
+vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo)
+    : buffer(std::move(buffer)), allocation(std::move(allocation)), allocationInfo(std::move(allocationInfo)) {}
+
+
 vkx::Buffer::operator VkBuffer() const {
 	return *buffer;
 }

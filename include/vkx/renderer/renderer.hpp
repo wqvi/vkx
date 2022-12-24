@@ -100,14 +100,18 @@ public:
 	void operator()(VmaAllocation allocation) const noexcept;
 };
 
+using UniqueVulkanAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>;
+
 class Buffer {
 private:
 	vk::UniqueBuffer buffer;
-	std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter> allocation;
+	UniqueVulkanAllocation allocation;
 	VmaAllocationInfo allocationInfo{};
 
 public:
 	Buffer() = default;
+
+	explicit Buffer(vk::UniqueBuffer&& buffer, UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
 
 	template <class T>
 	explicit Buffer(vk::Device logicalDevice,
@@ -136,7 +140,7 @@ public:
 		}
 
 		buffer = vk::UniqueBuffer(cBuffer, logicalDevice);
-		allocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, BufferAllocationDeleter>(cAllocation, BufferAllocationDeleter{allocator});
+		allocation = UniqueVulkanAllocation(cAllocation, BufferAllocationDeleter{allocator});
 
 		mapMemory(data);
 	}
