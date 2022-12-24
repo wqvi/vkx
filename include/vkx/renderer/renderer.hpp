@@ -127,6 +127,10 @@ public:
 };
 
 class Image {
+private:
+	vk::UniqueImage resourceImage;
+	UniqueVulkanAllocation resourceAllocation;
+
 public:
 	Image() = default;
 
@@ -137,10 +141,6 @@ public:
 	}
 
 	void destroy() const;
-
-private:
-	vk::UniqueImage resourceImage;
-	UniqueVulkanAllocation resourceAllocation;
 };
 
 struct VulkanAllocatorDeleter {
