@@ -10,26 +10,25 @@ class Swapchain {
 private:
 	friend class CommandSubmitter;
 
-	VkDevice device{};
+	vk::Device device{};
 	VmaAllocator allocator{};
 
-	VkSwapchainKHR swapchain{};
-	VkExtent2D imageExtent{};
-	std::vector<VkImageView> imageViews{};
+	vk::UniqueSwapchainKHR swapchain{};
+	vk::Extent2D imageExtent{};
+	std::vector<vk::ImageView> imageViews{};
 
-	VkImage depthImage{};
-	VmaAllocation depthAllocation{};
-	VkImageView depthImageView{};
+	vkx::Image depthImage;
+	vk::UniqueImageView depthImageView{};
 
-	std::vector<VkFramebuffer> framebuffers{};
+	std::vector<vk::UniqueFramebuffer> framebuffers{};
 
 public:
 	Swapchain() = default;
 
-	explicit Swapchain(vk::Device logicalDevice, VkRenderPass renderPass, VmaAllocator allocator, VkSwapchainKHR swapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat);
+	explicit Swapchain(vk::Device logicalDevice, VkRenderPass renderPass, const vkx::VulkanAllocator& allocator, vk::UniqueSwapchainKHR&& swapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat);
 
 	inline VkFramebuffer operator[](std::size_t index) const noexcept {
-		return framebuffers[index];
+		return *framebuffers[index];
 	}
 
 	VkResult acquireNextImage(VkDevice device, const vkx::SyncObjects& syncObjects, std::uint32_t* imageIndex) const;

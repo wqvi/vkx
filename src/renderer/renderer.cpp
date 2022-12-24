@@ -258,6 +258,45 @@ vkx::VulkanAllocator::operator VmaAllocator() const {
 	return allocator.get();
 }
 
+vkx::Image vkx::VulkanAllocator::allocateImage(vk::Extent2D extent,
+					       vk::Format format,
+					       vk::ImageTiling tiling,
+					       vk::ImageUsageFlags imageUsage,
+					       VmaAllocationCreateFlags flags,
+					       VmaMemoryUsage memoryUsage) const {
+	const vk::Extent3D imageExtent{extent.width, extent.height, 1};
+
+	const vk::ImageCreateInfo imageCreateInfo{
+	    {},
+	    vk::ImageType::e2D,
+	    format,
+	    imageExtent,
+	    1,
+	    1,
+	    vk::SampleCountFlagBits::e1,
+	    tiling,
+	    imageUsage,
+	    vk::SharingMode::eExclusive};
+
+	VmaAllocationCreateInfo allocationCreateInfo{
+	    flags,
+	    memoryUsage,
+	    0,
+	    0,
+	    0,
+	    nullptr,
+	    nullptr,
+	    {}};
+
+	VkImage resourceImage = nullptr;
+	VmaAllocation resourceAllocation = nullptr;
+	if (vmaCreateImage(allocator.get(), reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &resourceImage, &resourceAllocation, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate image memory resources.");
+	}
+
+	return vkx::Image{vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(resourceAllocation, VulkanAllocationDeleter{allocator.get()})};
+}
+
 vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& commandSubmitter,
 					       const std::string& file,
 					       vk::Format format,
@@ -463,35 +502,25 @@ vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& al
 	const auto imageCount = info.imageCount;
 	const auto imageSharingMode = config.getImageSharingMode();
 
-	const VkSwapchainCreateInfoKHR swapchainCreateInfo{
-	    VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-	    nullptr,
-	    0,
+	const vk::SwapchainCreateInfoKHR swapchainCreateInfo{
+	    {},
 	    surface,
 	    imageCount,
-	    surfaceFormat.format,
-	    surfaceFormat.colorSpace,
-	    actualExtent,
+	    static_cast<vk::Format>(surfaceFormat.format),
+	    static_cast<vk::ColorSpaceKHR>(surfaceFormat.colorSpace),
+	    static_cast<vk::Extent2D>(actualExtent),
 	    1,
-	    VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-	    static_cast<VkSharingMode>(imageSharingMode),
-	    static_cast<std::uint32_t>(config.indices.size()),
-	    config.indices.data(),
-	    info.capabilities.currentTransform,
-	    VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-	    presentMode,
+	    vk::ImageUsageFlagBits::eColorAttachment,
+	    imageSharingMode,
+	    config.indices,
+	    static_cast<vk::SurfaceTransformFlagBitsKHR>(info.capabilities.currentTransform),
+	    vk::CompositeAlphaFlagBitsKHR::eOpaque,
+	    static_cast<vk::PresentModeKHR>(presentMode),
 	    true};
 
-	const auto swapchain = vkx::create<VkSwapchainKHR>(
-	    vkCreateSwapchainKHR,
-	    [](auto result) {
-		    if (result != VK_SUCCESS) {
-			    throw std::runtime_error("Failed to create swapchain.");
-		    }
-	    },
-	    *logicalDevice, &swapchainCreateInfo, nullptr);
+	auto swapchain = logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo); 
 
-	return vkx::Swapchain{*logicalDevice, static_cast<VkRenderPass>(renderPass), static_cast<VmaAllocator>(allocator), swapchain, actualExtent, info.surfaceFormat.format, findDepthFormat()};
+	return vkx::Swapchain{*logicalDevice, static_cast<VkRenderPass>(renderPass), allocator, std::move(swapchain), actualExtent, info.surfaceFormat.format, findDepthFormat()};
 }
 
 vkx::CommandSubmitter vkx::VulkanDevice::createCommandSubmitter() const {

@@ -368,7 +368,7 @@ VkResult vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, s
 	    1,
 	    &syncObjects.renderFinishedSemaphore,
 	    1,
-	    &swapchain.swapchain,
+	    reinterpret_cast<const VkSwapchainKHR*>(&*swapchain.swapchain),
 	    &imageIndex,
 	    nullptr};
 

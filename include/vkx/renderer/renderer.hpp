@@ -217,6 +217,13 @@ public:
 		return vkx::Buffer{vk::UniqueBuffer(cBuffer, logicalDevice), UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator.get()}), std::move(cAllocationInfo)};
 	}
 
+	[[nodiscard]] vkx::Image allocateImage(vk::Extent2D extent,
+					       vk::Format format,
+					       vk::ImageTiling tiling,
+					       vk::ImageUsageFlags imageUsage,
+					       VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+					       VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
+
 	[[nodiscard]] vkx::Image allocateImage(const vkx::CommandSubmitter& commandSubmitter,
 					       const std::string& file,
 					       vk::Format format,
