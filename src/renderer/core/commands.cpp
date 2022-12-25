@@ -6,23 +6,12 @@ vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::D
     : device(device) {
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 
-	graphicsQueue = vkx::getObject<VkQueue>(vkGetDeviceQueue, device, *queueConfig.graphicsIndex, 0);
-	presentQueue = vkx::getObject<VkQueue>(vkGetDeviceQueue, device, *queueConfig.presentIndex, 0);
+	graphicsQueue = device.getQueue(*queueConfig.graphicsIndex, 0);
+	presentQueue = device.getQueue(*queueConfig.presentIndex, 0);
 
-	const VkCommandPoolCreateInfo commandPoolCreateInfo{
-	    VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-	    nullptr,
-	    VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-	    *queueConfig.graphicsIndex};
+	const vk::CommandPoolCreateInfo commandPoolCreateInfo{vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex};
 
-	commandPool = vkx::create<VkCommandPool>(
-	    vkCreateCommandPool,
-	    [](auto result) {
-		    if (result != VK_SUCCESS) {
-			    throw std::runtime_error("Failed to create command pool");
-		    }
-	    },
-	    device, &commandPoolCreateInfo, nullptr);
+	commandPool = device.createCommandPool(commandPoolCreateInfo);
 }
 
 void vkx::CommandSubmitter::submitImmediately(const std::function<void(VkCommandBuffer)>& command) const {
