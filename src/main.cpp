@@ -41,22 +41,22 @@ int main(int argc, char** argv) {
 
 	vkx::VulkanDevice vulkanDevice;
 	vulkanDevice = vulkanInstance.createDevice();
-	
+
 	vkx::VulkanAllocator allocator;
 	allocator = vulkanDevice.createAllocator();
-	
+
 	const auto swapchainInfo = vulkanDevice.getSwapchainInfo(window);
-	
+
 	vkx::VulkanRenderPass clearRenderPass;
 	clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
-	
+
 	vkx::Swapchain swapchain;
 	swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
-	
+
 	const auto commandSubmitter = vulkanDevice.createCommandSubmitter();
-	
+
 	const vkx::Texture texture{"a.jpg", static_cast<VkDevice>(vulkanDevice), vulkanDevice.getMaxSamplerAnisotropy(), allocator, commandSubmitter};
-	
+
 	const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 	    "shader2D.vert.spv",
 	    "shader2D.frag.spv",
@@ -66,18 +66,31 @@ int main(int argc, char** argv) {
 	    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
 	    {&texture}};
 	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
-	
-	constexpr std::uint32_t chunkDrawCommandAmount = 1;
 
-	constexpr std::uint32_t drawCommandAmount = chunkDrawCommandAmount;
+	constexpr std::uint32_t chunkDrawCommandAmount = 2;
+
+	constexpr std::uint32_t drawCommandAmount = 1;
+	constexpr std::uint32_t secondaryDrawCommandAmount = chunkDrawCommandAmount;
 	const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
+	const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 
 	const auto syncObjects = vkx::createSyncObjects(static_cast<VkDevice>(vulkanDevice));
 
-	vkx::VoxelChunk2D voxelChunk2D{{0.0f, 0.0f}};
-	voxelChunk2D.generateTerrain();
-	vkx::Mesh mesh{vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator};
-	voxelChunk2D.generateMesh(mesh);
+	std::vector<vkx::VoxelChunk2D> chunks{};
+	chunks.reserve(2);
+	chunks.emplace_back(glm::vec2{0.0f, 0.0f});
+	chunks.emplace_back(glm::vec2{1.0f, 0.0f});
+
+	chunks[0].generateTerrain();
+	chunks[1].generateTerrain();
+
+	std::vector<vkx::Mesh> meshes{};
+	meshes.reserve(2);
+	meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
+	meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
+
+	chunks[0].generateMesh(meshes[0]);
+	chunks[1].generateMesh(meshes[1]);
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
@@ -159,15 +172,14 @@ int main(int argc, char** argv) {
 		    &swapchain,
 		    &graphicsPipeline,
 		    static_cast<VkRenderPass>(clearRenderPass),
-		    {static_cast<VkBuffer>(mesh.vertexBuffer)},
-		    {static_cast<VkBuffer>(mesh.indexBuffer)},
-		    {static_cast<std::uint32_t>(mesh.activeIndexCount)}};
+		    {static_cast<VkBuffer>(meshes[0].vertexBuffer), static_cast<VkBuffer>(meshes[1].vertexBuffer)},
+		    {static_cast<VkBuffer>(meshes[0].indexBuffer), static_cast<VkBuffer>(meshes[1].indexBuffer)},
+		    {static_cast<std::uint32_t>(meshes[0].activeIndexCount), static_cast<std::uint32_t>(meshes[1].activeIndexCount)}};
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
+		const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
-		const auto* chunkBegin = begin;
-
-		commandSubmitter.recordPrimaryDrawCommands(chunkBegin, chunkDrawCommandAmount, chunkDrawInfo);
+		commandSubmitter.recordSecondaryDrawCommands(begin, drawCommandAmount, secondaryBegin, chunkDrawCommandAmount, chunkDrawInfo);
 
 		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 

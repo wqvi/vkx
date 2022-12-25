@@ -118,9 +118,9 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 	    extent};
 
 	constexpr std::array clearColor{0.0f, 0.0f, 0.0f, 1.0f};
-	const vk::ClearDepthStencilValue clearDepthStencil{1.0f, 0};
+	constexpr vk::ClearDepthStencilValue clearDepthStencil{1.0f, 0};
 
-	const std::vector<vk::ClearValue> clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
+	constexpr std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
 	const vk::RenderPassBeginInfo renderPassBeginInfo{
 	    drawInfo.renderPass,
@@ -187,9 +187,9 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 	    extent};
 
 	constexpr std::array clearColor{0.0f, 0.0f, 0.0f, 1.0f};
-	const vk::ClearDepthStencilValue clearDepthStencil{1.0f, 0};
+	constexpr vk::ClearDepthStencilValue clearDepthStencil{1.0f, 0};
 
-	const std::vector<vk::ClearValue> clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
+	constexpr std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
 	const vk::RenderPassBeginInfo renderPassBeginInfo{
 	    drawInfo.renderPass,
@@ -231,7 +231,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 
 			secondaryCommandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
 
-			secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, static_cast<vk::PipelineLayout>(drawInfo.graphicsPipeline->pipelineLayout), 0, static_cast<vk::DescriptorSet>(drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame]), {});
+			secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, static_cast<vk::PipelineLayout>(drawInfo.graphicsPipeline->pipelineLayout), 0, 1, reinterpret_cast<const vk::DescriptorSet*>(&drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame]), 0, nullptr);
 
 			secondaryCommandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 

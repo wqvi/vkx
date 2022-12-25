@@ -105,12 +105,12 @@ void vkx::VoxelChunk2D::set(std::size_t i, vkx::Voxel voxel) {
 	}
 }
 
-std::uint32_t vkx::VoxelChunk2D::createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) {
-	const auto v2 = pos + glm::vec2{width, 0};
-	const auto v3 = pos + glm::vec2{width, height};
-	const auto v4 = pos + glm::vec2{0, height};
+std::uint32_t vkx::VoxelChunk2D::createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) const {
+	const auto v2 = (position * 16.0f)+ pos + glm::vec2{width, 0};
+	const auto v3 = (position * 16.0f) + pos + glm::vec2{width, height};
+	const auto v4 = (position * 16.0f) + pos + glm::vec2{0, height};
 
-	*vertexIter = vkx::Vertex{pos * 16.0f, glm::vec2{0, 0}, {}};
+	*vertexIter = vkx::Vertex{(position * 16.0f) + pos * 16.0f, glm::vec2{0, 0}, {}};
 	vertexIter++;
 	*vertexIter = vkx::Vertex{v2 * 16.0f, glm::vec2{width, 0}, {}};
 	vertexIter++;
