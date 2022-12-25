@@ -17,6 +17,12 @@ struct DrawInfo {
 };
 
 class CommandSubmitter {
+private:
+	VkDevice device = nullptr;
+	VkCommandPool commandPool = nullptr;
+	VkQueue graphicsQueue = nullptr;
+	VkQueue presentQueue = nullptr;
+
 public:
 	CommandSubmitter() = default;
 
@@ -41,11 +47,5 @@ public:
 	VkResult presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const;
 
 	void destroy() const;
-
-private:
-	VkDevice device = nullptr;
-	VkCommandPool commandPool = nullptr;
-	VkQueue graphicsQueue = nullptr;
-	VkQueue presentQueue = nullptr;
 };
 } // namespace vkx
