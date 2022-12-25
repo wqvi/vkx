@@ -167,9 +167,9 @@ int main(int argc, char** argv) {
 
 		const auto* chunkBegin = begin;
 
-		commandSubmitter.recordPrimaryDrawCommands(chunkBegin, chunkDrawCommandAmount, chunkDrawInfo);
+		commandSubmitter.recordPrimaryDrawCommands(reinterpret_cast<const VkCommandBuffer*>(chunkBegin), chunkDrawCommandAmount, chunkDrawInfo);
 
-		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
+		commandSubmitter.submitDrawCommands(reinterpret_cast<const VkCommandBuffer*>(begin), drawCommandAmount, syncObject);
 
 		result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
 

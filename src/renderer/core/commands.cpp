@@ -89,36 +89,22 @@ void vkx::CommandSubmitter::copyBufferToImage(vk::Buffer buffer, vk::Image image
 	});
 }
 
-std::vector<VkCommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::uint32_t amount) const {
-	const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
-	    VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-	    nullptr,
+std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::uint32_t amount) const {
+	const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
 	    commandPool,
-	    VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+	    vk::CommandBufferLevel::ePrimary,
 	    amount * vkx::MAX_FRAMES_IN_FLIGHT};
 
-	std::vector<VkCommandBuffer> commandBuffers{amount * vkx::MAX_FRAMES_IN_FLIGHT};
-	if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers.data()) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocate draw commands");
-	}
-
-	return commandBuffers;
+	return device.allocateCommandBuffers(commandBufferAllocateInfo);
 }
 
-std::vector<VkCommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawCommands(std::uint32_t amount) const {
-	const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
-	    VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-	    nullptr,
+std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawCommands(std::uint32_t amount) const {
+	const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
 	    commandPool,
-	    VK_COMMAND_BUFFER_LEVEL_SECONDARY,
+	    vk::CommandBufferLevel::eSecondary,
 	    amount * vkx::MAX_FRAMES_IN_FLIGHT};
 
-	std::vector<VkCommandBuffer> commandBuffers{amount * vkx::MAX_FRAMES_IN_FLIGHT};
-	if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers.data()) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocate draw commands");
-	}
-
-	return commandBuffers;
+	return device.allocateCommandBuffers(commandBufferAllocateInfo);
 }
 
 void vkx::CommandSubmitter::recordPrimaryDrawCommands(const VkCommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
