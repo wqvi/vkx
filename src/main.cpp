@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
 
 		commandSubmitter.recordPrimaryDrawCommands(chunkBegin, chunkDrawCommandAmount, chunkDrawInfo);
 
-		commandSubmitter.submitDrawCommands(reinterpret_cast<const VkCommandBuffer*>(begin), drawCommandAmount, syncObject);
+		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
 		result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
 

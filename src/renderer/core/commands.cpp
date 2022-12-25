@@ -246,23 +246,19 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 	}
 }
 
-void vkx::CommandSubmitter::submitDrawCommands(const VkCommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const {
-	const VkPipelineStageFlags waitStages[1] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const {
+	constexpr std::array<vk::PipelineStageFlags, 1> waitStages{vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
-	const VkSubmitInfo submitInfo{
-	    VK_STRUCTURE_TYPE_SUBMIT_INFO,
-	    nullptr,
+	const vk::SubmitInfo submitInfo{
 	    1,
-	    &syncObjects.imageAvailableSemaphore,
-	    waitStages,
+	    reinterpret_cast<const vk::Semaphore*>(&syncObjects.imageAvailableSemaphore),
+	    waitStages.data(),
 	    size,
 	    begin,
 	    1,
-	    &syncObjects.renderFinishedSemaphore};
+	    reinterpret_cast<const vk::Semaphore*>(&syncObjects.renderFinishedSemaphore)};
 
-	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, syncObjects.inFlightFence) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to submit draw commands");
-	}
+	graphicsQueue.submit(submitInfo, syncObjects.inFlightFence);
 }
 
 VkResult vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
