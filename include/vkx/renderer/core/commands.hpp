@@ -26,7 +26,7 @@ private:
 public:
 	CommandSubmitter() = default;
 
-	explicit CommandSubmitter(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface);
+	explicit CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface);
 
 	void submitImmediately(const std::function<void(VkCommandBuffer)>& command) const;
 
