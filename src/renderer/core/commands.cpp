@@ -15,33 +15,20 @@ vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::D
 }
 
 void vkx::CommandSubmitter::submitImmediately(const std::function<void(VkCommandBuffer)>& command) const {
-	const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
-	    VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-	    nullptr,
+	const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
 	    commandPool,
-	    VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+	    vk::CommandBufferLevel::ePrimary,
 	    1};
 
-	VkCommandBuffer commandBuffer;
-	if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocate command buffer");
-	}
+	const auto commandBuffer = std::move(device.allocateCommandBuffersUnique(commandBufferAllocateInfo)[0]);
 
-	const VkCommandBufferBeginInfo commandBufferBeginInfo{
-	    VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-	    nullptr,
-	    VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-	    nullptr};
+	const vk::CommandBufferBeginInfo commandBufferBeginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
 
-	if (vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to begin command buffer");
-	}
+	commandBuffer->begin(commandBufferBeginInfo);
 
-	command(commandBuffer);
+	command(*commandBuffer);
 
-	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to end command buffer");
-	}
+	commandBuffer->end();
 
 	const VkSubmitInfo submitInfo{
 	    VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -50,13 +37,13 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(VkCommand
 	    nullptr,
 	    nullptr,
 	    1,
-	    &commandBuffer,
+	    reinterpret_cast<const VkCommandBuffer*>(&*commandBuffer),
 	    0,
 	    nullptr};
 
 	vkQueueSubmit(graphicsQueue, 1, &submitInfo, nullptr);
 	vkQueueWaitIdle(graphicsQueue);
-	vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+	//vkFreeCommandBuffers(device, commandPool, 1, reinterpret_cast<const VkCommandBuffer*>(&commandBuffer));
 }
 
 void vkx::CommandSubmitter::copyBufferToImage(VkBuffer buffer, VkImage image, std::uint32_t width, std::uint32_t height) const {
