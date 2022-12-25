@@ -36,6 +36,8 @@ public:
 
 	void generateTerrain();
 
+	void generateTestBox();
+
 	void generateMesh(vkx::Mesh& mesh);
 
 	[[nodiscard]] vkx::Voxel at(std::size_t i) const;

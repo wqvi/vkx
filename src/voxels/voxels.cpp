@@ -32,6 +32,18 @@ void vkx::VoxelChunk2D::generateTerrain() {
 	}
 }
 
+void vkx::VoxelChunk2D::generateTestBox() {
+	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
+		for (std::size_t y = 0; y < CHUNK_SIZE; y++) {
+			if (x > CHUNK_SIZE / 2) {
+				voxels[x + y * CHUNK_SIZE] = vkx::Voxel::Stone;
+			} else {
+				voxels[x + y * CHUNK_SIZE] = vkx::Voxel::Dirt;
+			}
+		}
+	}
+}
+
 void vkx::VoxelChunk2D::generateMesh(vkx::Mesh& mesh) {
 	auto vertexIter = mesh.vertices.begin();
 	auto indexIter = mesh.indices.begin();
