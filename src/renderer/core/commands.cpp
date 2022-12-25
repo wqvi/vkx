@@ -107,37 +107,28 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawComma
 	return device.allocateCommandBuffers(commandBufferAllocateInfo);
 }
 
-void vkx::CommandSubmitter::recordPrimaryDrawCommands(const VkCommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
+void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
 	const auto extent = drawInfo.swapchain->extent();
 	const auto framebuffer = (*drawInfo.swapchain)[drawInfo.imageIndex];
 
-	const VkCommandBufferBeginInfo commandBufferBeginInfo{
-	    VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-	    nullptr,
-	    0,
-	    nullptr};
+	const vk::CommandBufferBeginInfo commandBufferBeginInfo{};
 
-	const VkRect2D renderArea{
+	const vk::Rect2D renderArea{
 	    {0, 0},
 	    extent};
 
-	const VkClearColorValue clearColor{0.0f, 0.0f, 0.0f, 1.0f};
-	const VkClearDepthStencilValue clearDepthStencil{1.0f, 0};
+	constexpr std::array clearColor{0.0f, 0.0f, 0.0f, 1.0f};
+	const vk::ClearDepthStencilValue clearDepthStencil{1.0f, 0};
 
-	VkClearValue clearValues[2];
-	clearValues[0].color = clearColor;
-	clearValues[1].depthStencil = clearDepthStencil;
+	const std::vector<vk::ClearValue> clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
-	const VkRenderPassBeginInfo renderPassBeginInfo{
-	    VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-	    nullptr,
+	const vk::RenderPassBeginInfo renderPassBeginInfo{
 	    drawInfo.renderPass,
 	    framebuffer,
 	    renderArea,
-	    2,
 	    clearValues};
 
-	const VkViewport viewport{
+	const vk::Viewport viewport{
 	    0.0f,
 	    0.0f,
 	    static_cast<float>(extent.width),
@@ -147,33 +138,32 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const VkCommandBuffer* beg
 
 	for (std::uint32_t i = 0; i < size; i++) {
 		const auto commandBuffer = begin[i];
-		const auto vertexBuffer = drawInfo.vertexBuffers[i];
-		const auto indexBuffer = drawInfo.indexBuffers[i];
+		const vk::Buffer vertexBuffer = drawInfo.vertexBuffers[i];
+		const vk::Buffer indexBuffer = drawInfo.indexBuffers[i];
 		const auto indexCount = drawInfo.indexCount[i];
 
-		vkResetCommandBuffer(commandBuffer, 0);
-		vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+		commandBuffer.reset();
+		commandBuffer.begin(commandBufferBeginInfo);
 
-		vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawInfo.graphicsPipeline->pipeline);
+		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline->pipeline);
 
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		commandBuffer.setViewport(0, viewport);
 
-		vkCmdSetScissor(commandBuffer, 0, 1, &renderArea);
+		commandBuffer.setScissor(0, renderArea);
 
-		const VkDeviceSize offsets[1] = {0};
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer, offsets);
+		commandBuffer.bindVertexBuffers(0, vertexBuffer, {0});
 
-		vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, drawInfo.graphicsPipeline->pipelineLayout, 0, 1, &drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], 0, nullptr);
+		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, static_cast<vk::PipelineLayout>(drawInfo.graphicsPipeline->pipelineLayout), 0, static_cast<vk::DescriptorSet>(drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame]), {});
 
-		vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
+		commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 
-		vkCmdEndRenderPass(commandBuffer);
+		commandBuffer.endRenderPass();
 
-		vkEndCommandBuffer(commandBuffer);
+		commandBuffer.end();
 	}
 }
 

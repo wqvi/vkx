@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
 
 		const auto* chunkBegin = begin;
 
-		commandSubmitter.recordPrimaryDrawCommands(reinterpret_cast<const VkCommandBuffer*>(chunkBegin), chunkDrawCommandAmount, chunkDrawInfo);
+		commandSubmitter.recordPrimaryDrawCommands(chunkBegin, chunkDrawCommandAmount, chunkDrawInfo);
 
 		commandSubmitter.submitDrawCommands(reinterpret_cast<const VkCommandBuffer*>(begin), drawCommandAmount, syncObject);
 

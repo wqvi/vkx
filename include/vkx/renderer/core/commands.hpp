@@ -59,7 +59,7 @@ public:
 
 	std::vector<vk::CommandBuffer> allocateSecondaryDrawCommands(std::uint32_t amount) const;
 
-	void recordPrimaryDrawCommands(const VkCommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const;
+	void recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const;
 
 	void recordSecondaryDrawCommands(const VkCommandBuffer* begin, std::uint32_t size, const VkCommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const;
 
