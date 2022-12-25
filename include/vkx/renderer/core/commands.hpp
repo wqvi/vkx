@@ -19,7 +19,7 @@ struct DrawInfo {
 class CommandSubmitter {
 private:
 	vk::Device device = nullptr;
-	vk::CommandPool commandPool = nullptr;
+	vk::UniqueCommandPool commandPool;
 	vk::Queue graphicsQueue = nullptr;
 	vk::Queue presentQueue = nullptr;
 
@@ -31,7 +31,7 @@ public:
 	template <class T>
 	void submitImmediately(T command) const {
 		const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
-		    commandPool,
+		    *commandPool,
 		    vk::CommandBufferLevel::ePrimary,
 		    1};
 
@@ -66,7 +66,5 @@ public:
 	void submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const;
 
 	vk::Result presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const;
-
-	void destroy() const;
 };
 } // namespace vkx

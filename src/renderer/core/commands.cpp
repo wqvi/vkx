@@ -11,7 +11,7 @@ vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::D
 
 	const vk::CommandPoolCreateInfo commandPoolCreateInfo{vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex};
 
-	commandPool = device.createCommandPool(commandPoolCreateInfo);
+	commandPool = device.createCommandPoolUnique(commandPoolCreateInfo);
 }
 
 void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
@@ -91,7 +91,7 @@ void vkx::CommandSubmitter::copyBufferToImage(vk::Buffer buffer, vk::Image image
 
 std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::uint32_t amount) const {
 	const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
-	    commandPool,
+	    *commandPool,
 	    vk::CommandBufferLevel::ePrimary,
 	    amount * vkx::MAX_FRAMES_IN_FLIGHT};
 
@@ -100,7 +100,7 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::
 
 std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawCommands(std::uint32_t amount) const {
 	const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
-	    commandPool,
+	    *commandPool,
 	    vk::CommandBufferLevel::eSecondary,
 	    amount * vkx::MAX_FRAMES_IN_FLIGHT};
 
@@ -271,8 +271,4 @@ vk::Result vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain,
 	    nullptr};
 
 	return presentQueue.presentKHR(presentInfo);
-}
-
-void vkx::CommandSubmitter::destroy() const {
-	vkDestroyCommandPool(device, commandPool, nullptr);
 }

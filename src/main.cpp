@@ -213,7 +213,6 @@ int main(int argc, char** argv) {
 	}
 
 	texture.destroy();
-	commandSubmitter.destroy();
 	graphicsPipeline.destroy();
 
 	return EXIT_SUCCESS;
