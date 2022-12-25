@@ -37,7 +37,7 @@ public:
 	VkResult acquireNextImage(VkDevice device, const vkx::SyncObjects& syncObjects, std::uint32_t* imageIndex) const;
 
 	inline VkExtent2D extent() const noexcept {
-		return imageExtent;
+		return static_cast<VkExtent2D>(imageExtent);
 	}
 };
 } // namespace vkx
