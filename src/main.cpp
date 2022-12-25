@@ -33,6 +33,8 @@ auto createShaderBindings() {
 }
 
 int main(int argc, char** argv) {
+	static_assert(false, "Greedy meshing has a problem. There is a quad that has not been completed in mesh two. This suggests the algorithm needs to be looked at.");
+
 	const vkx::Window window{"vkx", 640, 480};
 
 	vkx::Camera camera{0.0f, 0.0f, 0.0f};
