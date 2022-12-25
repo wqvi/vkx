@@ -538,7 +538,7 @@ vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& al
 	    static_cast<vk::PresentModeKHR>(presentMode),
 	    true};
 
-	return vkx::Swapchain{*this, renderPass, allocator, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo), static_cast<vk::Extent2D>(actualExtent), static_cast<vk::Format>(info.surfaceFormat.format), static_cast<vk::Format>(findDepthFormat())};
+	return vkx::Swapchain{*this, renderPass, allocator, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo), static_cast<vk::Extent2D>(actualExtent), static_cast<vk::Format>(info.surfaceFormat.format)};
 }
 
 vkx::CommandSubmitter vkx::VulkanDevice::createCommandSubmitter() const {

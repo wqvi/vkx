@@ -6,12 +6,13 @@ vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device,
 	const vkx::VulkanAllocator& allocator, 
 	vk::UniqueSwapchainKHR&& uniqueSwapchain, 
 	vk::Extent2D extent, 
-	vk::Format imageFormat, 
-	vk::Format depthFormat)
+	vk::Format imageFormat)
     : logicalDevice(static_cast<VkDevice>(device)),
       swapchain(std::move(uniqueSwapchain)),
       imageExtent(extent) {
 	const auto images = logicalDevice.getSwapchainImagesKHR(*swapchain);
+
+	const auto depthFormat = static_cast<vk::Format>(device.findDepthFormat());
 
 	imageViews.reserve(images.size());
 	for (const auto image : images) {

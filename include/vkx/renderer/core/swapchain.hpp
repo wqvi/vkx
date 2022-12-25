@@ -29,8 +29,7 @@ public:
 		const vkx::VulkanAllocator& allocator, 
 		vk::UniqueSwapchainKHR&& uniqueSwapchain, 
 		vk::Extent2D extent, 
-		vk::Format imageFormat, 
-		vk::Format depthFormat);
+		vk::Format imageFormat);
 
 	inline VkFramebuffer operator[](std::size_t index) const noexcept {
 		return *framebuffers[index];
