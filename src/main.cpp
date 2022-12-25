@@ -83,8 +83,8 @@ int main(int argc, char** argv) {
 	chunks.emplace_back(glm::vec2{0.0f, 0.0f});
 	chunks.emplace_back(glm::vec2{1.0f, 0.0f});
 
-	chunks[0].generateTerrain();
-	chunks[1].generateTerrain();
+	chunks[0].generateTestBox();
+	chunks[1].generateTestBox();
 
 	std::vector<vkx::Mesh> meshes{};
 	meshes.reserve(2);
