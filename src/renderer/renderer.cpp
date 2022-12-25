@@ -453,19 +453,19 @@ vkx::VulkanAllocator vkx::VulkanDevice::createAllocator() const {
 	return vkx::VulkanAllocator{instance, physicalDevice, *logicalDevice};
 }
 
-VkFormat vkx::VulkanDevice::findSupportedFormat(VkImageTiling tiling, VkFormatFeatureFlags features, const std::vector<VkFormat>& candidates) const {
+vk::Format vkx::VulkanDevice::findSupportedFormat(vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates) const {
 	for (const auto format : candidates) {
-		const auto formatProps = vkx::getObject<VkFormatProperties>(vkGetPhysicalDeviceFormatProperties, physicalDevice, format);
+		const auto formatProps = physicalDevice.getFormatProperties(format);
 
-		const bool isLinear = tiling == VK_IMAGE_TILING_LINEAR && (formatProps.linearTilingFeatures & features) == features;
-		const bool isOptimal = tiling == VK_IMAGE_TILING_OPTIMAL && (formatProps.optimalTilingFeatures & features) == features;
+		const bool isLinear = tiling == vk::ImageTiling::eLinear && (formatProps.linearTilingFeatures & features) == features;
+		const bool isOptimal = tiling == vk::ImageTiling::eOptimal && (formatProps.optimalTilingFeatures & features) == features;
 
 		if (isLinear || isOptimal) {
 			return format;
 		}
 	}
 
-	return VK_FORMAT_UNDEFINED;
+	return vk::Format::eUndefined;
 }
 
 float vkx::VulkanDevice::getMaxSamplerAnisotropy() const {

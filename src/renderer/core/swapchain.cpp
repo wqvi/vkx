@@ -1,17 +1,17 @@
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device, 
-	const vkx::VulkanRenderPass& renderPass, 
-	const vkx::VulkanAllocator& allocator, 
-	const vkx::SwapchainInfo& swapchainInfo,
-	vk::UniqueSwapchainKHR&& uniqueSwapchain)
+vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device,
+			  const vkx::VulkanRenderPass& renderPass,
+			  const vkx::VulkanAllocator& allocator,
+			  const vkx::SwapchainInfo& swapchainInfo,
+			  vk::UniqueSwapchainKHR&& uniqueSwapchain)
     : logicalDevice(static_cast<VkDevice>(device)),
       swapchain(std::move(uniqueSwapchain)),
       imageExtent(swapchainInfo.actualExtent) {
 	const auto images = logicalDevice.getSwapchainImagesKHR(*swapchain);
 
-	const auto depthFormat = static_cast<vk::Format>(device.findDepthFormat());
+	const auto depthFormat = device.findDepthFormat();
 
 	imageViews.reserve(images.size());
 	for (const auto image : images) {
