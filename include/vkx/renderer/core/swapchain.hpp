@@ -26,10 +26,9 @@ public:
 
 	explicit Swapchain(const vkx::VulkanDevice& device, 
 		const vkx::VulkanRenderPass& renderPass, 
-		const vkx::VulkanAllocator& allocator, 
-		vk::UniqueSwapchainKHR&& uniqueSwapchain, 
-		vk::Extent2D extent, 
-		vk::Format imageFormat);
+		const vkx::VulkanAllocator& allocator,
+		const vkx::SwapchainInfo& swapchainInfo,
+		vk::UniqueSwapchainKHR&& uniqueSwapchain);
 
 	inline VkFramebuffer operator[](std::size_t index) const noexcept {
 		return *framebuffers[index];

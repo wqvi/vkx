@@ -4,19 +4,18 @@
 vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device, 
 	const vkx::VulkanRenderPass& renderPass, 
 	const vkx::VulkanAllocator& allocator, 
-	vk::UniqueSwapchainKHR&& uniqueSwapchain, 
-	vk::Extent2D extent, 
-	vk::Format imageFormat)
+	const vkx::SwapchainInfo& swapchainInfo,
+	vk::UniqueSwapchainKHR&& uniqueSwapchain)
     : logicalDevice(static_cast<VkDevice>(device)),
       swapchain(std::move(uniqueSwapchain)),
-      imageExtent(extent) {
+      imageExtent(swapchainInfo.actualExtent) {
 	const auto images = logicalDevice.getSwapchainImagesKHR(*swapchain);
 
 	const auto depthFormat = static_cast<vk::Format>(device.findDepthFormat());
 
 	imageViews.reserve(images.size());
 	for (const auto image : images) {
-		imageViews.emplace_back(device.createImageView(image, imageFormat, vk::ImageAspectFlagBits::eColor));
+		imageViews.emplace_back(device.createImageView(image, swapchainInfo.surfaceFormat, vk::ImageAspectFlagBits::eColor));
 	}
 
 	depthImage = allocator.allocateImage(imageExtent, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);

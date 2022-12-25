@@ -534,7 +534,7 @@ vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& al
 	    info.presentMode,
 	    true};
 
-	return vkx::Swapchain{*this, renderPass, allocator, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo), info.actualExtent, info.surfaceFormat};
+	return vkx::Swapchain{*this, renderPass, allocator, info, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo)};
 }
 
 vkx::CommandSubmitter vkx::VulkanDevice::createCommandSubmitter() const {
