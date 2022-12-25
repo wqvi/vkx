@@ -15,11 +15,11 @@ vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device,
 
 	imageViews.reserve(images.size());
 	for (const auto image : images) {
-		imageViews.emplace_back(device.createImageView(image, static_cast<vk::Format>(imageFormat), vk::ImageAspectFlagBits::eColor));
+		imageViews.emplace_back(device.createImageView(image, imageFormat, vk::ImageAspectFlagBits::eColor));
 	}
 
-	depthImage = allocator.allocateImage(imageExtent, static_cast<vk::Format>(depthFormat), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
-	depthImageView = depthImage.createView(static_cast<vk::Format>(depthFormat), vk::ImageAspectFlagBits::eDepth);
+	depthImage = allocator.allocateImage(imageExtent, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+	depthImageView = depthImage.createView(depthFormat, vk::ImageAspectFlagBits::eDepth);
 	framebuffers.reserve(imageViews.size());
 
 	for (const auto& imageView : imageViews) {
