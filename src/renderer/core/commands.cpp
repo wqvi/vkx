@@ -22,42 +22,40 @@ void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayo
 	    0,
 	    1};
 
-	VkAccessFlags srcAccessMask;
-	VkAccessFlags dstAccessMask;
+	vk::AccessFlags srcAccessMask;
+	vk::AccessFlags dstAccessMask;
 
-	VkPipelineStageFlags sourceStage;
-	VkPipelineStageFlags destinationStage;
+	vk::PipelineStageFlags sourceStage;
+	vk::PipelineStageFlags destinationStage;
 
 	if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
-		srcAccessMask = 0;
-		dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		srcAccessMask = {};
+		dstAccessMask = vk::AccessFlagBits::eTransferWrite;
 
-		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
+		destinationStage = vk::PipelineStageFlagBits::eTransfer;
 	} else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
-		srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		sourceStage = vk::PipelineStageFlagBits::eTransfer;
+		destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
 	} else {
 		throw std::invalid_argument("Unsupported layout transition.");
 	}
 
-	const VkImageMemoryBarrier barrier{
-	    VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-	    nullptr,
+	const vk::ImageMemoryBarrier barrier{
 	    srcAccessMask,
 	    dstAccessMask,
-	    static_cast<VkImageLayout>(oldLayout),
-	    static_cast<VkImageLayout>(newLayout),
+	    oldLayout,
+	    newLayout,
 	    VK_QUEUE_FAMILY_IGNORED,
 	    VK_QUEUE_FAMILY_IGNORED,
 	    image,
-	    static_cast<VkImageSubresourceRange>(subresourceRange)};
+	    subresourceRange};
 
 	submitImmediately([&sourceStage, &destinationStage, &barrier](auto commandBuffer) {
-		vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		commandBuffer.pipelineBarrier(sourceStage, destinationStage, {}, {}, {}, barrier);
 	});
 }
 
