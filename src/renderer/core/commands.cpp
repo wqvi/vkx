@@ -30,20 +30,10 @@ void vkx::CommandSubmitter::submitImmediately(const std::function<void(VkCommand
 
 	commandBuffer->end();
 
-	const VkSubmitInfo submitInfo{
-	    VK_STRUCTURE_TYPE_SUBMIT_INFO,
-	    nullptr,
-	    0,
-	    nullptr,
-	    nullptr,
-	    1,
-	    reinterpret_cast<const VkCommandBuffer*>(&*commandBuffer),
-	    0,
-	    nullptr};
+	const vk::SubmitInfo submitInfo{{}, {}, *commandBuffer};
 
-	vkQueueSubmit(graphicsQueue, 1, &submitInfo, nullptr);
-	vkQueueWaitIdle(graphicsQueue);
-	//vkFreeCommandBuffers(device, commandPool, 1, reinterpret_cast<const VkCommandBuffer*>(&commandBuffer));
+	graphicsQueue.submit(submitInfo);
+	graphicsQueue.waitIdle();
 }
 
 void vkx::CommandSubmitter::copyBufferToImage(VkBuffer buffer, VkImage image, std::uint32_t width, std::uint32_t height) const {
