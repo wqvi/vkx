@@ -14,61 +14,9 @@ vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::D
 	commandPool = device.createCommandPool(commandPoolCreateInfo);
 }
 
-void vkx::CommandSubmitter::submitImmediately(const std::function<void(VkCommandBuffer)>& command) const {
-	const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
-	    commandPool,
-	    vk::CommandBufferLevel::ePrimary,
-	    1};
-
-	const auto commandBuffer = std::move(device.allocateCommandBuffersUnique(commandBufferAllocateInfo)[0]);
-
-	const vk::CommandBufferBeginInfo commandBufferBeginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
-
-	commandBuffer->begin(commandBufferBeginInfo);
-
-	command(*commandBuffer);
-
-	commandBuffer->end();
-
-	const vk::SubmitInfo submitInfo{{}, {}, *commandBuffer};
-
-	graphicsQueue.submit(submitInfo);
-	graphicsQueue.waitIdle();
-}
-
-void vkx::CommandSubmitter::copyBufferToImage(VkBuffer buffer, VkImage image, std::uint32_t width, std::uint32_t height) const {
-	const VkImageSubresourceLayers subresourceLayer{
-	    VK_IMAGE_ASPECT_COLOR_BIT,
-	    0,
-	    0,
-	    1};
-
-	const VkOffset3D imageOffset{
-	    0,
-	    0,
-	    0};
-
-	const VkExtent3D imageExtent{
-	    width,
-	    height,
-	    1};
-
-	const VkBufferImageCopy region{
-	    0,
-	    0,
-	    0,
-	    subresourceLayer,
-	    imageOffset,
-	    imageExtent};
-
-	submitImmediately([&buffer, &image, &region](auto commandBuffer) {
-		vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-	});
-}
-
-void vkx::CommandSubmitter::transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout) const {
-	const VkImageSubresourceRange subresourceRange{
-	    VK_IMAGE_ASPECT_COLOR_BIT,
+void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
+	const vk::ImageSubresourceRange subresourceRange{
+	    vk::ImageAspectFlagBits::eColor,
 	    0,
 	    1,
 	    0,
@@ -80,13 +28,13 @@ void vkx::CommandSubmitter::transitionImageLayout(VkImage image, VkImageLayout o
 	VkPipelineStageFlags sourceStage;
 	VkPipelineStageFlags destinationStage;
 
-	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+	if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
 		srcAccessMask = 0;
 		dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
 		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-	} else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+	} else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
 		srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
@@ -101,15 +49,45 @@ void vkx::CommandSubmitter::transitionImageLayout(VkImage image, VkImageLayout o
 	    nullptr,
 	    srcAccessMask,
 	    dstAccessMask,
-	    oldLayout,
-	    newLayout,
+	    static_cast<VkImageLayout>(oldLayout),
+	    static_cast<VkImageLayout>(newLayout),
 	    VK_QUEUE_FAMILY_IGNORED,
 	    VK_QUEUE_FAMILY_IGNORED,
 	    image,
-	    subresourceRange};
+	    static_cast<VkImageSubresourceRange>(subresourceRange)};
 
 	submitImmediately([&sourceStage, &destinationStage, &barrier](auto commandBuffer) {
 		vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+	});
+}
+
+void vkx::CommandSubmitter::copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const {
+	const vk::ImageSubresourceLayers subresourceLayer{
+	    vk::ImageAspectFlagBits::eColor,
+	    0,
+	    0,
+	    1};
+
+	const vk::Offset3D imageOffset{
+	    0,
+	    0,
+	    0};
+
+	const vk::Extent3D imageExtent{
+	    width,
+	    height,
+	    1};
+
+	const vk::BufferImageCopy region{
+	    0,
+	    0,
+	    0,
+	    subresourceLayer,
+	    imageOffset,
+	    imageExtent};
+
+	submitImmediately([&buffer, &image, &region](auto commandBuffer) {
+		commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
 	});
 }
 

@@ -28,11 +28,32 @@ public:
 
 	explicit CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface);
 
-	void submitImmediately(const std::function<void(VkCommandBuffer)>& command) const;
+	template <class T>
+	void submitImmediately(T command) const {
+		const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
+		    commandPool,
+		    vk::CommandBufferLevel::ePrimary,
+		    1};
 
-	void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout) const;
+		const auto commandBuffer = std::move(device.allocateCommandBuffersUnique(commandBufferAllocateInfo)[0]);
 
-	void copyBufferToImage(VkBuffer buffer, VkImage image, std::uint32_t width, std::uint32_t height) const;
+		const vk::CommandBufferBeginInfo commandBufferBeginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
+
+		commandBuffer->begin(commandBufferBeginInfo);
+
+		command(*commandBuffer);
+
+		commandBuffer->end();
+
+		const vk::SubmitInfo submitInfo{{}, {}, *commandBuffer};
+
+		graphicsQueue.submit(submitInfo);
+		graphicsQueue.waitIdle();
+	}
+
+	void transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const;
+
+	void copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const;
 
 	std::vector<VkCommandBuffer> allocateDrawCommands(std::uint32_t amount) const;
 
