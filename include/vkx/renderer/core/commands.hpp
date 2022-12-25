@@ -18,10 +18,10 @@ struct DrawInfo {
 
 class CommandSubmitter {
 private:
-	VkDevice device = nullptr;
-	VkCommandPool commandPool = nullptr;
-	VkQueue graphicsQueue = nullptr;
-	VkQueue presentQueue = nullptr;
+	vk::Device device = nullptr;
+	vk::CommandPool commandPool = nullptr;
+	vk::Queue graphicsQueue = nullptr;
+	vk::Queue presentQueue = nullptr;
 
 public:
 	CommandSubmitter() = default;
