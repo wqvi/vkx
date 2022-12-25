@@ -4,13 +4,13 @@
 
 namespace vkx {
 struct SwapchainInfo {
-	VkSurfaceCapabilitiesKHR capabilities{};
-	VkSurfaceFormatKHR surfaceFormat{};
-	VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+	vk::SurfaceTransformFlagBitsKHR currentTransform{};
+	vk::Format surfaceFormat{};
+	vk::ColorSpaceKHR surfaceColorSpace{};
+	vk::PresentModeKHR presentMode = vk::PresentModeKHR::eFifo;
 	std::uint32_t imageCount = 0;
+	vk::Extent2D actualExtent{};
 
-	explicit SwapchainInfo(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
-
-	[[nodiscard]] VkExtent2D chooseExtent(std::uint32_t width, std::uint32_t height) const;
+	explicit SwapchainInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, const vkx::Window& window);
 };
 } // namespace vkx

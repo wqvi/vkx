@@ -1,57 +1,45 @@
 #include <vkx/renderer/core/swapchain_info.hpp>
 #include <vkx/renderer/renderer.hpp>
+#include <vkx/window.hpp>
 
-vkx::SwapchainInfo::SwapchainInfo(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
-	const auto predicate = [](VkResult result) {
-		return result != VK_SUCCESS;
-	};
+vkx::SwapchainInfo::SwapchainInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, const vkx::Window& window) {
+	const auto formats = physicalDevice.getSurfaceFormatsKHR(surface);
 
-	capabilities = vkx::getObject<VkSurfaceCapabilitiesKHR>(
-	    "Failed to get physical device surface capabilites.",
-	    vkGetPhysicalDeviceSurfaceCapabilitiesKHR,
-	    predicate,
-	    physicalDevice, surface);
-
-	const auto formats = vkx::getArray<VkSurfaceFormatKHR>(
-	    "Failed to get physcial device surface formats.",
-	    vkGetPhysicalDeviceSurfaceFormatsKHR,
-	    predicate,
-	    physicalDevice, surface);
-
-	const auto presentModes = vkx::getArray<VkPresentModeKHR>(
-	    "Failed to get physical device surface present modes.",
-	    vkGetPhysicalDeviceSurfacePresentModesKHR,
-	    predicate,
-	    physicalDevice, surface);
-
-	surfaceFormat = formats[0];
-	for (const auto& format : formats) {
-		if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-			surfaceFormat = format;
+	surfaceFormat = formats[0].format;
+	surfaceColorSpace = formats[0].colorSpace;
+	for (auto format : formats) {
+		if (format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
+			surfaceFormat = format.format;
+			surfaceColorSpace = format.colorSpace;
 		}
 	}
 
+	const auto presentModes = physicalDevice.getSurfacePresentModesKHR(surface);
+
 	for (const auto mode : presentModes) {
-		if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
+		if (mode == vk::PresentModeKHR::eMailbox) {
 			presentMode = mode;
 		}
 	}
+
+	const auto capabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
 
 	imageCount = capabilities.minImageCount + 1;
 	if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
 		imageCount = capabilities.maxImageCount;
 	}
-}
 
-VkExtent2D vkx::SwapchainInfo::chooseExtent(std::uint32_t width, std::uint32_t height) const {
+	currentTransform = capabilities.currentTransform;
+
 	if (capabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max()) {
-		return capabilities.currentExtent;
+		actualExtent = capabilities.currentExtent;
+	} else {
+		const auto [width, height] = window.getDimensions();
+
+		actualExtent = vk::Extent2D{static_cast<std::uint32_t>(width),
+					    static_cast<std::uint32_t>(height)};
+
+		actualExtent.width = glm::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+		actualExtent.height = glm::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 	}
-
-	VkExtent2D extent{width, height};
-
-	extent.width = glm::clamp(extent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-	extent.height = glm::clamp(extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-
-	return extent;
 }

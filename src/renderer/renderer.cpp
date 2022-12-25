@@ -479,8 +479,8 @@ vkx::QueueConfig vkx::VulkanDevice::getQueueConfig() const {
 	return vkx::QueueConfig{physicalDevice, surface};
 }
 
-vkx::SwapchainInfo vkx::VulkanDevice::getSwapchainInfo() const {
-	return vkx::SwapchainInfo{physicalDevice, surface};
+vkx::SwapchainInfo vkx::VulkanDevice::getSwapchainInfo(const vkx::Window& window) const {
+	return vkx::SwapchainInfo{physicalDevice, surface, window};
 }
 
 vkx::VulkanRenderPass vkx::VulkanDevice::createRenderPass(vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) const {
@@ -511,34 +511,30 @@ float vkx::VulkanDevice::getMaxSamplerAnisotropy() const {
 }
 
 vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& allocator, const vkx::VulkanRenderPass& renderPass, const vkx::Window& window) const {
-	const auto info = getSwapchainInfo();
+	const auto info = getSwapchainInfo(window);
 	const auto config = getQueueConfig();
 
 	const auto [width, height] = window.getDimensions();
 
-	const auto surfaceFormat = info.surfaceFormat;
-	const auto presentMode = info.presentMode;
-	const auto actualExtent = info.chooseExtent(width, height);
-	const auto imageCount = info.imageCount;
 	const auto imageSharingMode = config.getImageSharingMode();
 
 	const vk::SwapchainCreateInfoKHR swapchainCreateInfo{
 	    {},
 	    surface,
-	    imageCount,
-	    static_cast<vk::Format>(surfaceFormat.format),
-	    static_cast<vk::ColorSpaceKHR>(surfaceFormat.colorSpace),
-	    static_cast<vk::Extent2D>(actualExtent),
+	    info.imageCount,
+	    info.surfaceFormat,
+	    info.surfaceColorSpace,
+	    info.actualExtent,
 	    1,
 	    vk::ImageUsageFlagBits::eColorAttachment,
 	    imageSharingMode,
 	    config.indices,
-	    static_cast<vk::SurfaceTransformFlagBitsKHR>(info.capabilities.currentTransform),
+	    info.currentTransform,
 	    vk::CompositeAlphaFlagBitsKHR::eOpaque,
-	    static_cast<vk::PresentModeKHR>(presentMode),
+	    info.presentMode,
 	    true};
 
-	return vkx::Swapchain{*this, renderPass, allocator, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo), static_cast<vk::Extent2D>(actualExtent), static_cast<vk::Format>(info.surfaceFormat.format)};
+	return vkx::Swapchain{*this, renderPass, allocator, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo), info.actualExtent, info.surfaceFormat};
 }
 
 vkx::CommandSubmitter vkx::VulkanDevice::createCommandSubmitter() const {

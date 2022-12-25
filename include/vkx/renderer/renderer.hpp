@@ -272,7 +272,7 @@ public:
 
 	[[nodiscard]] vkx::QueueConfig getQueueConfig() const;
 
-	[[nodiscard]] vkx::SwapchainInfo getSwapchainInfo() const;
+	[[nodiscard]] vkx::SwapchainInfo getSwapchainInfo(const vkx::Window& window) const;
 
 	[[nodiscard]] vkx::VulkanRenderPass createRenderPass(vk::Format colorFormat,
 							     vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear,

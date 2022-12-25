@@ -1,6 +1,8 @@
 #pragma once
 
 namespace vkx {
+class Window;
+
 struct Vertex;
 
 class Image;

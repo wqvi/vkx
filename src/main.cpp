@@ -45,10 +45,10 @@ int main(int argc, char** argv) {
 	vkx::VulkanAllocator allocator;
 	allocator = vulkanDevice.createAllocator();
 	
-	const auto swapchainInfo = vulkanDevice.getSwapchainInfo();
+	const auto swapchainInfo = vulkanDevice.getSwapchainInfo(window);
 	
 	vkx::VulkanRenderPass clearRenderPass;
-	clearRenderPass = vulkanDevice.createRenderPass(static_cast<vk::Format>(swapchainInfo.surfaceFormat.format), vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
+	clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
 	
 	vkx::Swapchain swapchain;
 	swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
