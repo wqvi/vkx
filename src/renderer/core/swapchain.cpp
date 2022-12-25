@@ -1,15 +1,20 @@
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/renderer.hpp>
 
-vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device, const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, vk::UniqueSwapchainKHR&& uniqueSwapchain, VkExtent2D extent, VkFormat imageFormat, VkFormat depthFormat)
+vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device, 
+	const vkx::VulkanRenderPass& renderPass, 
+	const vkx::VulkanAllocator& allocator, 
+	vk::UniqueSwapchainKHR&& uniqueSwapchain, 
+	vk::Extent2D extent, 
+	vk::Format imageFormat, 
+	vk::Format depthFormat)
     : logicalDevice(static_cast<VkDevice>(device)),
-      allocator(allocator),
       swapchain(std::move(uniqueSwapchain)),
       imageExtent(extent) {
 	const auto images = logicalDevice.getSwapchainImagesKHR(*swapchain);
 
 	imageViews.reserve(images.size());
-	for (const vk::Image image : images) {
+	for (const auto image : images) {
 		imageViews.emplace_back(device.createImageView(image, static_cast<vk::Format>(imageFormat), vk::ImageAspectFlagBits::eColor));
 	}
 
@@ -17,8 +22,8 @@ vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device, const vkx::VulkanRend
 	depthImageView = depthImage.createView(static_cast<vk::Format>(depthFormat), vk::ImageAspectFlagBits::eDepth);
 	framebuffers.reserve(imageViews.size());
 
-	for (std::size_t i = 0; i < imageViews.size(); i++) {
-		const std::array framebufferAttachments = {*imageViews[i], *depthImageView};
+	for (const auto& imageView : imageViews) {
+		const std::array framebufferAttachments = {*imageView, *depthImageView};
 
 		const vk::FramebufferCreateInfo framebufferCreateInfo{
 		    {},
