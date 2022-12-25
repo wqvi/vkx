@@ -171,7 +171,7 @@ int main(int argc, char** argv) {
 
 		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
-		result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
+		result = static_cast<VkResult>(commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject));
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
 			framebufferResized = false;

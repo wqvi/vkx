@@ -261,18 +261,16 @@ void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, s
 	graphicsQueue.submit(submitInfo, syncObjects.inFlightFence);
 }
 
-VkResult vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
-	const VkPresentInfoKHR presentInfo{
-	    VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-	    nullptr,
+vk::Result vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
+	const vk::PresentInfoKHR presentInfo{
 	    1,
-	    &syncObjects.renderFinishedSemaphore,
+	    reinterpret_cast<const vk::Semaphore*>(&syncObjects.renderFinishedSemaphore),
 	    1,
-	    reinterpret_cast<const VkSwapchainKHR*>(&*swapchain.swapchain),
+		&*swapchain.swapchain,
 	    &imageIndex,
 	    nullptr};
 
-	return vkQueuePresentKHR(presentQueue, &presentInfo);
+	return presentQueue.presentKHR(presentInfo);
 }
 
 void vkx::CommandSubmitter::destroy() const {
