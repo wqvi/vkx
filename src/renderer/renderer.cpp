@@ -504,7 +504,7 @@ vkx::CommandSubmitter vkx::VulkanDevice::createCommandSubmitter() const {
 }
 
 vkx::GraphicsPipeline vkx::VulkanDevice::createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& information) const {
-	return vkx::GraphicsPipeline{*logicalDevice, static_cast<VkRenderPass>(renderPass), static_cast<VmaAllocator>(allocator), information};
+	return vkx::GraphicsPipeline{*logicalDevice, static_cast<VkRenderPass>(renderPass), allocator, information};
 }
 
 void vkx::VulkanDevice::waitIdle() const {

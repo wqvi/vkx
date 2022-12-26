@@ -30,7 +30,7 @@ private:
 public:
 	GraphicsPipeline() = default;
 
-	GraphicsPipeline(VkDevice device, VkRenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info);
+	explicit GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& info);
 
 	const std::vector<UniformBuffer>& getUniformByIndex(std::size_t i) const;
 

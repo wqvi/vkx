@@ -3,7 +3,7 @@
 #include <vkx/renderer/renderer.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, VkRenderPass renderPass, VmaAllocator allocator, const GraphicsPipelineInformation& info)
+vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& info)
     : device(device) {
 	const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
 	    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -53,7 +53,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(VkDevice device, VkRenderPass renderPass
 	}
 
 	for (std::size_t size : info.uniformSizes) {
-		uniforms.push_back(vkx::allocateUniformBuffers(allocator, size));
+		uniforms.push_back(vkx::allocateUniformBuffers(static_cast<VmaAllocator>(allocator), size));
 	}
 
 	for (std::uint32_t i = 0; i < vkx::MAX_FRAMES_IN_FLIGHT; i++) {

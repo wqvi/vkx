@@ -32,4 +32,6 @@ class Model;
 struct SyncObjects;
 
 class Buffer;
+
+class VulkanAllocator;
 } // namespace vkx
