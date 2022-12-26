@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 	    {&texture}};
 	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
 
-	constexpr std::uint32_t chunkDrawCommandAmount = 2;
+	constexpr std::uint32_t chunkDrawCommandAmount = 4;
 
 	constexpr std::uint32_t drawCommandAmount = 1;
 	constexpr std::uint32_t secondaryDrawCommandAmount = chunkDrawCommandAmount;
@@ -79,20 +79,28 @@ int main(int argc, char** argv) {
 	const auto syncObjects = vkx::createSyncObjects(static_cast<VkDevice>(vulkanDevice));
 
 	std::vector<vkx::VoxelChunk2D> chunks{};
-	chunks.reserve(2);
+	chunks.reserve(4);
 	chunks.emplace_back(glm::vec2{0.0f, 0.0f});
 	chunks.emplace_back(glm::vec2{1.0f, 0.0f});
+	chunks.emplace_back(glm::vec2{1.0f, 1.0f});
+	chunks.emplace_back(glm::vec2{0.0f, 1.0f});
 
 	chunks[0].generateTerrain();
 	chunks[1].generateTerrain();
+	chunks[2].generateTerrain();
+	chunks[3].generateTerrain();
 
 	std::vector<vkx::Mesh> meshes{};
-	meshes.reserve(2);
+	meshes.reserve(4);
+	meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
+	meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
 	meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
 	meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
 
 	chunks[0].generateMesh(meshes[0]);
 	chunks[1].generateMesh(meshes[1]);
+	chunks[2].generateMesh(meshes[2]);
+	chunks[3].generateMesh(meshes[3]);
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
@@ -174,9 +182,9 @@ int main(int argc, char** argv) {
 		    &swapchain,
 		    &graphicsPipeline,
 		    static_cast<VkRenderPass>(clearRenderPass),
-		    {static_cast<VkBuffer>(meshes[0].vertexBuffer), static_cast<VkBuffer>(meshes[1].vertexBuffer)},
-		    {static_cast<VkBuffer>(meshes[0].indexBuffer), static_cast<VkBuffer>(meshes[1].indexBuffer)},
-		    {static_cast<std::uint32_t>(meshes[0].activeIndexCount), static_cast<std::uint32_t>(meshes[1].activeIndexCount)}};
+		    {static_cast<VkBuffer>(meshes[0].vertexBuffer), static_cast<VkBuffer>(meshes[1].vertexBuffer), static_cast<VkBuffer>(meshes[2].vertexBuffer), static_cast<VkBuffer>(meshes[3].vertexBuffer)},
+		    {static_cast<VkBuffer>(meshes[0].indexBuffer), static_cast<VkBuffer>(meshes[1].indexBuffer), static_cast<VkBuffer>(meshes[2].indexBuffer), static_cast<VkBuffer>(meshes[3].indexBuffer)},
+		    {static_cast<std::uint32_t>(meshes[0].activeIndexCount), static_cast<std::uint32_t>(meshes[1].activeIndexCount), static_cast<std::uint32_t>(meshes[2].activeIndexCount), static_cast<std::uint32_t>(meshes[3].activeIndexCount)}};
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 		const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
