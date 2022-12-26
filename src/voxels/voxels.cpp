@@ -54,8 +54,6 @@ void vkx::VoxelChunk2D::generateMesh(vkx::Mesh& mesh) {
 		voxelMask[i] = vkx::VoxelMask{voxels[i], voxels[i] != vkx::Voxel::Air};
 	}
 
-	static_assert(false, "Work on me");
-
 	auto n = 0;
 	for (auto y = 0; y < CHUNK_SIZE; y++) {
 		for (auto x = 0; x < CHUNK_SIZE;) {
@@ -100,7 +98,7 @@ void vkx::VoxelChunk2D::generateMesh(vkx::Mesh& mesh) {
 		}
 	}
 
-	mesh.activeIndexCount = vertexCount;
+	mesh.activeIndexCount = std::distance(mesh.indices.begin(), indexIter);
 	mesh.vertexBuffer.mapMemory(mesh.vertices.data());
 	mesh.indexBuffer.mapMemory(mesh.indices.data());
 }
