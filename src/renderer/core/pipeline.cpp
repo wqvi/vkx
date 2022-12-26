@@ -5,16 +5,12 @@
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& info)
     : device(device) {
-	const VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
-	    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-	    nullptr,
-	    0,
+	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
+	    {},
 	    static_cast<std::uint32_t>(info.bindings.size()),
-	    reinterpret_cast<const VkDescriptorSetLayoutBinding*>(info.bindings.data())};
+	    reinterpret_cast<const vk::DescriptorSetLayoutBinding*>(info.bindings.data())};
 
-	if (vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorLayout) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create descriptor set layout.");
-	}
+	descriptorLayout = device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
 
 	pipelineLayout = createPipelineLayout(device, descriptorLayout);
 
