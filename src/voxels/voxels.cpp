@@ -1,5 +1,9 @@
 #include <vkx/voxels/voxels.hpp>
 
+vkx::VoxelMask::VoxelMask(Voxel voxel, std::int32_t normal) 
+	: voxel(voxel), normal(normal) {
+}
+
 bool vkx::VoxelMask::operator==(const vkx::VoxelMask& other) const {
 	return voxel == other.voxel && normal == other.normal;
 }
@@ -49,9 +53,10 @@ void vkx::VoxelChunk2D::generateMesh(vkx::Mesh& mesh) {
 	auto indexIter = mesh.indices.begin();
 	vertexCount = 0;
 
-	std::vector<vkx::VoxelMask> voxelMask{CHUNK_SIZE * CHUNK_SIZE};
+	std::vector<vkx::VoxelMask> voxelMask{};
+	voxelMask.reserve(CHUNK_SIZE * CHUNK_SIZE);
 	for (auto i = 0; i < CHUNK_SIZE * CHUNK_SIZE; i++) {
-		voxelMask[i] = vkx::VoxelMask{voxels[i], voxels[i] != vkx::Voxel::Air};
+		voxelMask.emplace_back(voxels[i], voxels[i] != vkx::Voxel::Air);
 	}
 
 	auto n = 0;

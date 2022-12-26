@@ -14,6 +14,10 @@ struct VoxelMask {
 	Voxel voxel = Voxel::Air;
 	std::int32_t normal = 0;
 
+	VoxelMask() = default;
+
+	explicit VoxelMask(Voxel voxel, std::int32_t normal);
+
 	bool operator==(const VoxelMask& other) const;
 
 	bool operator!=(const VoxelMask& other) const;
