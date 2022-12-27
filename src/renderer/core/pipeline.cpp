@@ -128,11 +128,9 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    static_cast<std::uint32_t>(info.attributeDescriptions.size()),
 	    reinterpret_cast<const vk::VertexInputAttributeDescription*>(info.attributeDescriptions.data())};
 
-	const VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-	    nullptr,
-	    0,
-	    VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+	const vk::PipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{
+	    {},
+	    vk::PrimitiveTopology::eTriangleList,
 	    false};
 
 	const VkPipelineViewportStateCreateInfo viewportStateCreateInfo{
@@ -219,7 +217,7 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    static_cast<std::uint32_t>(shaderStages.size()),
 	    reinterpret_cast<const VkPipelineShaderStageCreateInfo*>(shaderStages.data()),
 	    reinterpret_cast<const VkPipelineVertexInputStateCreateInfo*>(&vertexInputCreateInfo),
-	    &inputAssemblyCreateInfo,
+	    reinterpret_cast<const VkPipelineInputAssemblyStateCreateInfo*>(&inputAssemblyCreateInfo),
 	    nullptr,
 	    &viewportStateCreateInfo,
 	    &rasterizationStateCreateInfo,
