@@ -160,17 +160,16 @@ int main(int argc, char** argv) {
 
 		const auto& syncObject = syncObjects[currentFrame];
 		syncObject.waitForFence();
-		std::uint32_t imageIndex = 0;
-		auto result = swapchain.acquireNextImage(static_cast<VkDevice>(vulkanDevice), syncObject, &imageIndex);
+		auto [result, imageIndex] = swapchain.acquireNextImage(syncObject);
 
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		if (result == vk::Result::eErrorOutOfDateKHR) {
 			window.waitForUpdate();
 
 			vulkanDevice.waitIdle();
 
 			swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 			continue;
-		} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 			throw std::runtime_error("Failed to acquire next image.");
 		}
 
@@ -193,9 +192,9 @@ int main(int argc, char** argv) {
 
 		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
-		result = static_cast<VkResult>(commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject));
+		result = commandSubmitter.presentToSwapchain(swapchain, imageIndex, syncObject);
 
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+		if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 			framebufferResized = false;
 
 			window.waitForUpdate();
@@ -203,7 +202,7 @@ int main(int argc, char** argv) {
 			vulkanDevice.waitIdle();
 
 			swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
-		} else if (result != VK_SUCCESS) {
+		} else if (result != vk::Result::eSuccess) {
 			throw std::runtime_error("Failed to present.");
 		}
 

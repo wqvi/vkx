@@ -34,7 +34,7 @@ public:
 		return *framebuffers[index];
 	}
 
-	VkResult acquireNextImage(VkDevice device, const vkx::SyncObjects& syncObjects, std::uint32_t* imageIndex) const;
+	vk::ResultValue<std::uint32_t> acquireNextImage(const vkx::SyncObjects& syncObjects) const;
 
 	inline VkExtent2D extent() const noexcept {
 		return static_cast<VkExtent2D>(imageExtent);
