@@ -251,20 +251,20 @@ void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, s
 
 	const vk::SubmitInfo submitInfo{
 	    1,
-	    reinterpret_cast<const vk::Semaphore*>(&syncObjects.imageAvailableSemaphore),
+	    &*syncObjects.imageAvailableSemaphore,
 	    waitStages.data(),
 	    size,
 	    begin,
 	    1,
-	    reinterpret_cast<const vk::Semaphore*>(&syncObjects.renderFinishedSemaphore)};
+		&*syncObjects.renderFinishedSemaphore};
 
-	graphicsQueue.submit(submitInfo, syncObjects.inFlightFence);
+	graphicsQueue.submit(submitInfo, *syncObjects.inFlightFence);
 }
 
 vk::Result vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
 	const vk::PresentInfoKHR presentInfo{
 	    1,
-	    reinterpret_cast<const vk::Semaphore*>(&syncObjects.renderFinishedSemaphore),
+	    &*syncObjects.renderFinishedSemaphore,
 	    1,
 		&*swapchain.swapchain,
 	    &imageIndex,

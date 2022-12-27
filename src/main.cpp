@@ -230,10 +230,6 @@ int main(int argc, char** argv) {
 
 	vulkanDevice.waitIdle();
 
-	for (const auto& syncObject : syncObjects) {
-		syncObject.destroy();
-	}
-
 	texture.destroy();
 
 	return EXIT_SUCCESS;
