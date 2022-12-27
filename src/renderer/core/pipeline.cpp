@@ -107,34 +107,26 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	const auto vertShaderModule = createShaderModule(device, info.vertexFile.c_str());
 	const auto fragShaderModule = createShaderModule(device, info.fragmentFile.c_str());
 
-	const VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-	    nullptr,
-	    0,
-	    VK_SHADER_STAGE_VERTEX_BIT,
-	    static_cast<VkShaderModule>(*vertShaderModule),
-	    "main",
-	    nullptr};
+	const vk::PipelineShaderStageCreateInfo vertShaderStageCreateInfo{
+	    {},
+	    vk::ShaderStageFlagBits::eVertex,
+	    *vertShaderModule,
+	    "main"};
 
-	const VkPipelineShaderStageCreateInfo fragShaderStageCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-	    nullptr,
-	    0,
-	    VK_SHADER_STAGE_FRAGMENT_BIT,
-	    static_cast<VkShaderModule>(*fragShaderModule),
-	    "main",
-	    nullptr};
+	const vk::PipelineShaderStageCreateInfo fragShaderStageCreateInfo{
+	    {},
+	    vk::ShaderStageFlagBits::eFragment,
+	    *fragShaderModule,
+	    "main"};
 
 	const std::vector shaderStages = {vertShaderStageCreateInfo, fragShaderStageCreateInfo};
 
-	const VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-	    nullptr,
-	    0,
+	const vk::PipelineVertexInputStateCreateInfo vertexInputCreateInfo{
+	    {},
 	    static_cast<std::uint32_t>(info.bindingDescriptions.size()),
-	    reinterpret_cast<const VkVertexInputBindingDescription*>(info.bindingDescriptions.data()),
+	    reinterpret_cast<const vk::VertexInputBindingDescription*>(info.bindingDescriptions.data()),
 	    static_cast<std::uint32_t>(info.attributeDescriptions.size()),
-	    reinterpret_cast<const VkVertexInputAttributeDescription*>(info.attributeDescriptions.data())};
+	    reinterpret_cast<const vk::VertexInputAttributeDescription*>(info.attributeDescriptions.data())};
 
 	const VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{
 	    VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
@@ -225,8 +217,8 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    nullptr,
 	    0,
 	    static_cast<std::uint32_t>(shaderStages.size()),
-	    shaderStages.data(),
-	    &vertexInputCreateInfo,
+	    reinterpret_cast<const VkPipelineShaderStageCreateInfo*>(shaderStages.data()),
+	    reinterpret_cast<const VkPipelineVertexInputStateCreateInfo*>(&vertexInputCreateInfo),
 	    &inputAssemblyCreateInfo,
 	    nullptr,
 	    &viewportStateCreateInfo,
