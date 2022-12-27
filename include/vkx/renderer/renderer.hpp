@@ -320,6 +320,8 @@ public:
 
 	[[nodiscard]] vkx::GraphicsPipeline createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& information) const;
 
+	[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects() const;
+
 	void waitIdle() const;
 };
 

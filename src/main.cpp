@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
 	const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
 	const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
 
-	const auto syncObjects = vkx::createSyncObjects(static_cast<VkDevice>(vulkanDevice));
+	const auto syncObjects = vulkanDevice.createSyncObjects();
 
 	std::vector<vkx::VoxelChunk2D> chunks{};
 	chunks.reserve(4);

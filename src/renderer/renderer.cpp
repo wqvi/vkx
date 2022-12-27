@@ -511,6 +511,14 @@ vkx::GraphicsPipeline vkx::VulkanDevice::createGraphicsPipeline(const vkx::Vulka
 	return vkx::GraphicsPipeline{*logicalDevice, static_cast<VkRenderPass>(renderPass), allocator, information};
 }
 
+std::vector<vkx::SyncObjects> vkx::VulkanDevice::createSyncObjects() const {
+	std::vector<vkx::SyncObjects> objs{vkx::MAX_FRAMES_IN_FLIGHT};
+
+	std::generate(objs.begin(), objs.end(), [&logicalDevice = *this->logicalDevice]() { return vkx::SyncObjects{logicalDevice}; });
+
+	return objs;
+}
+
 void vkx::VulkanDevice::waitIdle() const {
 	logicalDevice->waitIdle();
 }
