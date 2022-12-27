@@ -35,7 +35,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 	descriptorSets = device.allocateDescriptorSets(descriptorSetAllocateInfo);
 
 	for (std::size_t size : info.uniformSizes) {
-		uniforms.push_back(vkx::allocateUniformBuffers(static_cast<VmaAllocator>(allocator), size));
+		uniforms.push_back(allocator.allocateUniformBuffers(size, vkx::MAX_FRAMES_IN_FLIGHT));
 	}
 
 	for (std::uint32_t i = 0; i < vkx::MAX_FRAMES_IN_FLIGHT; i++) {
@@ -72,14 +72,6 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 const std::vector<vkx::UniformBuffer>& vkx::GraphicsPipeline::getUniformByIndex(std::size_t i) const {
 	return uniforms[i];
-}
-
-void vkx::GraphicsPipeline::destroy() const {
-	for (const auto& uniformGroup : uniforms) {
-		for (const auto& uniform : uniformGroup) {
-			uniform.destroy();
-		}
-	}
 }
 
 vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(const std::string& filename) const {

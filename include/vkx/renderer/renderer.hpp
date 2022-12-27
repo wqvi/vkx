@@ -79,8 +79,6 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] VmaAllocation allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, const void* ptr, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
 
-[[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(VmaAllocator allocator, std::size_t size);
-
 class VulkanInstance;
 class VulkanDevice;
 class VulkanRenderPass;
@@ -114,14 +112,11 @@ public:
 	explicit operator VkBuffer() const;
 
 	template <class T>
-	void mapMemory(const T* data) {
+	void mapMemory(const T* data) const {
 		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
 	}
 
-	template <std::nullptr_t>
-	void mapMemory(std::nullptr_t) {
-		std::memset(allocationInfo.pMappedData, 0, allocationInfo.size);
-	}
+	std::size_t size() const;
 };
 
 class Image {
@@ -140,6 +135,32 @@ public:
 	}
 
 	vk::UniqueImageView createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const;
+};
+
+class UniformBuffer {
+private:
+	vk::DescriptorBufferInfo info{};
+	vkx::Buffer buffer;
+
+public:
+	UniformBuffer() = default;
+
+	UniformBuffer(vkx::Buffer&& buffer)
+	    : info(static_cast<VkBuffer>(buffer), 0, buffer.size()),
+	      buffer(std::move(buffer)) {}
+
+	template <class T>
+	void mapMemory(const T& obj) const {
+		buffer.mapMemory(&obj);
+	}
+
+	vk::DescriptorBufferInfo createDescriptorBufferInfo() const {
+		return {static_cast<VkBuffer>(buffer), 0, buffer.size()};
+	}
+
+	const vk::DescriptorBufferInfo* getInfo() const {
+		return &info;
+	}
 };
 
 struct VulkanAllocatorDeleter {
@@ -232,6 +253,10 @@ public:
 					       vk::ImageUsageFlags imageUsage,
 					       VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
 					       VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
+
+	[[nodiscard]] vkx::UniformBuffer allocateUniformBuffer(std::size_t memorySize) const;
+
+	[[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(std::size_t memorySize, std::size_t amount) const;
 };
 
 class VulkanRenderPass {

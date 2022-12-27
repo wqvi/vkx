@@ -143,19 +143,6 @@ VmaAllocation vkx::allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* b
 	return allocation;
 }
 
-std::vector<vkx::UniformBuffer> vkx::allocateUniformBuffers(VmaAllocator allocator, std::size_t size) {
-	std::vector<vkx::UniformBuffer> buffers;
-	buffers.reserve(MAX_FRAMES_IN_FLIGHT);
-	for (std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		VkBuffer buffer = nullptr;
-		VmaAllocationInfo allocationInfo{};
-		auto allocation = vkx::allocateBuffer(&allocationInfo, &buffer, allocator, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-
-		buffers.emplace_back(allocator, buffer, allocation, allocationInfo);
-	}
-	return buffers;
-}
-
 vkx::VulkanAllocationDeleter::VulkanAllocationDeleter(VmaAllocator allocator)
     : allocator(allocator) {
 }
@@ -171,6 +158,10 @@ vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueVulkanAllocation&& all
 
 vkx::Buffer::operator VkBuffer() const {
 	return *buffer;
+}
+
+std::size_t vkx::Buffer::size() const {
+	return allocationInfo.size;
 }
 
 vkx::Image::Image(vk::Device logicalDevice, vk::UniqueImage&& image, vkx::UniqueVulkanAllocation&& allocation)
@@ -336,6 +327,19 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 
 	stbi_image_free(pixels);
 	return vkx::Image{logicalDevice, vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(resourceAllocation, VulkanAllocationDeleter{allocator.get()})};
+}
+
+vkx::UniformBuffer vkx::VulkanAllocator::allocateUniformBuffer(std::size_t memorySize) const {
+	return allocateBuffer(memorySize, vk::BufferUsageFlagBits::eUniformBuffer);
+}
+
+std::vector<vkx::UniformBuffer> vkx::VulkanAllocator::allocateUniformBuffers(std::size_t memorySize, std::size_t amount) const {
+	std::vector<vkx::UniformBuffer> uniformBuffers;
+	uniformBuffers.reserve(amount);
+	for (auto i = 0; i < amount; i++) {
+		uniformBuffers.emplace_back(allocateBuffer(memorySize, vk::BufferUsageFlagBits::eUniformBuffer));
+	}
+	return uniformBuffers;
 }
 
 vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {

@@ -34,8 +34,6 @@ public:
 
 	const std::vector<UniformBuffer>& getUniformByIndex(std::size_t i) const;
 
-	void destroy() const;
-
 private:
 	[[nodiscard]] vk::UniqueShaderModule createShaderModule(const std::string& filename) const;
 
