@@ -263,12 +263,9 @@ void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, s
 
 vk::Result vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
 	const vk::PresentInfoKHR presentInfo{
-	    1,
-	    &*syncObjects.renderFinishedSemaphore,
-	    1,
-		&*swapchain.swapchain,
-	    &imageIndex,
-	    nullptr};
+	    *syncObjects.renderFinishedSemaphore,
+	    *swapchain.swapchain,
+	    imageIndex};
 
 	return presentQueue.presentKHR(presentInfo);
 }
