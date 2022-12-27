@@ -37,7 +37,7 @@ public:
 	void destroy() const;
 
 private:
-	static VkShaderModule createShaderModule(VkDevice device, const char* filename);
+	static vk::UniqueShaderModule createShaderModule(vk::Device device, const char* filename);
 
 	static VkPipeline createPipeline(VkDevice device, VkRenderPass renderPass, const GraphicsPipelineInformation& info, VkPipelineLayout pipelineLayout);
 };

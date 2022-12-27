@@ -84,7 +84,7 @@ void vkx::GraphicsPipeline::destroy() const {
 	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 }
 
-VkShaderModule vkx::GraphicsPipeline::createShaderModule(VkDevice device, const char* filename) {
+vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device device, const char* filename) {
 	std::ifstream file{filename, std::ios::ate | std::ios::binary};
 
 	if (!file.is_open()) {
@@ -98,19 +98,9 @@ VkShaderModule vkx::GraphicsPipeline::createShaderModule(VkDevice device, const 
 	file.seekg(0);
 	file.read(buffer.data(), fileSize);
 
-	const VkShaderModuleCreateInfo shaderModuleCreateInfo{
-	    VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-	    nullptr,
-	    0,
-	    static_cast<std::uint32_t>(buffer.size()),
-	    reinterpret_cast<const std::uint32_t*>(buffer.data())};
+	const vk::ShaderModuleCreateInfo shaderModuleCreateInfo{{}, static_cast<std::uint32_t>(buffer.size()), reinterpret_cast<const std::uint32_t*>(buffer.data())};
 
-	VkShaderModule shaderModule = nullptr;
-	if (vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create shader module");
-	}
-
-	return shaderModule;
+	return device.createShaderModuleUnique(shaderModuleCreateInfo);
 }
 
 VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass renderPass, const GraphicsPipelineInformation& info, VkPipelineLayout pipelineLayout) {
@@ -122,7 +112,7 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    nullptr,
 	    0,
 	    VK_SHADER_STAGE_VERTEX_BIT,
-	    vertShaderModule,
+	    static_cast<VkShaderModule>(*vertShaderModule),
 	    "main",
 	    nullptr};
 
@@ -131,7 +121,7 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    nullptr,
 	    0,
 	    VK_SHADER_STAGE_FRAGMENT_BIT,
-	    fragShaderModule,
+	    static_cast<VkShaderModule>(*fragShaderModule),
 	    "main",
 	    nullptr};
 
@@ -257,9 +247,6 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	} else if (result != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create graphics pipeline. Unknown error.");
 	}
-
-	vkDestroyShaderModule(device, vertShaderModule, nullptr);
-	vkDestroyShaderModule(device, fragShaderModule, nullptr);
 
 	return pipeline;
 }
