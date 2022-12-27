@@ -20,10 +20,10 @@ private:
 	friend class CommandSubmitter;
 
 	vk::Device device = nullptr;
-	vk::DescriptorSetLayout descriptorLayout{};
-	vk::PipelineLayout pipelineLayout{};
+	vk::UniqueDescriptorSetLayout descriptorLayout{};
+	vk::UniquePipelineLayout pipelineLayout{};
 	vk::UniquePipeline pipeline{};
-	vk::DescriptorPool descriptorPool;
+	vk::UniqueDescriptorPool descriptorPool;
 	std::vector<vk::DescriptorSet> descriptorSets{};
 	std::vector<std::vector<UniformBuffer>> uniforms;
 

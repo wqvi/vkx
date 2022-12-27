@@ -10,11 +10,11 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 	    static_cast<std::uint32_t>(info.bindings.size()),
 	    reinterpret_cast<const vk::DescriptorSetLayoutBinding*>(info.bindings.data())};
 
-	descriptorLayout = device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+	descriptorLayout = device.createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo);
 
-	const vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{{}, descriptorLayout};
+	const vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{{}, *descriptorLayout};
 
-	pipelineLayout = device.createPipelineLayout(pipelineLayoutCreateInfo);
+	pipelineLayout = device.createPipelineLayoutUnique(pipelineLayoutCreateInfo);
 
 	pipeline = createPipeline(renderPass, info);
 
@@ -26,11 +26,11 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 	const vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo{{}, vkx::MAX_FRAMES_IN_FLIGHT, poolSizes};
 
-	descriptorPool = device.createDescriptorPool(descriptorPoolCreateInfo);
+	descriptorPool = device.createDescriptorPoolUnique(descriptorPoolCreateInfo);
 
-	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, descriptorLayout};
+	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, *descriptorLayout};
 
-	const vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{descriptorPool, layouts};
+	const vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{*descriptorPool, layouts};
 
 	descriptorSets = device.allocateDescriptorSets(descriptorSetAllocateInfo);
 
@@ -80,10 +80,6 @@ void vkx::GraphicsPipeline::destroy() const {
 			uniform.destroy();
 		}
 	}
-
-	vkDestroyDescriptorSetLayout(device, descriptorLayout, nullptr);
-	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 }
 
 vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(const std::string& filename) const {
@@ -206,7 +202,7 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::RenderPass renderPa
 	    &depthStencilStateCreateInfo,
 	    &colorBlendStateCreateInfo,
 	    &dynamicStateCreateInfo,
-	    pipelineLayout,
+	    *pipelineLayout,
 	    renderPass,
 	    0,
 	    nullptr};
