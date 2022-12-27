@@ -50,16 +50,16 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 		for (std::uint32_t j = 0; j < poolSizes.size(); j++) {
 			const auto type = poolSizes[j].type;
 
-			vk::DescriptorBufferInfo* bufferInfo = nullptr;
-			vk::DescriptorImageInfo* imageInfo = nullptr;
+			const vk::DescriptorBufferInfo* bufferInfo = nullptr;
+			const vk::DescriptorImageInfo* imageInfo = nullptr;
 
 			if (type == vk::DescriptorType::eCombinedImageSampler) {
 				const auto& texture = *texturesBegin;
-				imageInfo = const_cast<vk::DescriptorImageInfo*>(reinterpret_cast<const vk::DescriptorImageInfo*>(texture->getInfo()));
+				imageInfo = reinterpret_cast<const vk::DescriptorImageInfo*>(texture->getInfo());
 				texturesBegin++;
 			} else if (type == vk::DescriptorType::eUniformBuffer) {
 				const auto& uniform = *uniformsBegin;
-				bufferInfo = const_cast<vk::DescriptorBufferInfo*>(reinterpret_cast<const vk::DescriptorBufferInfo*>(uniform[i].getInfo()));
+				bufferInfo = reinterpret_cast<const vk::DescriptorBufferInfo*>(uniform[i].getInfo());
 				uniformsBegin++;
 			}
 
