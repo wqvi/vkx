@@ -5,10 +5,7 @@
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& info)
     : device(device) {
-	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{
-	    {},
-	    static_cast<std::uint32_t>(info.bindings.size()),
-	    reinterpret_cast<const vk::DescriptorSetLayoutBinding*>(info.bindings.data())};
+	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{{}, info.bindings};
 
 	descriptorLayout = device.createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo);
 
@@ -21,7 +18,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 	std::vector<vk::DescriptorPoolSize> poolSizes{};
 	poolSizes.reserve(info.bindings.size());
 	for (const auto& info : info.bindings) {
-		poolSizes.emplace_back(static_cast<vk::DescriptorType>(info.descriptorType), vkx::MAX_FRAMES_IN_FLIGHT);
+		poolSizes.emplace_back(info.descriptorType, vkx::MAX_FRAMES_IN_FLIGHT);
 	}
 
 	const vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo{{}, vkx::MAX_FRAMES_IN_FLIGHT, poolSizes};
@@ -59,7 +56,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 				texturesBegin++;
 			} else if (type == vk::DescriptorType::eUniformBuffer) {
 				const auto& uniform = *uniformsBegin;
-				bufferInfo = reinterpret_cast<const vk::DescriptorBufferInfo*>(uniform[i].getInfo());
+				bufferInfo = uniform[i].getInfo();
 				uniformsBegin++;
 			}
 
@@ -113,10 +110,8 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::RenderPass renderPa
 
 	const vk::PipelineVertexInputStateCreateInfo vertexInputCreateInfo{
 	    {},
-	    static_cast<std::uint32_t>(info.bindingDescriptions.size()),
-	    reinterpret_cast<const vk::VertexInputBindingDescription*>(info.bindingDescriptions.data()),
-	    static_cast<std::uint32_t>(info.attributeDescriptions.size()),
-	    reinterpret_cast<const vk::VertexInputAttributeDescription*>(info.attributeDescriptions.data())};
+	    info.bindingDescriptions,
+		info.attributeDescriptions};
 
 	const vk::PipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{
 	    {},

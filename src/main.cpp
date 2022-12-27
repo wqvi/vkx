@@ -1,33 +1,29 @@
 #include <vkx/vkx.hpp>
 
 auto createShaderBindings() {
-	constexpr VkDescriptorSetLayoutBinding uboLayoutBinding{
+	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
 	    0,
-	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+	    vk::DescriptorType::eUniformBuffer,
 	    1,
-	    VK_SHADER_STAGE_VERTEX_BIT,
-	    nullptr};
+	    vk::ShaderStageFlagBits::eVertex};
 
-	constexpr VkDescriptorSetLayoutBinding samplerLayoutBinding{
+	constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding{
 	    1,
-	    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+	    vk::DescriptorType::eCombinedImageSampler,
 	    1,
-	    VK_SHADER_STAGE_FRAGMENT_BIT,
-	    nullptr};
+	    vk::ShaderStageFlagBits::eFragment};
 
-	constexpr VkDescriptorSetLayoutBinding lightLayoutBinding{
+	constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding{
 	    2,
-	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+	    vk::DescriptorType::eUniformBuffer,
 	    1,
-	    VK_SHADER_STAGE_FRAGMENT_BIT,
-	    nullptr};
+	    vk::ShaderStageFlagBits::eFragment};
 
-	constexpr VkDescriptorSetLayoutBinding materialLayoutBinding{
+	constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding{
 	    3,
-	    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+	    vk::DescriptorType::eUniformBuffer,
 	    1,
-	    VK_SHADER_STAGE_FRAGMENT_BIT,
-	    nullptr};
+	    vk::ShaderStageFlagBits::eFragment};
 
 	return std::vector{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 }

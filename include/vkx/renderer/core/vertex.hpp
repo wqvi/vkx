@@ -11,17 +11,17 @@ struct Vertex {
 	explicit Vertex(const glm::vec2& pos, const glm::vec2& uv, const glm::vec2& normal);
 
 	static auto getBindingDescription() noexcept {
-		std::vector<VkVertexInputBindingDescription> bindingDescriptions{
-		    {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}};
+		std::vector<vk::VertexInputBindingDescription> bindingDescriptions{
+		    {0, sizeof(Vertex), vk::VertexInputRate::eVertex}};
 
 		return bindingDescriptions;
 	}
 
 	static auto getAttributeDescriptions() noexcept {
-		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{
-		    {0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, pos)},
-		    {1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)},
-		    {2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, normal)}};
+		std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{
+		    {0, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, pos)},
+		    {1, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, uv)},
+		    {2, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, normal)}};
 
 		return attributeDescriptions;
 	}
