@@ -22,7 +22,7 @@ private:
 	vk::Device device = nullptr;
 	vk::DescriptorSetLayout descriptorLayout{};
 	vk::PipelineLayout pipelineLayout{};
-	vk::Pipeline pipeline{};
+	vk::UniquePipeline pipeline{};
 	vk::DescriptorPool descriptorPool;
 	std::vector<vk::DescriptorSet> descriptorSets{};
 	std::vector<std::vector<UniformBuffer>> uniforms;
@@ -37,8 +37,8 @@ public:
 	void destroy() const;
 
 private:
-	static vk::UniqueShaderModule createShaderModule(vk::Device device, const std::string& filename);
+	[[nodiscard]] vk::UniqueShaderModule createShaderModule(const std::string& filename) const;
 
-	static vk::Pipeline createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout);
+	[[nodiscard]] vk::UniquePipeline createPipeline(vk::RenderPass renderPass, const GraphicsPipelineInformation& info) const;
 };
 } // namespace vkx

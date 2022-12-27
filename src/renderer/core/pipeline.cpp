@@ -16,7 +16,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 	pipelineLayout = device.createPipelineLayout(pipelineLayoutCreateInfo);
 
-	pipeline = createPipeline(device, renderPass, info, pipelineLayout);
+	pipeline = createPipeline(renderPass, info);
 
 	std::vector<vk::DescriptorPoolSize> poolSizes{};
 	poolSizes.reserve(info.bindings.size());
@@ -83,11 +83,10 @@ void vkx::GraphicsPipeline::destroy() const {
 
 	vkDestroyDescriptorSetLayout(device, descriptorLayout, nullptr);
 	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-	vkDestroyPipeline(device, pipeline, nullptr);
 	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 }
 
-vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device device, const std::string& filename) {
+vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(const std::string& filename) const {
 	std::ifstream file{filename, std::ios::ate | std::ios::binary};
 
 	if (!file.is_open()) {
@@ -106,9 +105,9 @@ vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device devi
 	return device.createShaderModuleUnique(shaderModuleCreateInfo);
 }
 
-vk::Pipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout) {
-	const auto vertShaderModule = createShaderModule(device, info.vertexFile);
-	const auto fragShaderModule = createShaderModule(device, info.fragmentFile);
+vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::RenderPass renderPass, const GraphicsPipelineInformation& info) const {
+	const auto vertShaderModule = createShaderModule(info.vertexFile);
+	const auto fragShaderModule = createShaderModule(info.fragmentFile);
 
 	const vk::PipelineShaderStageCreateInfo vertShaderStageCreateInfo{
 	    {},
@@ -212,13 +211,5 @@ vk::Pipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, vk::Render
 	    0,
 	    nullptr};
 
-	VkPipeline pipeline = nullptr;
-	const auto result = vkCreateGraphicsPipelines(device, nullptr, 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo*>(&graphicsPipelineCreateInfo), nullptr, &pipeline);
-	if (result == VK_PIPELINE_COMPILE_REQUIRED_EXT) {
-		throw std::runtime_error("Failed to create graphics pipeline. Compile is required.");
-	} else if (result != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create graphics pipeline. Unknown error.");
-	}
-
-	return pipeline;
+	return std::move(device.createGraphicsPipelinesUnique({}, graphicsPipelineCreateInfo).value[0]);
 }

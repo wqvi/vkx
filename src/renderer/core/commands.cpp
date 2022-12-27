@@ -147,7 +147,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 
 		commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
-		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline->pipeline);
+		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipeline);
 
 		commandBuffer.setViewport(0, viewport);
 
@@ -221,7 +221,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 
 			secondaryCommandBuffer.begin(secondaryCommandBufferBeginInfo);
 
-			secondaryCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline->pipeline);
+			secondaryCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipeline);
 
 			secondaryCommandBuffer.setViewport(0, viewport);
 
