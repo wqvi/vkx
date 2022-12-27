@@ -19,12 +19,12 @@ class GraphicsPipeline {
 private:
 	friend class CommandSubmitter;
 
-	VkDevice device = nullptr;
-	VkDescriptorSetLayout descriptorLayout{};
-	VkPipelineLayout pipelineLayout{};
-	VkPipeline pipeline{};
-	VkDescriptorPool descriptorPool;
-	std::vector<VkDescriptorSet> descriptorSets{};
+	vk::Device device = nullptr;
+	vk::DescriptorSetLayout descriptorLayout{};
+	vk::PipelineLayout pipelineLayout{};
+	vk::Pipeline pipeline{};
+	vk::DescriptorPool descriptorPool;
+	std::vector<vk::DescriptorSet> descriptorSets{};
 	std::vector<std::vector<UniformBuffer>> uniforms;
 
 public:

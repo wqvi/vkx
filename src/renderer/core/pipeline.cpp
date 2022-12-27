@@ -16,35 +16,22 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 	pipeline = createPipeline(device, renderPass, info, pipelineLayout);
 
-	std::vector<VkDescriptorPoolSize> poolSizes{};
+	std::vector<vk::DescriptorPoolSize> poolSizes{};
 	poolSizes.reserve(info.bindings.size());
 	for (const auto& info : info.bindings) {
-		poolSizes.emplace_back(VkDescriptorPoolSize{info.descriptorType, vkx::MAX_FRAMES_IN_FLIGHT});
+		poolSizes.emplace_back(vk::DescriptorPoolSize{static_cast<vk::DescriptorType>(info.descriptorType), vkx::MAX_FRAMES_IN_FLIGHT});
 	}
 
-	const VkDescriptorPoolCreateInfo descriptorPoolCreateInfo{
-		VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-		nullptr,
-		0,
-		vkx::MAX_FRAMES_IN_FLIGHT,
-		static_cast<std::uint32_t>(poolSizes.size()),
-		poolSizes.data()};
+	const vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo{{}, vkx::MAX_FRAMES_IN_FLIGHT, poolSizes};
 
-	if (vkCreateDescriptorPool(device, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create graphics pipeline descriptor pool.");
-	}
+	descriptorPool = device.createDescriptorPool(descriptorPoolCreateInfo);
 
 	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, descriptorLayout};
 
-	const VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{
-		VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-		nullptr,
-		descriptorPool,
-		static_cast<std::uint32_t>(layouts.size()),
-		layouts.data()};
+	const vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{descriptorPool, layouts};
 
 	descriptorSets.resize(vkx::MAX_FRAMES_IN_FLIGHT);
-	if (vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, descriptorSets.data()) != VK_SUCCESS) {
+	if (vkAllocateDescriptorSets(device, reinterpret_cast<const VkDescriptorSetAllocateInfo*>(&descriptorSetAllocateInfo), reinterpret_cast<VkDescriptorSet*>(descriptorSets.data())) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate graphics pipeline descriptor sets.");
 	}
 
@@ -64,20 +51,20 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 			const auto type = poolSizes[j].type;
 
 			VkWriteDescriptorSet write{
-				VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				nullptr,
-				descriptorSet, 
-				j, 
-				0, 
-				1, 
-				type, 
-				nullptr, 
-				nullptr};
-			if (type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+			    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			    nullptr,
+			    descriptorSet,
+			    j,
+			    0,
+			    1,
+			    static_cast<VkDescriptorType>(type),
+			    nullptr,
+			    nullptr};
+			if (type == vk::DescriptorType::eUniformBuffer) {
 				const auto& uniform = *uniformsBegin;
 				write.pBufferInfo = uniform[i].getInfo();
 				uniformsBegin++;
-			} else if (type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+			} else if (type == vk::DescriptorType::eCombinedImageSampler) {
 				const auto& texture = *texturesBegin;
 				write.pImageInfo = texture->getInfo();
 				texturesBegin++;
@@ -193,7 +180,7 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    0,
 	    VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
 	    false};
-		
+
 	const VkPipelineViewportStateCreateInfo viewportStateCreateInfo{
 	    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
 	    nullptr,
@@ -253,31 +240,31 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	const float colorBlendConstants[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	const VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo{
-		VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-		nullptr,
-		0,
-		false,
-		VK_LOGIC_OP_COPY,
-		1,
-		&colorBlendAttachmentState,
-		{0.0f, 0.0f, 0.0f, 0.0f}};
+	    VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    false,
+	    VK_LOGIC_OP_COPY,
+	    1,
+	    &colorBlendAttachmentState,
+	    {0.0f, 0.0f, 0.0f, 0.0f}};
 
 	const VkDynamicState pipelineDynamicStates[2] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
 	const VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{
-		VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-		nullptr,
-		0,
-		2,
-		pipelineDynamicStates};
+	    VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    2,
+	    pipelineDynamicStates};
 
 	const VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo{
-		VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-		nullptr,
-		0,
-		static_cast<std::uint32_t>(shaderStages.size()),
-		shaderStages.data(),
-		&vertexInputCreateInfo,
+	    VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+	    nullptr,
+	    0,
+	    static_cast<std::uint32_t>(shaderStages.size()),
+	    shaderStages.data(),
+	    &vertexInputCreateInfo,
 	    &inputAssemblyCreateInfo,
 	    nullptr,
 	    &viewportStateCreateInfo,
@@ -288,8 +275,8 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    &dynamicStateCreateInfo,
 	    pipelineLayout,
 	    renderPass,
-		0,
-		nullptr};
+	    0,
+	    nullptr};
 
 	VkPipeline pipeline = nullptr;
 	const auto result = vkCreateGraphicsPipelines(device, nullptr, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline);
