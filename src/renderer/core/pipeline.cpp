@@ -12,14 +12,16 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 	descriptorLayout = device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
 
-	pipelineLayout = createPipelineLayout(device, descriptorLayout);
+	const vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{{}, descriptorLayout};
+
+	pipelineLayout = device.createPipelineLayout(pipelineLayoutCreateInfo);
 
 	pipeline = createPipeline(device, renderPass, info, pipelineLayout);
 
 	std::vector<vk::DescriptorPoolSize> poolSizes{};
 	poolSizes.reserve(info.bindings.size());
 	for (const auto& info : info.bindings) {
-		poolSizes.emplace_back(vk::DescriptorPoolSize{static_cast<vk::DescriptorType>(info.descriptorType), vkx::MAX_FRAMES_IN_FLIGHT});
+		poolSizes.emplace_back(static_cast<vk::DescriptorType>(info.descriptorType), vkx::MAX_FRAMES_IN_FLIGHT);
 	}
 
 	const vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo{{}, vkx::MAX_FRAMES_IN_FLIGHT, poolSizes};
@@ -30,10 +32,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 	const vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{descriptorPool, layouts};
 
-	descriptorSets.resize(vkx::MAX_FRAMES_IN_FLIGHT);
-	if (vkAllocateDescriptorSets(device, reinterpret_cast<const VkDescriptorSetAllocateInfo*>(&descriptorSetAllocateInfo), reinterpret_cast<VkDescriptorSet*>(descriptorSets.data())) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocate graphics pipeline descriptor sets.");
-	}
+	descriptorSets = device.allocateDescriptorSets(descriptorSetAllocateInfo);
 
 	for (std::size_t size : info.uniformSizes) {
 		uniforms.push_back(vkx::allocateUniformBuffers(static_cast<VmaAllocator>(allocator), size));
@@ -45,35 +44,26 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 		auto uniformsBegin = uniforms.cbegin();
 		auto texturesBegin = info.textures.cbegin();
 
-		std::vector<VkWriteDescriptorSet> writes;
+		std::vector<vk::WriteDescriptorSet> writes;
 
 		for (std::uint32_t j = 0; j < poolSizes.size(); j++) {
 			const auto type = poolSizes[j].type;
 
-			VkWriteDescriptorSet write{
-			    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			    nullptr,
-			    descriptorSet,
-			    j,
-			    0,
-			    1,
-			    static_cast<VkDescriptorType>(type),
-			    nullptr,
-			    nullptr};
+			vk::WriteDescriptorSet write{descriptorSet, j, 0, 1, type};
 			if (type == vk::DescriptorType::eUniformBuffer) {
 				const auto& uniform = *uniformsBegin;
-				write.pBufferInfo = uniform[i].getInfo();
+				write.pBufferInfo = reinterpret_cast<const vk::DescriptorBufferInfo*>(uniform[i].getInfo());
 				uniformsBegin++;
 			} else if (type == vk::DescriptorType::eCombinedImageSampler) {
 				const auto& texture = *texturesBegin;
-				write.pImageInfo = texture->getInfo();
+				write.pImageInfo = reinterpret_cast<const vk::DescriptorImageInfo*>(texture->getInfo());
 				texturesBegin++;
 			}
 
 			writes.push_back(write);
 		}
 
-		vkUpdateDescriptorSets(device, static_cast<std::uint32_t>(writes.size()), writes.data(), 0, nullptr);
+		device.updateDescriptorSets(writes, {});
 	}
 }
 
@@ -92,24 +82,6 @@ void vkx::GraphicsPipeline::destroy() const {
 	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 	vkDestroyPipeline(device, pipeline, nullptr);
 	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-}
-
-VkPipelineLayout vkx::GraphicsPipeline::createPipelineLayout(VkDevice device, VkDescriptorSetLayout descriptorSetLayout) {
-	const VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-	    nullptr,
-	    0,
-	    1,
-	    &descriptorSetLayout,
-	    0,
-	    nullptr};
-
-	VkPipelineLayout pipelineLayout = nullptr;
-	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create graphics pipeline layout.");
-	}
-
-	return pipelineLayout;
 }
 
 VkShaderModule vkx::GraphicsPipeline::createShaderModule(VkDevice device, const char* filename) {
