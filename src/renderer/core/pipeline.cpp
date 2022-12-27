@@ -184,40 +184,33 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    {},
 	    false,
 	    vk::LogicOp::eCopy,
-		colorBlendAttachmentState,
+	    colorBlendAttachmentState,
 	    {0.0f, 0.0f, 0.0f, 0.0f}};
 
-	const VkDynamicState pipelineDynamicStates[2] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+	constexpr std::array pipelineDynamicStates = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 
-	const VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-	    nullptr,
-	    0,
-	    2,
-	    pipelineDynamicStates};
+	const vk::PipelineDynamicStateCreateInfo dynamicStateCreateInfo{{}, pipelineDynamicStates};
 
-	const VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo{
-	    VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-	    nullptr,
-	    0,
+	const vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo{
+	    {},
 	    static_cast<std::uint32_t>(shaderStages.size()),
-	    reinterpret_cast<const VkPipelineShaderStageCreateInfo*>(shaderStages.data()),
-	    reinterpret_cast<const VkPipelineVertexInputStateCreateInfo*>(&vertexInputCreateInfo),
-	    reinterpret_cast<const VkPipelineInputAssemblyStateCreateInfo*>(&inputAssemblyCreateInfo),
+	    shaderStages.data(),
+	    &vertexInputCreateInfo,
+	    &inputAssemblyCreateInfo,
 	    nullptr,
-	    reinterpret_cast<const VkPipelineViewportStateCreateInfo*>(&viewportStateCreateInfo),
-	    reinterpret_cast<const VkPipelineRasterizationStateCreateInfo*>(&rasterizationStateCreateInfo),
-	    reinterpret_cast<const VkPipelineMultisampleStateCreateInfo*>(&multisampleStateCreateInfo),
-	    reinterpret_cast<const VkPipelineDepthStencilStateCreateInfo*>(&depthStencilStateCreateInfo),
-	    reinterpret_cast<const VkPipelineColorBlendStateCreateInfo*>(&colorBlendStateCreateInfo),
-	    reinterpret_cast<const VkPipelineDynamicStateCreateInfo*>(&dynamicStateCreateInfo),
+	    &viewportStateCreateInfo,
+	    &rasterizationStateCreateInfo,
+	    &multisampleStateCreateInfo,
+	    &depthStencilStateCreateInfo,
+	    &colorBlendStateCreateInfo,
+	    &dynamicStateCreateInfo,
 	    pipelineLayout,
 	    renderPass,
 	    0,
 	    nullptr};
 
 	VkPipeline pipeline = nullptr;
-	const auto result = vkCreateGraphicsPipelines(device, nullptr, 1, &graphicsPipelineCreateInfo, nullptr, &pipeline);
+	const auto result = vkCreateGraphicsPipelines(device, nullptr, 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo*>(&graphicsPipelineCreateInfo), nullptr, &pipeline);
 	if (result == VK_PIPELINE_COMPILE_REQUIRED_EXT) {
 		throw std::runtime_error("Failed to create graphics pipeline. Compile is required.");
 	} else if (result != VK_SUCCESS) {
