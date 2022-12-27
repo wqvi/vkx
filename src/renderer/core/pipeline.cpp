@@ -133,14 +133,7 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    vk::PrimitiveTopology::eTriangleList,
 	    false};
 
-	const VkPipelineViewportStateCreateInfo viewportStateCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-	    nullptr,
-	    0,
-	    1,
-	    nullptr,
-	    1,
-	    nullptr};
+	const vk::PipelineViewportStateCreateInfo viewportStateCreateInfo{{}, 1, nullptr, 1, nullptr};
 
 	constexpr auto fill = VK_POLYGON_MODE_FILL;
 	constexpr auto wireframe = VK_POLYGON_MODE_LINE;
@@ -219,12 +212,12 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 	    reinterpret_cast<const VkPipelineVertexInputStateCreateInfo*>(&vertexInputCreateInfo),
 	    reinterpret_cast<const VkPipelineInputAssemblyStateCreateInfo*>(&inputAssemblyCreateInfo),
 	    nullptr,
-	    &viewportStateCreateInfo,
-	    &rasterizationStateCreateInfo,
-	    &multisampleStateCreateInfo,
-	    &depthStencilStateCreateInfo,
-	    &colorBlendStateCreateInfo,
-	    &dynamicStateCreateInfo,
+	    reinterpret_cast<const VkPipelineViewportStateCreateInfo*>(&viewportStateCreateInfo),
+	    reinterpret_cast<const VkPipelineRasterizationStateCreateInfo*>(&rasterizationStateCreateInfo),
+	    reinterpret_cast<const VkPipelineMultisampleStateCreateInfo*>(&multisampleStateCreateInfo),
+	    reinterpret_cast<const VkPipelineDepthStencilStateCreateInfo*>(&depthStencilStateCreateInfo),
+	    reinterpret_cast<const VkPipelineColorBlendStateCreateInfo*>(&colorBlendStateCreateInfo),
+	    reinterpret_cast<const VkPipelineDynamicStateCreateInfo*>(&dynamicStateCreateInfo),
 	    pipelineLayout,
 	    renderPass,
 	    0,
