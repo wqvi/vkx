@@ -84,7 +84,7 @@ void vkx::GraphicsPipeline::destroy() const {
 	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 }
 
-vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device device, const char* filename) {
+vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device device, const std::string& filename) {
 	std::ifstream file{filename, std::ios::ate | std::ios::binary};
 
 	if (!file.is_open()) {
@@ -103,9 +103,9 @@ vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(vk::Device devi
 	return device.createShaderModuleUnique(shaderModuleCreateInfo);
 }
 
-VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass renderPass, const GraphicsPipelineInformation& info, VkPipelineLayout pipelineLayout) {
-	const auto vertShaderModule = createShaderModule(device, info.vertexFile.c_str());
-	const auto fragShaderModule = createShaderModule(device, info.fragmentFile.c_str());
+vk::Pipeline vkx::GraphicsPipeline::createPipeline(vk::Device device, vk::RenderPass renderPass, const GraphicsPipelineInformation& info, vk::PipelineLayout pipelineLayout) {
+	const auto vertShaderModule = createShaderModule(device, info.vertexFile);
+	const auto fragShaderModule = createShaderModule(device, info.fragmentFile);
 
 	const vk::PipelineShaderStageCreateInfo vertShaderStageCreateInfo{
 	    {},
