@@ -135,63 +135,56 @@ VkPipeline vkx::GraphicsPipeline::createPipeline(VkDevice device, VkRenderPass r
 
 	const vk::PipelineViewportStateCreateInfo viewportStateCreateInfo{{}, 1, nullptr, 1, nullptr};
 
-	constexpr auto fill = VK_POLYGON_MODE_FILL;
-	constexpr auto wireframe = VK_POLYGON_MODE_LINE;
+	constexpr auto fill = vk::PolygonMode::eFill;
+	constexpr auto wireframe = vk::PolygonMode::eLine;
 
-	const VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-	    nullptr,
-	    0,
+	const vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo{
+	    {},
 	    false,
 	    false,
 	    fill,
-	    VK_CULL_MODE_BACK_BIT,
-	    VK_FRONT_FACE_COUNTER_CLOCKWISE,
+	    vk::CullModeFlagBits::eBack,
+	    vk::FrontFace::eCounterClockwise,
 	    false,
 	    0.0f,
 	    0.0f,
 	    0.0f,
 	    1.0f};
 
-	const VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-	    nullptr,
-	    0,
-	    VK_SAMPLE_COUNT_1_BIT,
+	const vk::PipelineMultisampleStateCreateInfo multisampleStateCreateInfo{
+	    {},
+	    vk::SampleCountFlagBits::e1,
 	    false};
 
-	const VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-	    nullptr,
-	    0,
+	const vk::PipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo{
+	    {},
 	    true,
 	    true,
-	    VK_COMPARE_OP_LESS,
+	    vk::CompareOp::eLess,
 	    false,
 	    false};
 
-	constexpr auto colorMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	using Color = vk::ColorComponentFlagBits;
+	using Factor = vk::BlendFactor;
+	using Op = vk::BlendOp;
 
-	const VkPipelineColorBlendAttachmentState colorBlendAttachmentState{
+	constexpr auto colorMask = Color::eR | Color::eG | Color::eB | Color::eA;
+
+	const vk::PipelineColorBlendAttachmentState colorBlendAttachmentState{
 	    true,
-	    VK_BLEND_FACTOR_SRC_ALPHA,
-	    VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-	    VK_BLEND_OP_ADD,
-	    VK_BLEND_FACTOR_SRC_ALPHA,
-	    VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-	    VK_BLEND_OP_ADD,
+	    Factor::eSrcAlpha,
+	    Factor::eOneMinusSrcAlpha,
+	    Op::eAdd,
+	    Factor::eSrcAlpha,
+	    Factor::eOneMinusSrcAlpha,
+	    Op::eAdd,
 	    colorMask};
 
-	const float colorBlendConstants[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-
-	const VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo{
-	    VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-	    nullptr,
-	    0,
+	const vk::PipelineColorBlendStateCreateInfo colorBlendStateCreateInfo{
+	    {},
 	    false,
-	    VK_LOGIC_OP_COPY,
-	    1,
-	    &colorBlendAttachmentState,
+	    vk::LogicOp::eCopy,
+		colorBlendAttachmentState,
 	    {0.0f, 0.0f, 0.0f, 0.0f}};
 
 	const VkDynamicState pipelineDynamicStates[2] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
