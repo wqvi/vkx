@@ -16,65 +16,6 @@ static constexpr std::array<const char*, 1> layers{"VK_LAYER_KHRONOS_validation"
 static constexpr std::array<const char*, 0> layers{};
 #endif
 
-VkImageView vkx::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
-	const VkImageSubresourceRange subresourceRange{
-	    aspectFlags,
-	    0,
-	    1,
-	    0,
-	    1};
-
-	const VkImageViewCreateInfo imageViewCreateInfo{
-	    VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-	    nullptr,
-	    0,
-	    image,
-	    VK_IMAGE_VIEW_TYPE_2D,
-	    format,
-	    {},
-	    subresourceRange};
-
-	return vkx::create<VkImageView>(
-	    vkCreateImageView,
-	    [](auto result) {
-		    if (result != VK_SUCCESS) {
-			    throw std::runtime_error("Failed to create image view.");
-		    }
-	    },
-	    device, &imageViewCreateInfo, nullptr);
-}
-
-VkSampler vkx::createTextureSampler(VkDevice device, float samplerAnisotropy) {
-	const VkSamplerCreateInfo samplerCreateInfo{
-	    VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-	    nullptr,
-	    0,
-	    VK_FILTER_LINEAR,
-	    VK_FILTER_LINEAR,
-	    VK_SAMPLER_MIPMAP_MODE_LINEAR,
-	    VK_SAMPLER_ADDRESS_MODE_REPEAT,
-	    VK_SAMPLER_ADDRESS_MODE_REPEAT,
-	    VK_SAMPLER_ADDRESS_MODE_REPEAT,
-	    {},
-	    true,
-	    samplerAnisotropy,
-	    false,
-	    VK_COMPARE_OP_ALWAYS,
-	    {},
-	    {},
-	    VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-	    false};
-
-	return vkx::create<VkSampler>(
-	    vkCreateSampler,
-	    [](auto result) {
-		    if (result != VK_SUCCESS) {
-			    throw std::runtime_error("Failed to create texture sampler.");
-		    }
-	    },
-	    device, &samplerCreateInfo, nullptr);
-}
-
 vkx::VulkanAllocationDeleter::VulkanAllocationDeleter(VmaAllocator allocator)
     : allocator(allocator) {
 }

@@ -52,7 +52,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass render
 
 			if (type == vk::DescriptorType::eCombinedImageSampler) {
 				const auto& texture = *texturesBegin;
-				imageInfo = reinterpret_cast<const vk::DescriptorImageInfo*>(texture->getInfo());
+				imageInfo = texture->getInfo();
 				texturesBegin++;
 			} else if (type == vk::DescriptorType::eUniformBuffer) {
 				const auto& uniform = *uniformsBegin;

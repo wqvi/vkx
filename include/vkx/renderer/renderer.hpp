@@ -69,10 +69,6 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 	return object;
 }
 
-[[nodiscard]] VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-
-[[nodiscard]] VkSampler createTextureSampler(VkDevice device, float samplerAnisotropy);
-
 class VulkanInstance;
 class VulkanDevice;
 class VulkanRenderPass;
@@ -123,10 +119,6 @@ public:
 	Image() = default;
 
 	explicit Image(vk::Device logicalDevice, vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation);
-
-	inline VkImageView createTextureImageView(VkDevice device) const {
-		return vkx::createImageView(device, *resourceImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
-	}
 
 	vk::UniqueImageView createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 };
