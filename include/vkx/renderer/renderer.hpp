@@ -73,12 +73,6 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 [[nodiscard]] VkSampler createTextureSampler(VkDevice device, float samplerAnisotropy);
 
-[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects(VkDevice device);
-
-[[nodiscard]] VmaAllocation allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
-
-[[nodiscard]] VmaAllocation allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, const void* ptr, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO);
-
 class VulkanInstance;
 class VulkanDevice;
 class VulkanRenderPass;
@@ -321,6 +315,8 @@ public:
 	[[nodiscard]] vkx::GraphicsPipeline createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& information) const;
 
 	[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects() const;
+
+	[[nodiscard]] vk::UniqueSampler createTextureSampler() const;
 
 	void waitIdle() const;
 };

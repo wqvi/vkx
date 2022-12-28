@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 
 	const auto commandSubmitter = vulkanDevice.createCommandSubmitter();
 
-	const vkx::Texture texture{"a.jpg", static_cast<VkDevice>(vulkanDevice), vulkanDevice.getMaxSamplerAnisotropy(), allocator, commandSubmitter};
+	const vkx::Texture texture{"a.jpg", vulkanDevice, allocator, commandSubmitter};
 
 	const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
 	    "shader2D.vert.spv",
@@ -224,8 +224,6 @@ int main(int argc, char** argv) {
 	}
 
 	vulkanDevice.waitIdle();
-
-	texture.destroy();
 
 	return EXIT_SUCCESS;
 }

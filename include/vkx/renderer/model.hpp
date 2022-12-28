@@ -8,19 +8,16 @@
 namespace vkx {
 class Texture {
 public:
-	explicit Texture(const char* file, VkDevice device, float maxAnisotropy, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
+	explicit Texture(const std::string& file, const vkx::VulkanDevice& device, const vkx::VulkanAllocator& allocator, const vkx::CommandSubmitter& commandSubmitter);
 
-	[[nodiscard]] VkDescriptorImageInfo createDescriptorImageInfo() const;
+	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
 
-	[[nodiscard]] const VkDescriptorImageInfo* getInfo() const;
-
-	void destroy() const;
+	[[nodiscard]] const vk::DescriptorImageInfo* getInfo() const;
 
 private:
 	vkx::Image image;
-	VkImageView view = nullptr;
-	VkSampler sampler = nullptr;
-	VkDescriptorImageInfo info{};
-	VkDevice device = nullptr;
+	vk::UniqueImageView view;
+	vk::UniqueSampler sampler;
+	vk::DescriptorImageInfo info{};
 };
 } // namespace vkx

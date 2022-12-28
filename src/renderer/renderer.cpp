@@ -75,74 +75,6 @@ VkSampler vkx::createTextureSampler(VkDevice device, float samplerAnisotropy) {
 	    device, &samplerCreateInfo, nullptr);
 }
 
-std::vector<vkx::SyncObjects> vkx::createSyncObjects(VkDevice device) {
-	std::vector<vkx::SyncObjects> objs{vkx::MAX_FRAMES_IN_FLIGHT};
-
-	std::generate(objs.begin(), objs.end(), [&device]() { return vkx::SyncObjects{device}; });
-
-	return objs;
-}
-
-VmaAllocation vkx::allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) {
-	const VkBufferCreateInfo bufferCreateInfo{
-	    VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-	    nullptr,
-	    0,
-	    size,
-	    bufferUsage,
-	    VK_SHARING_MODE_EXCLUSIVE,
-	    0,
-	    nullptr};
-
-	VmaAllocationCreateInfo allocationCreateInfo{};
-	allocationCreateInfo.flags = flags;
-	allocationCreateInfo.usage = memoryUsage;
-	allocationCreateInfo.requiredFlags = 0;
-	allocationCreateInfo.preferredFlags = 0;
-	allocationCreateInfo.memoryTypeBits = 0;
-	allocationCreateInfo.pool = nullptr;
-	allocationCreateInfo.pUserData = nullptr;
-	allocationCreateInfo.priority = {};
-
-	VmaAllocation allocation = nullptr;
-	if (vmaCreateBuffer(allocator, &bufferCreateInfo, &allocationCreateInfo, buffer, &allocation, allocationInfo) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocate buffer memory resources.");
-	}
-
-	return allocation;
-}
-
-VmaAllocation vkx::allocateBuffer(VmaAllocationInfo* allocationInfo, VkBuffer* buffer, VmaAllocator allocator, const void* ptr, VkDeviceSize size, VkBufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage) {
-	const VkBufferCreateInfo bufferCreateInfo{
-	    VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-	    nullptr,
-	    0,
-	    size,
-	    bufferUsage,
-	    VK_SHARING_MODE_EXCLUSIVE,
-	    0,
-	    nullptr};
-
-	VmaAllocationCreateInfo allocationCreateInfo{};
-	allocationCreateInfo.flags = flags;
-	allocationCreateInfo.usage = memoryUsage;
-	allocationCreateInfo.requiredFlags = 0;
-	allocationCreateInfo.preferredFlags = 0;
-	allocationCreateInfo.memoryTypeBits = 0;
-	allocationCreateInfo.pool = nullptr;
-	allocationCreateInfo.pUserData = nullptr;
-	allocationCreateInfo.priority = {};
-
-	VmaAllocation allocation = nullptr;
-	if (vmaCreateBuffer(allocator, &bufferCreateInfo, &allocationCreateInfo, buffer, &allocation, allocationInfo) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocate buffer memory resources.");
-	}
-
-	std::memcpy(allocationInfo->pMappedData, ptr, allocationInfo->size);
-
-	return allocation;
-}
-
 vkx::VulkanAllocationDeleter::VulkanAllocationDeleter(VmaAllocator allocator)
     : allocator(allocator) {
 }
@@ -517,6 +449,31 @@ std::vector<vkx::SyncObjects> vkx::VulkanDevice::createSyncObjects() const {
 	std::generate(objs.begin(), objs.end(), [&logicalDevice = *this->logicalDevice]() { return vkx::SyncObjects{logicalDevice}; });
 
 	return objs;
+}
+
+vk::UniqueSampler vkx::VulkanDevice::createTextureSampler() const {
+	using Filter = vk::Filter;
+	using Address = vk::SamplerAddressMode;
+
+	const vk::SamplerCreateInfo samplerCreateInfo{
+	    {},
+	    Filter::eLinear,
+	    Filter::eLinear,
+		vk::SamplerMipmapMode::eLinear,
+	    Address::eRepeat,
+	    Address::eRepeat,
+	    Address::eRepeat,
+	    {},
+	    true,
+	    maxSamplerAnisotropy,
+	    false,
+	    vk::CompareOp::eAlways,
+	    {},
+	    {},
+	    vk::BorderColor::eIntOpaqueBlack,
+	    false};
+
+	return logicalDevice->createSamplerUnique(samplerCreateInfo);
 }
 
 void vkx::VulkanDevice::waitIdle() const {
