@@ -12,7 +12,7 @@ vkx::SyncObjects::SyncObjects(vk::Device logicalDevice)
 }
 
 void vkx::SyncObjects::waitForFence() const {
-	logicalDevice.waitForFences(*inFlightFence, true, UINT64_MAX);
+	static_cast<void>(logicalDevice.waitForFences(*inFlightFence, true, UINT64_MAX));
 }
 
 void vkx::SyncObjects::resetFence() const {
