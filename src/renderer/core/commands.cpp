@@ -120,7 +120,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 	constexpr std::array clearColor{0.0f, 0.0f, 0.0f, 1.0f};
 	constexpr vk::ClearDepthStencilValue clearDepthStencil{1.0f, 0};
 
-	constexpr std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
+	const std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
 	const vk::RenderPassBeginInfo renderPassBeginInfo{
 	    drawInfo.renderPass,
@@ -189,7 +189,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 	constexpr std::array clearColor{0.0f, 0.0f, 0.0f, 1.0f};
 	constexpr vk::ClearDepthStencilValue clearDepthStencil{1.0f, 0};
 
-	constexpr std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
+	const std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
 	const vk::RenderPassBeginInfo renderPassBeginInfo{
 	    drawInfo.renderPass,
