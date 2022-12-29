@@ -175,9 +175,7 @@ int main(int argc, char** argv) {
 		    &swapchain,
 		    &graphicsPipeline,
 		    static_cast<VkRenderPass>(clearRenderPass),
-		    {static_cast<VkBuffer>(meshes[0].vertexBuffer), static_cast<VkBuffer>(meshes[1].vertexBuffer), static_cast<VkBuffer>(meshes[2].vertexBuffer), static_cast<VkBuffer>(meshes[3].vertexBuffer)},
-		    {static_cast<VkBuffer>(meshes[0].indexBuffer), static_cast<VkBuffer>(meshes[1].indexBuffer), static_cast<VkBuffer>(meshes[2].indexBuffer), static_cast<VkBuffer>(meshes[3].indexBuffer)},
-		    {static_cast<std::uint32_t>(meshes[0].activeIndexCount), static_cast<std::uint32_t>(meshes[1].activeIndexCount), static_cast<std::uint32_t>(meshes[2].activeIndexCount), static_cast<std::uint32_t>(meshes[3].activeIndexCount)}};
+			meshes};
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 		const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];

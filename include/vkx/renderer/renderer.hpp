@@ -99,7 +99,7 @@ public:
 
 	explicit Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
 
-	explicit operator VkBuffer() const;
+	explicit operator vk::Buffer() const;
 
 	template <class T>
 	void mapMemory(const T* data) const {
@@ -132,7 +132,7 @@ public:
 	UniformBuffer() = default;
 
 	UniformBuffer(vkx::Buffer&& buffer)
-	    : info(static_cast<VkBuffer>(buffer), 0, buffer.size()),
+	    : info(static_cast<vk::Buffer>(buffer), 0, buffer.size()),
 	      buffer(std::move(buffer)) {}
 
 	template <class T>
@@ -141,7 +141,7 @@ public:
 	}
 
 	vk::DescriptorBufferInfo createDescriptorBufferInfo() const {
-		return {static_cast<VkBuffer>(buffer), 0, buffer.size()};
+		return {static_cast<vk::Buffer>(buffer), 0, buffer.size()};
 	}
 
 	const vk::DescriptorBufferInfo* getInfo() const {

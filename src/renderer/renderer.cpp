@@ -29,7 +29,7 @@ void vkx::VulkanAllocationDeleter::operator()(VmaAllocation allocation) const no
 vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo)
     : buffer(std::move(buffer)), allocation(std::move(allocation)), allocationInfo(std::move(allocationInfo)) {}
 
-vkx::Buffer::operator VkBuffer() const {
+vkx::Buffer::operator vk::Buffer() const {
 	return *buffer;
 }
 
@@ -194,7 +194,7 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 
 	commandSubmitter.transitionImageLayout(resourceImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
 
-	commandSubmitter.copyBufferToImage(static_cast<VkBuffer>(stagingBuffer), resourceImage, textureWidth, textureHeight);
+	commandSubmitter.copyBufferToImage(static_cast<vk::Buffer>(stagingBuffer), resourceImage, textureWidth, textureHeight);
 
 	commandSubmitter.transitionImageLayout(resourceImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 

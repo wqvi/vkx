@@ -11,9 +11,7 @@ struct DrawInfo {
 	vkx::Swapchain* swapchain{};
 	const vkx::GraphicsPipeline* graphicsPipeline{};
 	VkRenderPass renderPass{};
-	std::vector<VkBuffer> vertexBuffers{};
-	std::vector<VkBuffer> indexBuffers{};
-	std::vector<std::uint32_t> indexCount{};
+	std::vector<vkx::Mesh>& meshes;
 };
 
 class CommandSubmitter {

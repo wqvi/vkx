@@ -138,9 +138,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 
 	for (std::uint32_t i = 0; i < size; i++) {
 		const auto commandBuffer = begin[i];
-		const vk::Buffer vertexBuffer = drawInfo.vertexBuffers[i];
-		const vk::Buffer indexBuffer = drawInfo.indexBuffers[i];
-		const auto indexCount = drawInfo.indexCount[i];
+		const auto& mesh = drawInfo.meshes[i];
 
 		commandBuffer.reset();
 		commandBuffer.begin(commandBufferBeginInfo);
@@ -153,13 +151,13 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 
 		commandBuffer.setScissor(0, renderArea);
 
-		commandBuffer.bindVertexBuffers(0, vertexBuffer, {0});
+		commandBuffer.bindVertexBuffers(0, static_cast<vk::Buffer>(mesh.vertexBuffer), {0});
 
-		commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
+		commandBuffer.bindIndexBuffer(static_cast<vk::Buffer>(mesh.indexBuffer), 0, vk::IndexType::eUint32);
 
 		commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipelineLayout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
 
-		commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
+		commandBuffer.drawIndexed(static_cast<std::uint32_t>(mesh.activeIndexCount), 1, 0, 0, 0);
 
 		commandBuffer.endRenderPass();
 
@@ -215,9 +213,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 
 		for (std::uint32_t j = 0; j < secondarySize; j++) {
 			const auto secondaryCommandBuffer = secondaryBegin[j];
-			const vk::Buffer vertexBuffer = drawInfo.vertexBuffers[j];
-			const vk::Buffer indexBuffer = drawInfo.indexBuffers[j];
-			const auto indexCount = drawInfo.indexCount[j];
+			const auto& mesh = drawInfo.meshes[j];
 
 			secondaryCommandBuffer.begin(secondaryCommandBufferBeginInfo);
 
@@ -227,13 +223,13 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 
 			secondaryCommandBuffer.setScissor(0, renderArea);
 
-			secondaryCommandBuffer.bindVertexBuffers(0, vertexBuffer, {0});
+			secondaryCommandBuffer.bindVertexBuffers(0, static_cast<vk::Buffer>(mesh.vertexBuffer), {0});
 
-			secondaryCommandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
+			secondaryCommandBuffer.bindIndexBuffer(static_cast<vk::Buffer>(mesh.indexBuffer), 0, vk::IndexType::eUint32);
 
 			secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipelineLayout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
 
-			secondaryCommandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
+			secondaryCommandBuffer.drawIndexed(static_cast<std::uint32_t>(mesh.activeIndexCount), 1, 0, 0, 0);
 
 			secondaryCommandBuffer.end();
 		}
