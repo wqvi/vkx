@@ -31,7 +31,7 @@ auto createShaderBindings() {
 int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
 
-	vkx::Camera camera{0.0f, 0.0f, 0.0f};
+	vkx::Camera2D camera{glm::vec2{0, 0}, glm::vec2{0, 0}, glm::vec2{0.5f, 0.5f}};
 
 	const vkx::VulkanInstance vulkanInstance{window};
 
@@ -129,15 +129,13 @@ int main(int argc, char** argv) {
 
 	window.show();
 	while (isRunning) {
-		camera.position += camera.direction * 0.01f;
-
 		auto& mvpBuffer = mvpBuffers[currentFrame];
 		auto mvp = vkx::MVP{glm::mat4(1.0f), view, projection};
 
 		auto& lightBuffer = lightBuffers[currentFrame];
 		auto light = vkx::DirectionalLight{
 		    glm::vec3(1.0f, 3.0f, 1.0f),
-		    camera.position,
+		    glm::vec3(0),
 		    glm::vec4(1.0f, 1.0f, 1.0f, 0.2f),
 		    glm::vec3(1.0f, 1.0f, 1.0f),
 		    glm::vec3(1.0f, 1.0f, 1.0f),
