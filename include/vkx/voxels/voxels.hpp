@@ -25,6 +25,8 @@ struct VoxelMask {
 
 static constexpr std::size_t CHUNK_SIZE = 64;
 
+static constexpr std::size_t CHUNK_RADIUS = 3;
+
 class VoxelChunk2D {
 private:
 	glm::vec2 position;

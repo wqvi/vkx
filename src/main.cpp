@@ -136,6 +136,66 @@ int main(int argc, char** argv) {
 
 	window.show();
 	while (isRunning) {
+		// Poll events
+		while (SDL_PollEvent(&event)) {
+			const auto eventType = event.type;
+
+			switch (eventType) {
+			case SDL_QUIT:
+				isRunning = false;
+				break;
+			case SDL_WINDOWEVENT:
+				sdlWindowEvent(event.window);
+				break;
+			case SDL_KEYDOWN:
+				sdlKeyPressedEvent(event.key);
+				break;
+			default:
+				break;
+			}
+		}
+
+		// Update game
+
+		for (const auto& chunk : chunks) {
+			const auto chunkPosition = glm::floor(chunk.chunkPosition());
+			const auto playerPosition = glm::floor(camera.globalPosition() / static_cast<float>(vkx::CHUNK_SIZE));
+
+		}
+
+		/*
+		var chunks = GetChildren();
+        while (true)
+        {
+            foreach (GreedyChunk chunk in chunks)
+            {
+                var chunkX = Mathf.Floor(chunk.Translation.x / GreedyChunk.CHUNK_SIZE);
+                var chunkZ = Mathf.Floor(chunk.Translation.z / GreedyChunk.CHUNK_SIZE);
+
+                var chunkPosition = (chunk.Translation / GreedyChunk.CHUNK_SIZE).Floor();
+
+                var playerX = Mathf.Floor(player.Translation.x / GreedyChunk.CHUNK_SIZE);
+                var playerZ = Mathf.Floor(player.Translation.z / GreedyChunk.CHUNK_SIZE);
+
+                var playerPosition = (player.Translation / GreedyChunk.CHUNK_SIZE).Floor();
+
+                var chunkRadiusHalf = new Vector3(CHUNK_RADIUS / 2f, CHUNK_RADIUS / 2f, CHUNK_RADIUS / 2f);
+
+                var newPosition = (chunkPosition - playerPosition + chunkRadiusHalf).PosMod(CHUNK_RADIUS) + playerPosition - chunkRadiusHalf;
+
+                var newX = Mathf.PosMod(chunkX - playerX + CHUNK_RADIUS / 2, CHUNK_RADIUS) + playerX - CHUNK_RADIUS / 2;
+                var newZ = Mathf.PosMod(chunkZ - playerZ + CHUNK_RADIUS / 2, CHUNK_RADIUS) + playerZ - CHUNK_RADIUS / 2;
+
+                if (newX != chunkX || newZ != chunkZ)
+                {
+                    chunk.Translation = new Vector3(newX * GreedyChunk.CHUNK_SIZE, 0, newZ * GreedyChunk.CHUNK_SIZE);
+                    chunk.Regenerate();
+                }
+	}
+}
+		*/
+
+		// Render
 		auto& mvpBuffer = mvpBuffers[currentFrame];
 		auto mvp = vkx::MVP{glm::mat4(1.0f), camera.viewMatrix(), projection};
 
@@ -204,24 +264,6 @@ int main(int argc, char** argv) {
 		}
 
 		currentFrame = (currentFrame + 1) % vkx::MAX_FRAMES_IN_FLIGHT;
-
-		while (SDL_PollEvent(&event)) {
-			const auto eventType = event.type;
-
-			switch (eventType) {
-			case SDL_QUIT:
-				isRunning = false;
-				break;
-			case SDL_WINDOWEVENT:
-				sdlWindowEvent(event.window);
-				break;
-			case SDL_KEYDOWN:
-				sdlKeyPressedEvent(event.key);
-				break;
-			default:
-				break;
-			}
-		}
 	}
 
 	vulkanDevice.waitIdle();

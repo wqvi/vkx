@@ -87,3 +87,7 @@ void vkx::Camera2D::rotate(const glm::vec2& rotation) noexcept {
 void vkx::Camera2D::move(const glm::vec2& offsetPosition) noexcept {
 	position += offsetPosition;
 }
+
+glm::vec2 vkx::Camera2D::globalPosition() const noexcept {
+	return position;
+}

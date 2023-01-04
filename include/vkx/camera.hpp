@@ -74,5 +74,7 @@ public:
 	void rotate(const glm::vec2& rotation) noexcept;
 
 	void move(const glm::vec2& offsetPosition) noexcept;
+
+	[[nodiscard]] glm::vec2 globalPosition() const noexcept;
 };
 } // namespace vkx
