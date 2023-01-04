@@ -35,19 +35,15 @@ int main(int argc, char** argv) {
 
 	const vkx::VulkanInstance vulkanInstance{window};
 
-	vkx::VulkanDevice vulkanDevice;
-	vulkanDevice = vulkanInstance.createDevice();
+	const auto vulkanDevice = vulkanInstance.createDevice();
 
-	vkx::VulkanAllocator allocator;
-	allocator = vulkanDevice.createAllocator();
+	const auto allocator = vulkanDevice.createAllocator();
 
 	const auto swapchainInfo = vulkanDevice.getSwapchainInfo(window);
 
-	vkx::VulkanRenderPass clearRenderPass;
-	clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
+	const auto clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
 
-	vkx::Swapchain swapchain;
-	swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
+	auto swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 
 	const auto commandSubmitter = vulkanDevice.createCommandSubmitter();
 
