@@ -18,6 +18,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/noise.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
 #include <memory>
 #include <mutex>
 #include <optional>
