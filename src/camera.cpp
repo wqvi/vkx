@@ -83,3 +83,7 @@ void vkx::Camera2D::rotate(const glm::vec2& rotation) noexcept {
 	pitchOrientation = glm::angleAxis(pitchRadians, glm::vec3(1.0f, 0.0f, 0.0f));
 	yawOrientation = glm::angleAxis(yawRadians, glm::vec3(0.0f, 1.0f, 0.0f));
 }
+
+void vkx::Camera2D::move(const glm::vec2& offsetPosition) noexcept {
+	position += offsetPosition;
+}

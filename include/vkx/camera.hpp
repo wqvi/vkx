@@ -72,5 +72,7 @@ public:
 	glm::mat4 viewMatrix() const noexcept;
 
 	void rotate(const glm::vec2& rotation) noexcept;
+
+	void move(const glm::vec2& offsetPosition) noexcept;
 };
 } // namespace vkx

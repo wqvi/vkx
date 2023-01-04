@@ -117,10 +117,21 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	const auto sdlKeyPressedEvent = [&isRunning](const SDL_KeyboardEvent& key) {
+	const auto sdlKeyPressedEvent = [&isRunning, &camera](const SDL_KeyboardEvent& key) {
 		if (key.keysym.sym == SDLK_ESCAPE) {
 			isRunning = false;
 		}
+
+		const auto left = key.keysym.sym == SDLK_a;
+		const auto right = key.keysym.sym == SDLK_d;
+
+		const auto up = key.keysym.sym == SDLK_w;
+		const auto down = key.keysym.sym == SDLK_s;
+
+		const auto xDirection = right - left;
+		const auto yDirection = up - down;
+
+		camera.move(glm::vec2{xDirection, yDirection});
 	};
 
 	window.show();
