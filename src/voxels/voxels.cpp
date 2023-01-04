@@ -130,8 +130,12 @@ glm::vec2 vkx::VoxelChunk2D::globalPosition() const noexcept {
 	return position * 16.0f;
 }
 
+void vkx::VoxelChunk2D::setGlobalPosition(const glm::vec2& globalPosition) noexcept {
+	position = globalPosition;
+}
+
 std::uint32_t vkx::VoxelChunk2D::createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) const {
-	const auto v1 = (position * 16.0f * static_cast<float>(CHUNK_SIZE)) + (pos)*16.0f;
+	const auto v1 = (position * 16.0f * static_cast<float>(CHUNK_SIZE)) + (pos) * 16.0f;
 	const auto v2 = (position * 16.0f * static_cast<float>(CHUNK_SIZE)) + (pos + glm::vec2{width, 0}) * 16.0f;
 	const auto v3 = (position * 16.0f * static_cast<float>(CHUNK_SIZE)) + (pos + glm::vec2{width, height}) * 16.0f;
 	const auto v4 = (position * 16.0f * static_cast<float>(CHUNK_SIZE)) + (pos + glm::vec2{0, height}) * 16.0f;

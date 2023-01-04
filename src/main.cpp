@@ -156,44 +156,27 @@ int main(int argc, char** argv) {
 		}
 
 		// Update game
+		for (int i = 0; i < 4; i++) {
+			auto& chunk = chunks[i];
+			auto& mesh = meshes[i];
 
-		for (const auto& chunk : chunks) {
-			const auto chunkPosition = glm::floor(chunk.chunkPosition());
-			const auto playerPosition = glm::floor(camera.globalPosition() / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto chunkPosition = chunk.globalPosition();
+			const auto chunkX = glm::floor(chunkPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto chunkY = glm::floor(chunkPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
 
+			const auto playerPosition = camera.globalPosition();
+			const auto playerX = glm::floor(playerPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto playerY = glm::floor(playerPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
+
+			const auto newX = glm::mod(chunkX - playerX + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_HALF_RADIUS;
+			const auto newY = glm::mod(chunkY - playerY + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_HALF_RADIUS;
+
+			if (newX != chunkX || newY != chunkY) {
+				//chunk.setGlobalPosition({newX, newY});
+				//chunk.generateTerrain();
+				//chunk.generateMesh(mesh);
+			}
 		}
-
-		/*
-		var chunks = GetChildren();
-        while (true)
-        {
-            foreach (GreedyChunk chunk in chunks)
-            {
-                var chunkX = Mathf.Floor(chunk.Translation.x / GreedyChunk.CHUNK_SIZE);
-                var chunkZ = Mathf.Floor(chunk.Translation.z / GreedyChunk.CHUNK_SIZE);
-
-                var chunkPosition = (chunk.Translation / GreedyChunk.CHUNK_SIZE).Floor();
-
-                var playerX = Mathf.Floor(player.Translation.x / GreedyChunk.CHUNK_SIZE);
-                var playerZ = Mathf.Floor(player.Translation.z / GreedyChunk.CHUNK_SIZE);
-
-                var playerPosition = (player.Translation / GreedyChunk.CHUNK_SIZE).Floor();
-
-                var chunkRadiusHalf = new Vector3(CHUNK_RADIUS / 2f, CHUNK_RADIUS / 2f, CHUNK_RADIUS / 2f);
-
-                var newPosition = (chunkPosition - playerPosition + chunkRadiusHalf).PosMod(CHUNK_RADIUS) + playerPosition - chunkRadiusHalf;
-
-                var newX = Mathf.PosMod(chunkX - playerX + CHUNK_RADIUS / 2, CHUNK_RADIUS) + playerX - CHUNK_RADIUS / 2;
-                var newZ = Mathf.PosMod(chunkZ - playerZ + CHUNK_RADIUS / 2, CHUNK_RADIUS) + playerZ - CHUNK_RADIUS / 2;
-
-                if (newX != chunkX || newZ != chunkZ)
-                {
-                    chunk.Translation = new Vector3(newX * GreedyChunk.CHUNK_SIZE, 0, newZ * GreedyChunk.CHUNK_SIZE);
-                    chunk.Regenerate();
-                }
-	}
-}
-		*/
 
 		// Render
 		auto& mvpBuffer = mvpBuffers[currentFrame];
@@ -240,7 +223,7 @@ int main(int argc, char** argv) {
 		    &swapchain,
 		    &graphicsPipeline,
 		    static_cast<vk::RenderPass>(clearRenderPass),
-			meshes};
+		    meshes};
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 		const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];

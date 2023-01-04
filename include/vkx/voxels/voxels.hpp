@@ -25,7 +25,9 @@ struct VoxelMask {
 
 static constexpr std::size_t CHUNK_SIZE = 64;
 
-static constexpr std::size_t CHUNK_RADIUS = 3;
+static constexpr float CHUNK_RADIUS = 3.0f;
+
+static constexpr float CHUNK_HALF_RADIUS = CHUNK_RADIUS / 2.0f;
 
 class VoxelChunk2D {
 private:
@@ -53,6 +55,8 @@ public:
 	[[nodiscard]] glm::vec2 chunkPosition() const noexcept;
 
 	[[nodiscard]] glm::vec2 globalPosition() const noexcept;
+
+	void setGlobalPosition(const glm::vec2& globalPosition) noexcept;
 
 private:
 	std::uint32_t createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) const;
