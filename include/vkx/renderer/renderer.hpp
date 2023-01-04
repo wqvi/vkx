@@ -343,4 +343,16 @@ struct Mesh {
 
 	explicit Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanAllocator& allocator);
 };
+
+struct ArrayMesh {
+	vkx::Buffer arrayVertexBuffer{};
+	vkx::Buffer arrayIndexBuffer{};
+	std::vector<vkx::Vertex> arrayVertices{};
+	std::vector<std::uint32_t> arrayIndices{};
+	std::size_t activeIndexCount = 0;
+
+	ArrayMesh() = default;
+
+	explicit ArrayMesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanAllocator& allocator);
+};
 } // namespace vkx

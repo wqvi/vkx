@@ -400,7 +400,7 @@ vk::UniqueSampler vkx::VulkanDevice::createTextureSampler() const {
 	    {},
 	    Filter::eLinear,
 	    Filter::eLinear,
-		vk::SamplerMipmapMode::eLinear,
+	    vk::SamplerMipmapMode::eLinear,
 	    Address::eRepeat,
 	    Address::eRepeat,
 	    Address::eRepeat,
@@ -552,4 +552,11 @@ vkx::Mesh::Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::Vulk
       indexBuffer(allocator.allocateBuffer(indexCount * sizeof(std::uint32_t), vk::BufferUsageFlagBits::eIndexBuffer)),
       vertices(vertexCount),
       indices(indexCount) {
+}
+
+vkx::ArrayMesh::ArrayMesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanAllocator& allocator)
+    : arrayVertexBuffer(allocator.allocateBuffer(vertexCount * sizeof(vkx::Vertex), vk::BufferUsageFlagBits::eVertexBuffer)),
+      arrayIndexBuffer(allocator.allocateBuffer(indexCount * sizeof(std::uint32_t), vk::BufferUsageFlagBits::eIndexBuffer)),
+      arrayVertices(vertexCount),
+      arrayIndices(indexCount) {
 }
