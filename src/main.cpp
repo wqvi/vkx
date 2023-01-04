@@ -174,7 +174,7 @@ int main(int argc, char** argv) {
 		    currentFrame,
 		    &swapchain,
 		    &graphicsPipeline,
-		    static_cast<VkRenderPass>(clearRenderPass),
+		    static_cast<vk::RenderPass>(clearRenderPass),
 			meshes};
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];

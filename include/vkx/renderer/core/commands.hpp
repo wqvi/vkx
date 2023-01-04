@@ -10,7 +10,7 @@ struct DrawInfo {
 	std::uint32_t currentFrame = 0;
 	vkx::Swapchain* swapchain{};
 	const vkx::GraphicsPipeline* graphicsPipeline{};
-	VkRenderPass renderPass{};
+	vk::RenderPass renderPass{};
 	std::vector<vkx::Mesh>& meshes;
 };
 

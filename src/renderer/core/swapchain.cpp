@@ -27,7 +27,7 @@ vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device,
 
 		const vk::FramebufferCreateInfo framebufferCreateInfo{
 		    {},
-		    static_cast<VkRenderPass>(renderPass),
+		    static_cast<vk::RenderPass>(renderPass),
 		    framebufferAttachments,
 		    imageExtent.width,
 		    imageExtent.height,

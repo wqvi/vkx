@@ -259,7 +259,7 @@ public:
 				  vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined,
 				  vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR);
 
-	explicit operator VkRenderPass() const;
+	explicit operator vk::RenderPass() const;
 };
 
 class VulkanDevice {
