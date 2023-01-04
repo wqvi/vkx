@@ -32,7 +32,6 @@ int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
 
 	vkx::Camera2D camera{glm::vec2{0, 0}, glm::vec2{0, 0}, glm::vec2{0.5f, 0.5f}};
-
 	const vkx::VulkanInstance vulkanInstance{window};
 
 	const auto vulkanDevice = vulkanInstance.createDevice();
@@ -126,7 +125,7 @@ int main(int argc, char** argv) {
 	window.show();
 	while (isRunning) {
 		auto& mvpBuffer = mvpBuffers[currentFrame];
-		auto mvp = vkx::MVP{glm::mat4(1.0f), view, projection};
+		auto mvp = vkx::MVP{glm::mat4(1.0f), camera.viewMatrix(), projection};
 
 		auto& lightBuffer = lightBuffers[currentFrame];
 		auto light = vkx::DirectionalLight{

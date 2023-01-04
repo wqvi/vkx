@@ -70,3 +70,16 @@ glm::mat4 vkx::Camera2D::viewMatrix() const noexcept {
 	const auto viewTranslation = glm::translate(glm::mat3(1), -position);
 	return viewRotation * viewTranslation;
 }
+
+void vkx::Camera2D::rotate(const glm::vec2& rotation) noexcept {
+	pitch += rotation.y * mouseSensitivity.x;
+	yaw += rotation.x * mouseSensitivity.y;
+	pitch = glm::clamp(pitch, -89.0f, 89.0f);
+	yaw = glm::mod(yaw, 360.0f);
+
+	const auto pitchRadians = glm::radians(pitch);
+	const auto yawRadians = glm::radians(-yaw);
+
+	pitchOrientation = glm::angleAxis(pitchRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+	yawOrientation = glm::angleAxis(yawRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+}

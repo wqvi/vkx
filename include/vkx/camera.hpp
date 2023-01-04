@@ -70,5 +70,7 @@ public:
 			  const glm::vec2& mouseSensitivity);
 
 	glm::mat4 viewMatrix() const noexcept;
+
+	void rotate(const glm::vec2& rotation) noexcept;
 };
 } // namespace vkx
