@@ -59,3 +59,14 @@ void vkx::Camera::updateKey(SDL_Keycode key) {
 	const auto viewTranslation = glm::translate(glm::mat4(1.0f), -position);
 	return viewRotation * viewTranslation;
 }
+
+vkx::Camera2D::Camera2D(const glm::vec2& position,
+			const glm::vec2& rotation,
+			const glm::vec2& mouseSensitivity)
+    : position(position), rotation(rotation), mouseSensitivity(mouseSensitivity) {}
+
+glm::mat4 vkx::Camera2D::viewMatrix() const noexcept {
+	const auto viewRotation = glm::mat3_cast(glm::conjugate(yawOrientation * pitchOrientation));
+	const auto viewTranslation = glm::translate(glm::mat3(1), -position);
+	return viewRotation * viewTranslation;
+}

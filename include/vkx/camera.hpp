@@ -21,7 +21,7 @@ public:
 
 	template <class... T>
 	explicit Camera(T... t)
-		: position(t...) {}
+	    : position(t...) {}
 
 	void updateMouse(const glm::vec2& relative);
 
@@ -43,5 +43,32 @@ public:
 	};
 	glm::vec3 front = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 direction = glm::vec3(0.0f, 0.0f, 0.0f);
+};
+
+class Camera2D {
+private:
+	glm::vec2 position{0, 0};
+
+	union {
+		glm::vec2 rotation{0, 0};
+		struct {
+			float pitch;
+			float yaw;
+		};
+	};
+
+	glm::vec2 mouseSensitivity{0.5f, 0.5f};
+
+	glm::quat yawOrientation{0.0f, 0.0f, 0.0f, 1.0f};
+	glm::quat pitchOrientation{0.0f, 0.0f, 0.0f, 1.0f};
+
+public:
+	Camera2D() = default;
+
+	explicit Camera2D(const glm::vec2& position,
+			  const glm::vec2& rotation,
+			  const glm::vec2& mouseSensitivity);
+
+	glm::mat4 viewMatrix() const noexcept;
 };
 } // namespace vkx
