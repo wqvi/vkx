@@ -48,6 +48,10 @@ public:
 
 	void set(std::size_t i, vkx::Voxel voxel);
 
+	[[nodiscard]] glm::vec2 chunkPosition() const noexcept;
+
+	[[nodiscard]] glm::vec2 globalPosition() const noexcept;
+
 private:
 	std::uint32_t createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) const;
 };
