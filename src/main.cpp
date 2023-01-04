@@ -32,6 +32,7 @@ int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
 
 	vkx::Camera2D camera{glm::vec2{0, 0}, glm::vec2{0, 0}, glm::vec2{0.5f, 0.5f}};
+
 	const vkx::VulkanInstance vulkanInstance{window};
 
 	const auto vulkanDevice = vulkanInstance.createDevice();
