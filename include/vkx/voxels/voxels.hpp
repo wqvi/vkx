@@ -31,7 +31,8 @@ static constexpr float CHUNK_HALF_RADIUS = CHUNK_RADIUS / 2.0f;
 
 class VoxelChunk2D {
 private:
-	glm::vec2 position;
+	glm::vec2 chunkPosition;
+	glm::vec2 globalPosition;
 	std::vector<vkx::Voxel> voxels;
 
 public:
@@ -47,9 +48,9 @@ public:
 
 	void set(std::size_t i, vkx::Voxel voxel);
 
-	[[nodiscard]] glm::vec2 chunkPosition() const noexcept;
+	[[nodiscard]] glm::vec2 getChunkPosition() const noexcept;
 
-	[[nodiscard]] glm::vec2 globalPosition() const noexcept;
+	[[nodiscard]] glm::vec2 getGlobalPosition() const noexcept;
 
 	void setGlobalPosition(const glm::vec2& globalPosition) noexcept;
 
