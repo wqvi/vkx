@@ -33,11 +33,6 @@ class VoxelChunk2D {
 private:
 	glm::vec2 position;
 	std::vector<vkx::Voxel> voxels;
-	std::vector<vkx::Vertex> vertices;
-	std::vector<std::uint32_t> indices;
-	std::vector<vkx::Vertex>::iterator vertexIter;
-	std::vector<std::uint32_t>::iterator indexIter;
-	std::int32_t vertexCount = 0;
 
 public:
 	explicit VoxelChunk2D(const glm::vec2& chunkPosition);

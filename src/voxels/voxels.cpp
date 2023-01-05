@@ -15,8 +15,6 @@ bool vkx::VoxelMask::operator!=(const vkx::VoxelMask& other) const {
 vkx::VoxelChunk2D::VoxelChunk2D(const glm::vec2& chunkPosition)
     : position(chunkPosition) {
 	voxels.resize(CHUNK_SIZE * CHUNK_SIZE);
-	vertices.resize(CHUNK_SIZE * CHUNK_SIZE * 4);
-	indices.resize(CHUNK_SIZE * CHUNK_SIZE * 6);
 }
 
 void vkx::VoxelChunk2D::generateTerrain() {
@@ -51,7 +49,7 @@ void vkx::VoxelChunk2D::generateTestBox() {
 void vkx::VoxelChunk2D::generateMesh(vkx::Mesh& mesh) {
 	auto vertexIter = mesh.vertices.begin();
 	auto indexIter = mesh.indices.begin();
-	vertexCount = 0;
+	auto vertexCount = 0;
 
 	std::vector<vkx::VoxelMask> voxelMask{};
 	voxelMask.reserve(CHUNK_SIZE * CHUNK_SIZE);
