@@ -159,23 +159,6 @@ int main(int argc, char** argv) {
 		for (int i = 0; i < 4; i++) {
 			auto& chunk = chunks[i];
 			auto& mesh = meshes[i];
-
-			const auto chunkPosition = chunk.globalPosition();
-			const auto chunkX = glm::floor(chunkPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
-			const auto chunkY = glm::floor(chunkPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
-
-			const auto playerPosition = camera.globalPosition();
-			const auto playerX = glm::floor(playerPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
-			const auto playerY = glm::floor(playerPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
-
-			const auto newX = glm::mod(chunkX - playerX + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_HALF_RADIUS;
-			const auto newY = glm::mod(chunkY - playerY + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_HALF_RADIUS;
-
-			if (newX != chunkX || newY != chunkY) {
-				//chunk.setGlobalPosition({newX, newY});
-				//chunk.generateTerrain();
-				//chunk.generateMesh(mesh);
-			}
 		}
 
 		// Render

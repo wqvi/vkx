@@ -127,7 +127,7 @@ glm::vec2 vkx::VoxelChunk2D::chunkPosition() const noexcept {
 }
 
 glm::vec2 vkx::VoxelChunk2D::globalPosition() const noexcept {
-	return position * 16.0f;
+	return position * static_cast<float>(vkx::CHUNK_SIZE);
 }
 
 void vkx::VoxelChunk2D::setGlobalPosition(const glm::vec2& globalPosition) noexcept {
