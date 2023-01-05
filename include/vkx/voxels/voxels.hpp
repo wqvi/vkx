@@ -52,7 +52,7 @@ public:
 
 	[[nodiscard]] glm::vec2 getGlobalPosition() const noexcept;
 
-	void setGlobalPosition(const glm::vec2& globalPosition) noexcept;
+	void setGlobalPosition(const glm::vec2& newGlobalPosition) noexcept;
 
 private:
 	std::uint32_t createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) const;

@@ -13,14 +13,15 @@ bool vkx::VoxelMask::operator!=(const vkx::VoxelMask& other) const {
 }
 
 vkx::VoxelChunk2D::VoxelChunk2D(const glm::vec2& chunkPosition)
-    : chunkPosition(chunkPosition) {
+    : chunkPosition(chunkPosition),
+	globalPosition(chunkPosition * static_cast<float>(CHUNK_SIZE)) {
 	voxels.resize(CHUNK_SIZE * CHUNK_SIZE);
 }
 
 void vkx::VoxelChunk2D::generateTerrain() {
 	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
 		for (std::size_t y = 0; y < CHUNK_SIZE; y++) {
-			const auto global = chunkPosition * static_cast<float>(CHUNK_SIZE) + glm::vec2(x, y);
+			const auto global = globalPosition + glm::vec2(x, y);
 			const auto height = static_cast<std::uint32_t>((glm::simplex(global) + 1) / 2 * CHUNK_SIZE);
 
 			auto voxel = vkx::Voxel::Air;
@@ -125,18 +126,19 @@ glm::vec2 vkx::VoxelChunk2D::getChunkPosition() const noexcept {
 }
 
 glm::vec2 vkx::VoxelChunk2D::getGlobalPosition() const noexcept {
-	return chunkPosition * static_cast<float>(vkx::CHUNK_SIZE);
+	return globalPosition;
 }
 
-void vkx::VoxelChunk2D::setGlobalPosition(const glm::vec2& globalPosition) noexcept {
-	chunkPosition = globalPosition;
+void vkx::VoxelChunk2D::setGlobalPosition(const glm::vec2& newGlobalPosition) noexcept {
+	globalPosition = newGlobalPosition;
+	chunkPosition = globalPosition / static_cast<float>(vkx::CHUNK_SIZE);
 }
 
 std::uint32_t vkx::VoxelChunk2D::createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) const {
-	const auto v1 = (chunkPosition * 16.0f * static_cast<float>(CHUNK_SIZE)) + (pos) * 16.0f;
-	const auto v2 = (chunkPosition * 16.0f * static_cast<float>(CHUNK_SIZE)) + (pos + glm::vec2{width, 0}) * 16.0f;
-	const auto v3 = (chunkPosition * 16.0f * static_cast<float>(CHUNK_SIZE)) + (pos + glm::vec2{width, height}) * 16.0f;
-	const auto v4 = (chunkPosition * 16.0f * static_cast<float>(CHUNK_SIZE)) + (pos + glm::vec2{0, height}) * 16.0f;
+	const auto v1 = (globalPosition * 16.0f) + (pos) * 16.0f;
+	const auto v2 = (globalPosition * 16.0f) + (pos + glm::vec2{width, 0}) * 16.0f;
+	const auto v3 = (globalPosition * 16.0f) + (pos + glm::vec2{width, height}) * 16.0f;
+	const auto v4 = (globalPosition * 16.0f) + (pos + glm::vec2{0, height}) * 16.0f;
 
 	*vertexIter = vkx::Vertex{v1, glm::vec2{0, 0}, {}};
 	vertexIter++;
