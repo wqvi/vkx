@@ -28,6 +28,6 @@ void vkx::Camera2D::move(const glm::vec2& offsetPosition) noexcept {
 	position += offsetPosition;
 }
 
-glm::vec2 vkx::Camera2D::globalPosition() const noexcept {
+glm::vec2 vkx::Camera2D::getGlobalPosition() const noexcept {
 	return position;
 }

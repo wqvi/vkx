@@ -28,6 +28,17 @@ auto createShaderBindings() {
 	return std::vector{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 }
 
+template <class T>
+constexpr auto posMod(T x, T y) {
+	float value = std::fmod(x, y);
+	if (((value < 0) && (y > 0)) || ((value > 0) && (y < 0))) {
+		value += y;
+	}
+	value += 0.0f;
+	return value;
+};
+
+
 int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
 
@@ -156,9 +167,27 @@ int main(int argc, char** argv) {
 		}
 
 		// Update game
-		for (int i = 0; i < 4; i++) {
+		for (auto i = 0; i < 4; i++) {
 			auto& chunk = chunks[i];
 			auto& mesh = meshes[i];
+
+			const auto chunkX = glm::floor(chunk.getGlobalPosition().x / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto chunkY = glm::floor(chunk.getGlobalPosition().y / static_cast<float>(vkx::CHUNK_SIZE));
+		
+			const auto playerX = glm::floor(camera.getGlobalPosition().x / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto playerY = glm::floor(camera.getGlobalPosition().y / static_cast<float>(vkx::CHUNK_SIZE));
+		
+			const auto newX = posMod(chunkX - playerX + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_HALF_RADIUS;
+			const auto newY = posMod(chunkY - playerY + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_HALF_RADIUS;
+
+			if (newX != chunkX || newY != chunkY) {
+				chunk.setGlobalPosition({newX, newY});
+				chunk.generateTerrain();
+				chunk.generateMesh(mesh);
+				SDL_Log("Chunk pos = (%f, %f)", chunkX, chunkY);
+				SDL_Log("Player pos = (%f, %f)", playerX, playerY);
+				SDL_Log("New pos = (%f, %f)", newX, newY);
+			}
 		}
 
 		// Render

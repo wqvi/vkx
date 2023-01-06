@@ -45,6 +45,6 @@ public:
 
 	void move(const glm::vec2& offsetPosition) noexcept;
 
-	[[nodiscard]] glm::vec2 globalPosition() const noexcept;
+	[[nodiscard]] glm::vec2 getGlobalPosition() const noexcept;
 };
 } // namespace vkx
