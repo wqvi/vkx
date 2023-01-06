@@ -160,11 +160,14 @@ int main(int argc, char** argv) {
 		const auto up = key.keysym.sym == SDLK_w;
 		const auto down = key.keysym.sym == SDLK_s;
 
-		if (std::abs(right - left)) {
+		const auto xDirection = right - left;
+		const auto yDirection = up - down;
+
+		if (std::abs(xDirection)) {
 			direction.x = 0.0f;
 		}
 
-		if (std::abs(up - down)) {
+		if (std::abs(yDirection)) {
 			direction.y = 0.0f;
 		}
 	};
