@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 	    {&texture}};
 	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
 
-	constexpr std::uint32_t chunkDrawCommandAmount = 4;
+	constexpr std::uint32_t chunkDrawCommandAmount = static_cast<std::uint32_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS);
 
 	constexpr std::uint32_t drawCommandAmount = 1;
 	constexpr std::uint32_t secondaryDrawCommandAmount = chunkDrawCommandAmount;
@@ -80,28 +80,17 @@ int main(int argc, char** argv) {
 	const auto syncObjects = vulkanDevice.createSyncObjects();
 
 	std::vector<vkx::VoxelChunk2D> chunks{};
-	chunks.reserve(4);
-	chunks.emplace_back(glm::vec2{0.0f, 0.0f});
-	chunks.emplace_back(glm::vec2{1.0f, 0.0f});
-	chunks.emplace_back(glm::vec2{1.0f, 1.0f});
-	chunks.emplace_back(glm::vec2{0.0f, 1.0f});
-
-	chunks[0].generateTerrain();
-	chunks[1].generateTerrain();
-	chunks[2].generateTerrain();
-	chunks[3].generateTerrain();
-
 	std::vector<vkx::Mesh> meshes{};
-	meshes.reserve(4);
-	meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
-	meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
-	meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
-	meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
-
-	chunks[0].generateMesh(meshes[0]);
-	chunks[1].generateMesh(meshes[1]);
-	chunks[2].generateMesh(meshes[2]);
-	chunks[3].generateMesh(meshes[3]);
+	chunks.reserve(static_cast<std::size_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS));
+	meshes.reserve(static_cast<std::size_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS));
+	for (auto y = 0; y < vkx::CHUNK_RADIUS; y++) {
+		for (auto x = 0; x < vkx::CHUNK_RADIUS; x++) {
+			auto& currentChunk = chunks.emplace_back(glm::vec2{x, y});
+			currentChunk.generateTerrain();
+			auto& currentMesh = meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
+			currentChunk.generateMesh(currentMesh);
+		}
+	}
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
