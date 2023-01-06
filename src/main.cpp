@@ -30,12 +30,12 @@ auto createShaderBindings() {
 
 template <class T>
 constexpr auto posMod(T a, T b) {
-	auto value = std::fmod(a, b);
+	const auto value = std::fmod(a, b);
 	if ((value < 0.0f && b > 0.0f) || (value > 0.0f && b < 0.0f)) {
-		value += b;
+		return value + b;
 	}
-	return value;
-};
+	return value + 0.0f;
+}
 
 
 int main(int argc, char** argv) {
@@ -186,27 +186,30 @@ int main(int argc, char** argv) {
 
 		camera.globalPosition += direction;
 
+		const auto& playerGlobalPosition = camera.globalPosition;
+		const auto playerX = glm::floor(playerGlobalPosition.x / vkx::CHUNK_SIZE);
+		const auto playerY = glm::floor(playerGlobalPosition.y / vkx::CHUNK_SIZE);
+
 		// Update game
-		for (auto i = 0; i < 4; i++) {
+		for (auto i = 0; i < vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS; i++) {
 			auto& chunk = chunks[i];
 			auto& mesh = meshes[i];
 
 			const auto& chunkGlobalPosition = chunk.globalPosition;
-			const auto& playerGlobalPosition = camera.globalPosition;
 
-			const auto chunkX = glm::floor(chunkGlobalPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
-			const auto chunkY = glm::floor(chunkGlobalPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
-		
-			const auto playerX = glm::floor(playerGlobalPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
-			const auto playerY = glm::floor(playerGlobalPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto chunkX = glm::floor(chunkGlobalPosition.x / vkx::CHUNK_SIZE);
+			const auto chunkY = glm::floor(chunkGlobalPosition.y / vkx::CHUNK_SIZE);
 		
 			const auto newX = posMod(chunkX - playerX + vkx::CHUNK_RADIUS / 2, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_RADIUS / 2;
 			const auto newY = posMod(chunkY - playerY + vkx::CHUNK_RADIUS / 2, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_RADIUS / 2;
 
 			if (newX != chunkX || newY != chunkY) {
 				chunk.globalPosition = {newX * vkx::CHUNK_SIZE, newY * vkx::CHUNK_SIZE};
-				chunk.generateTerrain();
+				//chunk.generateTerrain();
 				chunk.generateMesh(mesh);
+
+				// SDL_Log("Chunk Pos = (%f, %f)", chunkX, chunkY);
+				SDL_Log("New Pos = (%f, %f)", newX, newY);
 			}
 		}
 
