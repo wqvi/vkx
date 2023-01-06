@@ -141,12 +141,15 @@ int main(int argc, char** argv) {
 		const auto up = key.keysym.sym == SDLK_w;
 		const auto down = key.keysym.sym == SDLK_s;
 
-		if (std::abs(right - left)) {
-			direction.x = static_cast<float>(right - left);
+		const auto xDirection = right - left;
+		const auto yDirection = up - down;
+
+		if (std::abs(xDirection)) {
+			direction.x = static_cast<float>(xDirection);
 		}
 
-		if (std::abs(up - down)) {
-			direction.y = static_cast<float>(up - down);
+		if (std::abs(yDirection)) {
+			direction.y = static_cast<float>(yDirection);
 		}
 	};
 
