@@ -29,12 +29,11 @@ auto createShaderBindings() {
 }
 
 template <class T>
-constexpr auto posMod(T x, T y) {
-	float value = std::fmod(x, y);
-	if (((value < 0) && (y > 0)) || ((value > 0) && (y < 0))) {
-		value += y;
+constexpr auto posMod(T a, T b) {
+	auto value = std::fmod(a, b);
+	if ((value < 0.0f && b > 0.0f) || (value > 0.0f && b < 0.0f)) {
+		value += b;
 	}
-	value += 0.0f;
 	return value;
 };
 
@@ -192,14 +191,17 @@ int main(int argc, char** argv) {
 			auto& chunk = chunks[i];
 			auto& mesh = meshes[i];
 
-			const auto chunkX = glm::floor(chunk.globalPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
-			const auto chunkY = glm::floor(chunk.globalPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto& chunkGlobalPosition = chunk.globalPosition;
+			const auto& playerGlobalPosition = camera.globalPosition;
+
+			const auto chunkX = glm::floor(chunkGlobalPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto chunkY = glm::floor(chunkGlobalPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
 		
-			const auto playerX = glm::floor(camera.globalPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
-			const auto playerY = glm::floor(camera.globalPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto playerX = glm::floor(playerGlobalPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto playerY = glm::floor(playerGlobalPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
 		
-			const auto newX = posMod(chunkX - playerX + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_HALF_RADIUS;
-			const auto newY = posMod(chunkY - playerY + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_HALF_RADIUS;
+			const auto newX = posMod(chunkX - playerX + vkx::CHUNK_RADIUS / 2, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_RADIUS / 2;
+			const auto newY = posMod(chunkY - playerY + vkx::CHUNK_RADIUS / 2, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_RADIUS / 2;
 
 			if (newX != chunkX || newY != chunkY) {
 				chunk.globalPosition = {newX * vkx::CHUNK_SIZE, newY * vkx::CHUNK_SIZE};
