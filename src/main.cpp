@@ -186,7 +186,7 @@ int main(int argc, char** argv) {
 
 		camera.globalPosition += direction;
 
-		const auto& playerGlobalPosition = camera.globalPosition;
+		const auto playerGlobalPosition = camera.globalPosition;
 		const auto playerX = glm::floor(playerGlobalPosition.x / vkx::CHUNK_SIZE);
 		const auto playerY = glm::floor(playerGlobalPosition.y / vkx::CHUNK_SIZE);
 
@@ -199,17 +199,14 @@ int main(int argc, char** argv) {
 
 			const auto chunkX = glm::floor(chunkGlobalPosition.x / vkx::CHUNK_SIZE);
 			const auto chunkY = glm::floor(chunkGlobalPosition.y / vkx::CHUNK_SIZE);
-		
-			const auto newX = posMod(chunkX - playerX + vkx::CHUNK_RADIUS / 2, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_RADIUS / 2;
-			const auto newY = posMod(chunkY - playerY + vkx::CHUNK_RADIUS / 2, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_RADIUS / 2;
+
+			const auto newX = glm::floor(posMod(chunkX - playerX + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_HALF_RADIUS);
+			const auto newY = glm::floor(posMod(chunkY - playerY + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_HALF_RADIUS);
 
 			if (newX != chunkX || newY != chunkY) {
-				chunk.globalPosition = {newX * vkx::CHUNK_SIZE, newY * vkx::CHUNK_SIZE};
+				//chunk.globalPosition = {newX * vkx::CHUNK_SIZE, newY * vkx::CHUNK_SIZE};
 				//chunk.generateTerrain();
-				chunk.generateMesh(mesh);
-
-				// SDL_Log("Chunk Pos = (%f, %f)", chunkX, chunkY);
-				SDL_Log("New Pos = (%f, %f)", newX, newY);
+				//chunk.generateMesh(mesh);
 			}
 		}
 
