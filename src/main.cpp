@@ -128,7 +128,9 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	const auto sdlKeyPressedEvent = [&isRunning, &camera](const SDL_KeyboardEvent& key) {
+	glm::vec2 direction{0};
+	
+	const auto sdlKeyPressedEvent = [&isRunning, &direction](const SDL_KeyboardEvent& key) {
 		if (key.keysym.sym == SDLK_ESCAPE) {
 			isRunning = false;
 		}
@@ -139,10 +141,29 @@ int main(int argc, char** argv) {
 		const auto up = key.keysym.sym == SDLK_w;
 		const auto down = key.keysym.sym == SDLK_s;
 
-		const auto xDirection = right - left;
-		const auto yDirection = up - down;
+		if (std::abs(right - left)) {
+			direction.x = static_cast<float>(right - left);
+		}
 
-		camera.move(glm::vec2{xDirection, yDirection});
+		if (std::abs(up - down)) {
+			direction.y = static_cast<float>(up - down);
+		}
+	};
+
+	const auto sdlKeyReleasedEvent = [&direction](const SDL_KeyboardEvent& key) {
+		const auto left = key.keysym.sym == SDLK_a;
+		const auto right = key.keysym.sym == SDLK_d;
+
+		const auto up = key.keysym.sym == SDLK_w;
+		const auto down = key.keysym.sym == SDLK_s;
+
+		if (std::abs(right - left)) {
+			direction.x = 0.0f;
+		}
+
+		if (std::abs(up - down)) {
+			direction.y = 0.0f;
+		}
 	};
 
 	window.show();
@@ -161,10 +182,15 @@ int main(int argc, char** argv) {
 			case SDL_KEYDOWN:
 				sdlKeyPressedEvent(event.key);
 				break;
+			case SDL_KEYUP:
+				sdlKeyReleasedEvent(event.key);
+				break;
 			default:
 				break;
 			}
 		}
+
+		camera.globalPosition += direction;
 
 		// Update game
 		for (auto i = 0; i < 4; i++) {
@@ -174,8 +200,8 @@ int main(int argc, char** argv) {
 			const auto chunkX = glm::floor(chunk.getGlobalPosition().x / static_cast<float>(vkx::CHUNK_SIZE));
 			const auto chunkY = glm::floor(chunk.getGlobalPosition().y / static_cast<float>(vkx::CHUNK_SIZE));
 		
-			const auto playerX = glm::floor(camera.getGlobalPosition().x / static_cast<float>(vkx::CHUNK_SIZE));
-			const auto playerY = glm::floor(camera.getGlobalPosition().y / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto playerX = glm::floor(camera.globalPosition.x / static_cast<float>(vkx::CHUNK_SIZE));
+			const auto playerY = glm::floor(camera.globalPosition.y / static_cast<float>(vkx::CHUNK_SIZE));
 		
 			const auto newX = posMod(chunkX - playerX + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_HALF_RADIUS;
 			const auto newY = posMod(chunkY - playerY + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_HALF_RADIUS;
@@ -184,9 +210,6 @@ int main(int argc, char** argv) {
 				chunk.setGlobalPosition({newX, newY});
 				chunk.generateTerrain();
 				chunk.generateMesh(mesh);
-				SDL_Log("Chunk pos = (%f, %f)", chunkX, chunkY);
-				SDL_Log("Player pos = (%f, %f)", playerX, playerY);
-				SDL_Log("New pos = (%f, %f)", newX, newY);
 			}
 		}
 
