@@ -13,8 +13,7 @@ bool vkx::VoxelMask::operator!=(const vkx::VoxelMask& other) const {
 }
 
 vkx::VoxelChunk2D::VoxelChunk2D(const glm::vec2& chunkPosition)
-    : chunkPosition(chunkPosition),
-	globalPosition(chunkPosition * static_cast<float>(CHUNK_SIZE)) {
+    : globalPosition(chunkPosition * static_cast<float>(vkx::CHUNK_SIZE)) {
 	voxels.resize(CHUNK_SIZE * CHUNK_SIZE);
 }
 
@@ -119,19 +118,6 @@ void vkx::VoxelChunk2D::set(std::size_t i, vkx::Voxel voxel) {
 	if (i >= 0 && i < CHUNK_SIZE * CHUNK_SIZE) {
 		voxels[i] = voxel;
 	}
-}
-
-glm::vec2 vkx::VoxelChunk2D::getChunkPosition() const noexcept {
-	return chunkPosition;
-}
-
-glm::vec2 vkx::VoxelChunk2D::getGlobalPosition() const noexcept {
-	return globalPosition;
-}
-
-void vkx::VoxelChunk2D::setGlobalPosition(const glm::vec2& newGlobalPosition) noexcept {
-	globalPosition = newGlobalPosition;
-	chunkPosition = globalPosition / static_cast<float>(vkx::CHUNK_SIZE);
 }
 
 std::uint32_t vkx::VoxelChunk2D::createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) const {

@@ -29,13 +29,10 @@ static constexpr float CHUNK_RADIUS = 3.0f;
 
 static constexpr float CHUNK_HALF_RADIUS = CHUNK_RADIUS / 2.0f;
 
-class VoxelChunk2D {
-private:
-	glm::vec2 chunkPosition;
+struct VoxelChunk2D {
 	glm::vec2 globalPosition;
 	std::vector<vkx::Voxel> voxels;
 
-public:
 	explicit VoxelChunk2D(const glm::vec2& chunkPosition);
 
 	void generateTerrain();
@@ -48,13 +45,6 @@ public:
 
 	void set(std::size_t i, vkx::Voxel voxel);
 
-	[[nodiscard]] glm::vec2 getChunkPosition() const noexcept;
-
-	[[nodiscard]] glm::vec2 getGlobalPosition() const noexcept;
-
-	void setGlobalPosition(const glm::vec2& newGlobalPosition) noexcept;
-
-private:
 	std::uint32_t createQuad(std::vector<vkx::Vertex>::iterator vertexIter, std::vector<std::uint32_t>::iterator indexIter, std::uint32_t vertexCount, std::int32_t width, std::int32_t height, const glm::vec2& pos) const;
 };
 
