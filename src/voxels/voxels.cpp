@@ -21,11 +21,11 @@ void vkx::VoxelChunk2D::generateTerrain() {
 	for (std::size_t x = 0; x < CHUNK_SIZE; x++) {
 		for (std::size_t y = 0; y < CHUNK_SIZE; y++) {
 			const auto global = globalPosition + glm::vec2(x, y);
-			const auto height = static_cast<std::uint32_t>((glm::simplex(global) + 1) / 2 * CHUNK_SIZE);
+			const auto height = (glm::simplex(global) + 1.0f) / 2.0f;
 
 			auto voxel = vkx::Voxel::Air;
 
-			if (y < height) {
+			if (height < 0.5f) {
 				voxel = vkx::Voxel::Stone;
 			}
 

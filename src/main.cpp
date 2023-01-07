@@ -204,9 +204,9 @@ int main(int argc, char** argv) {
 			const auto newY = glm::floor(posMod(chunkY - playerY + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_HALF_RADIUS);
 
 			if (newX != chunkX || newY != chunkY) {
-				//chunk.globalPosition = {newX * vkx::CHUNK_SIZE, newY * vkx::CHUNK_SIZE};
-				//chunk.generateTerrain();
-				//chunk.generateMesh(mesh);
+				chunk.globalPosition = {newX * vkx::CHUNK_SIZE, newY * vkx::CHUNK_SIZE}; // Check the journal entry about this!
+				chunk.generateTerrain();
+				chunk.generateMesh(mesh);
 			}
 		}
 
