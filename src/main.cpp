@@ -211,8 +211,11 @@ int main(int argc, char** argv) {
 		}
 
 		// Render
+		const auto [windowWidth, windowHeight] = window.getDimensions();
+		const glm::vec2 windowCenter{windowWidth / 2, windowHeight / 2};
+
 		auto& mvpBuffer = mvpBuffers[currentFrame];
-		auto mvp = vkx::MVP{glm::mat4(1.0f), camera.viewMatrix(), projection};
+		auto mvp = vkx::MVP{glm::mat4(glm::translate(glm::mat3(1.0f), windowCenter)), camera.viewMatrix(), projection};
 
 		auto& lightBuffer = lightBuffers[currentFrame];
 		auto light = vkx::DirectionalLight{
