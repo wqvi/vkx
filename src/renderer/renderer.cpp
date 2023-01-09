@@ -104,6 +104,32 @@ vkx::VulkanAllocator::operator VmaAllocator() const {
 	return allocator.get();
 }
 
+vkx::Buffer vkx::VulkanAllocator::allocateBuffer(std::size_t memorySize,
+					 vk::BufferUsageFlags bufferFlags,
+					 VmaAllocationCreateFlags allocationFlags,
+					 VmaMemoryUsage memoryUsage) const {
+	const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
+
+	const VmaAllocationCreateInfo allocationCreateInfo{
+	    allocationFlags,
+	    memoryUsage,
+	    0,
+	    0,
+	    0,
+	    nullptr,
+	    nullptr,
+	    {}};
+
+	VkBuffer cBuffer = nullptr;
+	VmaAllocation cAllocation = nullptr;
+	VmaAllocationInfo cAllocationInfo;
+	if (vmaCreateBuffer(allocator.get(), reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate GPU buffer.");
+	}
+
+	return vkx::Buffer{vk::UniqueBuffer(cBuffer, logicalDevice), UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator.get()}), std::move(cAllocationInfo)};
+}
+
 vkx::Image vkx::VulkanAllocator::allocateImage(vk::Extent2D extent,
 					       vk::Format format,
 					       vk::ImageTiling tiling,
@@ -559,4 +585,6 @@ vkx::ArrayMesh::ArrayMesh(std::size_t vertexCount, std::size_t indexCount, const
       arrayIndexBuffer(allocator.allocateBuffer(indexCount * sizeof(std::uint32_t), vk::BufferUsageFlagBits::eIndexBuffer)),
       arrayVertices(vertexCount),
       arrayIndices(indexCount) {
+
+	auto giantBuffer = allocator.allocateBuffer(vertexCount * sizeof(vkx::Vertex), vk::BufferUsageFlagBits::eVertexBuffer);
 }
