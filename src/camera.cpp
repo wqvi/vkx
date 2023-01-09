@@ -7,7 +7,7 @@ vkx::Camera2D::Camera2D(const glm::vec2& globalPosition,
 
 glm::mat4 vkx::Camera2D::viewMatrix() const noexcept {
 	const auto viewRotation = glm::mat3_cast(glm::conjugate(yawOrientation * pitchOrientation));
-	const auto viewTranslation = glm::translate(glm::mat3(1), -globalPosition);
+	const auto viewTranslation = glm::translate(glm::mat3(1), -globalPosition * 16.0f);
 	return viewRotation * viewTranslation;
 }
 
