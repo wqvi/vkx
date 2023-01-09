@@ -23,9 +23,9 @@ struct VoxelMask {
 	bool operator!=(const VoxelMask& other) const;
 };
 
-static constexpr std::size_t CHUNK_SIZE = 16;
+static constexpr std::size_t CHUNK_SIZE = 32;
 
-static constexpr float CHUNK_RADIUS = 3.0f;
+static constexpr float CHUNK_RADIUS = 5.0f;
 
 static constexpr float CHUNK_HALF_RADIUS = CHUNK_RADIUS / 2.0f;
 
