@@ -2,7 +2,7 @@
 
 #include <vkx/renderer/core/renderer_types.hpp>
 #include <vkx/renderer/core/vertex.hpp>
-#include <vkx/renderer/uniform_buffer.hpp>
+#include <vkx/renderer/buffers.hpp>
 
 namespace vkx {
 struct GraphicsPipelineInformation {

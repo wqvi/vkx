@@ -1,9 +1,5 @@
 #pragma once
 
-#include "core/queue_config.hpp"
-#include "core/swapchain_info.hpp"
-#include "core/sync_objects.hpp"
-#include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/window.hpp>
 
 namespace vkx {
@@ -69,10 +65,21 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 	return object;
 }
 
+struct QueueConfig;
+struct SwapchainInfo;
+class Swapchain;
+class CommandSubmitter;
+struct GraphicsPipelineInformation;
+class GraphicsPipeline;
+struct SyncObjects;
 class VulkanInstance;
 class VulkanDevice;
 class VulkanRenderPass;
 class VulkanAllocator;
+class Buffer;
+class UniformBuffer;
+class Image;
+class Texture;
 
 class VulkanAllocationDeleter {
 private:
@@ -101,53 +108,6 @@ public:
 };
 
 using UniqueVulkanPool = std::unique_ptr<std::remove_pointer_t<VmaPool>, VulkanPoolDeleter>;
-
-class Buffer {
-private:
-	vk::UniqueBuffer buffer;
-	vkx::UniqueVulkanAllocation allocation;
-	VmaAllocationInfo allocationInfo{};
-
-public:
-	Buffer() = default;
-
-	explicit Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
-
-	explicit operator vk::Buffer() const;
-
-	template <class T>
-	void mapMemory(const T* data) const {
-		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
-	}
-
-	std::size_t size() const;
-};
-
-class UniformBuffer {
-private:
-	vk::DescriptorBufferInfo info{};
-	vkx::Buffer buffer;
-
-public:
-	UniformBuffer() = default;
-
-	UniformBuffer(vkx::Buffer&& buffer)
-	    : info(static_cast<vk::Buffer>(buffer), 0, buffer.size()),
-	      buffer(std::move(buffer)) {}
-
-	template <class T>
-	void mapMemory(const T& obj) const {
-		buffer.mapMemory(&obj);
-	}
-
-	vk::DescriptorBufferInfo createDescriptorBufferInfo() const {
-		return {static_cast<vk::Buffer>(buffer), 0, buffer.size()};
-	}
-
-	const vk::DescriptorBufferInfo* getInfo() const {
-		return &info;
-	}
-};
 
 struct VulkanAllocatorDeleter {
 	void operator()(VmaAllocator allocator) const noexcept;

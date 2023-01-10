@@ -1,7 +1,5 @@
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/texture.hpp>
-#include <vkx/renderer/renderer.hpp>
-#include <vkx/renderer/uniform_buffer.hpp>
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& info)
     : device(device) {

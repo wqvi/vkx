@@ -3,7 +3,7 @@
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/renderer.hpp>
 #include <vkx/renderer/image.hpp>
-#include <vkx/renderer/uniform_buffer.hpp>
+#include <vkx/renderer/buffers.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
@@ -35,17 +35,6 @@ void vkx::VulkanPoolDeleter::operator()(VmaPool pool) const noexcept {
 	if (allocator) {
 		vmaDestroyPool(allocator, pool);
 	}
-}
-
-vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo)
-    : buffer(std::move(buffer)), allocation(std::move(allocation)), allocationInfo(std::move(allocationInfo)) {}
-
-vkx::Buffer::operator vk::Buffer() const {
-	return *buffer;
-}
-
-std::size_t vkx::Buffer::size() const {
-	return allocationInfo.size;
 }
 
 void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
@@ -215,7 +204,7 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 }
 
 vkx::UniformBuffer vkx::VulkanAllocator::allocateUniformBuffer(std::size_t memorySize) const {
-	return allocateBuffer(memorySize, vk::BufferUsageFlagBits::eUniformBuffer);
+	return vkx::UniformBuffer{allocateBuffer(memorySize, vk::BufferUsageFlagBits::eUniformBuffer)};
 }
 
 std::vector<vkx::UniformBuffer> vkx::VulkanAllocator::allocateUniformBuffers(std::size_t memorySize, std::size_t amount) const {
