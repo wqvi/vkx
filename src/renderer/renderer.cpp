@@ -251,6 +251,46 @@ std::vector<vkx::UniformBuffer> vkx::VulkanAllocator::allocateUniformBuffers(std
 	return uniformBuffers;
 }
 
+vkx::UniqueVulkanPool vkx::VulkanAllocator::allocatePool(vk::BufferUsageFlags bufferFlags, 
+	std::size_t blockSize,
+	std::size_t maxBlockCount,
+	VmaAllocationCreateFlags flags,
+	VmaMemoryUsage memoryUsage) const {
+	const vk::BufferCreateInfo bufferCreateInfo{{}, {}, bufferFlags, vk::SharingMode::eExclusive};
+
+	VmaAllocationCreateInfo allocationCreateInfo{
+	    flags,
+	    memoryUsage,
+	    0,
+	    0,
+	    0,
+	    nullptr,
+	    nullptr,
+	    {}};
+	
+	std::uint32_t memoryTypeIndex = 0;
+	if (vmaFindMemoryTypeIndexForBufferInfo(allocator.get(), reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &memoryTypeIndex) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to find memory type index for allocating a pool of buffers.");
+	}
+
+	VmaPoolCreateInfo poolCreateInfo{
+		memoryTypeIndex,
+	    {},
+		blockSize,
+	    {},
+		maxBlockCount,
+	    {},
+	    {},
+		nullptr};
+
+	VmaPool pool = nullptr;
+	if (vmaCreatePool(allocator.get(), &poolCreateInfo, &pool) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create vulkan memory pool.");
+	}
+
+	return vkx::UniqueVulkanPool(pool, VulkanPoolDeleter(allocator.get()));
+}
+
 vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
 	using Sample = vk::SampleCountFlagBits;
 	using Load = vk::AttachmentLoadOp;

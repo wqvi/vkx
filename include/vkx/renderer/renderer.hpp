@@ -236,6 +236,12 @@ public:
 	[[nodiscard]] vkx::UniformBuffer allocateUniformBuffer(std::size_t memorySize) const;
 
 	[[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(std::size_t memorySize, std::size_t amount) const;
+
+	[[nodiscard]] vkx::UniqueVulkanPool allocatePool(vk::BufferUsageFlags bufferFlags,
+							 std::size_t blockSize,
+							 std::size_t maxBlockCount,
+							 VmaAllocationCreateFlags flags,
+							 VmaMemoryUsage memoryUsage) const;
 };
 
 class VulkanRenderPass {
