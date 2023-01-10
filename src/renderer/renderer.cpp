@@ -26,6 +26,16 @@ void vkx::VulkanAllocationDeleter::operator()(VmaAllocation allocation) const no
 	}
 }
 
+vkx::VulkanPoolDeleter::VulkanPoolDeleter(VmaAllocator allocator)
+    : allocator(allocator) {
+}
+
+void vkx::VulkanPoolDeleter::operator()(VmaPool pool) const noexcept {
+	if (allocator) {
+		vmaDestroyPool(allocator, pool);
+	}
+}
+
 vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo)
     : buffer(std::move(buffer)), allocation(std::move(allocation)), allocationInfo(std::move(allocationInfo)) {}
 
@@ -105,9 +115,9 @@ vkx::VulkanAllocator::operator VmaAllocator() const {
 }
 
 vkx::Buffer vkx::VulkanAllocator::allocateBuffer(std::size_t memorySize,
-					 vk::BufferUsageFlags bufferFlags,
-					 VmaAllocationCreateFlags allocationFlags,
-					 VmaMemoryUsage memoryUsage) const {
+						 vk::BufferUsageFlags bufferFlags,
+						 VmaAllocationCreateFlags allocationFlags,
+						 VmaMemoryUsage memoryUsage) const {
 	const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
 
 	const VmaAllocationCreateInfo allocationCreateInfo{

@@ -88,6 +88,20 @@ public:
 
 using UniqueVulkanAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, VulkanAllocationDeleter>;
 
+class VulkanPoolDeleter {
+private:
+	VmaAllocator allocator = nullptr;
+
+public:
+	VulkanPoolDeleter() = default;
+
+	explicit VulkanPoolDeleter(VmaAllocator allocator);
+
+	void operator()(VmaPool pool) const noexcept;
+};
+
+using UniqueVulkanPool = std::unique_ptr<std::remove_pointer_t<VmaPool>, VulkanPoolDeleter>;
+
 class Buffer {
 private:
 	vk::UniqueBuffer buffer;
