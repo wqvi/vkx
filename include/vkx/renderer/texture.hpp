@@ -4,6 +4,12 @@
 
 namespace vkx {
 class Texture {
+private:
+	vkx::Image image{};
+	vk::UniqueImageView view{};
+	vk::UniqueSampler sampler{};
+	vk::DescriptorImageInfo descriptorImageInfo{};
+
 public:
 	Texture() = default;
 
@@ -12,14 +18,6 @@ public:
 			 const vkx::VulkanAllocator& allocator,
 			 const vkx::CommandSubmitter& commandSubmitter);
 
-	[[nodiscard]] vk::DescriptorImageInfo createDescriptorImageInfo() const;
-
-	[[nodiscard]] const vk::DescriptorImageInfo* getInfo() const;
-
-private:
-	vkx::Image image;
-	vk::UniqueImageView view;
-	vk::UniqueSampler sampler;
-	vk::DescriptorImageInfo info{};
+	[[nodiscard]] const vk::DescriptorImageInfo* imageInfo() const noexcept;
 };
 } // namespace vkx
