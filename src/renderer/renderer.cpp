@@ -1,9 +1,9 @@
+#include <vkx/renderer/buffers.hpp>
 #include <vkx/renderer/core/commands.hpp>
-#include <vkx/renderer/core/swapchain.hpp>
+#include <vkx/renderer/image.hpp>
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/renderer.hpp>
-#include <vkx/renderer/image.hpp>
-#include <vkx/renderer/buffers.hpp>
+#include <vkx/renderer/swapchain.hpp>
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"

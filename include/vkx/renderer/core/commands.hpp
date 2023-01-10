@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vkx/renderer/core/pipeline.hpp>
-#include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/core/sync_objects.hpp>
+#include <vkx/renderer/swapchain.hpp>
 
 namespace vkx {
 struct DrawInfo {

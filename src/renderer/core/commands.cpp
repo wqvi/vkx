@@ -1,6 +1,4 @@
 #include <vkx/renderer/core/commands.hpp>
-#include <vkx/renderer/core/queue_config.hpp>
-#include <vkx/renderer/renderer.hpp>
 #include <vkx/renderer/model.hpp>
 
 vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface)
@@ -109,8 +107,8 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawComma
 }
 
 void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
-	const auto extent = drawInfo.swapchain->extent();
-	const auto framebuffer = (*drawInfo.swapchain)[drawInfo.imageIndex];
+	const auto extent = drawInfo.swapchain->imageExtent;
+	const auto framebuffer = *drawInfo.swapchain->framebuffers[drawInfo.imageIndex];
 
 	const vk::CommandBufferBeginInfo commandBufferBeginInfo{};
 
@@ -167,8 +165,8 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 }
 
 void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vk::CommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const {
-	const auto extent = drawInfo.swapchain->extent();
-	const auto framebuffer = (*drawInfo.swapchain)[drawInfo.imageIndex];
+	const auto extent = drawInfo.swapchain->imageExtent;
+	const auto framebuffer = *drawInfo.swapchain->framebuffers[drawInfo.imageIndex];
 
 	const vk::CommandBufferBeginInfo commandBufferBeginInfo{};
 
