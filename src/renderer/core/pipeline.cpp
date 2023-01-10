@@ -1,5 +1,5 @@
 #include <vkx/renderer/core/pipeline.hpp>
-#include <vkx/renderer/model.hpp>
+#include <vkx/renderer/texture.hpp>
 #include <vkx/renderer/renderer.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 

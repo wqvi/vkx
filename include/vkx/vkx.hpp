@@ -4,6 +4,7 @@
 #include <vkx/raycast.hpp>
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/renderer.hpp>
+#include <vkx/renderer/texture.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 #include <vkx/voxels/voxels.hpp>
 #include <vkx/window.hpp>
