@@ -123,20 +123,6 @@ public:
 	std::size_t size() const;
 };
 
-class Image {
-private:
-	vk::Device logicalDevice = nullptr;
-	vk::UniqueImage resourceImage;
-	UniqueVulkanAllocation resourceAllocation;
-
-public:
-	Image() = default;
-
-	explicit Image(vk::Device logicalDevice, vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation);
-
-	vk::UniqueImageView createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const;
-};
-
 class UniformBuffer {
 private:
 	vk::DescriptorBufferInfo info{};

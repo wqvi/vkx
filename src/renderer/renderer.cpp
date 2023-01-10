@@ -2,6 +2,7 @@
 #include <vkx/renderer/core/swapchain.hpp>
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/renderer.hpp>
+#include <vkx/renderer/image.hpp>
 #include <vkx/renderer/uniform_buffer.hpp>
 
 #define VMA_IMPLEMENTATION
@@ -45,31 +46,6 @@ vkx::Buffer::operator vk::Buffer() const {
 
 std::size_t vkx::Buffer::size() const {
 	return allocationInfo.size;
-}
-
-vkx::Image::Image(vk::Device logicalDevice, vk::UniqueImage&& image, vkx::UniqueVulkanAllocation&& allocation)
-    : logicalDevice(logicalDevice),
-      resourceImage(std::move(image)),
-      resourceAllocation(std::move(allocation)) {
-}
-
-vk::UniqueImageView vkx::Image::createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const {
-	const vk::ImageSubresourceRange subresourceRange{
-	    aspectFlags,
-	    0,
-	    1,
-	    0,
-	    1};
-
-	const vk::ImageViewCreateInfo imageViewCreateInfo{
-	    {},
-	    *resourceImage,
-	    vk::ImageViewType::e2D,
-	    format,
-	    {},
-	    subresourceRange};
-
-	return logicalDevice.createImageViewUnique(imageViewCreateInfo);
 }
 
 void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
