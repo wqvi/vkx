@@ -1,5 +1,4 @@
-#include <vkx/renderer/core/swapchain.hpp>
-#include <vkx/renderer/renderer.hpp>
+#include <vkx/renderer/swapchain.hpp>
 
 vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device,
 			  const vkx::VulkanRenderPass& renderPass,
@@ -14,16 +13,16 @@ vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device,
 	const auto depthFormat = device.findDepthFormat();
 
 	imageViews.reserve(images.size());
-	for (const auto image : images) {
+	for (const vk::Image image : images) {
 		imageViews.emplace_back(device.createImageView(image, swapchainInfo.surfaceFormat, vk::ImageAspectFlagBits::eColor));
 	}
 
 	depthImage = allocator.allocateImage(imageExtent, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 	depthImageView = depthImage.createView(depthFormat, vk::ImageAspectFlagBits::eDepth);
+	
 	framebuffers.reserve(imageViews.size());
-
 	for (const auto& imageView : imageViews) {
-		const std::array framebufferAttachments = {*imageView, *depthImageView};
+		const std::array framebufferAttachments{*imageView, *depthImageView};
 
 		const vk::FramebufferCreateInfo framebufferCreateInfo{
 		    {},
