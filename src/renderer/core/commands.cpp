@@ -88,19 +88,10 @@ void vkx::CommandSubmitter::copyBufferToImage(vk::Buffer buffer, vk::Image image
 	});
 }
 
-std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::uint32_t amount) const {
+std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::uint32_t amount, vk::CommandBufferLevel level) const {
 	const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
 	    *commandPool,
-	    vk::CommandBufferLevel::ePrimary,
-	    amount * vkx::MAX_FRAMES_IN_FLIGHT};
-
-	return logicalDevice.allocateCommandBuffers(commandBufferAllocateInfo);
-}
-
-std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawCommands(std::uint32_t amount) const {
-	const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
-	    *commandPool,
-	    vk::CommandBufferLevel::eSecondary,
+	    level,
 	    amount * vkx::MAX_FRAMES_IN_FLIGHT};
 
 	return logicalDevice.allocateCommandBuffers(commandBufferAllocateInfo);

@@ -54,9 +54,7 @@ public:
 
 	void copyBufferToImage(vk::Buffer buffer, vk::Image image, std::uint32_t width, std::uint32_t height) const;
 
-	std::vector<vk::CommandBuffer> allocateDrawCommands(std::uint32_t amount) const;
-
-	std::vector<vk::CommandBuffer> allocateSecondaryDrawCommands(std::uint32_t amount) const;
+	std::vector<vk::CommandBuffer> allocateDrawCommands(std::uint32_t amount, vk::CommandBufferLevel level = vk::CommandBufferLevel::ePrimary) const;
 
 	void recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vkx::DrawInfo& drawInfo) const;
 

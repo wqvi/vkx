@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
 	constexpr std::uint32_t drawCommandAmount = 1;
 	constexpr std::uint32_t secondaryDrawCommandAmount = chunkDrawCommandAmount;
 	const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
-	const auto secondaryDrawCommands = commandSubmitter.allocateSecondaryDrawCommands(secondaryDrawCommandAmount);
+	const auto secondaryDrawCommands = commandSubmitter.allocateDrawCommands(secondaryDrawCommandAmount, vk::CommandBufferLevel::eSecondary);
 
 	const auto syncObjects = vulkanDevice.createSyncObjects();
 
