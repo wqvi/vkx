@@ -4,6 +4,7 @@
 #include <vkx/raycast.hpp>
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/swapchain.hpp>
+#include <vkx/renderer/image.hpp>
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/renderer.hpp>
 #include <vkx/renderer/texture.hpp>
