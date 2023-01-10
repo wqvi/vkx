@@ -669,12 +669,3 @@ std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(vk::PhysicalDevice physica
 
 	return rating;
 }
-
-vkx::ArrayMesh::ArrayMesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanAllocator& allocator)
-    : arrayVertexBuffer(allocator.allocateBuffer(vertexCount * sizeof(vkx::Vertex), vk::BufferUsageFlagBits::eVertexBuffer)),
-      arrayIndexBuffer(allocator.allocateBuffer(indexCount * sizeof(std::uint32_t), vk::BufferUsageFlagBits::eIndexBuffer)),
-      arrayVertices(vertexCount),
-      arrayIndices(indexCount) {
-
-	auto giantBuffer = allocator.allocateBuffer(vertexCount * sizeof(vkx::Vertex), vk::BufferUsageFlagBits::eVertexBuffer);
-}

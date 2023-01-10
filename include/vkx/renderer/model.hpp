@@ -16,4 +16,13 @@ struct Mesh {
 
 	explicit Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanAllocator& allocator);
 };
+
+struct ArrayMesh {
+	vkx::UniqueVulkanPool vertexPool{};
+	vkx::UniqueVulkanPool indexPool{};
+
+	ArrayMesh() = default;
+
+	explicit ArrayMesh(const vkx::VulkanAllocator& allocator);
+};
 } // namespace vkx
