@@ -1,16 +1,16 @@
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/model.hpp>
 
-vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface)
-    : device(device) {
+vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device logicalDevice, vk::SurfaceKHR surface)
+    : logicalDevice(logicalDevice) {
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 
-	graphicsQueue = device.getQueue(*queueConfig.graphicsIndex, 0);
-	presentQueue = device.getQueue(*queueConfig.presentIndex, 0);
+	graphicsQueue = logicalDevice.getQueue(*queueConfig.graphicsIndex, 0);
+	presentQueue = logicalDevice.getQueue(*queueConfig.presentIndex, 0);
 
 	const vk::CommandPoolCreateInfo commandPoolCreateInfo{vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex};
 
-	commandPool = device.createCommandPoolUnique(commandPoolCreateInfo);
+	commandPool = logicalDevice.createCommandPoolUnique(commandPoolCreateInfo);
 }
 
 void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
@@ -21,11 +21,11 @@ void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayo
 	    0,
 	    1};
 
-	vk::AccessFlags srcAccessMask;
-	vk::AccessFlags dstAccessMask;
+	vk::AccessFlags srcAccessMask{};
+	vk::AccessFlags dstAccessMask{};
 
-	vk::PipelineStageFlags sourceStage;
-	vk::PipelineStageFlags destinationStage;
+	vk::PipelineStageFlags sourceStage{};
+	vk::PipelineStageFlags destinationStage{};
 
 	if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
 		srcAccessMask = {};
@@ -94,7 +94,7 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::
 	    vk::CommandBufferLevel::ePrimary,
 	    amount * vkx::MAX_FRAMES_IN_FLIGHT};
 
-	return device.allocateCommandBuffers(commandBufferAllocateInfo);
+	return logicalDevice.allocateCommandBuffers(commandBufferAllocateInfo);
 }
 
 std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawCommands(std::uint32_t amount) const {
@@ -103,7 +103,7 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateSecondaryDrawComma
 	    vk::CommandBufferLevel::eSecondary,
 	    amount * vkx::MAX_FRAMES_IN_FLIGHT};
 
-	return device.allocateCommandBuffers(commandBufferAllocateInfo);
+	return logicalDevice.allocateCommandBuffers(commandBufferAllocateInfo);
 }
 
 void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const {
@@ -140,6 +140,7 @@ void vkx::CommandSubmitter::recordPrimaryDrawCommands(const vk::CommandBuffer* b
 		const auto& mesh = drawInfo.meshes[i];
 
 		commandBuffer.reset();
+
 		commandBuffer.begin(commandBufferBeginInfo);
 
 		commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
@@ -206,6 +207,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 		const auto commandBuffer = begin[i];
 
 		commandBuffer.reset();
+
 		commandBuffer.begin(commandBufferBeginInfo);
 
 		commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eSecondaryCommandBuffers);
@@ -241,7 +243,7 @@ void vkx::CommandSubmitter::recordSecondaryDrawCommands(const vk::CommandBuffer*
 	}
 }
 
-void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const {
+void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vkx::SyncObjects& syncObjects) const {
 	constexpr std::array<vk::PipelineStageFlags, 1> waitStages{vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
 	const vk::SubmitInfo submitInfo{
@@ -256,7 +258,7 @@ void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, s
 	graphicsQueue.submit(submitInfo, *syncObjects.inFlightFence);
 }
 
-vk::Result vkx::CommandSubmitter::presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const {
+vk::Result vkx::CommandSubmitter::presentToSwapchain(const vkx::Swapchain& swapchain, std::uint32_t imageIndex, const vkx::SyncObjects& syncObjects) const {
 	const vk::PresentInfoKHR presentInfo{
 	    *syncObjects.renderFinishedSemaphore,
 	    *swapchain.swapchain,

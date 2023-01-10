@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vkx/renderer/core/pipeline.hpp>
-#include <vkx/renderer/core/sync_objects.hpp>
 #include <vkx/renderer/swapchain.hpp>
 
 namespace vkx {
@@ -16,15 +15,17 @@ struct DrawInfo {
 
 class CommandSubmitter {
 private:
-	vk::Device device = nullptr;
-	vk::UniqueCommandPool commandPool;
-	vk::Queue graphicsQueue = nullptr;
-	vk::Queue presentQueue = nullptr;
+	vk::Device logicalDevice{};
+	vk::UniqueCommandPool commandPool{};
+	vk::Queue graphicsQueue{};
+	vk::Queue presentQueue{};
 
 public:
 	CommandSubmitter() = default;
 
-	explicit CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface);
+	explicit CommandSubmitter(vk::PhysicalDevice physicalDevice,
+				  vk::Device logicalDevice,
+				  vk::SurfaceKHR surface);
 
 	template <class T>
 	void submitImmediately(T command) const {
@@ -33,7 +34,7 @@ public:
 		    vk::CommandBufferLevel::ePrimary,
 		    1};
 
-		const auto commandBuffer = std::move(device.allocateCommandBuffersUnique(commandBufferAllocateInfo)[0]);
+		const vk::UniqueCommandBuffer commandBuffer = std::move(logicalDevice.allocateCommandBuffersUnique(commandBufferAllocateInfo)[0]);
 
 		const vk::CommandBufferBeginInfo commandBufferBeginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
 
@@ -57,12 +58,12 @@ public:
 
 	std::vector<vk::CommandBuffer> allocateSecondaryDrawCommands(std::uint32_t amount) const;
 
-	void recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const DrawInfo& drawInfo) const;
+	void recordPrimaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vkx::DrawInfo& drawInfo) const;
 
 	void recordSecondaryDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vk::CommandBuffer* secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const;
 
-	void submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const SyncObjects& syncObjects) const;
+	void submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vkx::SyncObjects& syncObjects) const;
 
-	vk::Result presentToSwapchain(const Swapchain& swapchain, std::uint32_t imageIndex, const SyncObjects& syncObjects) const;
+	vk::Result presentToSwapchain(const vkx::Swapchain& swapchain, std::uint32_t imageIndex, const vkx::SyncObjects& syncObjects) const;
 };
 } // namespace vkx
