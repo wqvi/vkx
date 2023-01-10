@@ -1,6 +1,7 @@
 #include <vkx/renderer/core/commands.hpp>
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/renderer.hpp>
+#include <vkx/renderer/model.hpp>
 
 vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device device, vk::SurfaceKHR surface)
     : device(device) {
