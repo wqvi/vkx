@@ -2,7 +2,7 @@
 
 #include <vkx/renderer/core/queue_config.hpp>
 #include <vkx/renderer/core/swapchain_info.hpp>
-#include <vkx/renderer/core/sync_objects.hpp>
+#include <vkx/renderer/sync_objects.hpp>
 #include <vkx/renderer/image.hpp>
 
 namespace vkx {

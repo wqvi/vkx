@@ -1,4 +1,4 @@
-#include <vkx/renderer/core/sync_objects.hpp>
+#include <vkx/renderer/sync_objects.hpp>
 
 vkx::SyncObjects::SyncObjects(vk::Device logicalDevice) 
 	: logicalDevice(logicalDevice) {
