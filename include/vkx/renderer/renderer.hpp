@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vkx/renderer/types.hpp>
 #include <vkx/window.hpp>
 #include <vkx/renderer/allocator.hpp>
 
@@ -65,22 +66,6 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 
 	return object;
 }
-
-struct QueueConfig;
-struct SwapchainInfo;
-class Swapchain;
-class CommandSubmitter;
-struct GraphicsPipelineInformation;
-class GraphicsPipeline;
-struct SyncObjects;
-class VulkanInstance;
-class VulkanDevice;
-class VulkanRenderPass;
-class VulkanAllocator;
-class Buffer;
-class UniformBuffer;
-class Image;
-class Texture;
 
 class VulkanAllocator {
 private:
