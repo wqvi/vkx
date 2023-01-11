@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vkx/renderer/buffers.hpp>
-#include <vkx/renderer/core/vertex.hpp>
+#include <vkx/renderer/vertex.hpp>
 
 namespace vkx {
 struct Mesh {

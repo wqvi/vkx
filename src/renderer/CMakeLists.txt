@@ -8,6 +8,7 @@ target_sources(vkx
 		"${CMAKE_CURRENT_SOURCE_DIR}/renderer.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/swapchain.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/texture.cpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/vertex.cpp"
 )
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/core")
