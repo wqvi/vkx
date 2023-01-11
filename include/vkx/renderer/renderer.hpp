@@ -88,10 +88,10 @@ class VulkanDevice {
 	friend class Swapchain;
 
 private:
-	vk::Instance instance = nullptr;
-	vk::SurfaceKHR surface = nullptr;
-	vk::PhysicalDevice physicalDevice = nullptr;
-	vk::UniqueDevice logicalDevice;
+	vk::Instance instance{};
+	vk::SurfaceKHR surface{};
+	vk::PhysicalDevice physicalDevice{};
+	vk::UniqueDevice logicalDevice{};
 	float maxSamplerAnisotropy = 0;
 
 public:
@@ -119,8 +119,6 @@ public:
 	}
 
 	[[nodiscard]] vk::UniqueImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
-
-	[[nodiscard]] float getMaxSamplerAnisotropy() const;
 
 	[[nodiscard]] vkx::Swapchain createSwapchain(const vkx::VulkanAllocator& allocator, const vkx::VulkanRenderPass& renderPass, const vkx::Window& window) const;
 

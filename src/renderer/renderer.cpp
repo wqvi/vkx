@@ -140,10 +140,6 @@ vk::Format vkx::VulkanDevice::findSupportedFormat(vk::ImageTiling tiling, vk::Fo
 	return vk::Format::eUndefined;
 }
 
-float vkx::VulkanDevice::getMaxSamplerAnisotropy() const {
-	return maxSamplerAnisotropy;
-}
-
 vkx::Swapchain vkx::VulkanDevice::createSwapchain(const vkx::VulkanAllocator& allocator, const vkx::VulkanRenderPass& renderPass, const vkx::Window& window) const {
 	const auto info = getSwapchainInfo(window);
 	const auto config = getQueueConfig();
