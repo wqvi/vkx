@@ -109,10 +109,6 @@ vkx::VulkanDevice::VulkanDevice(vk::Instance instance, vk::SurfaceKHR surface, v
 	maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
 }
 
-vkx::VulkanDevice::operator VkDevice() const {
-	return *logicalDevice;
-}
-
 vkx::QueueConfig vkx::VulkanDevice::getQueueConfig() const {
 	return vkx::QueueConfig{physicalDevice, surface};
 }

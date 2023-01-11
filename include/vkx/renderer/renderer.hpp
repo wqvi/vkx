@@ -85,6 +85,8 @@ public:
 };
 
 class VulkanDevice {
+	friend class Swapchain;
+
 private:
 	vk::Instance instance = nullptr;
 	vk::SurfaceKHR surface = nullptr;
@@ -98,8 +100,6 @@ public:
 	explicit VulkanDevice(vk::Instance instance,
 			      vk::SurfaceKHR surface,
 			      vk::PhysicalDevice physicalDevice);
-
-	explicit operator VkDevice() const;
 
 	[[nodiscard]] vkx::QueueConfig getQueueConfig() const;
 

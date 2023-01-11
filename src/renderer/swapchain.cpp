@@ -5,7 +5,7 @@ vkx::Swapchain::Swapchain(const vkx::VulkanDevice& device,
 			  const vkx::VulkanAllocator& allocator,
 			  const vkx::SwapchainInfo& swapchainInfo,
 			  vk::UniqueSwapchainKHR&& uniqueSwapchain)
-    : logicalDevice(static_cast<VkDevice>(device)),
+    : logicalDevice(*device.logicalDevice),
       swapchain(std::move(uniqueSwapchain)),
       imageExtent(swapchainInfo.actualExtent) {
 	const auto images = logicalDevice.getSwapchainImagesKHR(*swapchain);
