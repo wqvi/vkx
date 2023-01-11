@@ -1,4 +1,4 @@
-#include <vkx/renderer/core/pipeline.hpp>
+#include <vkx/renderer/pipeline.hpp>
 #include <vkx/renderer/texture.hpp>
 
 vkx::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
