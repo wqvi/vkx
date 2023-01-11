@@ -87,7 +87,7 @@ public:
 		    1.0f};
 
 		for (std::uint32_t i = 0; i < size; i++) {
-			const auto commandBuffer = begin[i];
+			const vk::CommandBuffer commandBuffer = begin[i];
 			const auto& mesh = drawInfo.meshes[i];
 
 			commandBuffer.reset();
@@ -156,7 +156,7 @@ public:
 		    1.0f};
 
 		for (std::uint32_t i = 0; i < size; i++) {
-			const auto commandBuffer = begin[i];
+			const vk::CommandBuffer commandBuffer = begin[i];
 
 			commandBuffer.reset();
 
@@ -165,7 +165,7 @@ public:
 			commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eSecondaryCommandBuffers);
 
 			for (std::uint32_t j = 0; j < secondarySize; j++) {
-				const auto secondaryCommandBuffer = secondaryBegin[j];
+				const vk::CommandBuffer secondaryCommandBuffer = secondaryBegin[j];
 				const auto& mesh = drawInfo.meshes[j];
 
 				secondaryCommandBuffer.begin(secondaryCommandBufferBeginInfo);
@@ -195,7 +195,21 @@ public:
 		}
 	}
 
-	void submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vkx::SyncObjects& syncObjects) const;
+	template <class T>
+	void submitDrawCommands(T begin, std::uint32_t size, const vkx::SyncObjects& syncObjects) const {
+		constexpr std::array<vk::PipelineStageFlags, 1> waitStages{vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+		const vk::SubmitInfo submitInfo{
+		    1,
+		    &*syncObjects.imageAvailableSemaphore,
+		    waitStages.data(),
+		    size,
+		    begin,
+		    1,
+		    &*syncObjects.renderFinishedSemaphore};
+
+		graphicsQueue.submit(submitInfo, *syncObjects.inFlightFence);
+	}
 
 	vk::Result presentToSwapchain(const vkx::Swapchain& swapchain, std::uint32_t imageIndex, const vkx::SyncObjects& syncObjects) const;
 };

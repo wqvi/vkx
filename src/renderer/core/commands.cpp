@@ -97,21 +97,6 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::
 	return logicalDevice.allocateCommandBuffers(commandBufferAllocateInfo);
 }
 
-void vkx::CommandSubmitter::submitDrawCommands(const vk::CommandBuffer* begin, std::uint32_t size, const vkx::SyncObjects& syncObjects) const {
-	constexpr std::array<vk::PipelineStageFlags, 1> waitStages{vk::PipelineStageFlagBits::eColorAttachmentOutput};
-
-	const vk::SubmitInfo submitInfo{
-	    1,
-	    &*syncObjects.imageAvailableSemaphore,
-	    waitStages.data(),
-	    size,
-	    begin,
-	    1,
-		&*syncObjects.renderFinishedSemaphore};
-
-	graphicsQueue.submit(submitInfo, *syncObjects.inFlightFence);
-}
-
 vk::Result vkx::CommandSubmitter::presentToSwapchain(const vkx::Swapchain& swapchain, std::uint32_t imageIndex, const vkx::SyncObjects& syncObjects) const {
 	const vk::PresentInfoKHR presentInfo{
 	    *syncObjects.renderFinishedSemaphore,
