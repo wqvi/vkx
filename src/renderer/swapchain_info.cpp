@@ -1,4 +1,4 @@
-#include <vkx/renderer/core/swapchain_info.hpp>
+#include <vkx/renderer/swapchain_info.hpp>
 
 vkx::SwapchainInfo::SwapchainInfo(vk::PhysicalDevice physicalDevice,
 				  vk::SurfaceKHR surface,

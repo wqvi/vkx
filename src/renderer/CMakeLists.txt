@@ -8,6 +8,7 @@ target_sources(vkx
 		"${CMAKE_CURRENT_SOURCE_DIR}/queue_config.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/renderer.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/swapchain.cpp"
+		"${CMAKE_CURRENT_SOURCE_DIR}/swapchain_info.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/sync_objects.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/texture.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/vertex.cpp"
