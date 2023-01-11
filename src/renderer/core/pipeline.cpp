@@ -182,7 +182,7 @@ vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(const std::stri
 		throw std::runtime_error("Failed to open file.");
 	}
 
-	const std::size_t fileSize = static_cast<std::size_t>(file.tellg());
+	const auto fileSize = static_cast<std::size_t>(file.tellg());
 	std::vector<char> buffer{};
 	buffer.resize(fileSize);
 
