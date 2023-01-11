@@ -1,4 +1,4 @@
-#include <vkx/renderer/core/commands.hpp>
+#include <vkx/renderer/commands.hpp>
 
 vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device logicalDevice, vk::SurfaceKHR surface)
     : logicalDevice(logicalDevice) {
