@@ -5,12 +5,12 @@
 
 namespace vkx {
 struct DrawInfo {
-	std::uint32_t imageIndex = 0;
-	std::uint32_t currentFrame = 0;
-	vkx::Swapchain* swapchain{};
+	const std::uint32_t imageIndex = 0;
+	const std::uint32_t currentFrame = 0;
+	const vkx::Swapchain* swapchain{};
 	const vkx::GraphicsPipeline* graphicsPipeline{};
-	vk::RenderPass renderPass{};
-	std::vector<vkx::Mesh>& meshes;
+	const vk::RenderPass renderPass{};
+	const std::vector<vkx::Mesh>& meshes;
 };
 
 class CommandSubmitter {
