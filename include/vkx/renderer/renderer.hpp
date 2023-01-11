@@ -1,8 +1,8 @@
 #pragma once
 
+#include <vkx/renderer/allocator.hpp>
 #include <vkx/renderer/types.hpp>
 #include <vkx/window.hpp>
-#include <vkx/renderer/allocator.hpp>
 
 namespace vkx {
 static constexpr std::uint32_t VARIANT = UINT32_C(0);
