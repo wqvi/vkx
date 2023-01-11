@@ -17,30 +17,6 @@ static constexpr std::array<const char*, 1> layers{"VK_LAYER_KHRONOS_validation"
 static constexpr std::array<const char*, 0> layers{};
 #endif
 
-vkx::VulkanAllocationDeleter::VulkanAllocationDeleter(VmaAllocator allocator)
-    : allocator(allocator) {
-}
-
-void vkx::VulkanAllocationDeleter::operator()(VmaAllocation allocation) const noexcept {
-	if (allocator) {
-		vmaFreeMemory(allocator, allocation);
-	}
-}
-
-vkx::VulkanPoolDeleter::VulkanPoolDeleter(VmaAllocator allocator)
-    : allocator(allocator) {
-}
-
-void vkx::VulkanPoolDeleter::operator()(VmaPool pool) const noexcept {
-	if (allocator) {
-		vmaDestroyPool(allocator, pool);
-	}
-}
-
-void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
-	vmaDestroyAllocator(allocator);
-}
-
 vkx::VulkanAllocator::VulkanAllocator(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::Device logicalDevice)
     : logicalDevice(logicalDevice) {
 	constexpr VmaVulkanFunctions vulkanFunctions{
