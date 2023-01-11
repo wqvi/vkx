@@ -1,18 +1,18 @@
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/texture.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device,
+vkx::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
 					vk::RenderPass renderPass,
 					const vkx::VulkanAllocator& allocator,
 					const vkx::GraphicsPipelineInformation& info)
-    : device(device) {
+    : logicalDevice(logicalDevice) {
 	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{{}, info.bindings};
 
-	descriptorLayout = device.createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo);
+	descriptorLayout = logicalDevice.createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo);
 
 	const vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{{}, *descriptorLayout};
 
-	pipelineLayout = device.createPipelineLayoutUnique(pipelineLayoutCreateInfo);
+	pipelineLayout = logicalDevice.createPipelineLayoutUnique(pipelineLayoutCreateInfo);
 
 	const auto vertShaderModule = createShaderModule(info.vertexFile);
 	const auto fragShaderModule = createShaderModule(info.fragmentFile);
@@ -117,7 +117,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device,
 	    0,
 	    nullptr};
 
-	pipeline = std::move(device.createGraphicsPipelinesUnique({}, graphicsPipelineCreateInfo).value[0]);
+	pipeline = std::move(logicalDevice.createGraphicsPipelinesUnique({}, graphicsPipelineCreateInfo).value[0]);
 
 	std::vector<vk::DescriptorPoolSize> poolSizes{};
 	poolSizes.reserve(info.bindings.size());
@@ -127,13 +127,13 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device,
 
 	const vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo{{}, vkx::MAX_FRAMES_IN_FLIGHT, poolSizes};
 
-	descriptorPool = device.createDescriptorPoolUnique(descriptorPoolCreateInfo);
+	descriptorPool = logicalDevice.createDescriptorPoolUnique(descriptorPoolCreateInfo);
 
 	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, *descriptorLayout};
 
 	const vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{*descriptorPool, layouts};
 
-	descriptorSets = device.allocateDescriptorSets(descriptorSetAllocateInfo);
+	descriptorSets = logicalDevice.allocateDescriptorSets(descriptorSetAllocateInfo);
 
 	for (std::size_t size : info.uniformSizes) {
 		uniforms.push_back(allocator.allocateUniformBuffers(size, vkx::MAX_FRAMES_IN_FLIGHT));
@@ -167,7 +167,7 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device,
 			writes.emplace_back(descriptorSet, j, 0, 1, type, imageInfo, bufferInfo);
 		}
 
-		device.updateDescriptorSets(writes, {});
+		logicalDevice.updateDescriptorSets(writes, {});
 	}
 }
 
@@ -194,5 +194,5 @@ vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(const std::stri
 	    static_cast<std::uint32_t>(buffer.size()),
 	    reinterpret_cast<const std::uint32_t*>(buffer.data())};
 
-	return device.createShaderModuleUnique(shaderModuleCreateInfo);
+	return logicalDevice.createShaderModuleUnique(shaderModuleCreateInfo);
 }

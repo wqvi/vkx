@@ -1,8 +1,6 @@
 #pragma once
 
 #include <vkx/renderer/buffers.hpp>
-#include <vkx/renderer/core/renderer_types.hpp>
-#include <vkx/renderer/core/vertex.hpp>
 
 namespace vkx {
 struct GraphicsPipelineInformation {
@@ -19,18 +17,18 @@ class GraphicsPipeline {
 	friend class CommandSubmitter;
 
 private:
-	vk::Device device = nullptr;
+	vk::Device logicalDevice{};
 	vk::UniqueDescriptorSetLayout descriptorLayout{};
 	vk::UniquePipelineLayout pipelineLayout{};
 	vk::UniquePipeline pipeline{};
-	vk::UniqueDescriptorPool descriptorPool;
+	vk::UniqueDescriptorPool descriptorPool{};
 	std::vector<vk::DescriptorSet> descriptorSets{};
-	std::vector<std::vector<UniformBuffer>> uniforms;
+	std::vector<std::vector<UniformBuffer>> uniforms{};
 
 public:
 	GraphicsPipeline() = default;
 
-	explicit GraphicsPipeline(vk::Device device,
+	explicit GraphicsPipeline(vk::Device logicalDevice,
 				  vk::RenderPass renderPass,
 				  const vkx::VulkanAllocator& allocator,
 				  const vkx::GraphicsPipelineInformation& info);
