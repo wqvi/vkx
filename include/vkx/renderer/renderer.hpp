@@ -68,6 +68,10 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 }
 
 class VulkanRenderPass {
+	friend class VulkanDevice;
+	friend class CommandSubmitter;
+	friend class Swapchain;
+
 private:
 	vk::UniqueRenderPass renderPass;
 
@@ -80,8 +84,6 @@ public:
 				  vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear,
 				  vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined,
 				  vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR);
-
-	explicit operator vk::RenderPass() const;
 };
 
 class VulkanDevice {

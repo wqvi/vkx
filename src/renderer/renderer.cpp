@@ -79,10 +79,6 @@ vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format dep
 	renderPass = logicalDevice.createRenderPassUnique(renderPassCreateInfo);
 }
 
-vkx::VulkanRenderPass::operator vk::RenderPass() const {
-	return *renderPass;
-}
-
 vkx::VulkanDevice::VulkanDevice(vk::Instance instance, vk::SurfaceKHR surface, vk::PhysicalDevice physicalDevice)
     : instance(instance),
       surface(surface),
@@ -172,7 +168,7 @@ vkx::CommandSubmitter vkx::VulkanDevice::createCommandSubmitter() const {
 }
 
 vkx::GraphicsPipeline vkx::VulkanDevice::createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& information) const {
-	return vkx::GraphicsPipeline{*logicalDevice, static_cast<vk::RenderPass>(renderPass), allocator, information};
+	return vkx::GraphicsPipeline{*logicalDevice, *renderPass.renderPass, allocator, information};
 }
 
 std::vector<vkx::SyncObjects> vkx::VulkanDevice::createSyncObjects() const {

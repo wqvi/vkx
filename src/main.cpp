@@ -257,7 +257,7 @@ int main(int argc, char** argv) {
 		    currentFrame,
 		    &swapchain,
 		    &graphicsPipeline,
-		    static_cast<vk::RenderPass>(clearRenderPass),
+		    &clearRenderPass,
 		    meshes};
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
