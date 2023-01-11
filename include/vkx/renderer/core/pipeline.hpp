@@ -39,7 +39,5 @@ public:
 
 private:
 	[[nodiscard]] vk::UniqueShaderModule createShaderModule(const std::string& filename) const;
-
-	[[nodiscard]] vk::UniquePipeline createPipeline(vk::RenderPass renderPass, const GraphicsPipelineInformation& info) const;
 };
 } // namespace vkx

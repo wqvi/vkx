@@ -14,84 +14,6 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device,
 
 	pipelineLayout = device.createPipelineLayoutUnique(pipelineLayoutCreateInfo);
 
-	pipeline = createPipeline(renderPass, info);
-
-	std::vector<vk::DescriptorPoolSize> poolSizes{};
-	poolSizes.reserve(info.bindings.size());
-	for (const auto& info : info.bindings) {
-		poolSizes.emplace_back(info.descriptorType, vkx::MAX_FRAMES_IN_FLIGHT);
-	}
-
-	const vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo{{}, vkx::MAX_FRAMES_IN_FLIGHT, poolSizes};
-
-	descriptorPool = device.createDescriptorPoolUnique(descriptorPoolCreateInfo);
-
-	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, *descriptorLayout};
-
-	const vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{*descriptorPool, layouts};
-
-	descriptorSets = device.allocateDescriptorSets(descriptorSetAllocateInfo);
-
-	for (std::size_t size : info.uniformSizes) {
-		uniforms.push_back(allocator.allocateUniformBuffers(size, vkx::MAX_FRAMES_IN_FLIGHT));
-	}
-
-	for (std::uint32_t i = 0; i < vkx::MAX_FRAMES_IN_FLIGHT; i++) {
-		const auto descriptorSet = descriptorSets[i];
-
-		auto uniformsBegin = uniforms.cbegin();
-		auto texturesBegin = info.textures.cbegin();
-
-		std::vector<vk::WriteDescriptorSet> writes;
-		writes.reserve(poolSizes.size());
-
-		for (std::uint32_t j = 0; j < poolSizes.size(); j++) {
-			const auto type = poolSizes[j].type;
-
-			const vk::DescriptorBufferInfo* bufferInfo = nullptr;
-			const vk::DescriptorImageInfo* imageInfo = nullptr;
-
-			if (type == vk::DescriptorType::eCombinedImageSampler) {
-				const auto& texture = *texturesBegin;
-				imageInfo = texture->imageInfo();
-				texturesBegin++;
-			} else if (type == vk::DescriptorType::eUniformBuffer) {
-				const auto& uniform = *uniformsBegin;
-				bufferInfo = uniform[i].getInfo();
-				uniformsBegin++;
-			}
-
-			writes.emplace_back(descriptorSet, j, 0, 1, type, imageInfo, bufferInfo);
-		}
-
-		device.updateDescriptorSets(writes, {});
-	}
-}
-
-const std::vector<vkx::UniformBuffer>& vkx::GraphicsPipeline::getUniformByIndex(std::size_t i) const {
-	return uniforms[i];
-}
-
-vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(const std::string& filename) const {
-	std::ifstream file{filename, std::ios::ate | std::ios::binary};
-
-	if (!file.is_open()) {
-		throw std::runtime_error("Failed to open file.");
-	}
-
-	const std::size_t fileSize = static_cast<std::size_t>(file.tellg());
-	std::vector<char> buffer;
-	buffer.resize(fileSize);
-
-	file.seekg(0);
-	file.read(buffer.data(), fileSize);
-
-	const vk::ShaderModuleCreateInfo shaderModuleCreateInfo{{}, static_cast<std::uint32_t>(buffer.size()), reinterpret_cast<const std::uint32_t*>(buffer.data())};
-
-	return device.createShaderModuleUnique(shaderModuleCreateInfo);
-}
-
-vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::RenderPass renderPass, const GraphicsPipelineInformation& info) const {
 	const auto vertShaderModule = createShaderModule(info.vertexFile);
 	const auto fragShaderModule = createShaderModule(info.fragmentFile);
 
@@ -195,5 +117,82 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::RenderPass renderPa
 	    0,
 	    nullptr};
 
-	return std::move(device.createGraphicsPipelinesUnique({}, graphicsPipelineCreateInfo).value[0]);
+	pipeline = std::move(device.createGraphicsPipelinesUnique({}, graphicsPipelineCreateInfo).value[0]);
+
+	std::vector<vk::DescriptorPoolSize> poolSizes{};
+	poolSizes.reserve(info.bindings.size());
+	for (const auto& info : info.bindings) {
+		poolSizes.emplace_back(info.descriptorType, vkx::MAX_FRAMES_IN_FLIGHT);
+	}
+
+	const vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo{{}, vkx::MAX_FRAMES_IN_FLIGHT, poolSizes};
+
+	descriptorPool = device.createDescriptorPoolUnique(descriptorPoolCreateInfo);
+
+	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, *descriptorLayout};
+
+	const vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{*descriptorPool, layouts};
+
+	descriptorSets = device.allocateDescriptorSets(descriptorSetAllocateInfo);
+
+	for (std::size_t size : info.uniformSizes) {
+		uniforms.push_back(allocator.allocateUniformBuffers(size, vkx::MAX_FRAMES_IN_FLIGHT));
+	}
+
+	for (std::uint32_t i = 0; i < vkx::MAX_FRAMES_IN_FLIGHT; i++) {
+		const auto descriptorSet = descriptorSets[i];
+
+		auto uniformsBegin = uniforms.cbegin();
+		auto texturesBegin = info.textures.cbegin();
+
+		std::vector<vk::WriteDescriptorSet> writes;
+		writes.reserve(poolSizes.size());
+
+		for (std::uint32_t j = 0; j < poolSizes.size(); j++) {
+			const auto type = poolSizes[j].type;
+
+			const vk::DescriptorBufferInfo* bufferInfo = nullptr;
+			const vk::DescriptorImageInfo* imageInfo = nullptr;
+
+			if (type == vk::DescriptorType::eCombinedImageSampler) {
+				const auto& texture = *texturesBegin;
+				imageInfo = texture->imageInfo();
+				texturesBegin++;
+			} else if (type == vk::DescriptorType::eUniformBuffer) {
+				const auto& uniform = *uniformsBegin;
+				bufferInfo = uniform[i].getInfo();
+				uniformsBegin++;
+			}
+
+			writes.emplace_back(descriptorSet, j, 0, 1, type, imageInfo, bufferInfo);
+		}
+
+		device.updateDescriptorSets(writes, {});
+	}
+}
+
+const std::vector<vkx::UniformBuffer>& vkx::GraphicsPipeline::getUniformByIndex(std::size_t i) const {
+	return uniforms[i];
+}
+
+vk::UniqueShaderModule vkx::GraphicsPipeline::createShaderModule(const std::string& filename) const {
+	std::ifstream file{filename, std::ios::ate | std::ios::binary};
+
+	if (!file.is_open()) {
+		throw std::runtime_error("Failed to open file.");
+	}
+
+	const std::size_t fileSize = static_cast<std::size_t>(file.tellg());
+	std::vector<char> buffer{};
+	buffer.resize(fileSize);
+
+	file.seekg(0);
+	file.read(buffer.data(), fileSize);
+
+	const vk::ShaderModuleCreateInfo shaderModuleCreateInfo{
+	    {},
+	    static_cast<std::uint32_t>(buffer.size()),
+	    reinterpret_cast<const std::uint32_t*>(buffer.data())};
+
+	return device.createShaderModuleUnique(shaderModuleCreateInfo);
 }
