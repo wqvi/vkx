@@ -1,4 +1,4 @@
-#include <vkx/renderer/core/queue_config.hpp>
+#include <vkx/renderer/queue_config.hpp>
 
 vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice,
 			      vk::SurfaceKHR surface) {
