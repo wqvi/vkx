@@ -5,12 +5,12 @@ vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::D
     : logicalDevice(logicalDevice) {
 	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 
-	graphicsQueue = logicalDevice.getQueue(*queueConfig.graphicsIndex, 0);
-	presentQueue = logicalDevice.getQueue(*queueConfig.presentIndex, 0);
-
 	const vk::CommandPoolCreateInfo commandPoolCreateInfo{vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex};
 
 	commandPool = logicalDevice.createCommandPoolUnique(commandPoolCreateInfo);
+
+	graphicsQueue = logicalDevice.getQueue(*queueConfig.graphicsIndex, 0);
+	presentQueue = logicalDevice.getQueue(*queueConfig.presentIndex, 0);
 }
 
 void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
