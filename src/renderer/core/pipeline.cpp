@@ -1,7 +1,10 @@
 #include <vkx/renderer/core/pipeline.hpp>
 #include <vkx/renderer/texture.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device, vk::RenderPass renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& info)
+vkx::GraphicsPipeline::GraphicsPipeline(vk::Device device,
+					vk::RenderPass renderPass,
+					const vkx::VulkanAllocator& allocator,
+					const vkx::GraphicsPipelineInformation& info)
     : device(device) {
 	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{{}, info.bindings};
 
@@ -109,7 +112,7 @@ vk::UniquePipeline vkx::GraphicsPipeline::createPipeline(vk::RenderPass renderPa
 	const vk::PipelineVertexInputStateCreateInfo vertexInputCreateInfo{
 	    {},
 	    info.bindingDescriptions,
-		info.attributeDescriptions};
+	    info.attributeDescriptions};
 
 	const vk::PipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{
 	    {},
