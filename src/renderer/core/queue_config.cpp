@@ -1,7 +1,7 @@
 #include <vkx/renderer/core/queue_config.hpp>
-#include <vkx/renderer/renderer.hpp>
 
-vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface) {
+vkx::QueueConfig::QueueConfig(vk::PhysicalDevice physicalDevice,
+			      vk::SurfaceKHR surface) {
 	const auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
 	for (auto i = 0; i < queueFamilies.size(); i++) {
