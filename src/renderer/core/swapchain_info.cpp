@@ -1,8 +1,8 @@
 #include <vkx/renderer/core/swapchain_info.hpp>
-#include <vkx/renderer/renderer.hpp>
-#include <vkx/window.hpp>
 
-vkx::SwapchainInfo::SwapchainInfo(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface, const vkx::Window& window) {
+vkx::SwapchainInfo::SwapchainInfo(vk::PhysicalDevice physicalDevice,
+				  vk::SurfaceKHR surface,
+				  const vkx::Window& window) {
 	const auto formats = physicalDevice.getSurfaceFormatsKHR(surface);
 
 	surfaceFormat = formats[0].format;
