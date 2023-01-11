@@ -2,10 +2,10 @@
 
 namespace vkx {
 struct SyncObjects {
-	vk::Device logicalDevice = nullptr;
-	vk::UniqueSemaphore imageAvailableSemaphore;
-	vk::UniqueSemaphore renderFinishedSemaphore;
-	vk::UniqueFence inFlightFence;
+	vk::Device logicalDevice{};
+	vk::UniqueSemaphore imageAvailableSemaphore{};
+	vk::UniqueSemaphore renderFinishedSemaphore{};
+	vk::UniqueFence inFlightFence{};
 
 	SyncObjects() = default;
 
