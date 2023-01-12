@@ -19,8 +19,10 @@ struct Mesh {
 };
 
 struct ArrayMesh {
-	vkx::UniqueVulkanPool vertexPool{};
-	vkx::UniqueVulkanPool indexPool{};
+	vkx::VulkanBufferMemoryPool vertexPool{};
+	std::vector<vkx::Buffer> vertexBuffers{};
+	vkx::VulkanBufferMemoryPool indexPool{};
+	std::vector<vkx::Buffer> indexBuffers{};
 
 	ArrayMesh() = default;
 

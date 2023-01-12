@@ -27,6 +27,16 @@ void vkx::VulkanPoolDeleter::operator()(VmaPool pool) const noexcept {
 	}
 }
 
+vkx::VulkanBufferMemoryPool::VulkanBufferMemoryPool(vk::BufferUsageFlags bufferFlags,
+						    vkx::UniqueVulkanPool&& pool)
+    : bufferFlags(bufferFlags),
+      pool(std::move(pool)) {
+}
+
+vkx::VulkanImageMemoryPool::VulkanImageMemoryPool(vkx::UniqueVulkanPool&& pool)
+    : pool(std::move(pool)) {
+}
+
 void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
 	vmaDestroyAllocator(allocator);
 }
@@ -193,6 +203,11 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 	return vkx::Image{logicalDevice, vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(resourceAllocation, VulkanAllocationDeleter{allocator.get()})};
 }
 
+std::vector<vkx::Buffer> vkx::VulkanAllocator::allocateBuffers(std::size_t blockSize,
+							       std::size_t maxBlockCount) const {
+	return {};
+}
+
 vkx::UniformBuffer vkx::VulkanAllocator::allocateUniformBuffer(std::size_t memorySize) const {
 	return vkx::UniformBuffer{allocateBuffer(memorySize, vk::BufferUsageFlagBits::eUniformBuffer)};
 }
@@ -206,11 +221,11 @@ std::vector<vkx::UniformBuffer> vkx::VulkanAllocator::allocateUniformBuffers(std
 	return uniformBuffers;
 }
 
-vkx::UniqueVulkanPool vkx::VulkanAllocator::allocatePool(vk::BufferUsageFlags bufferFlags,
-							 std::size_t blockSize,
-							 std::size_t maxBlockCount,
-							 VmaAllocationCreateFlags flags,
-							 VmaMemoryUsage memoryUsage) const {
+vkx::VulkanBufferMemoryPool vkx::VulkanAllocator::allocateBufferPool(vk::BufferUsageFlags bufferFlags,
+								     std::size_t blockSize,
+								     std::size_t maxBlockCount,
+								     VmaAllocationCreateFlags flags,
+								     VmaMemoryUsage memoryUsage) const {
 	const vk::BufferCreateInfo bufferCreateInfo{{}, {}, bufferFlags, vk::SharingMode::eExclusive};
 
 	VmaAllocationCreateInfo allocationCreateInfo{
@@ -243,7 +258,7 @@ vkx::UniqueVulkanPool vkx::VulkanAllocator::allocatePool(vk::BufferUsageFlags bu
 		throw std::runtime_error("Failed to create vulkan memory pool.");
 	}
 
-	return vkx::UniqueVulkanPool(pool, VulkanPoolDeleter(allocator.get()));
+	return vkx::VulkanBufferMemoryPool{bufferFlags, vkx::UniqueVulkanPool(pool, VulkanPoolDeleter(allocator.get()))};
 }
 
 vkx::UniqueVulkanPool vkx::VulkanAllocator::allocatePool(vk::Extent2D extent,

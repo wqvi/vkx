@@ -31,6 +31,29 @@ public:
 
 using UniqueVulkanPool = std::unique_ptr<std::remove_pointer_t<VmaPool>, VulkanPoolDeleter>;
 
+class VulkanBufferMemoryPool {
+private:
+	vk::BufferUsageFlags bufferFlags{};
+	vkx::UniqueVulkanPool pool{};
+
+public:
+	VulkanBufferMemoryPool() = default;
+
+	explicit VulkanBufferMemoryPool(vk::BufferUsageFlags bufferFlags,
+					vkx::UniqueVulkanPool&& pool);
+};
+
+class VulkanImageMemoryPool {
+private:
+	// Some variables that might want to be saved in the future
+	vkx::UniqueVulkanPool pool{};
+
+public:
+	VulkanImageMemoryPool() = default;
+
+	explicit VulkanImageMemoryPool(vkx::UniqueVulkanPool&& pool);
+};
+
 struct VulkanAllocatorDeleter {
 	void operator()(VmaAllocator allocator) const noexcept;
 };
@@ -86,6 +109,9 @@ public:
 						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
 						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
 
+	[[nodiscard]] std::vector<vkx::Buffer> allocateBuffers(std::size_t blockSize,
+							       std::size_t maxBlockCount) const;
+
 	[[nodiscard]] vkx::Image allocateImage(vk::Extent2D extent,
 					       vk::Format format,
 					       vk::ImageTiling tiling,
@@ -105,11 +131,11 @@ public:
 
 	[[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(std::size_t memorySize, std::size_t amount) const;
 
-	[[nodiscard]] vkx::UniqueVulkanPool allocatePool(vk::BufferUsageFlags bufferFlags,
-							 std::size_t blockSize,
-							 std::size_t maxBlockCount,
-							 VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
-							 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
+	[[nodiscard]] vkx::VulkanBufferMemoryPool allocateBufferPool(vk::BufferUsageFlags bufferFlags,
+								     std::size_t blockSize,
+								     std::size_t maxBlockCount,
+								     VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+								     VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
 
 	[[nodiscard]] vkx::UniqueVulkanPool allocatePool(vk::Extent2D extent,
 							 vk::Format format,
