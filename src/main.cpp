@@ -181,11 +181,14 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	const auto sdlMouseMotionEvent = [&chunks](const SDL_MouseMotionEvent& motion) {
+	const auto sdlMouseMotionEvent = [&chunks, &camera](const SDL_MouseMotionEvent& motion) {
 		for (const auto& chunk : chunks) {
 			// Raycast from player position to where the mouse is.
 			// Raycasting api must be made 2D
 			// Add another pipeline for highlighting stuff
+			const glm::vec2 mousePosition{motion.x, motion.y};
+
+			const auto result = vkx::raycast2D(camera.globalPosition, mousePosition, 4, []() { return false; });
 		}
 	};
 
