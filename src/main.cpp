@@ -263,9 +263,14 @@ int main(int argc, char** argv) {
 		auto& materialBuffer = materialBuffers[currentFrame];
 		auto material = vkx::Material{glm::vec3(0.2f), 100.0f};
 
+		auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
+		auto highlightMVP = vkx::MVP{glm::mat4(glm::translate(glm::mat3(1.0f), windowCenter)), camera.viewMatrix(), projection};
+
 		mvpBuffer.mapMemory(mvp);
 		lightBuffer.mapMemory(light);
 		materialBuffer.mapMemory(material);
+
+		highlightMVPBuffer.mapMemory(highlightMVP);
 
 		const auto& syncObject = syncObjects[currentFrame];
 		syncObject.waitForFence();
