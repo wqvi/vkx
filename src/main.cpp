@@ -38,7 +38,6 @@ auto createHighlightShaderBindings() {
 	return std::vector{uboLayoutBinding};
 }
 
-
 int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
 
@@ -51,6 +50,8 @@ int main(int argc, char** argv) {
 	const auto allocator = vulkanDevice.createAllocator();
 
 	const auto swapchainInfo = vulkanDevice.getSwapchainInfo(window);
+
+	const auto loadRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eLoad, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR);
 
 	const auto clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
 
@@ -69,6 +70,16 @@ int main(int argc, char** argv) {
 	    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
 	    {&texture}};
 	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
+
+	const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
+	    "highlight.vert.spv",
+	    "highlight.frag.spv",
+	    createHighlightShaderBindings(),
+	    vkx::Vertex::getBindingDescription(),
+	    vkx::Vertex::getAttributeDescriptions(),
+	    {sizeof(vkx::MVP)},
+	    {}};
+	const auto highlightGraphicsPipeline = vulkanDevice.createGraphicsPipeline(loadRenderPass, allocator, highlightGraphicsPipelineInformation);
 
 	constexpr std::uint32_t chunkDrawCommandAmount = static_cast<std::uint32_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS);
 
@@ -118,7 +129,7 @@ int main(int argc, char** argv) {
 	};
 
 	glm::vec2 direction{0};
-	
+
 	const auto sdlKeyPressedEvent = [&isRunning, &direction](const SDL_KeyboardEvent& key) {
 		if (key.keysym.sym == SDLK_ESCAPE) {
 			isRunning = false;
