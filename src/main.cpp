@@ -181,7 +181,9 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	const auto sdlMouseMotionEvent = [&chunks, &camera](const SDL_MouseMotionEvent& motion) {
+	glm::mat4 highlightMatrix {1.0f};
+
+	const auto sdlMouseMotionEvent = [&chunks, &camera, &highlightMatrix](const SDL_MouseMotionEvent& motion) {
 		for (const auto& chunk : chunks) {
 			// Raycast from player position to where the mouse is.
 			// Raycasting api must be made 2D
@@ -192,12 +194,15 @@ int main(int argc, char** argv) {
 							   mousePosition,
 							   4,
 							   [&chunk, &mousePosition](auto pos) {
+								   const auto index = pos.x + pos.y * static_cast<float>(vkx::CHUNK_SIZE);
+								   if (index < vkx::CHUNK_SIZE * vkx::CHUNK_SIZE) {
+									   const auto currentVoxel = chunk.voxels[static_cast<std::size_t>(index)];
+									   return currentVoxel != vkx::Voxel::Air;
+								   }
 								   return false;
 							   });
 
-			if (result.success) {
-				SDL_Log("Successful raycast!");
-			}
+			highlightMatrix = glm::mat4(glm::translate(glm::mat3(1.0f), result.hitPosition));
 		}
 	};
 
@@ -276,7 +281,7 @@ int main(int argc, char** argv) {
 		auto material = vkx::Material{glm::vec3(0.2f), 100.0f};
 
 		auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
-		auto highlightMVP = vkx::MVP{glm::mat4(1.0f), camera.viewMatrix(), projection};
+		auto highlightMVP = vkx::MVP{highlightMatrix, camera.viewMatrix(), projection};
 
 		mvpBuffer.mapMemory(mvp);
 		lightBuffer.mapMemory(light);
