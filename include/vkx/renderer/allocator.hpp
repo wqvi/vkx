@@ -33,14 +33,24 @@ using UniqueVulkanPool = std::unique_ptr<std::remove_pointer_t<VmaPool>, VulkanP
 
 class VulkanBufferMemoryPool {
 private:
+	std::size_t blockSize = 0;
+	std::size_t maxBlockCount = 0;
 	vk::BufferUsageFlags bufferFlags{};
+	VmaAllocator allocator = nullptr;
+	vk::Device logicalDevice{};
 	vkx::UniqueVulkanPool pool{};
 
 public:
 	VulkanBufferMemoryPool() = default;
 
-	explicit VulkanBufferMemoryPool(vk::BufferUsageFlags bufferFlags,
+	explicit VulkanBufferMemoryPool(std::size_t blockSize,
+					std::size_t maxBlockCount,
+					vk::BufferUsageFlags bufferFlags,
+					VmaAllocator allocator,
+					vk::Device logicalDevice,
 					vkx::UniqueVulkanPool&& pool);
+
+	[[nodiscard]] std::vector<vkx::Buffer> allocateBuffers() const;
 };
 
 class VulkanImageMemoryPool {
@@ -108,9 +118,6 @@ public:
 						 vk::BufferUsageFlags bufferFlags,
 						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
 						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
-
-	[[nodiscard]] std::vector<vkx::Buffer> allocateBuffers(std::size_t blockSize,
-							       std::size_t maxBlockCount) const;
 
 	[[nodiscard]] vkx::Image allocateImage(vk::Extent2D extent,
 					       vk::Format format,

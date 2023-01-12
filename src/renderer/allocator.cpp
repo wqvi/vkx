@@ -27,10 +27,47 @@ void vkx::VulkanPoolDeleter::operator()(VmaPool pool) const noexcept {
 	}
 }
 
-vkx::VulkanBufferMemoryPool::VulkanBufferMemoryPool(vk::BufferUsageFlags bufferFlags,
+vkx::VulkanBufferMemoryPool::VulkanBufferMemoryPool(std::size_t blockSize,
+						    std::size_t maxBlockCount,
+						    vk::BufferUsageFlags bufferFlags,
+						    VmaAllocator allocator,
+	vk::Device logicalDevice,
 						    vkx::UniqueVulkanPool&& pool)
-    : bufferFlags(bufferFlags),
+    : blockSize(blockSize),
+      maxBlockCount(maxBlockCount),
+      bufferFlags(bufferFlags),
+      allocator(allocator),
+      logicalDevice(logicalDevice),
       pool(std::move(pool)) {
+}
+
+std::vector<vkx::Buffer> vkx::VulkanBufferMemoryPool::allocateBuffers() const {
+	std::vector<vkx::Buffer> buffers{};
+	buffers.reserve(maxBlockCount);
+	for (auto i = 0; i < maxBlockCount; i++) {
+		const vk::BufferCreateInfo bufferCreateInfo{{}, blockSize, bufferFlags, vk::SharingMode::eExclusive};
+
+		const VmaAllocationCreateInfo allocationCreateInfo{
+		    {},
+		    {},
+		    0,
+		    0,
+		    0,
+		    pool.get(),
+		    nullptr,
+		    {}};
+
+		VkBuffer cBuffer = nullptr;
+		VmaAllocation cAllocation = nullptr;
+		VmaAllocationInfo cAllocationInfo;
+		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to allocate GPU buffer.");
+		}
+
+		buffers.emplace_back(vk::UniqueBuffer(cBuffer, logicalDevice), UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator}), std::move(cAllocationInfo));
+	}
+
+	return buffers;
 }
 
 vkx::VulkanImageMemoryPool::VulkanImageMemoryPool(vkx::UniqueVulkanPool&& pool)
@@ -203,11 +240,6 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 	return vkx::Image{logicalDevice, vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(resourceAllocation, VulkanAllocationDeleter{allocator.get()})};
 }
 
-std::vector<vkx::Buffer> vkx::VulkanAllocator::allocateBuffers(std::size_t blockSize,
-							       std::size_t maxBlockCount) const {
-	return {};
-}
-
 vkx::UniformBuffer vkx::VulkanAllocator::allocateUniformBuffer(std::size_t memorySize) const {
 	return vkx::UniformBuffer{allocateBuffer(memorySize, vk::BufferUsageFlagBits::eUniformBuffer)};
 }
@@ -258,7 +290,7 @@ vkx::VulkanBufferMemoryPool vkx::VulkanAllocator::allocateBufferPool(vk::BufferU
 		throw std::runtime_error("Failed to create vulkan memory pool.");
 	}
 
-	return vkx::VulkanBufferMemoryPool{bufferFlags, vkx::UniqueVulkanPool(pool, VulkanPoolDeleter(allocator.get()))};
+	return vkx::VulkanBufferMemoryPool{blockSize, maxBlockCount, bufferFlags, allocator.get(), logicalDevice, vkx::UniqueVulkanPool(pool, VulkanPoolDeleter(allocator.get()))};
 }
 
 vkx::UniqueVulkanPool vkx::VulkanAllocator::allocatePool(vk::Extent2D extent,
