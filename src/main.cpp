@@ -194,15 +194,15 @@ int main(int argc, char** argv) {
 							   mousePosition,
 							   4,
 							   [&chunk, &mousePosition](auto pos) {
-								   const auto index = pos.x + pos.y * static_cast<float>(vkx::CHUNK_SIZE);
+								   const auto index = static_cast<std::size_t>(pos.x + pos.y * static_cast<float>(vkx::CHUNK_SIZE));
 								   if (index < vkx::CHUNK_SIZE * vkx::CHUNK_SIZE) {
-									   const auto currentVoxel = chunk.voxels[static_cast<std::size_t>(index)];
+									   const auto currentVoxel = chunk.voxels[index];
 									   return currentVoxel != vkx::Voxel::Air;
 								   }
 								   return false;
 							   });
 
-			highlightMatrix = glm::mat4(glm::translate(glm::mat3(1.0f), result.hitPosition));
+			highlightMatrix = glm::mat4(glm::translate(glm::mat3(1.0f), result.hitPosition * 16.0f));
 		}
 	};
 
