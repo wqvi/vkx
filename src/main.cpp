@@ -188,7 +188,16 @@ int main(int argc, char** argv) {
 			// Add another pipeline for highlighting stuff
 			const glm::vec2 mousePosition{motion.x, motion.y};
 
-			const auto result = vkx::raycast2D(camera.globalPosition, mousePosition, 4, [](auto pos) { return false; });
+			const auto result = vkx::raycast2D(camera.globalPosition,
+							   mousePosition,
+							   4,
+							   [&chunk, &mousePosition](auto pos) {
+								   return false;
+							   });
+
+			if (result.success) {
+				SDL_Log("Successful raycast!");
+			}
 		}
 	};
 

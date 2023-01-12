@@ -83,35 +83,19 @@ Raycast2DResult raycast2D(const glm::vec2& origin, const glm::vec2& direction, f
 	do {
 		previousHitPos = hitPos;
 
-		/*if (cross.x < cross.y) {
-			if (cross.x < cross.z) {
-				hitPos.x += step.x;
+		if (cross.x < cross.y) {
+			hitPos.x += step.x;
 
-				length = cross.x;
+			length = cross.x;
 
-				cross.x += delta.x;
-			} else {
-				hitPos.z += step.z;
-
-				length = cross.z;
-
-				cross.z += delta.z;
-			}
+			cross.x += delta.x;
 		} else {
-			if (cross.y < cross.z) {
-				hitPos.y += step.y;
+			hitPos.y += step.y;
 
-				length = cross.y;
+			length = cross.y;
 
-				cross.y += delta.y;
-			} else {
-				hitPos.z += step.z;
-
-				length = cross.z;
-
-				cross.z += delta.z;
-			}
-		}*/
+			cross.y += delta.y;
+		}
 
 		if (length > maxLength) {
 			return {false, length, glm::vec2{0}, glm::vec2{0}};
