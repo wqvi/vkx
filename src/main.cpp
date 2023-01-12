@@ -264,7 +264,7 @@ int main(int argc, char** argv) {
 		auto material = vkx::Material{glm::vec3(0.2f), 100.0f};
 
 		auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
-		auto highlightMVP = vkx::MVP{glm::mat4(glm::translate(glm::mat3(1.0f), windowCenter)), camera.viewMatrix(), projection};
+		auto highlightMVP = vkx::MVP{glm::mat4(1.0f), camera.viewMatrix(), projection};
 
 		mvpBuffer.mapMemory(mvp);
 		lightBuffer.mapMemory(light);
