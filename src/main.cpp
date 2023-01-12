@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
 
 	constexpr std::uint32_t chunkDrawCommandAmount = static_cast<std::uint32_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS);
 
-	constexpr std::uint32_t drawCommandAmount = 1;
+	constexpr std::uint32_t drawCommandAmount = 2;
 	constexpr std::uint32_t secondaryDrawCommandAmount = chunkDrawCommandAmount;
 	const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
 	const auto secondaryDrawCommands = commandSubmitter.allocateDrawCommands(secondaryDrawCommandAmount, vk::CommandBufferLevel::eSecondary);
@@ -106,7 +106,9 @@ int main(int argc, char** argv) {
 	std::vector<vkx::Vertex> vertices{vkx::Vertex{{0, 0}}, vkx::Vertex{{1, 0}},
 					  vkx::Vertex{{1, 1}}, vkx::Vertex{{0, 1}}};
 	std::vector<std::uint32_t> indices{0, 1, 2, 2, 3, 0};
-	const vkx::Mesh highlightMesh{std::move(vertices), std::move(indices), 6, allocator};
+	std::vector<vkx::Mesh> highlightMeshes{};
+	highlightMeshes.reserve(1);
+	highlightMeshes.emplace_back(std::move(vertices), std::move(indices), 6, allocator);
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
@@ -282,7 +284,7 @@ int main(int argc, char** argv) {
 
 		syncObject.resetFence();
 
-		const vkx::DrawInfo chunkDrawInfo = {
+		const vkx::DrawInfo chunkDrawInfo{
 		    imageIndex,
 		    currentFrame,
 		    &swapchain,
@@ -290,10 +292,22 @@ int main(int argc, char** argv) {
 		    &clearRenderPass,
 		    meshes};
 
+		const vkx::DrawInfo highlightDrawInfo{
+		    imageIndex,
+		    currentFrame,
+		    &swapchain,
+		    &highlightGraphicsPipeline,
+		    &loadRenderPass,
+		    highlightMeshes};
+
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 		const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
-		commandSubmitter.recordSecondaryDrawCommands(begin, drawCommandAmount, secondaryBegin, chunkDrawCommandAmount, chunkDrawInfo);
+		const auto* highlightBegin = &drawCommands[currentFrame * drawCommandAmount + 1];
+
+		commandSubmitter.recordSecondaryDrawCommands(begin, 1, secondaryBegin, chunkDrawCommandAmount, chunkDrawInfo);
+
+		commandSubmitter.recordPrimaryDrawCommands(highlightBegin, 1, highlightDrawInfo);
 
 		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
