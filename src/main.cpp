@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 
 	const auto loadRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eLoad, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR);
 
-	const auto clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
+	const auto clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal);
 
 	auto swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 
@@ -103,8 +103,8 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	std::vector<vkx::Vertex> vertices{vkx::Vertex{{0, 0}}, vkx::Vertex{{1, 0}},
-					  vkx::Vertex{{1, 1}}, vkx::Vertex{{0, 1}}};
+	std::vector<vkx::Vertex> vertices{vkx::Vertex{{0, 0}}, vkx::Vertex{{16, 0}},
+					  vkx::Vertex{{16, 16}}, vkx::Vertex{{0, 16}}};
 	std::vector<std::uint32_t> indices{0, 1, 2, 2, 3, 0};
 	std::vector<vkx::Mesh> highlightMeshes{};
 	highlightMeshes.reserve(1);
