@@ -151,6 +151,14 @@ int main(int argc, char** argv) {
 		}
 	};
 
+	const auto sdlMouseMotionEvent = [&chunks](const SDL_MouseMotionEvent& motion) {
+		for (const auto& chunk : chunks) {
+			// Raycast from player position to where the mouse is.
+			// Raycasting api must be made 2D
+			// Add another pipeline for highlighting stuff
+		}
+	};
+
 	window.show();
 	while (isRunning) {
 		// Poll events
@@ -169,6 +177,9 @@ int main(int argc, char** argv) {
 				break;
 			case SDL_KEYUP:
 				sdlKeyReleasedEvent(event.key);
+				break;
+			case SDL_MOUSEMOTION:
+				sdlMouseMotionEvent(event.motion);
 				break;
 			default:
 				break;
