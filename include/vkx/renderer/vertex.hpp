@@ -2,11 +2,13 @@
 
 namespace vkx {
 struct Vertex {
-	glm::vec2 pos;
-	glm::vec2 uv;
-	glm::vec2 normal;
+	glm::vec2 pos{};
+	glm::vec2 uv{};
+	glm::vec2 normal{};
 
 	Vertex() = default;
+
+	Vertex(const glm::vec2& pos);
 
 	explicit Vertex(const glm::vec2& pos,
 			const glm::vec2& uv,
