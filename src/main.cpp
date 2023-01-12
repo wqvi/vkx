@@ -28,15 +28,6 @@ auto createShaderBindings() {
 	return std::vector{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 }
 
-template <class T>
-constexpr auto posMod(T a, T b) {
-	const auto value = std::fmod(a, b);
-	if ((value < 0.0f && b > 0.0f) || (value > 0.0f && b < 0.0f)) {
-		return value + b;
-	}
-	return value + 0.0f;
-}
-
 
 int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
@@ -200,8 +191,8 @@ int main(int argc, char** argv) {
 			const auto chunkX = glm::floor(chunkGlobalPosition.x / vkx::CHUNK_SIZE);
 			const auto chunkY = glm::floor(chunkGlobalPosition.y / vkx::CHUNK_SIZE);
 
-			const auto newX = glm::floor(posMod(chunkX - playerX + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_HALF_RADIUS);
-			const auto newY = glm::floor(posMod(chunkY - playerY + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_HALF_RADIUS);
+			const auto newX = glm::floor(vkx::posMod(chunkX - playerX + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerX - vkx::CHUNK_HALF_RADIUS);
+			const auto newY = glm::floor(vkx::posMod(chunkY - playerY + vkx::CHUNK_HALF_RADIUS, vkx::CHUNK_RADIUS) + playerY - vkx::CHUNK_HALF_RADIUS);
 
 			if (newX != chunkX || newY != chunkY) {
 				chunk.globalPosition = {newX * vkx::CHUNK_SIZE, newY * vkx::CHUNK_SIZE}; // Check the journal entry about this!

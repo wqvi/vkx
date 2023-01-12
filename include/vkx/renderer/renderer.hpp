@@ -67,6 +67,15 @@ constexpr auto create(Function function, Predicate predicate, Parameters... para
 	return object;
 }
 
+template <class T>
+constexpr auto posMod(T a, T b) {
+	const auto value = std::fmod(a, b);
+	if ((value < 0.0f && b > 0.0f) || (value > 0.0f && b < 0.0f)) {
+		return value + b;
+	}
+	return value + 0.0f;
+}
+
 class VulkanRenderPass {
 	friend class VulkanDevice;
 	friend class CommandSubmitter;
