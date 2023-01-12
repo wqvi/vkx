@@ -74,7 +74,7 @@ public:
 		const std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
 		const vk::RenderPassBeginInfo renderPassBeginInfo{
-		    drawInfo.renderPass,
+		    *drawInfo.renderPass->renderPass,
 		    framebuffer,
 		    renderArea,
 		    clearValues};
