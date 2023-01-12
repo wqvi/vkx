@@ -28,6 +28,16 @@ auto createShaderBindings() {
 	return std::vector{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
 }
 
+auto createHighlightShaderBindings() {
+	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
+	    0,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eVertex};
+
+	return std::vector{uboLayoutBinding};
+}
+
 
 int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
