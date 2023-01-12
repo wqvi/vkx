@@ -103,9 +103,16 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	std::vector<vkx::Vertex> vertices{vkx::Vertex{{0, 0}}, vkx::Vertex{{1, 0}},
+					  vkx::Vertex{{1, 1}}, vkx::Vertex{{0, 1}}};
+	std::vector<std::uint32_t> indices{0, 1, 2, 2, 3, 0};
+	const vkx::Mesh highlightMesh{std::move(vertices), std::move(indices), 6, allocator};
+
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
 	auto& materialBuffers = graphicsPipeline.getUniformByIndex(2);
+
+	auto& highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
 
 	SDL_Event event{};
 	bool isRunning = true;
