@@ -24,6 +24,4 @@ vkx::ArrayMesh::ArrayMesh(std::size_t vertexBlockSize,
       vertexBuffers(vertexPool.allocateBuffers()),
       indexPool(allocator.allocateBufferPool(vk::BufferUsageFlagBits::eIndexBuffer, indexBlockSize, indexBlockCount)),
       indexBuffers(indexPool.allocateBuffers()) {
-
-	throw std::runtime_error("Not implemented.");
 }
