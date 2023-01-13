@@ -47,8 +47,9 @@ void vkx::VoxelChunk2D::generateTestBox() {
 }
 
 void vkx::VoxelChunk2D::generateMesh(vkx::Mesh& mesh, vkx::Buffer& vertexBuffer, std::vector<std::uint32_t>::iterator iter) {
-	auto vertexIter = mesh.vertices.begin();
-	auto indexIter = mesh.indices.begin();
+	std::vector<vkx::Vertex> vertices{vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4};
+	auto vertexIter = vertices.begin();
+	auto indexIter = iter;
 	auto vertexCount = 0;
 
 	std::vector<vkx::VoxelMask> voxelMask{};
@@ -101,9 +102,9 @@ void vkx::VoxelChunk2D::generateMesh(vkx::Mesh& mesh, vkx::Buffer& vertexBuffer,
 		}
 	}
 
-	mesh.activeIndexCount = std::distance(mesh.indices.begin(), indexIter);
-	mesh.vertexBuffer.mapMemory(mesh.vertices.data());
-	mesh.indexBuffer.mapMemory(mesh.indices.data());
+	mesh.activeIndexCount = std::distance(iter, indexIter);
+	mesh.vertexBuffer.mapMemory(vertices.data());
+	mesh.indexBuffer.mapMemory(&*iter);
 }
 
 vkx::Voxel vkx::VoxelChunk2D::at(std::size_t i) const {
