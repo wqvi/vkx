@@ -103,14 +103,16 @@ int main(int argc, char** argv) {
 	for (auto y = 0; y < vkx::CHUNK_RADIUS; y++) {
 		for (auto x = 0; x < vkx::CHUNK_RADIUS; x++) {
 			auto iter = chunkIndices.begin();
-			std::advance(iter, static_cast<std::size_t>(x + y * vkx::CHUNK_RADIUS) * 6);
+			const auto offset = static_cast<std::size_t>(x + y * vkx::CHUNK_RADIUS) * 6;
+			std::advance(iter, offset);
 			
 			auto& vertexBuffer = vertexBuffers.emplace_back(allocator.allocateBuffer(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vk::BufferUsageFlagBits::eIndexBuffer));
 			
 			auto& currentChunk = chunks.emplace_back(glm::vec2{x, y});
 			currentChunk.generateTerrain();
 			auto& currentMesh = meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
-			currentChunk.generateMesh(currentMesh, vertexBuffer, iter);
+			currentChunk.generateMesh(currentMesh, vertexBuffer, iter); 
+			indexBuffer.mapMemory(&*iter, offset * sizeof(std::uint32_t));
 		}
 	}
 

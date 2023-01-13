@@ -44,6 +44,13 @@ public:
 		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
 	}
 
+	template <class T>
+	void mapMemory(const T* data, std::size_t memoryOffset) const {
+		T* ptr = reinterpret_cast<T*>(allocationInfo.pMappedData) + memoryOffset;
+		const auto size = allocationInfo.size - memoryOffset;
+		std::memcpy(ptr, data, size);
+	}
+
 	std::size_t size() const;
 };
 
