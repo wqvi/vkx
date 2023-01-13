@@ -15,10 +15,14 @@ vkx::Mesh::Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::Vulk
       indices(indexCount) {
 }
 
-vkx::ArrayMesh::ArrayMesh(const vkx::VulkanAllocator& allocator)
-    : vertexPool(allocator.allocateBufferPool(vk::BufferUsageFlagBits::eVertexBuffer, 0, 0)),
+vkx::ArrayMesh::ArrayMesh(std::size_t vertexBlockSize, 
+    std::size_t vertexBlockCount, 
+    std::size_t indexBlockSize, 
+    std::size_t indexBlockCount, 
+    const vkx::VulkanAllocator& allocator)
+    : vertexPool(allocator.allocateBufferPool(vk::BufferUsageFlagBits::eVertexBuffer, vertexBlockSize, vertexBlockCount)),
       vertexBuffers(vertexPool.allocateBuffers()),
-      indexPool(allocator.allocateBufferPool(vk::BufferUsageFlagBits::eIndexBuffer, 0, 0)),
+      indexPool(allocator.allocateBufferPool(vk::BufferUsageFlagBits::eIndexBuffer, indexBlockSize, indexBlockCount)),
       indexBuffers(indexPool.allocateBuffers()) {
 
 	throw std::runtime_error("Not implemented.");

@@ -26,6 +26,10 @@ struct ArrayMesh {
 
 	ArrayMesh() = default;
 
-	explicit ArrayMesh(const vkx::VulkanAllocator& allocator);
+	explicit ArrayMesh(std::size_t vertexBlockSize, 
+		std::size_t vertexBlockCount,
+		std::size_t indexBlockSize, 
+		std::size_t indexBlockCount, 
+		const vkx::VulkanAllocator& allocator);
 };
 } // namespace vkx
