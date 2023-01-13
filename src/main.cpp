@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 
 	const auto loadRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eLoad, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR);
 
-	const auto clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal);
+	const auto clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
 
 	auto swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 
@@ -83,7 +83,8 @@ int main(int argc, char** argv) {
 
 	constexpr std::uint32_t chunkDrawCommandAmount = static_cast<std::uint32_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS);
 
-	constexpr std::uint32_t drawCommandAmount = 2;
+	//constexpr std::uint32_t drawCommandAmount = 2;
+	constexpr std::uint32_t drawCommandAmount = 1;
 	constexpr std::uint32_t secondaryDrawCommandAmount = chunkDrawCommandAmount;
 	const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
 	const auto secondaryDrawCommands = commandSubmitter.allocateDrawCommands(secondaryDrawCommandAmount, vk::CommandBufferLevel::eSecondary);
@@ -116,18 +117,18 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	std::vector<vkx::Vertex> vertices{vkx::Vertex{{0, 0}}, vkx::Vertex{{16, 0}},
+	/*std::vector<vkx::Vertex> vertices{vkx::Vertex{{0, 0}}, vkx::Vertex{{16, 0}},
 					  vkx::Vertex{{16, 16}}, vkx::Vertex{{0, 16}}};
 	std::vector<std::uint32_t> indices{0, 1, 2, 2, 3, 0};
 	std::vector<vkx::Mesh> highlightMeshes{};
 	highlightMeshes.reserve(1);
-	highlightMeshes.emplace_back(std::move(vertices), std::move(indices), 6, allocator);
+	highlightMeshes.emplace_back(std::move(vertices), std::move(indices), 6, allocator);*/
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
 	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
 	auto& materialBuffers = graphicsPipeline.getUniformByIndex(2);
 
-	auto& highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
+	//auto& highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
 
 	SDL_Event event{};
 	bool isRunning = true;
@@ -297,14 +298,14 @@ int main(int argc, char** argv) {
 		auto& materialBuffer = materialBuffers[currentFrame];
 		auto material = vkx::Material{glm::vec3(0.2f), 100.0f};
 
-		auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
-		auto highlightMVP = vkx::MVP{highlightMatrix, camera.viewMatrix(), projection};
+		/*auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
+		auto highlightMVP = vkx::MVP{highlightMatrix, camera.viewMatrix(), projection};*/
 
 		mvpBuffer.mapMemory(mvp);
 		lightBuffer.mapMemory(light);
 		materialBuffer.mapMemory(material);
 
-		highlightMVPBuffer.mapMemory(highlightMVP);
+		//highlightMVPBuffer.mapMemory(highlightMVP);
 
 		const auto& syncObject = syncObjects[currentFrame];
 		syncObject.waitForFence();
@@ -331,22 +332,22 @@ int main(int argc, char** argv) {
 		    &clearRenderPass,
 		    meshes};
 
-		const vkx::DrawInfo highlightDrawInfo{
+		/*const vkx::DrawInfo highlightDrawInfo{
 		    imageIndex,
 		    currentFrame,
 		    &swapchain,
 		    &highlightGraphicsPipeline,
 		    &loadRenderPass,
-		    highlightMeshes};
+		    highlightMeshes};*/
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 		const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
-		const auto* highlightBegin = &drawCommands[currentFrame * drawCommandAmount + 1];
+		//const auto* highlightBegin = &drawCommands[currentFrame * drawCommandAmount + 1];
 
 		commandSubmitter.recordSecondaryDrawCommands(begin, 1, secondaryBegin, chunkDrawCommandAmount, chunkDrawInfo);
 
-		commandSubmitter.recordPrimaryDrawCommands(highlightBegin, 1, highlightDrawInfo);
+		//commandSubmitter.recordPrimaryDrawCommands(highlightBegin, 1, highlightDrawInfo);
 
 		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
