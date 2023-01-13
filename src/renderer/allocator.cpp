@@ -259,7 +259,7 @@ vkx::VulkanBufferMemoryPool vkx::VulkanAllocator::allocateBufferPool(vk::BufferU
 								     std::size_t maxBlockCount,
 								     VmaAllocationCreateFlags flags,
 								     VmaMemoryUsage memoryUsage) const {
-	const vk::BufferCreateInfo bufferCreateInfo{{}, {}, bufferFlags, vk::SharingMode::eExclusive};
+	const vk::BufferCreateInfo bufferCreateInfo{{}, 0x10000, bufferFlags, vk::SharingMode::eExclusive};
 
 	VmaAllocationCreateInfo allocationCreateInfo{
 	    flags,
