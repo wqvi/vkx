@@ -166,8 +166,8 @@ int main(int argc, char** argv) {
 		const auto left = key.keysym.sym == SDLK_a;
 		const auto right = key.keysym.sym == SDLK_d;
 
-		const auto up = key.keysym.sym == SDLK_w;
-		const auto down = key.keysym.sym == SDLK_s;
+		const int up = key.keysym.sym == SDLK_w;
+		const int down = key.keysym.sym == SDLK_s;
 
 		const auto xDirection = right - left;
 		const auto yDirection = up - down;
