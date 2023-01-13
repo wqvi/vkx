@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
 	for (auto y = 0; y < vkx::CHUNK_RADIUS; y++) {
 		for (auto x = 0; x < vkx::CHUNK_RADIUS; x++) {
 			auto iter = chunkIndices.begin();
-			std::advance(iter, static_cast<std::size_t>(x + y * vkx::CHUNK_RADIUS));
+			std::advance(iter, static_cast<std::size_t>(x + y * vkx::CHUNK_RADIUS) * 6);
 			
 			int helloWorld = 0;
 			helloWorld += 5;
