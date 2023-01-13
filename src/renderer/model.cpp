@@ -15,13 +15,15 @@ vkx::Mesh::Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::Vulk
       indices(indexCount) {
 }
 
-vkx::ArrayMesh::ArrayMesh(std::size_t vertexBlockSize, 
-    std::size_t vertexBlockCount, 
-    std::size_t indexBlockSize, 
-    std::size_t indexBlockCount, 
-    const vkx::VulkanAllocator& allocator)
+vkx::ArrayMesh::ArrayMesh(std::size_t vertexBlockSize,
+			  std::size_t vertexBlockCount,
+			  std::size_t indexBlockSize,
+			  std::size_t indexBlockCount,
+			  const vkx::VulkanAllocator& allocator)
     : vertexPool(allocator.allocateBufferPool(vk::BufferUsageFlagBits::eVertexBuffer, vertexBlockSize, vertexBlockCount)),
       vertexBuffers(vertexPool.allocateBuffers()),
-      indexPool(allocator.allocateBufferPool(vk::BufferUsageFlagBits::eIndexBuffer, indexBlockSize, indexBlockCount)),
-      indexBuffers(indexPool.allocateBuffers()) {
+      indexBuffer(allocator.allocateBuffer(indexBlockSize * indexBlockCount, vk::BufferUsageFlagBits::eIndexBuffer)) {
+}
+
+void vkx::ArrayMesh::draw(const vkx::CommandSubmitter& commandSubmitter) const {
 }
