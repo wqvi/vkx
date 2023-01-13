@@ -92,14 +92,27 @@ int main(int argc, char** argv) {
 
 	std::vector<vkx::VoxelChunk2D> chunks{};
 	std::vector<vkx::Mesh> meshes{};
+	std::vector<vkx::Buffer> vertexBuffers{};
+	const auto indexBuffer = allocator.allocateBuffer(static_cast<std::size_t>(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS * 6), vk::BufferUsageFlagBits::eIndexBuffer);
+	std::vector<std::uint32_t> chunkIndices{};
 	chunks.reserve(static_cast<std::size_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS));
 	meshes.reserve(static_cast<std::size_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS));
+	vertexBuffers.reserve(static_cast<std::size_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS));
+	chunkIndices.resize(static_cast<std::size_t>(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS * 6));
+
 	for (auto y = 0; y < vkx::CHUNK_RADIUS; y++) {
 		for (auto x = 0; x < vkx::CHUNK_RADIUS; x++) {
+			auto iter = chunkIndices.begin();
+			std::advance(iter, static_cast<std::size_t>(x + y * vkx::CHUNK_RADIUS));
+			
+			int helloWorld = 0;
+			helloWorld += 5;
+			auto& vertexBuffer = vertexBuffers.emplace_back(allocator.allocateBuffer(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vk::BufferUsageFlagBits::eIndexBuffer));
+			
 			auto& currentChunk = chunks.emplace_back(glm::vec2{x, y});
 			currentChunk.generateTerrain();
 			auto& currentMesh = meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
-			currentChunk.generateMesh(currentMesh);
+			currentChunk.generateMesh(currentMesh, vertexBuffer, iter);
 		}
 	}
 
@@ -244,6 +257,10 @@ int main(int argc, char** argv) {
 			auto& chunk = chunks[i];
 			auto& mesh = meshes[i];
 
+			auto iter = chunkIndices.begin();
+			std::advance(iter, i * 6);
+			auto& vertexBuffer = vertexBuffers[i];
+
 			const auto& chunkGlobalPosition = chunk.globalPosition;
 
 			const auto chunkX = glm::floor(chunkGlobalPosition.x / vkx::CHUNK_SIZE);
@@ -255,7 +272,7 @@ int main(int argc, char** argv) {
 			if (newX != chunkX || newY != chunkY) {
 				chunk.globalPosition = {newX * vkx::CHUNK_SIZE, newY * vkx::CHUNK_SIZE}; // Check the journal entry about this!
 				chunk.generateTerrain();
-				chunk.generateMesh(mesh);
+				chunk.generateMesh(mesh, vertexBuffer, iter);
 			}
 		}
 

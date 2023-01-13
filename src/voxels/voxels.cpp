@@ -46,7 +46,7 @@ void vkx::VoxelChunk2D::generateTestBox() {
 	}
 }
 
-void vkx::VoxelChunk2D::generateMesh(vkx::Mesh& mesh) {
+void vkx::VoxelChunk2D::generateMesh(vkx::Mesh& mesh, vkx::Buffer& vertexBuffer, std::vector<std::uint32_t>::iterator iter) {
 	auto vertexIter = mesh.vertices.begin();
 	auto indexIter = mesh.indices.begin();
 	auto vertexCount = 0;

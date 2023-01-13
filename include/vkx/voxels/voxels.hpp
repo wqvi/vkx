@@ -38,7 +38,7 @@ struct VoxelChunk2D {
 
 	void generateTestBox();
 
-	void generateMesh(vkx::Mesh& mesh);
+	void generateMesh(vkx::Mesh& mesh, vkx::Buffer& vertexBuffer, std::vector<std::uint32_t>::iterator iter);
 
 	[[nodiscard]] vkx::Voxel at(std::size_t i) const;
 
