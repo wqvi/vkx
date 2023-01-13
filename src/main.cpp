@@ -105,8 +105,6 @@ int main(int argc, char** argv) {
 			auto iter = chunkIndices.begin();
 			std::advance(iter, static_cast<std::size_t>(x + y * vkx::CHUNK_RADIUS) * 6);
 			
-			int helloWorld = 0;
-			helloWorld += 5;
 			auto& vertexBuffer = vertexBuffers.emplace_back(allocator.allocateBuffer(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vk::BufferUsageFlagBits::eIndexBuffer));
 			
 			auto& currentChunk = chunks.emplace_back(glm::vec2{x, y});
