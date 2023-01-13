@@ -31,7 +31,7 @@ vkx::VulkanBufferMemoryPool::VulkanBufferMemoryPool(std::size_t blockSize,
 						    std::size_t maxBlockCount,
 						    vk::BufferUsageFlags bufferFlags,
 						    VmaAllocator allocator,
-	vk::Device logicalDevice,
+						    vk::Device logicalDevice,
 						    vkx::UniqueVulkanPool&& pool)
     : blockSize(blockSize),
       maxBlockCount(maxBlockCount),
@@ -44,19 +44,20 @@ vkx::VulkanBufferMemoryPool::VulkanBufferMemoryPool(std::size_t blockSize,
 std::vector<vkx::Buffer> vkx::VulkanBufferMemoryPool::allocateBuffers() const {
 	std::vector<vkx::Buffer> buffers{};
 	buffers.reserve(maxBlockCount);
+
+	const vk::BufferCreateInfo bufferCreateInfo{{}, blockSize, bufferFlags, vk::SharingMode::eExclusive};
+
+	const VmaAllocationCreateInfo allocationCreateInfo{
+	    {},
+	    {},
+	    0,
+	    0,
+	    0,
+	    pool.get(),
+	    nullptr,
+	    {}};
+
 	for (auto i = 0; i < maxBlockCount; i++) {
-		const vk::BufferCreateInfo bufferCreateInfo{{}, blockSize, bufferFlags, vk::SharingMode::eExclusive};
-
-		const VmaAllocationCreateInfo allocationCreateInfo{
-		    {},
-		    {},
-		    0,
-		    0,
-		    0,
-		    pool.get(),
-		    nullptr,
-		    {}};
-
 		VkBuffer cBuffer = nullptr;
 		VmaAllocation cAllocation = nullptr;
 		VmaAllocationInfo cAllocationInfo;
