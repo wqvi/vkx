@@ -103,6 +103,14 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	try {
+		constexpr auto vertexBlockSize = vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4 * sizeof(vkx::Vertex);
+		constexpr auto indexBlockSize = vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6 * sizeof(std::uint32_t);
+		const vkx::ArrayMesh arrayMesh{vertexBlockSize, 1, indexBlockSize, 1, allocator};
+	} catch (const std::exception& e) {
+		SDL_Log("%s", e.what());
+	}
+
 	std::vector<vkx::Vertex> vertices{vkx::Vertex{{0, 0}}, vkx::Vertex{{16, 0}},
 					  vkx::Vertex{{16, 16}}, vkx::Vertex{{0, 16}}};
 	std::vector<std::uint32_t> indices{0, 1, 2, 2, 3, 0};
