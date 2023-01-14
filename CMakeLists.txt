@@ -23,16 +23,14 @@ set_target_properties(vkx PROPERTIES
 find_package(Vulkan REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
-find_package(GTest CONFIG REQUIRED)
 
 target_link_libraries(vkx
-	PUBLIC
-		Vulkan::Vulkan
-		VulkanMemoryAllocator
-		glm::glm
-        $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-        $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
-        GTest::gtest GTest::gtest_main
+        PUBLIC
+                Vulkan::Vulkan
+                VulkanMemoryAllocator
+                $<IF:$<TARGET_EXISTS:glm::glm>,glm::glm,glm>
+                $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+                $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
 )
 
 target_include_directories(vkx
@@ -45,16 +43,6 @@ target_include_directories(vkx
 target_precompile_headers(vkx
         PUBLIC
         "include/vkx/pch.hpp"
-        )
-
-# Compile vertex shader to SPIR-V
-add_custom_command(TARGET vkx PRE_BUILD
-        COMMAND glslc "${CMAKE_CURRENT_SOURCE_DIR}/shaders/src/shader.vert" -o "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert.spv"
-        )
-
-# Compile fragment shader to SPIR-V
-add_custom_command(TARGET vkx PRE_BUILD
-        COMMAND glslc "${CMAKE_CURRENT_SOURCE_DIR}/shaders/src/shader.frag" -o "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag.spv"
         )
 
 # Move compiled vertex shader SPIR-V to build directory
