@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vkx/renderer/memory/unique.hpp>
 #include <vkx/renderer/types.hpp>
 
 namespace vkx {
@@ -68,12 +69,10 @@ struct VulkanAllocatorDeleter {
 	void operator()(VmaAllocator allocator) const noexcept;
 };
 
-using UniqueVulkanAllocator = std::unique_ptr<std::remove_pointer_t<VmaAllocator>, VulkanAllocatorDeleter>;
-
 class VulkanAllocator {
 private:
 	vk::Device logicalDevice = nullptr;
-	UniqueVulkanAllocator allocator;
+	vkx::alloc::UniqueVmaAllocator allocator;
 
 public:
 	VulkanAllocator() = default;

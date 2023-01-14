@@ -87,8 +87,8 @@ vkx::VulkanAllocator::VulkanAllocator(vk::Instance instance, vk::PhysicalDevice 
 
 	const VmaAllocatorCreateInfo allocatorCreateInfo{
 	    0,
-	    physicalDevice,
-	    logicalDevice,
+	    static_cast<VkPhysicalDevice>(physicalDevice),
+	    static_cast<VkDevice>(logicalDevice),
 	    0,
 	    nullptr,
 	    nullptr,
@@ -110,7 +110,7 @@ vkx::VulkanAllocator::VulkanAllocator(vk::Instance instance, vk::PhysicalDevice 
 	    },
 	    &allocatorCreateInfo);
 
-	allocator.reset(cAllocator);
+	allocator = vkx::alloc::UniqueVmaAllocator{cAllocator, {&vmaDestroyAllocator}};
 }
 
 vkx::VulkanAllocator::operator VmaAllocator() const {
