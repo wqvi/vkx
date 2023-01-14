@@ -45,18 +45,6 @@ target_precompile_headers(vkx
         "include/vkx/pch.hpp"
         )
 
-# Move compiled vertex shader SPIR-V to build directory
-add_custom_command(TARGET vkx POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.vert.spv"
-        $<TARGET_FILE_DIR:vkx>
-        )
-
-# Move compiled fragment shader SPIR-V to build directory
-add_custom_command(TARGET vkx POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader.frag.spv"
-        $<TARGET_FILE_DIR:vkx>
-        )
-
 # Move image to build directory
 add_custom_command(TARGET vkx POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/resources/a.jpg"
