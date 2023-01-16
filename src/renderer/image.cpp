@@ -1,6 +1,6 @@
 #include <vkx/renderer/image.hpp>
 
-vkx::Image::Image(vk::Device logicalDevice, vk::UniqueImage&& image, vkx::UniqueVulkanAllocation&& allocation)
+vkx::Image::Image(vk::Device logicalDevice, vk::UniqueImage&& image, vkx::alloc::UniqueVmaAllocation&& allocation)
     : logicalDevice(logicalDevice),
       resourceImage(std::move(image)),
       resourceAllocation(std::move(allocation)) {

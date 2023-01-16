@@ -11,7 +11,7 @@ private:
 public:
 	ManagedDeleter() = default;
 
-	ManagedDeleter(K function, T deleter)
+	ManagedDeleter(T function, K deleter)
 	    : function(function),
 	      deleter(deleter) {}
 
@@ -21,6 +21,10 @@ public:
 		}
 	}
 };
+
+using VmaAllocationDeleter = vkx::alloc::ManagedDeleter<decltype(&vmaFreeMemory), VmaAllocator, VmaAllocation>;
+
+using UniqueVmaAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, VmaAllocationDeleter>;
 
 template <class T, class K>
 class Deleter {

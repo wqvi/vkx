@@ -21,4 +21,4 @@ class VulkanDevice;
 class VulkanInstance;
 class VulkanPoolDeleter;
 class VulkanRenderPass;
-}
+} // namespace vkx

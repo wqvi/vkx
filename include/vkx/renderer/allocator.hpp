@@ -4,20 +4,6 @@
 #include <vkx/renderer/types.hpp>
 
 namespace vkx {
-class VulkanAllocationDeleter {
-private:
-	VmaAllocator allocator = nullptr;
-
-public:
-	VulkanAllocationDeleter() = default;
-
-	explicit VulkanAllocationDeleter(VmaAllocator allocator);
-
-	void operator()(VmaAllocation allocation) const noexcept;
-};
-
-using UniqueVulkanAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, VulkanAllocationDeleter>;
-
 class VulkanPoolDeleter {
 private:
 	VmaAllocator allocator = nullptr;
@@ -108,7 +94,9 @@ public:
 			throw std::runtime_error("Failed to allocate GPU buffer.");
 		}
 
-		vkx::Buffer buffer{vk::UniqueBuffer(cBuffer, logicalDevice), UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator.get()}), std::move(cAllocationInfo)};
+		vkx::Buffer buffer{vk::UniqueBuffer{cBuffer, logicalDevice},
+				   vkx::alloc::UniqueVmaAllocation{cAllocation, vkx::alloc::VmaAllocationDeleter{&vmaFreeMemory, allocator.get()}},
+				   std::move(cAllocationInfo)};
 		buffer.mapMemory(data);
 		return buffer;
 	}

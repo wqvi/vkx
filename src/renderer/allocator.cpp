@@ -7,16 +7,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-vkx::VulkanAllocationDeleter::VulkanAllocationDeleter(VmaAllocator allocator)
-    : allocator(allocator) {
-}
-
-void vkx::VulkanAllocationDeleter::operator()(VmaAllocation allocation) const noexcept {
-	if (allocator) {
-		vmaFreeMemory(allocator, allocation);
-	}
-}
-
 vkx::VulkanPoolDeleter::VulkanPoolDeleter(VmaAllocator allocator)
     : allocator(allocator) {
 }
@@ -65,7 +55,9 @@ std::vector<vkx::Buffer> vkx::VulkanBufferMemoryPool::allocateBuffers() const {
 			throw std::runtime_error("Failed to allocate GPU buffer.");
 		}
 
-		buffers.emplace_back(vk::UniqueBuffer(cBuffer, logicalDevice), UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator}), std::move(cAllocationInfo));
+		buffers.emplace_back(vk::UniqueBuffer{cBuffer, logicalDevice},
+				     vkx::alloc::UniqueVmaAllocation{cAllocation, {&vmaFreeMemory, allocator}},
+				     std::move(cAllocationInfo));
 	}
 
 	return buffers;
@@ -140,7 +132,9 @@ vkx::Buffer vkx::VulkanAllocator::allocateBuffer(std::size_t memorySize,
 		throw std::runtime_error("Failed to allocate GPU buffer.");
 	}
 
-	return vkx::Buffer{vk::UniqueBuffer(cBuffer, logicalDevice), UniqueVulkanAllocation(cAllocation, VulkanAllocationDeleter{allocator.get()}), std::move(cAllocationInfo)};
+	return vkx::Buffer{vk::UniqueBuffer{cBuffer, logicalDevice},
+			   vkx::alloc::UniqueVmaAllocation{cAllocation, {&vmaFreeMemory, allocator.get()}},
+			   std::move(cAllocationInfo)};
 }
 
 vkx::Image vkx::VulkanAllocator::allocateImage(vk::Extent2D extent,
@@ -179,7 +173,9 @@ vkx::Image vkx::VulkanAllocator::allocateImage(vk::Extent2D extent,
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
-	return vkx::Image{logicalDevice, vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(resourceAllocation, VulkanAllocationDeleter{allocator.get()})};
+	return vkx::Image{logicalDevice,
+			  vk::UniqueImage{resourceImage, logicalDevice},
+			  vkx::alloc::UniqueVmaAllocation{resourceAllocation, {&vmaFreeMemory, allocator.get()}}};
 }
 
 vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& commandSubmitter,
@@ -238,7 +234,9 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 	commandSubmitter.transitionImageLayout(resourceImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 
 	stbi_image_free(pixels);
-	return vkx::Image{logicalDevice, vk::UniqueImage(resourceImage, logicalDevice), UniqueVulkanAllocation(resourceAllocation, VulkanAllocationDeleter{allocator.get()})};
+	return vkx::Image{logicalDevice,
+			  vk::UniqueImage(resourceImage, logicalDevice),
+			  vkx::alloc::UniqueVmaAllocation{resourceAllocation, {&vmaFreeMemory, allocator.get()}}};
 }
 
 vkx::UniformBuffer vkx::VulkanAllocator::allocateUniformBuffer(std::size_t memorySize) const {

@@ -7,12 +7,12 @@ class Image {
 private:
 	vk::Device logicalDevice{};
 	vk::UniqueImage resourceImage{};
-	vkx::UniqueVulkanAllocation resourceAllocation{};
+	vkx::alloc::UniqueVmaAllocation resourceAllocation{};
 
 public:
 	Image() = default;
 
-	explicit Image(vk::Device logicalDevice, vk::UniqueImage&& image, UniqueVulkanAllocation&& allocation);
+	explicit Image(vk::Device logicalDevice, vk::UniqueImage&& image, vkx::alloc::UniqueVmaAllocation&& allocation);
 
 	vk::UniqueImageView createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 };

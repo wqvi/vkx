@@ -29,13 +29,13 @@ struct Material {
 class Buffer {
 private:
 	vk::UniqueBuffer buffer;
-	vkx::UniqueVulkanAllocation allocation;
+	vkx::alloc::UniqueVmaAllocation allocation{};
 	VmaAllocationInfo allocationInfo{};
 
 public:
 	Buffer() = default;
 
-	explicit Buffer(vk::UniqueBuffer&& buffer, vkx::UniqueVulkanAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
+	explicit Buffer(vk::UniqueBuffer&& buffer, vkx::alloc::UniqueVmaAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
 
 	explicit operator vk::Buffer() const;
 
