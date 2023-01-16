@@ -51,5 +51,9 @@ public:
 using VmaAllocatorDeleter = Deleter<decltype(&vmaDestroyAllocator), VmaAllocator>;
 
 using UniqueVmaAllocator = std::unique_ptr<std::remove_pointer_t<VmaAllocator>, VmaAllocatorDeleter>;
+
+using SharedVmaAllocator = std::shared_ptr<std::remove_pointer_t<VmaAllocator>>;
+
+using WeakVmaAllocator = std::weak_ptr<std::remove_pointer_t<VmaAllocator>>;
 } // namespace alloc
 } // namespace vkx
