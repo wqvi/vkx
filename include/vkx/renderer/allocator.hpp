@@ -4,20 +4,6 @@
 #include <vkx/renderer/types.hpp>
 
 namespace vkx {
-class VulkanPoolDeleter {
-private:
-	VmaAllocator allocator = nullptr;
-
-public:
-	VulkanPoolDeleter() = default;
-
-	explicit VulkanPoolDeleter(VmaAllocator allocator);
-
-	void operator()(VmaPool pool) const noexcept;
-};
-
-using UniqueVulkanPool = std::unique_ptr<std::remove_pointer_t<VmaPool>, VulkanPoolDeleter>;
-
 class VulkanBufferMemoryPool {
 private:
 	std::size_t blockSize = 0;
@@ -25,7 +11,7 @@ private:
 	vk::BufferUsageFlags bufferFlags{};
 	VmaAllocator allocator = nullptr;
 	vk::Device logicalDevice{};
-	vkx::UniqueVulkanPool pool{};
+	vkx::alloc::UniqueVmaPool pool{};
 
 public:
 	VulkanBufferMemoryPool() = default;
@@ -35,20 +21,9 @@ public:
 					vk::BufferUsageFlags bufferFlags,
 					VmaAllocator allocator,
 					vk::Device logicalDevice,
-					vkx::UniqueVulkanPool&& pool);
+					vkx::alloc::UniqueVmaPool&& pool);
 
 	[[nodiscard]] std::vector<vkx::Buffer> allocateBuffers() const;
-};
-
-class VulkanImageMemoryPool {
-private:
-	// Some variables that might want to be saved in the future
-	vkx::UniqueVulkanPool pool{};
-
-public:
-	VulkanImageMemoryPool() = default;
-
-	explicit VulkanImageMemoryPool(vkx::UniqueVulkanPool&& pool);
 };
 
 struct VulkanAllocatorDeleter {
@@ -131,7 +106,7 @@ public:
 								     VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
 								     VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
 
-	[[nodiscard]] vkx::UniqueVulkanPool allocatePool(vk::Extent2D extent,
+	[[nodiscard]] vkx::alloc::UniqueVmaPool allocatePool(vk::Extent2D extent,
 							 vk::Format format,
 							 vk::ImageTiling tiling, vk::ImageUsageFlags imageUsage,
 							 std::size_t blockSize,

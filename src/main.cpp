@@ -332,6 +332,8 @@ int main(int argc, char** argv) {
 		    &clearRenderPass,
 		    meshes};
 
+		auto a = std::make_unique<int>(1);
+
 		/*const vkx::DrawInfo highlightDrawInfo{
 		    imageIndex,
 		    currentFrame,

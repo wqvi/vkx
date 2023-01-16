@@ -26,6 +26,10 @@ using VmaAllocationDeleter = vkx::alloc::ManagedDeleter<decltype(&vmaFreeMemory)
 
 using UniqueVmaAllocation = std::unique_ptr<std::remove_pointer_t<VmaAllocation>, VmaAllocationDeleter>;
 
+using VmaPoolDeleter = vkx::alloc::ManagedDeleter<decltype(&vmaDestroyPool), VmaAllocator, VmaPool>;
+
+using UniqueVmaPool = std::unique_ptr<std::remove_pointer_t<VmaPool>, VmaPoolDeleter>;
+
 template <class T, class K>
 class Deleter {
 private:

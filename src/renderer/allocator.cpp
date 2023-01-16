@@ -7,22 +7,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-vkx::VulkanPoolDeleter::VulkanPoolDeleter(VmaAllocator allocator)
-    : allocator(allocator) {
-}
-
-void vkx::VulkanPoolDeleter::operator()(VmaPool pool) const noexcept {
-	if (allocator) {
-		vmaDestroyPool(allocator, pool);
-	}
-}
-
 vkx::VulkanBufferMemoryPool::VulkanBufferMemoryPool(std::size_t blockSize,
 						    std::size_t maxBlockCount,
 						    vk::BufferUsageFlags bufferFlags,
 						    VmaAllocator allocator,
 						    vk::Device logicalDevice,
-						    vkx::UniqueVulkanPool&& pool)
+						    vkx::alloc::UniqueVmaPool&& pool)
     : blockSize(blockSize),
       maxBlockCount(maxBlockCount),
       bufferFlags(bufferFlags),
@@ -61,10 +51,6 @@ std::vector<vkx::Buffer> vkx::VulkanBufferMemoryPool::allocateBuffers() const {
 	}
 
 	return buffers;
-}
-
-vkx::VulkanImageMemoryPool::VulkanImageMemoryPool(vkx::UniqueVulkanPool&& pool)
-    : pool(std::move(pool)) {
 }
 
 void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
@@ -289,17 +275,17 @@ vkx::VulkanBufferMemoryPool vkx::VulkanAllocator::allocateBufferPool(vk::BufferU
 		throw std::runtime_error("Failed to create vulkan memory pool.");
 	}
 
-	return vkx::VulkanBufferMemoryPool{blockSize, maxBlockCount, bufferFlags, allocator.get(), logicalDevice, vkx::UniqueVulkanPool(pool, VulkanPoolDeleter(allocator.get()))};
+	return vkx::VulkanBufferMemoryPool{blockSize, maxBlockCount, bufferFlags, allocator.get(), logicalDevice, vkx::alloc::UniqueVmaPool{pool, {&vmaDestroyPool, allocator.get()}}};
 }
 
-vkx::UniqueVulkanPool vkx::VulkanAllocator::allocatePool(vk::Extent2D extent,
-							 vk::Format format,
-							 vk::ImageTiling tiling,
-							 vk::ImageUsageFlags imageUsage,
-							 std::size_t blockSize,
-							 std::size_t maxBlockCount,
-							 VmaAllocationCreateFlags flags,
-							 VmaMemoryUsage memoryUsage) const {
+vkx::alloc::UniqueVmaPool vkx::VulkanAllocator::allocatePool(vk::Extent2D extent,
+							     vk::Format format,
+							     vk::ImageTiling tiling,
+							     vk::ImageUsageFlags imageUsage,
+							     std::size_t blockSize,
+							     std::size_t maxBlockCount,
+							     VmaAllocationCreateFlags flags,
+							     VmaMemoryUsage memoryUsage) const {
 	const vk::Extent3D imageExtent{extent.width, extent.height, 1};
 
 	const vk::ImageCreateInfo imageCreateInfo{
@@ -344,5 +330,5 @@ vkx::UniqueVulkanPool vkx::VulkanAllocator::allocatePool(vk::Extent2D extent,
 		throw std::runtime_error("Failed to create vulkan memory pool.");
 	}
 
-	return vkx::UniqueVulkanPool(pool, VulkanPoolDeleter(allocator.get()));
+	return vkx::alloc::UniqueVmaPool{pool, {&vmaDestroyPool, allocator.get()}};
 }
