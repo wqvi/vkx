@@ -9,7 +9,7 @@ private:
 	std::size_t blockSize = 0;
 	std::size_t maxBlockCount = 0;
 	vk::BufferUsageFlags bufferFlags{};
-	VmaAllocator allocator = nullptr;
+	vkx::alloc::WeakVmaAllocator allocator{};
 	vk::Device logicalDevice{};
 	vkx::alloc::UniqueVmaPool pool{};
 
@@ -19,7 +19,7 @@ public:
 	explicit VulkanBufferMemoryPool(std::size_t blockSize,
 					std::size_t maxBlockCount,
 					vk::BufferUsageFlags bufferFlags,
-					VmaAllocator allocator,
+					const vkx::alloc::SharedVmaAllocator& allocator,
 					vk::Device logicalDevice,
 					vkx::alloc::UniqueVmaPool&& pool);
 

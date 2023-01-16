@@ -10,7 +10,7 @@
 vkx::VulkanBufferMemoryPool::VulkanBufferMemoryPool(std::size_t blockSize,
 						    std::size_t maxBlockCount,
 						    vk::BufferUsageFlags bufferFlags,
-						    VmaAllocator allocator,
+						    const vkx::alloc::SharedVmaAllocator& allocator,
 						    vk::Device logicalDevice,
 						    vkx::alloc::UniqueVmaPool&& pool)
     : blockSize(blockSize),
@@ -41,12 +41,12 @@ std::vector<vkx::Buffer> vkx::VulkanBufferMemoryPool::allocateBuffers() const {
 		VkBuffer cBuffer = nullptr;
 		VmaAllocation cAllocation = nullptr;
 		VmaAllocationInfo cAllocationInfo;
-		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
+		if (vmaCreateBuffer(allocator.lock().get(), reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to allocate GPU buffer.");
 		}
 
 		buffers.emplace_back(vk::UniqueBuffer{cBuffer, logicalDevice},
-				     vkx::alloc::UniqueVmaAllocation{cAllocation, {&vmaFreeMemory, allocator}},
+				     vkx::alloc::UniqueVmaAllocation{cAllocation, {&vmaFreeMemory, allocator.lock().get()}},
 				     std::move(cAllocationInfo));
 	}
 
@@ -271,7 +271,7 @@ vkx::VulkanBufferMemoryPool vkx::VulkanAllocator::allocateBufferPool(vk::BufferU
 		throw std::runtime_error("Failed to create vulkan memory pool.");
 	}
 
-	return vkx::VulkanBufferMemoryPool{blockSize, maxBlockCount, bufferFlags, allocator.get(), logicalDevice, vkx::alloc::UniqueVmaPool{pool, {&vmaDestroyPool, allocator.get()}}};
+	return vkx::VulkanBufferMemoryPool{blockSize, maxBlockCount, bufferFlags, allocator, logicalDevice, vkx::alloc::UniqueVmaPool{pool, {&vmaDestroyPool, allocator.get()}}};
 }
 
 vkx::alloc::UniqueVmaPool vkx::VulkanAllocator::allocatePool(vk::Extent2D extent,
