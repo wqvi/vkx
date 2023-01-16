@@ -26,10 +26,6 @@ public:
 	[[nodiscard]] std::vector<vkx::Buffer> allocateBuffers() const;
 };
 
-struct VulkanAllocatorDeleter {
-	void operator()(VmaAllocator allocator) const noexcept;
-};
-
 class VulkanAllocator {
 private:
 	vk::Device logicalDevice = nullptr;

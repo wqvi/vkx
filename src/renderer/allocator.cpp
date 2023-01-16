@@ -53,10 +53,6 @@ std::vector<vkx::Buffer> vkx::VulkanBufferMemoryPool::allocateBuffers() const {
 	return buffers;
 }
 
-void vkx::VulkanAllocatorDeleter::operator()(VmaAllocator allocator) const noexcept {
-	vmaDestroyAllocator(allocator);
-}
-
 vkx::VulkanAllocator::VulkanAllocator(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::Device logicalDevice)
     : logicalDevice(logicalDevice) {
 	constexpr VmaVulkanFunctions vulkanFunctions{
