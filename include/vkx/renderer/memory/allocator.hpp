@@ -100,13 +100,5 @@ public:
 								     std::size_t maxBlockCount,
 								     VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
 								     VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
-
-	[[nodiscard]] vkx::alloc::UniqueVmaPool allocatePool(vk::Extent2D extent,
-							 vk::Format format,
-							 vk::ImageTiling tiling, vk::ImageUsageFlags imageUsage,
-							 std::size_t blockSize,
-							 std::size_t maxBlockCount,
-							 VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
-							 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
 };
 } // namespace vkx
