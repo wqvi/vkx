@@ -4,6 +4,5 @@ vkx::Vertex::Vertex(const glm::vec2& pos)
     : pos(pos) {}
 
 vkx::Vertex::Vertex(const glm::vec2& pos,
-		    const glm::vec2& uv,
-		    const glm::vec2& normal)
-    : pos(pos), uv(uv), normal(normal) {}
+		    const glm::vec2& uv)
+    : pos(pos), uv(uv) {}

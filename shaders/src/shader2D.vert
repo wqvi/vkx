@@ -8,7 +8,6 @@ layout (binding = 0) uniform UniformBufferObject {
 
 layout (location = 0) in vec2 aPos;
 layout (location = 1) in vec2 aUV;
-layout (location = 2) in vec2 aNormal;
 
 layout (location = 0) out vec2 fragUV;
 
