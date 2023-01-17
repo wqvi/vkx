@@ -16,16 +16,6 @@ auto createShaderBindings() {
 	return std::vector{uboLayoutBinding, samplerLayoutBinding};
 }
 
-auto createHighlightShaderBindings() {
-	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
-	    0,
-	    vk::DescriptorType::eUniformBuffer,
-	    1,
-	    vk::ShaderStageFlagBits::eVertex};
-
-	return std::vector{uboLayoutBinding};
-}
-
 int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
 
@@ -59,19 +49,8 @@ int main(int argc, char** argv) {
 	    {&texture}};
 	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
 
-	const vkx::GraphicsPipelineInformation highlightGraphicsPipelineInformation{
-	    "highlight.vert.spv",
-	    "highlight.frag.spv",
-	    createHighlightShaderBindings(),
-	    vkx::Vertex::getBindingDescription(),
-	    vkx::Vertex::getAttributeDescriptions(),
-	    {sizeof(vkx::MVP)},
-	    {}};
-	const auto highlightGraphicsPipeline = vulkanDevice.createGraphicsPipeline(loadRenderPass, allocator, highlightGraphicsPipelineInformation);
-
 	constexpr std::uint32_t chunkDrawCommandAmount = static_cast<std::uint32_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS);
 
-	//constexpr std::uint32_t drawCommandAmount = 2;
 	constexpr std::uint32_t drawCommandAmount = 1;
 	constexpr std::uint32_t secondaryDrawCommandAmount = chunkDrawCommandAmount;
 	const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
@@ -105,16 +84,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	/*std::vector<vkx::Vertex> vertices{vkx::Vertex{{0, 0}}, vkx::Vertex{{16, 0}},
-					  vkx::Vertex{{16, 16}}, vkx::Vertex{{0, 16}}};
-	std::vector<std::uint32_t> indices{0, 1, 2, 2, 3, 0};
-	std::vector<vkx::Mesh> highlightMeshes{};
-	highlightMeshes.reserve(1);
-	highlightMeshes.emplace_back(std::move(vertices), std::move(indices), 6, allocator);*/
-
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
-
-	//auto& highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
 
 	SDL_Event event{};
 	bool isRunning = true;
@@ -270,12 +240,7 @@ int main(int argc, char** argv) {
 		auto& mvpBuffer = mvpBuffers[currentFrame];
 		auto mvp = vkx::MVP{glm::mat4(glm::translate(glm::mat3(1.0f), windowCenter)), camera.viewMatrix(), projection};
 
-		/*auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
-		auto highlightMVP = vkx::MVP{highlightMatrix, camera.viewMatrix(), projection};*/
-
 		mvpBuffer.mapMemory(mvp);
-
-		//highlightMVPBuffer.mapMemory(highlightMVP);
 
 		const auto& syncObject = syncObjects[currentFrame];
 		syncObject.waitForFence();
