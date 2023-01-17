@@ -28,8 +28,8 @@ public:
 
 class VulkanAllocator {
 private:
-	vk::Device logicalDevice = nullptr;
-	vkx::alloc::SharedVmaAllocator allocator;
+	vk::Device logicalDevice{};
+	vkx::alloc::SharedVmaAllocator allocator{};
 
 public:
 	VulkanAllocator() = default;
