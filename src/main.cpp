@@ -19,7 +19,7 @@ auto createShaderBindings() {
 int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
 
-	vkx::Camera2D camera{glm::vec2{0, 0}, glm::vec2{0, 0}, glm::vec2{0.5f, 0.5f}};
+	vkx::Camera2D camera{{0, 0}, {0, 0}, {0.5f, 0.5f}};
 
 	const vkx::VulkanInstance vulkanInstance{window};
 
@@ -73,13 +73,13 @@ int main(int argc, char** argv) {
 			auto iter = chunkIndices.begin();
 			const auto offset = static_cast<std::size_t>(x + y * vkx::CHUNK_RADIUS) * 6;
 			std::advance(iter, offset);
-			
+
 			auto& vertexBuffer = vertexBuffers.emplace_back(allocator.allocateBuffer(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vk::BufferUsageFlagBits::eIndexBuffer));
-			
+
 			auto& currentChunk = chunks.emplace_back(glm::vec2{x, y});
 			currentChunk.generateTerrain();
 			auto& currentMesh = meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
-			currentChunk.generateMesh(currentMesh, vertexBuffer, iter); 
+			currentChunk.generateMesh(currentMesh, vertexBuffer, iter);
 			indexBuffer.mapMemory(&*iter, offset * sizeof(std::uint32_t));
 		}
 	}
@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	glm::mat4 highlightMatrix {1.0f};
+	glm::mat4 highlightMatrix{1.0f};
 
 	const auto sdlMouseMotionEvent = [&chunks, &camera, &highlightMatrix](const SDL_MouseMotionEvent& motion) {
 		for (const auto& chunk : chunks) {
@@ -278,11 +278,11 @@ int main(int argc, char** argv) {
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 		const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
-		//const auto* highlightBegin = &drawCommands[currentFrame * drawCommandAmount + 1];
+		// const auto* highlightBegin = &drawCommands[currentFrame * drawCommandAmount + 1];
 
 		commandSubmitter.recordSecondaryDrawCommands(begin, 1, secondaryBegin, chunkDrawCommandAmount, chunkDrawInfo);
 
-		//commandSubmitter.recordPrimaryDrawCommands(highlightBegin, 1, highlightDrawInfo);
+		// commandSubmitter.recordPrimaryDrawCommands(highlightBegin, 1, highlightDrawInfo);
 
 		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
