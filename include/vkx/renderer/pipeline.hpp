@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vkx/renderer/buffers.hpp>
+#include <vkx/renderer/pipeline/compute.hpp>
 
 namespace vkx {
 struct GraphicsPipelineInformation {

@@ -15,3 +15,4 @@ target_sources(vkx
 )
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/memory")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/pipeline")
