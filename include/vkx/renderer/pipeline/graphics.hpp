@@ -19,8 +19,6 @@ class GraphicsPipeline : public vkx::pipeline::VulkanPipeline {
 	friend class CommandSubmitter;
 
 private:
-	vk::UniqueDescriptorSetLayout descriptorLayout{};
-	vk::UniquePipelineLayout pipelineLayout{};
 	vk::UniquePipeline pipeline{};
 	vk::UniqueDescriptorPool descriptorPool{};
 	std::vector<vk::DescriptorSet> descriptorSets{};

@@ -5,15 +5,7 @@ vkx::pipeline::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
 					vk::RenderPass renderPass,
 					const vkx::VulkanAllocator& allocator,
 					const vkx::pipeline::GraphicsPipelineInformation& info)
-    : VulkanPipeline(logicalDevice) {
-	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{{}, info.bindings};
-
-	descriptorLayout = logicalDevice.createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo);
-
-	const vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{{}, *descriptorLayout};
-
-	pipelineLayout = logicalDevice.createPipelineLayoutUnique(pipelineLayoutCreateInfo);
-
+    : VulkanPipeline(logicalDevice, info.bindings) {
 	const auto vertShaderModule = createShaderModule(info.vertexFile);
 	const auto fragShaderModule = createShaderModule(info.fragmentFile);
 

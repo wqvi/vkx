@@ -1,7 +1,15 @@
 #include <vkx/renderer/pipeline/pipeline.hpp>
 
-vkx::pipeline::VulkanPipeline::VulkanPipeline(vk::Device logicalDevice) 
-	: logicalDevice(logicalDevice) {
+vkx::pipeline::VulkanPipeline::VulkanPipeline(vk::Device logicalDevice,
+					      const std::vector<vk::DescriptorSetLayoutBinding>& bindings)
+    : logicalDevice(logicalDevice) {
+	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{{}, bindings};
+
+	descriptorLayout = logicalDevice.createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo);
+
+	const vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{{}, *descriptorLayout};
+
+	pipelineLayout = logicalDevice.createPipelineLayoutUnique(pipelineLayoutCreateInfo);
 }
 
 vk::UniqueShaderModule vkx::pipeline::VulkanPipeline::createShaderModule(const std::string& filename) const {
