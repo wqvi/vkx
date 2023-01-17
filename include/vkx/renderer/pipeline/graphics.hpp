@@ -18,7 +18,6 @@ class GraphicsPipeline : public vkx::pipeline::VulkanPipeline {
 	friend class CommandSubmitter;
 
 private:
-	vk::Device logicalDevice{};
 	vk::UniqueDescriptorSetLayout descriptorLayout{};
 	vk::UniquePipelineLayout pipelineLayout{};
 	vk::UniquePipeline pipeline{};
@@ -35,8 +34,5 @@ public:
 				  const vkx::GraphicsPipelineInformation& info);
 
 	const std::vector<UniformBuffer>& getUniformByIndex(std::size_t i) const;
-
-private:
-	[[nodiscard]] vk::UniqueShaderModule createShaderModule(const std::string& filename) const;
 };
 } // namespace vkx

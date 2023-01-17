@@ -6,10 +6,10 @@ class VulkanPipeline {
 protected:
 	vk::Device logicalDevice{};
 
-public:
 	VulkanPipeline() = default;
 
-private:
+	explicit VulkanPipeline(vk::Device logicalDevice);
+
 	[[nodiscard]] vk::UniqueShaderModule createShaderModule(const std::string& filename) const;
 };
 } // namespace pipeline

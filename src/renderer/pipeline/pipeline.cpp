@@ -1,5 +1,9 @@
 #include <vkx/renderer/pipeline/pipeline.hpp>
 
+vkx::pipeline::VulkanPipeline::VulkanPipeline(vk::Device logicalDevice) 
+	: logicalDevice(logicalDevice) {
+}
+
 vk::UniqueShaderModule vkx::pipeline::VulkanPipeline::createShaderModule(const std::string& filename) const {
 	std::ifstream file{filename, std::ios::ate | std::ios::binary};
 
