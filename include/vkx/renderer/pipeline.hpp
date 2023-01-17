@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vkx/renderer/buffers.hpp>
-#include <vkx/renderer/pipeline/compute.hpp>
+#include <vkx/renderer/pipeline/pipeline.hpp>
 
 namespace vkx {
 struct GraphicsPipelineInformation {
@@ -14,7 +14,7 @@ struct GraphicsPipelineInformation {
 	const std::vector<const Texture*> textures;
 };
 
-class GraphicsPipeline {
+class GraphicsPipeline : public vkx::pipeline::VulkanPipeline {
 	friend class CommandSubmitter;
 
 private:
