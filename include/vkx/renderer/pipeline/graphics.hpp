@@ -4,6 +4,7 @@
 #include <vkx/renderer/pipeline/pipeline.hpp>
 
 namespace vkx {
+namespace pipeline {
 struct GraphicsPipelineInformation {
 	const std::string vertexFile{};
 	const std::string fragmentFile{};
@@ -31,8 +32,9 @@ public:
 	explicit GraphicsPipeline(vk::Device logicalDevice,
 				  vk::RenderPass renderPass,
 				  const vkx::VulkanAllocator& allocator,
-				  const vkx::GraphicsPipelineInformation& info);
+				  const vkx::pipeline::GraphicsPipelineInformation& info);
 
 	const std::vector<UniformBuffer>& getUniformByIndex(std::size_t i) const;
 };
+} // namespace pipeline
 } // namespace vkx

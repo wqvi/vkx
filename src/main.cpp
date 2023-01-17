@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 
 	const vkx::Texture texture{"a.jpg", vulkanDevice, allocator, commandSubmitter};
 
-	const vkx::GraphicsPipelineInformation graphicsPipelineInformation{
+	const vkx::pipeline::GraphicsPipelineInformation graphicsPipelineInformation{
 	    "shader2D.vert.spv",
 	    "shader2D.frag.spv",
 	    createShaderBindings(),

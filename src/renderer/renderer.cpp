@@ -167,8 +167,8 @@ vkx::CommandSubmitter vkx::VulkanDevice::createCommandSubmitter() const {
 	return vkx::CommandSubmitter{physicalDevice, *logicalDevice, surface};
 }
 
-vkx::GraphicsPipeline vkx::VulkanDevice::createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& information) const {
-	return vkx::GraphicsPipeline{*logicalDevice, *renderPass.renderPass, allocator, information};
+vkx::pipeline::GraphicsPipeline vkx::VulkanDevice::createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::pipeline::GraphicsPipelineInformation& information) const {
+	return vkx::pipeline::GraphicsPipeline{*logicalDevice, *renderPass.renderPass, allocator, information};
 }
 
 std::vector<vkx::SyncObjects> vkx::VulkanDevice::createSyncObjects() const {

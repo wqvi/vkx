@@ -1,10 +1,10 @@
 #include <vkx/renderer/pipeline/graphics.hpp>
 #include <vkx/renderer/texture.hpp>
 
-vkx::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
+vkx::pipeline::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
 					vk::RenderPass renderPass,
 					const vkx::VulkanAllocator& allocator,
-					const vkx::GraphicsPipelineInformation& info)
+					const vkx::pipeline::GraphicsPipelineInformation& info)
     : VulkanPipeline(logicalDevice) {
 	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{{}, info.bindings};
 
@@ -171,6 +171,6 @@ vkx::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
 	}
 }
 
-const std::vector<vkx::UniformBuffer>& vkx::GraphicsPipeline::getUniformByIndex(std::size_t i) const {
+const std::vector<vkx::UniformBuffer>& vkx::pipeline::GraphicsPipeline::getUniformByIndex(std::size_t i) const {
 	return uniforms[i];
 }

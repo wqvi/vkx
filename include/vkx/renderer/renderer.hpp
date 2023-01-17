@@ -135,7 +135,7 @@ public:
 
 	[[nodiscard]] vkx::CommandSubmitter createCommandSubmitter() const;
 
-	[[nodiscard]] vkx::GraphicsPipeline createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::GraphicsPipelineInformation& information) const;
+	[[nodiscard]] vkx::pipeline::GraphicsPipeline createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::pipeline::GraphicsPipelineInformation& information) const;
 
 	[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects() const;
 
