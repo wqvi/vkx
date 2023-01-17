@@ -1,4 +1,4 @@
-#include <vkx/renderer/allocator.hpp>
+#include <vkx/renderer/memory/allocator.hpp>
 #include <vkx/renderer/buffers.hpp>
 #include <vkx/renderer/commands.hpp>
 #include <vkx/renderer/image.hpp>

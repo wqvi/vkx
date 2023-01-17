@@ -11,7 +11,7 @@ add_executable(vkx src/main.cpp
         lib/imgui/imgui_draw.cpp
         lib/imgui/imgui_tables.cpp
         lib/imgui/imgui_widgets.cpp
-        lib/imgui/imgui.cpp "src/renderer/allocator.cpp")
+        lib/imgui/imgui.cpp)
 
 add_subdirectory("src")
 add_subdirectory("lib/VulkanMemoryAllocator")
