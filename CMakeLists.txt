@@ -96,3 +96,14 @@ add_custom_command(TARGET vkx POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/shader2D.frag.spv"
         $<TARGET_FILE_DIR:vkx>
         )
+
+# Compile compute shader to SPIR-V
+add_custom_command(TARGET vkx PRE_BUILD
+        COMMAND glslc "${CMAKE_CURRENT_SOURCE_DIR}/shaders/src/greedy.comp" -o "${CMAKE_CURRENT_SOURCE_DIR}/shaders/greedy.comp.spv"
+        )
+
+# Move compiled fragment shader SPIR-V to build directory
+add_custom_command(TARGET vkx POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/shaders/greedy.comp.spv"
+        $<TARGET_FILE_DIR:vkx>
+        )

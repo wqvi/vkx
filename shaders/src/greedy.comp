@@ -1,8 +1,23 @@
 #version 450
 
-layout (local_size_x = 32) in;
+layout (local_size_x = 32, local_size_y = 32) in;
 
 struct Vertex {
 	vec2 pos;
 	vec2 uv;
 };
+
+layout (set = 0, binding = 0) readonly buffer InputBuffer {
+	int voxelIdentifiers[];
+};
+
+layout (set = 0, binding = 1) buffer OutputBuffer {
+	Vertex meshVertices[];
+	uint meshIndices[];
+};
+
+void main() {
+	if (gl_GlobalInvocationID.x < 32 * 32 && gl_GlobalInvocationID.y < 32 * 32) {
+		// Do some stuff
+	}
+}
