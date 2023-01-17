@@ -10,6 +10,7 @@
 #include <fstream>
 #include <functional>
 #include <vk_mem_alloc.h>
+#define VULKAN_HPP_NO_STRUCT_SETTERS
 #include <vulkan/vulkan.hpp>
 #define GLM_FORCE_LEFT_HANDED
 #define GLM_FORCE_RADIANS
