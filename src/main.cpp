@@ -29,8 +29,6 @@ int main(int argc, char** argv) {
 
 	const auto swapchainInfo = vulkanDevice.getSwapchainInfo(window);
 
-	const auto loadRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eLoad, vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::ePresentSrcKHR);
-
 	const auto clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
 
 	auto swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
