@@ -13,19 +13,7 @@ auto createShaderBindings() {
 	    1,
 	    vk::ShaderStageFlagBits::eFragment};
 
-	constexpr vk::DescriptorSetLayoutBinding lightLayoutBinding{
-	    2,
-	    vk::DescriptorType::eUniformBuffer,
-	    1,
-	    vk::ShaderStageFlagBits::eFragment};
-
-	constexpr vk::DescriptorSetLayoutBinding materialLayoutBinding{
-	    3,
-	    vk::DescriptorType::eUniformBuffer,
-	    1,
-	    vk::ShaderStageFlagBits::eFragment};
-
-	return std::vector{uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding, materialLayoutBinding};
+	return std::vector{uboLayoutBinding, samplerLayoutBinding};
 }
 
 auto createHighlightShaderBindings() {
@@ -67,7 +55,7 @@ int main(int argc, char** argv) {
 	    createShaderBindings(),
 	    vkx::Vertex::getBindingDescription(),
 	    vkx::Vertex::getAttributeDescriptions(),
-	    {sizeof(vkx::MVP), sizeof(vkx::DirectionalLight), sizeof(vkx::Material)},
+	    {sizeof(vkx::MVP)},
 	    {&texture}};
 	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
 
@@ -125,8 +113,6 @@ int main(int argc, char** argv) {
 	highlightMeshes.emplace_back(std::move(vertices), std::move(indices), 6, allocator);*/
 
 	auto& mvpBuffers = graphicsPipeline.getUniformByIndex(0);
-	auto& lightBuffers = graphicsPipeline.getUniformByIndex(1);
-	auto& materialBuffers = graphicsPipeline.getUniformByIndex(2);
 
 	//auto& highlightMVPBuffers = highlightGraphicsPipeline.getUniformByIndex(0);
 
@@ -284,26 +270,10 @@ int main(int argc, char** argv) {
 		auto& mvpBuffer = mvpBuffers[currentFrame];
 		auto mvp = vkx::MVP{glm::mat4(glm::translate(glm::mat3(1.0f), windowCenter)), camera.viewMatrix(), projection};
 
-		auto& lightBuffer = lightBuffers[currentFrame];
-		auto light = vkx::DirectionalLight{
-		    glm::vec3(1.0f, 3.0f, 1.0f),
-		    glm::vec3(0),
-		    glm::vec4(1.0f, 1.0f, 1.0f, 0.2f),
-		    glm::vec3(1.0f, 1.0f, 1.0f),
-		    glm::vec3(1.0f, 1.0f, 1.0f),
-		    1.0f,
-		    0.09f,
-		    0.032f};
-
-		auto& materialBuffer = materialBuffers[currentFrame];
-		auto material = vkx::Material{glm::vec3(0.2f), 100.0f};
-
 		/*auto& highlightMVPBuffer = highlightMVPBuffers[currentFrame];
 		auto highlightMVP = vkx::MVP{highlightMatrix, camera.viewMatrix(), projection};*/
 
 		mvpBuffer.mapMemory(mvp);
-		lightBuffer.mapMemory(light);
-		materialBuffer.mapMemory(material);
 
 		//highlightMVPBuffer.mapMemory(highlightMVP);
 
