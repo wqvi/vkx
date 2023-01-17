@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vkx/renderer/types.hpp>
+
 namespace vkx {
 namespace alloc {
 template <class T, class K, class U>

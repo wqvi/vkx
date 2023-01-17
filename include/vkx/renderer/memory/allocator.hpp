@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vkx/renderer/memory/unique.hpp>
-#include <vkx/renderer/types.hpp>
 
 namespace vkx {
 class VulkanBufferMemoryPool {
