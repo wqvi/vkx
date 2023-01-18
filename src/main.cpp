@@ -63,6 +63,11 @@ int main(int argc, char** argv) {
 	    {&texture}};
 	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
 
+	const vkx::pipeline::ComputePipelineInformation computePipelineInformation{
+	    "greedy.comp.spv",
+	    createComputeBindings()};
+	const auto computePipeline = vulkanDevice.createComputePipeline(computePipelineInformation);
+
 	constexpr std::uint32_t chunkDrawCommandAmount = static_cast<std::uint32_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS);
 
 	constexpr std::uint32_t drawCommandAmount = 1;

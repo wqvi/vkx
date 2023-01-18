@@ -5,8 +5,11 @@ class Buffer;
 class CommandSubmitter;
 struct DrawInfo;
 namespace pipeline {
+class VulkanPipeline;
 class GraphicsPipeline;
 struct GraphicsPipelineInformation;
+class ComputePipeline;
+struct ComputePipelineInformation;
 } // namespace pipeline
 class Image;
 struct QueueConfig;

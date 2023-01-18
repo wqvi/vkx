@@ -137,6 +137,8 @@ public:
 
 	[[nodiscard]] vkx::pipeline::GraphicsPipeline createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::pipeline::GraphicsPipelineInformation& information) const;
 
+	[[nodiscard]] vkx::pipeline::ComputePipeline createComputePipeline(const vkx::pipeline::ComputePipelineInformation& information) const;
+
 	[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects() const;
 
 	[[nodiscard]] vk::UniqueSampler createTextureSampler() const;

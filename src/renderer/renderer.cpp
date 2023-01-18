@@ -171,6 +171,10 @@ vkx::pipeline::GraphicsPipeline vkx::VulkanDevice::createGraphicsPipeline(const 
 	return vkx::pipeline::GraphicsPipeline{*logicalDevice, *renderPass.renderPass, allocator, information};
 }
 
+vkx::pipeline::ComputePipeline vkx::VulkanDevice::createComputePipeline(const vkx::pipeline::ComputePipelineInformation& information) const {
+	return vkx::pipeline::ComputePipeline{*logicalDevice, information};
+}
+
 std::vector<vkx::SyncObjects> vkx::VulkanDevice::createSyncObjects() const {
 	std::vector<vkx::SyncObjects> objs{vkx::MAX_FRAMES_IN_FLIGHT};
 
