@@ -149,8 +149,8 @@ public:
 class VulkanInstance {
 private:
 	SDL_Window* window = nullptr;
-	vk::UniqueInstance instance;
-	vk::UniqueSurfaceKHR surface;
+	vk::UniqueInstance instance{};
+	vk::UniqueSurfaceKHR surface{};
 
 public:
 	VulkanInstance() = default;

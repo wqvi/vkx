@@ -244,7 +244,9 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	auto instanceExtensions = vkx::getArray<const char*>(
 	    "Failed to enumerate vulkan extensions",
 	    SDL_Vulkan_GetInstanceExtensions,
-	    [](auto a) { return a != SDL_TRUE; },
+	    [](auto result) { 
+			return result != SDL_TRUE; 
+		},
 	    this->window);
 	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
@@ -254,11 +256,15 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	constexpr auto debugMessageSeverity = Severity::eInfo | Severity::eVerbose | Severity::eWarning | Severity::eError;
 	constexpr auto debugMessageType = Type::eGeneral | Type::eValidation | Type::ePerformance;
 
+	const auto debugCallback = [](auto, auto, const auto* pCallbackData, auto*) { 
+		SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; 
+	};
+
 	constexpr vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
 	    {},
 	    debugMessageSeverity,
 	    debugMessageType,
-	    [](auto, auto, const auto* pCallbackData, auto*) { SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; }};
+	    debugCallback};
 
 #else
 	const auto instanceExtensions = vkx::getArray<const char*>(
