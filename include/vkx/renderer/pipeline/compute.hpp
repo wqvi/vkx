@@ -6,7 +6,7 @@
 namespace vkx {
 namespace pipeline {
 struct ComputePipelineInformation {
-	const std::string file{};
+	const std::string computeFile{};
 	const std::vector<vk::DescriptorSetLayoutBinding> bindings{};
 	const std::vector<vk::VertexInputBindingDescription> bindingDescriptions{};
 	const std::vector<vk::VertexInputAttributeDescription> attributeDescriptions{};
@@ -16,18 +16,13 @@ struct ComputePipelineInformation {
 
 class ComputePipeline : public vkx::pipeline::VulkanPipeline {
 private:
-	vk::Device logicalDevice{};
-	vk::UniqueDescriptorSetLayout descriptorLayout{};
-	vk::UniquePipelineLayout pipelineLayout{};
-	vk::UniquePipeline pipeline{};
-	vk::DescriptorPool descriptorPool{};
+	vk::UniqueDescriptorPool descriptorPool{};
 	std::vector<vk::DescriptorSet> descriptorSets{};
 
 public:
 	ComputePipeline() = default;
 
 	explicit ComputePipeline(vk::Device logicalDevice,
-				 const vkx::VulkanAllocator& allocator,
 				 const vkx::pipeline::ComputePipelineInformation& info);
 };
 } // namespace pipeline

@@ -21,7 +21,7 @@ vkx::pipeline::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
 	    *fragShaderModule,
 	    "main"};
 
-	const std::vector shaderStages = {vertShaderStageCreateInfo, fragShaderStageCreateInfo};
+	const std::vector shaderStages{vertShaderStageCreateInfo, fragShaderStageCreateInfo};
 
 	const vk::PipelineVertexInputStateCreateInfo vertexInputCreateInfo{
 	    {},

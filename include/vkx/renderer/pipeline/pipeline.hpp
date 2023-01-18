@@ -7,6 +7,7 @@ protected:
 	vk::Device logicalDevice{};
 	vk::UniqueDescriptorSetLayout descriptorLayout{};
 	vk::UniquePipelineLayout pipelineLayout{};
+	vk::UniquePipeline pipeline{};
 
 	VulkanPipeline() = default;
 

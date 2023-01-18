@@ -16,6 +16,22 @@ auto createShaderBindings() {
 	return std::vector{uboLayoutBinding, samplerLayoutBinding};
 }
 
+auto createComputeBindings() {
+	constexpr vk::DescriptorSetLayoutBinding voxelLayoutBinding{
+	    0,
+	    vk::DescriptorType::eStorageBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eCompute};
+
+	constexpr vk::DescriptorSetLayoutBinding meshLayoutBinding{
+	    1,
+	    vk::DescriptorType::eStorageBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eCompute};
+
+	return std::vector{voxelLayoutBinding, meshLayoutBinding};
+}
+
 int main(int argc, char** argv) {
 	const vkx::Window window{"vkx", 640, 480};
 
