@@ -246,8 +246,7 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	    SDL_Vulkan_GetInstanceExtensions,
 	    [](auto result) { 
 			return result != SDL_TRUE; 
-		},
-	    this->window);
+		});
 	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
 	using Severity = vk::DebugUtilsMessageSeverityFlagBitsEXT;

@@ -106,12 +106,10 @@ int main(int argc, char** argv) {
 		projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 0.1f, 100.0f);
 	};
 
-	const auto sdlWindowEvent = [&sdlWindowResizedEvent](SDL_WindowEvent windowEvent) {
-		if (windowEvent.event == SDL_WINDOWEVENT_RESIZED) {
-			const auto width = windowEvent.data1;
-			const auto height = windowEvent.data2;
-			sdlWindowResizedEvent(width, height);
-		}
+	const auto sdlWindowEventResized = [&sdlWindowResizedEvent](const SDL_WindowEvent& windowEvent) {
+		const auto width = windowEvent.data1;
+		const auto height = windowEvent.data2;
+		sdlWindowResizedEvent(width, height);
 	};
 
 	glm::vec2 direction{0};
@@ -190,13 +188,13 @@ int main(int argc, char** argv) {
 			const auto eventType = event.type;
 
 			switch (eventType) {
-			case SDL_QUIT:
+			case SDL_EVENT_QUIT:
 				isRunning = false;
 				break;
-			case SDL_WINDOWEVENT:
-				sdlWindowEvent(event.window);
+			case SDL_EVENT_WINDOW_RESIZED:
+				sdlWindowEventResized(event.window);
 				break;
-			case SDL_KEYDOWN:
+			/*case SDL_KEYDOWN:
 				sdlKeyPressedEvent(event.key);
 				break;
 			case SDL_KEYUP:
@@ -204,7 +202,7 @@ int main(int argc, char** argv) {
 				break;
 			case SDL_MOUSEMOTION:
 				sdlMouseMotionEvent(event.motion);
-				break;
+				break;*/
 			default:
 				break;
 			}

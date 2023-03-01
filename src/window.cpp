@@ -45,7 +45,7 @@ vkx::Window::operator SDL_Window*() const {
 std::pair<std::int32_t, std::int32_t> vkx::Window::getDimensions() const {
 	int width = 0;
 	int height = 0;
-	SDL_Vulkan_GetDrawableSize(windowHandle, &width, &height);
+	SDL_GetWindowSizeInPixels(windowHandle, &width, &height);
 	return std::make_pair(width, height);
 }
 

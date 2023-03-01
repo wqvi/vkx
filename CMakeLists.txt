@@ -15,29 +15,28 @@ add_executable(vkx src/main.cpp
 
 add_subdirectory("src")
 add_subdirectory("lib/VulkanMemoryAllocator")
+add_subdirectory("lib/glm")
+add_subdirectory("lib/SDL")
 
 set_target_properties(vkx PROPERTIES
         VERSION ${PROJECT_VERSION}
         SOVERSION 1)
 
 find_package(Vulkan REQUIRED)
-find_package(glm CONFIG REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
 
 target_link_libraries(vkx
         PUBLIC
                 Vulkan::Vulkan
                 VulkanMemoryAllocator
                 $<IF:$<TARGET_EXISTS:glm::glm>,glm::glm,glm>
-                $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-                $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+                SDL3::SDL3
 )
 
 target_include_directories(vkx
         PUBLIC
         	"${CMAKE_CURRENT_SOURCE_DIR}/include"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/stb"
-                "${CMAKE_CURRENT_SOURCE_DIR}/lib/imgui")
+		    "${CMAKE_CURRENT_SOURCE_DIR}/lib/stb"
+            "${CMAKE_CURRENT_SOURCE_DIR}/lib/imgui")
 
 # A precompiled header will speed up compile time due to the dummy thicc libraries included
 target_precompile_headers(vkx
