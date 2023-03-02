@@ -194,15 +194,15 @@ int main(int argc, char** argv) {
 			case SDL_EVENT_WINDOW_RESIZED:
 				sdlWindowEventResized(event.window);
 				break;
-			/*case SDL_KEYDOWN:
+			case SDL_EVENT_KEY_DOWN:
 				sdlKeyPressedEvent(event.key);
 				break;
-			case SDL_KEYUP:
+			case SDL_EVENT_KEY_UP:
 				sdlKeyReleasedEvent(event.key);
 				break;
-			case SDL_MOUSEMOTION:
+			case SDL_EVENT_MOUSE_MOTION:
 				sdlMouseMotionEvent(event.motion);
-				break;*/
+				break;
 			default:
 				break;
 			}
