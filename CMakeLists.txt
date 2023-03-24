@@ -1,22 +1,25 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(vkx
-        LANGUAGES CXX
-        VERSION 0.0.0
-        )
+project(vkx LANGUAGES CXX VERSION 0.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(vkx src/main.cpp
-        lib/imgui/imgui_draw.cpp
-        lib/imgui/imgui_tables.cpp
-        lib/imgui/imgui_widgets.cpp
-        lib/imgui/imgui.cpp)
+add_executable(vkx src/main.cpp)
 
 add_subdirectory("src")
 add_subdirectory("lib/VulkanMemoryAllocator")
 add_subdirectory("lib/glm")
-add_subdirectory("lib/SDL")
+
+include(FetchContent)
+FetchContent_Declare(
+    SDL
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG main
+    SUBBUILD_DIR "${CMAKE_BINARY_DIR}/SDL-subbuild"
+    SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/SDL"
+    BINARY_DIR "${CMAKE_BINARY_DIR}/SDL-build"
+)
+FetchContent_MakeAvailable(SDL)
 
 set_target_properties(vkx PROPERTIES
         VERSION ${PROJECT_VERSION}
@@ -28,7 +31,7 @@ target_link_libraries(vkx
         PUBLIC
                 Vulkan::Vulkan
                 VulkanMemoryAllocator
-                $<IF:$<TARGET_EXISTS:glm::glm>,glm::glm,glm>
+                $<IF:$<TARGET_EXISTS:glm::glm>, glm::glm, glm>
                 SDL3::SDL3
 )
 
