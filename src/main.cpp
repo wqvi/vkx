@@ -106,12 +106,6 @@ int main(int argc, char** argv) {
 		projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 0.1f, 100.0f);
 	};
 
-	const auto sdlWindowEventResized = [&sdlWindowResizedEvent](const SDL_WindowEvent& windowEvent) {
-		const auto width = windowEvent.data1;
-		const auto height = windowEvent.data2;
-		sdlWindowResizedEvent(width, height);
-	};
-
 	glm::vec2 direction{0};
 
 	const auto sdlKeyPressedEvent = [&isRunning, &direction](const SDL_KeyboardEvent& key) {
@@ -192,7 +186,7 @@ int main(int argc, char** argv) {
 				isRunning = false;
 				break;
 			case SDL_EVENT_WINDOW_RESIZED:
-				sdlWindowEventResized(event.window);
+				sdlWindowResizedEvent(event.window.data1, event.window.data2);
 				break;
 			case SDL_EVENT_KEY_DOWN:
 				sdlKeyPressedEvent(event.key);
