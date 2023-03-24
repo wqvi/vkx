@@ -15,7 +15,7 @@ vkx::Window::Window(const char* name, std::int32_t width, std::int32_t height) {
 		    }
 		}, SDL_INIT_EVERYTHING);
 
-	windowHandle = SDL_CreateWindow(name, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, static_cast<int>(width), static_cast<int>(height), SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+	windowHandle = SDL_CreateWindow(name, static_cast<int>(width), static_cast<int>(height), SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
 	if (windowHandle == nullptr) {
 		throw std::runtime_error(SDL_GetError());
 	}
