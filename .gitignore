@@ -11,9 +11,6 @@ stb_image.h
 # SPIR-V binary files
 *.spv
 
-# Code blocks project files
-*.cbp
-
 # Hide clangd files
 .cache
 compile_commands.json
