@@ -269,8 +269,7 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	const auto instanceExtensions = vkx::getArray<const char*>(
 	    "Failed to enumerate vulkan extensions",
 	    SDL_Vulkan_GetInstanceExtensions,
-	    [](auto a) { return a != SDL_TRUE; },
-	    this->window);
+	    [](auto a) { return a != SDL_TRUE; });
 #endif
 
 	const vk::InstanceCreateInfo instanceCreateInfo{{}, &applicationInfo, layers, instanceExtensions};
