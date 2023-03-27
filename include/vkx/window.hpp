@@ -30,5 +30,7 @@ public:
 	void show() const;
 
 	void hide() const;
+
+	void createPopup();
 };
 } // namespace vkx

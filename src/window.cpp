@@ -21,6 +21,7 @@ vkx::Window::Window(const char* name, std::int32_t width, std::int32_t height) {
 		}, SDL_INIT_EVERYTHING);
 
 	windowHandle = SDL_CreateWindow(name, static_cast<int>(width), static_cast<int>(height), SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+	
 	if (windowHandle == nullptr) {
 		throw std::runtime_error(SDL_GetError());
 	}
@@ -68,4 +69,10 @@ void vkx::Window::show() const {
 
 void vkx::Window::hide() const {
 	SDL_HideWindow(windowHandle);
+}
+
+void vkx::Window::createPopup() {
+	if (SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Something", "An error occured", windowHandle) != 0) {
+		throw std::runtime_error(SDL_GetError());
+	}
 }
