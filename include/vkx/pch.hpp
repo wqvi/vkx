@@ -9,6 +9,7 @@
 #include <chrono>
 #include <fstream>
 #include <functional>
+#include <shaderc/shaderc.hpp>
 #include <vk_mem_alloc.h>
 #define VULKAN_HPP_NO_STRUCT_SETTERS
 #include <vulkan/vulkan.hpp>
