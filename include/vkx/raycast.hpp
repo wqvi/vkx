@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vkx/aabb.hpp>
-
 namespace vkx {
 using RaycastPredicate = std::function<bool(const glm::ivec3&)>;
 
