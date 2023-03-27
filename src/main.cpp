@@ -35,6 +35,13 @@ auto createComputeBindings() {
 int main(int argc, char** argv) {
 	vkx::Window window{"vkx", 640, 480};
 
+	try {
+
+		vkx::render_server server{};
+	} catch (std::exception e) {
+		SDL_Log("%s", e.what());
+	}
+
 	vkx::Camera2D camera{{0, 0}, {0, 0}, {0.5f, 0.5f}};
 
 	const vkx::VulkanInstance vulkanInstance{window};
