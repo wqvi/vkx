@@ -11,7 +11,6 @@
 #include <functional>
 #include <shaderc/shaderc.hpp>
 #include <vk_mem_alloc.h>
-#include <shaderc/shaderc.hpp>
 #define VULKAN_HPP_NO_STRUCT_SETTERS
 #include <vulkan/vulkan.hpp>
 #define GLM_FORCE_LEFT_HANDED
