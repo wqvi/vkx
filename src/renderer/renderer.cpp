@@ -244,9 +244,9 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	auto instanceExtensions = vkx::getArray<const char*>(
 	    "Failed to enumerate vulkan extensions",
 	    SDL_Vulkan_GetInstanceExtensions,
-	    [](auto result) { 
-			return result != SDL_TRUE; 
-		});
+	    [](auto result) {
+		    return result != SDL_TRUE;
+	    });
 	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
 	using Severity = vk::DebugUtilsMessageSeverityFlagBitsEXT;
@@ -255,8 +255,9 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	constexpr auto debugMessageSeverity = Severity::eInfo | Severity::eVerbose | Severity::eWarning | Severity::eError;
 	constexpr auto debugMessageType = Type::eGeneral | Type::eValidation | Type::ePerformance;
 
-	const auto debugCallback = [](auto, auto, const auto* pCallbackData, auto*) { 
-		SDL_Log("%s", pCallbackData->pMessage); return VK_FALSE; 
+	const auto debugCallback = [](auto, auto, const auto* pCallbackData, auto*) {
+		SDL_Log("%s", pCallbackData->pMessage);
+		return VK_FALSE;
 	};
 
 	constexpr vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
@@ -332,4 +333,81 @@ std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(vk::PhysicalDevice physica
 	}
 
 	return rating;
+}
+
+vkx::render_server::render_server() {
+	constexpr vk::ApplicationInfo application_info{
+	    "vkx_application",
+	    VK_MAKE_API_VERSION(0, 0, 0, 0),
+	    "vkx_engine",
+	    VK_MAKE_API_VERSION(0, 0, 0, 0),
+	    VK_API_VERSION_1_0};
+
+	std::uint32_t count = 0;
+	auto result = SDL_Vulkan_GetInstanceExtensions(&count, nullptr);
+	if (result != SDL_TRUE) {
+		throw std::runtime_error(SDL_GetError());
+	}
+
+	std::vector<const char*> instance_extensions{count};
+	result = SDL_Vulkan_GetInstanceExtensions(&count, instance_extensions.data());
+	if (result != SDL_TRUE) {
+		throw std::runtime_error(SDL_GetError());
+	}
+
+#ifdef DEBUG
+	instance_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+	const vk::InstanceCreateInfo instance_create_info{{}, &application_info, layers, instance_extensions};
+
+#ifdef DEBUG
+	using Severity = vk::DebugUtilsMessageSeverityFlagBitsEXT;
+	using Type = vk::DebugUtilsMessageTypeFlagBitsEXT;
+
+	constexpr auto msg_severity = Severity::eWarning | Severity::eError;
+	constexpr auto msg_type = Type::eGeneral | Type::eValidation | Type::ePerformance;
+
+	const auto debug_callback = [](auto, auto, const auto* pCallbackData, auto*) {
+		SDL_Log("%s", pCallbackData->pMessage);
+		return VK_FALSE;
+	};
+
+	const vk::DebugUtilsMessengerCreateInfoEXT debug_utils_messenger_create_info{
+	    {},
+	    msg_severity,
+	    msg_type,
+	    debug_callback,
+	    this};
+
+	const vk::StructureChain chain{instance_create_info, debug_utils_messenger_create_info};
+	instance = vk::createInstanceUnique(chain.get<vk::InstanceCreateInfo>());
+#else
+	instance = vk::createInstanceUnique(instance_create_info);
+#endif
+
+	const auto physical_devices = instance->enumeratePhysicalDevices();
+
+	vk::PhysicalDevice best_physical_device = nullptr;
+	std::uint32_t best_rating = 0;
+	for (vk::PhysicalDevice current_physical_device : physical_devices) {
+		std::uint32_t current_rating = 0;
+
+		// Find if the device has presentation support
+		// If it does add to rating.
+
+		const auto features = current_physical_device.getFeatures();
+		if (features.samplerAnisotropy) {
+			current_rating++;
+		}
+
+		if (current_rating > best_rating) {
+			best_rating = current_rating;
+			best_physical_device = current_physical_device;
+		}
+	}
+
+	if (!best_physical_device) {
+		throw std::runtime_error("Failure to find suitable physical device!");
+	}
 }
