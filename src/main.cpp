@@ -33,7 +33,7 @@ auto createComputeBindings() {
 }
 
 int main(int argc, char** argv) {
-	const vkx::Window window{"vkx", 640, 480};
+	vkx::Window window{"vkx", 640, 480};
 
 	vkx::Camera2D camera{{0, 0}, {0, 0}, {0.5f, 0.5f}};
 
@@ -108,9 +108,13 @@ int main(int argc, char** argv) {
 
 	glm::vec2 direction{0};
 
-	const auto sdlKeyPressedEvent = [&isRunning, &direction](const SDL_KeyboardEvent& key) {
+	const auto sdlKeyPressedEvent = [&window, &isRunning, &direction](const SDL_KeyboardEvent& key) {
 		if (key.keysym.sym == SDLK_ESCAPE) {
 			isRunning = false;
+		}
+
+		if (key.keysym.sym == SDLK_BACKSPACE) {
+			window.createPopup();
 		}
 
 		const auto left = key.keysym.sym == SDLK_a;
