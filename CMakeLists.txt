@@ -18,6 +18,7 @@ set_target_properties(vkx PROPERTIES
 )
 
 find_package(Vulkan COMPONENTS shaderc_combined REQUIRED)
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(glm CONFIG REQUIRED)
 
@@ -25,6 +26,7 @@ target_link_libraries(vkx
     PUBLIC
         Vulkan::Vulkan
         Vulkan::shaderc_combined
+	GPUOpen::VulkanMemoryAllocator
         $<IF:$<TARGET_EXISTS:glm::glm>, glm::glm, glm>
 )
 
