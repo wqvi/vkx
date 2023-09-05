@@ -18,16 +18,13 @@ set_target_properties(vkx PROPERTIES
 )
 
 find_package(Vulkan COMPONENTS shaderc_combined REQUIRED)
-find_package(SDL3 REQUIRED)
+find_package(SDL2 REQUIRED)
 find_package(glm CONFIG REQUIRED)
-
-find_path(VULKAN_MEMORY_ALLOCATOR_INCLUDE_DIRS "vk_mem_alloc.h")
 
 target_link_libraries(vkx 
     PUBLIC
         Vulkan::Vulkan
         Vulkan::shaderc_combined
-        SDL3::SDL3
         $<IF:$<TARGET_EXISTS:glm::glm>, glm::glm, glm>
 )
 
@@ -35,17 +32,8 @@ target_include_directories(vkx
     PRIVATE 
         "${CMAKE_CURRENT_SOURCE_DIR}/include" 
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/stb"
-        ${VULKAN_MEMORY_ALLOCATOR_INCLUDE_DIRS}
 )
 
-if (WIN32)
-    add_custom_command(TARGET vkx POST_BUILD 
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:vkx> $<TARGET_FILE_DIR:vkx>
-        COMMAND_EXPAND_LISTS
-    )
-endif(WIN32)
-
-# A precompiled header will speed up compile time due to the dummy thicc libraries included
 target_precompile_headers(vkx PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/vkx/pch.hpp")
 
 # Move image to build directory

@@ -193,19 +193,21 @@ int main(int argc, char** argv) {
 			const auto eventType = event.type;
 
 			switch (eventType) {
-			case SDL_EVENT_QUIT:
+			case SDL_QUIT:
 				isRunning = false;
 				break;
-			case SDL_EVENT_WINDOW_RESIZED:
-				sdlWindowResizedEvent(event.window.data1, event.window.data2);
+			case SDL_WINDOWEVENT:
+				if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
+					sdlWindowResizedEvent(event.window.data1, event.window.data2);
+				}
 				break;
-			case SDL_EVENT_KEY_DOWN:
+			case SDL_KEYDOWN:
 				sdlKeyPressedEvent(event.key);
 				break;
-			case SDL_EVENT_KEY_UP:
+			case SDL_KEYUP:
 				sdlKeyReleasedEvent(event.key);
 				break;
-			case SDL_EVENT_MOUSE_MOTION:
+			case SDL_MOUSEMOTION:
 				sdlMouseMotionEvent(event.motion);
 				break;
 			default:
