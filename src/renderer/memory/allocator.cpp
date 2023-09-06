@@ -10,15 +10,15 @@
 vkx::VulkanBufferMemoryPool::VulkanBufferMemoryPool(std::size_t blockSize,
 						    std::size_t maxBlockCount,
 						    vk::BufferUsageFlags bufferFlags,
-						    const vkx::alloc::SharedVmaAllocator& allocator,
+						    VmaAllocator allocator,
 						    vk::Device logicalDevice,
-						    vkx::alloc::UniqueVmaPool&& pool)
+						    VmaPool pool)
     : blockSize(blockSize),
       maxBlockCount(maxBlockCount),
       bufferFlags(bufferFlags),
       allocator(allocator),
       logicalDevice(logicalDevice),
-      pool(std::move(pool)) {
+      pool(pool) {
 }
 
 std::vector<vkx::Buffer> vkx::VulkanBufferMemoryPool::allocateBuffers() const {
@@ -33,7 +33,7 @@ std::vector<vkx::Buffer> vkx::VulkanBufferMemoryPool::allocateBuffers() const {
 	    0,
 	    0,
 	    0,
-	    pool.get(),
+	    pool,
 	    nullptr,
 	    {}};
 
@@ -41,12 +41,12 @@ std::vector<vkx::Buffer> vkx::VulkanBufferMemoryPool::allocateBuffers() const {
 		VkBuffer cBuffer = nullptr;
 		VmaAllocation cAllocation = nullptr;
 		VmaAllocationInfo cAllocationInfo;
-		if (vmaCreateBuffer(allocator.lock().get(), reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
+		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to allocate GPU buffer.");
 		}
 
 		buffers.emplace_back(vk::UniqueBuffer{cBuffer, logicalDevice},
-				     vkx::alloc::UniqueVmaAllocation{cAllocation, {&vmaFreeMemory, allocator.lock().get()}},
+				     cAllocation,
 				     std::move(cAllocationInfo));
 	}
 
@@ -84,11 +84,11 @@ vkx::VulkanAllocator::VulkanAllocator(vk::Instance instance, vk::PhysicalDevice 
 	    },
 	    &allocatorCreateInfo);
 
-	allocator = vkx::alloc::SharedVmaAllocator{cAllocator, vkx::alloc::VmaAllocatorDeleter{&vmaDestroyAllocator}};
+	allocator = cAllocator;
 }
 
 vkx::VulkanAllocator::operator VmaAllocator() const {
-	return allocator.get();
+	return allocator;
 }
 
 vkx::Buffer vkx::VulkanAllocator::allocateBuffer(std::size_t memorySize,
@@ -110,12 +110,12 @@ vkx::Buffer vkx::VulkanAllocator::allocateBuffer(std::size_t memorySize,
 	VkBuffer cBuffer = nullptr;
 	VmaAllocation cAllocation = nullptr;
 	VmaAllocationInfo cAllocationInfo;
-	if (vmaCreateBuffer(allocator.get(), reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
+	if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate GPU buffer.");
 	}
 
 	return vkx::Buffer{vk::UniqueBuffer{cBuffer, logicalDevice},
-			   vkx::alloc::UniqueVmaAllocation{cAllocation, {&vmaFreeMemory, allocator.get()}},
+			   cAllocation,
 			   std::move(cAllocationInfo)};
 }
 
@@ -151,13 +151,13 @@ vkx::Image vkx::VulkanAllocator::allocateImage(vk::Extent2D extent,
 
 	VkImage resourceImage = nullptr;
 	VmaAllocation resourceAllocation = nullptr;
-	if (vmaCreateImage(allocator.get(), reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &resourceImage, &resourceAllocation, nullptr) != VK_SUCCESS) {
+	if (vmaCreateImage(allocator, reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &resourceImage, &resourceAllocation, nullptr) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
 	return vkx::Image{logicalDevice,
 			  vk::UniqueImage{resourceImage, logicalDevice},
-			  vkx::alloc::UniqueVmaAllocation{resourceAllocation, {&vmaFreeMemory, allocator.get()}}};
+			  resourceAllocation};
 }
 
 vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& commandSubmitter,
@@ -205,7 +205,7 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 
 	VkImage resourceImage = nullptr;
 	VmaAllocation resourceAllocation = nullptr;
-	if (vmaCreateImage(allocator.get(), reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &resourceImage, &resourceAllocation, nullptr) != VK_SUCCESS) {
+	if (vmaCreateImage(allocator, reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &resourceImage, &resourceAllocation, nullptr) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
@@ -218,7 +218,7 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 	stbi_image_free(pixels);
 	return vkx::Image{logicalDevice,
 			  vk::UniqueImage(resourceImage, logicalDevice),
-			  vkx::alloc::UniqueVmaAllocation{resourceAllocation, {&vmaFreeMemory, allocator.get()}}};
+			  resourceAllocation};
 }
 
 vkx::UniformBuffer vkx::VulkanAllocator::allocateUniformBuffer(std::size_t memorySize) const {
@@ -252,7 +252,7 @@ vkx::VulkanBufferMemoryPool vkx::VulkanAllocator::allocateBufferPool(vk::BufferU
 	    {}};
 
 	std::uint32_t memoryTypeIndex = 0;
-	if (vmaFindMemoryTypeIndexForBufferInfo(allocator.get(), reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &memoryTypeIndex) != VK_SUCCESS) {
+	if (vmaFindMemoryTypeIndexForBufferInfo(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &memoryTypeIndex) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to find memory type index for allocating a pool of buffers.");
 	}
 
@@ -267,7 +267,7 @@ vkx::VulkanBufferMemoryPool vkx::VulkanAllocator::allocateBufferPool(vk::BufferU
 	    nullptr};
 
 	VmaPool pool = nullptr;
-	if (vmaCreatePool(allocator.get(), &poolCreateInfo, &pool) != VK_SUCCESS) {
+	if (vmaCreatePool(allocator, &poolCreateInfo, &pool) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create vulkan memory pool.");
 	}
 
@@ -276,5 +276,5 @@ vkx::VulkanBufferMemoryPool vkx::VulkanAllocator::allocateBufferPool(vk::BufferU
 					   bufferFlags,
 					   allocator,
 					   logicalDevice,
-					   vkx::alloc::UniqueVmaPool{pool, {&vmaDestroyPool, allocator.get()}}};
+					   pool};
 }

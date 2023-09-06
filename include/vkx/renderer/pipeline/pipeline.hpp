@@ -3,12 +3,13 @@
 namespace vkx {
 namespace pipeline {
 class VulkanPipeline {
-protected:
+private:
 	vk::Device logicalDevice{};
 	vk::UniqueDescriptorSetLayout descriptorLayout{};
 	vk::UniquePipelineLayout pipelineLayout{};
 	vk::UniquePipeline pipeline{};
 
+protected:
 	VulkanPipeline() = default;
 
 	explicit VulkanPipeline(vk::Device logicalDevice,

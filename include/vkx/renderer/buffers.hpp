@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vkx/renderer/types.hpp>
-#include <vkx/renderer/renderer.hpp>
+#include <vkx/renderer/memory/allocator.hpp>
 
 namespace vkx {
 struct MVP {
@@ -24,34 +24,6 @@ struct DirectionalLight {
 struct Material {
 	glm::vec3 specularColor;
 	float shininess;
-};
-
-class Buffer {
-private:
-	vk::UniqueBuffer buffer;
-	vkx::alloc::UniqueVmaAllocation allocation{};
-	VmaAllocationInfo allocationInfo{};
-
-public:
-	Buffer() = default;
-
-	explicit Buffer(vk::UniqueBuffer&& buffer, vkx::alloc::UniqueVmaAllocation&& allocation, VmaAllocationInfo&& allocationInfo);
-
-	explicit operator vk::Buffer() const;
-
-	template <class T>
-	void mapMemory(const T* data) const {
-		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
-	}
-
-	template <class T>
-	void mapMemory(const T* data, std::size_t memoryOffset) const {
-		T* ptr = reinterpret_cast<T*>(allocationInfo.pMappedData) + memoryOffset;
-		const auto size = allocationInfo.size - memoryOffset;
-		std::memcpy(ptr, data, size);
-	}
-
-	std::size_t size() const;
 };
 
 class UniformBuffer {

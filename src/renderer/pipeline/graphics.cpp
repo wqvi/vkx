@@ -5,7 +5,15 @@ vkx::pipeline::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
 					vk::RenderPass renderPass,
 					const vkx::VulkanAllocator& allocator,
 					const vkx::pipeline::GraphicsPipelineInformation& info)
-    : VulkanPipeline(logicalDevice, info.bindings) {
+	: logicalDevice(logicalDevice) {
+	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{{}, info.bindings};
+
+	descriptorLayout = logicalDevice.createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo);
+
+	const vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{{}, *descriptorLayout};
+
+	pipelineLayout = logicalDevice.createPipelineLayoutUnique(pipelineLayoutCreateInfo);
+
 	const auto vertShaderModule = createShaderModule(info.vertexFile);
 	const auto fragShaderModule = createShaderModule(info.fragmentFile);
 
@@ -165,4 +173,29 @@ vkx::pipeline::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
 
 const std::vector<vkx::UniformBuffer>& vkx::pipeline::GraphicsPipeline::getUniformByIndex(std::size_t i) const {
 	return uniforms[i];
+}
+
+vk::UniqueShaderModule vkx::pipeline::GraphicsPipeline::createShaderModule(const std::string& filename) const {
+	std::ifstream file{filename, std::ios::ate | std::ios::binary};
+
+	if (!file.is_open()) {
+		system("pwd");
+		SDL_Log("%s", filename.c_str());
+		perror("idK");
+		throw std::runtime_error("Failed to open file.");
+	}
+
+	const auto fileSize = static_cast<std::size_t>(file.tellg());
+	std::vector<char> buffer{};
+	buffer.resize(fileSize);
+
+	file.seekg(0);
+	file.read(buffer.data(), fileSize);
+
+	const vk::ShaderModuleCreateInfo shaderModuleCreateInfo{
+	    {},
+	    static_cast<std::uint32_t>(buffer.size()),
+	    reinterpret_cast<const std::uint32_t*>(buffer.data())};
+
+	return logicalDevice.createShaderModuleUnique(shaderModuleCreateInfo);
 }

@@ -3,7 +3,7 @@
 vkx::pipeline::ComputePipeline::ComputePipeline(vk::Device logicalDevice,
 						const vkx::pipeline::ComputePipelineInformation& info)
     : VulkanPipeline(logicalDevice, info.bindings) {
-	const auto compShaderModule = createShaderModule(info.computeFile);
+	/*const auto compShaderModule = createShaderModule(info.computeFile);
 
 	const vk::PipelineShaderStageCreateInfo compShaderStageCreateInfo{
 	    {},
@@ -16,5 +16,5 @@ vkx::pipeline::ComputePipeline::ComputePipeline(vk::Device logicalDevice,
 	    compShaderStageCreateInfo,
 		*pipelineLayout};
 
-	pipeline = logicalDevice.createComputePipelineUnique({}, computePipelineCreateInfo).value;
+	pipeline = logicalDevice.createComputePipelineUnique({}, computePipelineCreateInfo).value;*/
 }

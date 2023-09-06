@@ -246,7 +246,7 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	    SDL_Vulkan_GetInstanceExtensions,
 	    [](auto result) {
 		    return result != SDL_TRUE;
-	    });
+	    }, static_cast<SDL_Window*>(window));
 	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
 	using Severity = vk::DebugUtilsMessageSeverityFlagBitsEXT;
@@ -270,7 +270,7 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	const auto instanceExtensions = vkx::getArray<const char*>(
 	    "Failed to enumerate vulkan extensions",
 	    SDL_Vulkan_GetInstanceExtensions,
-	    [](auto a) { return a != SDL_TRUE; });
+	    [](auto a) { return a != SDL_TRUE; }, static_cast<SDL_Window*>(window));
 #endif
 
 	const vk::InstanceCreateInfo instanceCreateInfo{{}, &applicationInfo, layers, instanceExtensions};
@@ -336,7 +336,7 @@ std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(vk::PhysicalDevice physica
 }
 
 vkx::render_server::render_server() {
-	constexpr vk::ApplicationInfo application_info{
+	/*constexpr vk::ApplicationInfo application_info{
 	    "vkx_application",
 	    VK_MAKE_API_VERSION(0, 0, 0, 0),
 	    "vkx_engine",
@@ -409,5 +409,5 @@ vkx::render_server::render_server() {
 
 	if (!best_physical_device) {
 		throw std::runtime_error("Failure to find suitable physical device!");
-	}
+	}*/
 }

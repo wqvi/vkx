@@ -58,11 +58,11 @@ int main(int argc, char** argv) {
 
 	const auto commandSubmitter = vulkanDevice.createCommandSubmitter();
 
-	const vkx::Texture texture{"a.jpg", vulkanDevice, allocator, commandSubmitter};
+	const vkx::Texture texture{"resources/a.jpg", vulkanDevice, allocator, commandSubmitter};
 
 	const vkx::pipeline::GraphicsPipelineInformation graphicsPipelineInformation{
-	    "shader2D.vert.spv",
-	    "shader2D.frag.spv",
+	    "build/shader2D.vert.spv",
+	    "build/shader2D.frag.spv",
 	    createShaderBindings(),
 	    vkx::Vertex::getBindingDescription(),
 	    vkx::Vertex::getAttributeDescriptions(),
@@ -197,7 +197,7 @@ int main(int argc, char** argv) {
 				isRunning = false;
 				break;
 			case SDL_WINDOWEVENT:
-				if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
+				if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
 					sdlWindowResizedEvent(event.window.data1, event.window.data2);
 				}
 				break;

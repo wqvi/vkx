@@ -1,7 +1,7 @@
 #include <vkx/renderer/buffers.hpp>
 
-vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, vkx::alloc::UniqueVmaAllocation&& allocation, VmaAllocationInfo&& allocationInfo)
-    : buffer(std::move(buffer)), allocation(std::move(allocation)), allocationInfo(std::move(allocationInfo)) {}
+vkx::Buffer::Buffer(vk::UniqueBuffer&& buffer, VmaAllocation allocation, VmaAllocationInfo&& allocationInfo)
+    : buffer(std::move(buffer)), allocation(allocation), allocationInfo(std::move(allocationInfo)) {}
 
 vkx::Buffer::operator vk::Buffer() const {
 	return *buffer;

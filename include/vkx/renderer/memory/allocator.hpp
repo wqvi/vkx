@@ -1,16 +1,46 @@
 #pragma once
 
-#include <vkx/renderer/memory/unique.hpp>
-
 namespace vkx {
+class Image;
+class CommandSubmitter;
+struct UniformBuffer;
+
+class Buffer {
+private:
+	vk::UniqueBuffer buffer;
+	VmaAllocation allocation{};
+	VmaAllocationInfo allocationInfo{};
+
+public:
+	Buffer() = default;
+
+	explicit Buffer(vk::UniqueBuffer&& buffer, VmaAllocation allocation, VmaAllocationInfo&& allocationInfo);
+
+	explicit operator vk::Buffer() const;
+
+	template <class T>
+	void mapMemory(const T* data) const {
+		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
+	}
+
+	template <class T>
+	void mapMemory(const T* data, std::size_t memoryOffset) const {
+		T* ptr = reinterpret_cast<T*>(allocationInfo.pMappedData) + memoryOffset;
+		const auto size = allocationInfo.size - memoryOffset;
+		std::memcpy(ptr, data, size);
+	}
+
+	std::size_t size() const;
+};
+
 class VulkanBufferMemoryPool {
 private:
 	std::size_t blockSize = 0;
 	std::size_t maxBlockCount = 0;
 	vk::BufferUsageFlags bufferFlags{};
-	vkx::alloc::WeakVmaAllocator allocator{};
+	VmaAllocator allocator{};
 	vk::Device logicalDevice{};
-	vkx::alloc::UniqueVmaPool pool{};
+	VmaPool pool{};
 
 public:
 	VulkanBufferMemoryPool() = default;
@@ -18,9 +48,9 @@ public:
 	explicit VulkanBufferMemoryPool(std::size_t blockSize,
 					std::size_t maxBlockCount,
 					vk::BufferUsageFlags bufferFlags,
-					const vkx::alloc::SharedVmaAllocator& allocator,
+					VmaAllocator allocator,
 					vk::Device logicalDevice,
-					vkx::alloc::UniqueVmaPool&& pool);
+					VmaPool pool);
 
 	[[nodiscard]] std::vector<vkx::Buffer> allocateBuffers() const;
 };
@@ -28,7 +58,7 @@ public:
 class VulkanAllocator {
 private:
 	vk::Device logicalDevice{};
-	vkx::alloc::SharedVmaAllocator allocator{};
+	VmaAllocator allocator{};
 
 public:
 	VulkanAllocator() = default;
@@ -60,12 +90,12 @@ public:
 		VkBuffer cBuffer = nullptr;
 		VmaAllocation cAllocation = nullptr;
 		VmaAllocationInfo cAllocationInfo;
-		if (vmaCreateBuffer(allocator.get(), reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
+		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to allocate GPU buffer.");
 		}
 
 		vkx::Buffer buffer{vk::UniqueBuffer{cBuffer, logicalDevice},
-				   vkx::alloc::UniqueVmaAllocation{cAllocation, vkx::alloc::VmaAllocationDeleter{&vmaFreeMemory, allocator.get()}},
+				   cAllocation,
 				   std::move(cAllocationInfo)};
 		buffer.mapMemory(data);
 		return buffer;

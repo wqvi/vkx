@@ -15,15 +15,16 @@ struct GraphicsPipelineInformation {
 	const std::vector<const Texture*> textures;
 };
 
-class GraphicsPipeline : public vkx::pipeline::VulkanPipeline {
-	friend class CommandSubmitter;
-
-private:
+class GraphicsPipeline {
+public:
+	vk::Device logicalDevice{};
+	vk::UniqueDescriptorSetLayout descriptorLayout{};
+	vk::UniquePipelineLayout pipelineLayout{};
+	vk::UniquePipeline pipeline{};
 	vk::UniqueDescriptorPool descriptorPool{};
 	std::vector<vk::DescriptorSet> descriptorSets{};
 	std::vector<std::vector<UniformBuffer>> uniforms{};
 
-public:
 	GraphicsPipeline() = default;
 
 	explicit GraphicsPipeline(vk::Device logicalDevice,
@@ -32,6 +33,8 @@ public:
 				  const vkx::pipeline::GraphicsPipelineInformation& info);
 
 	const std::vector<UniformBuffer>& getUniformByIndex(std::size_t i) const;
+
+	[[nodiscard]] vk::UniqueShaderModule createShaderModule(const std::string& filename) const;
 };
 } // namespace pipeline
 } // namespace vkx

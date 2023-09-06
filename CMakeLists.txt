@@ -28,6 +28,7 @@ target_link_libraries(vkx
         Vulkan::shaderc_combined
 	GPUOpen::VulkanMemoryAllocator
         $<IF:$<TARGET_EXISTS:glm::glm>, glm::glm, glm>
+	SDL2::SDL2
 )
 
 target_include_directories(vkx 
