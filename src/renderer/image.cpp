@@ -1,9 +1,10 @@
 #include <vkx/renderer/image.hpp>
 
-vkx::Image::Image(vk::Device logicalDevice, vk::UniqueImage&& image, VmaAllocation allocation)
-    : logicalDevice(logicalDevice),
-      resourceImage(std::move(image)),
-      resourceAllocation(allocation) {
+vkx::Image::Image(vk::Device logicalDevice, VmaAllocator allocator, VkImage image, VmaAllocation allocation)
+    : logicalDevice(logicalDevice), allocator(allocator), resourceImage(image), resourceAllocation(allocation) {}
+
+void vkx::Image::destroy() const {
+	vmaDestroyImage(allocator, resourceImage, resourceAllocation);
 }
 
 vk::UniqueImageView vkx::Image::createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const {
@@ -16,7 +17,7 @@ vk::UniqueImageView vkx::Image::createView(vk::Format format, vk::ImageAspectFla
 
 	const vk::ImageViewCreateInfo imageViewCreateInfo{
 	    {},
-	    *resourceImage,
+	    resourceImage,
 	    vk::ImageViewType::e2D,
 	    format,
 	    {},

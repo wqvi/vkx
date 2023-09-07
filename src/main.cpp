@@ -70,11 +70,6 @@ int main(int argc, char** argv) {
 	    {&texture}};
 	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
 
-	const vkx::pipeline::ComputePipelineInformation computePipelineInformation{
-	    "greedy.comp.spv",
-	    createComputeBindings()};
-	const auto computePipeline = vulkanDevice.createComputePipeline(computePipelineInformation);
-
 	constexpr std::uint32_t chunkDrawCommandAmount = static_cast<std::uint32_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS);
 
 	constexpr std::uint32_t drawCommandAmount = 1;
@@ -259,6 +254,8 @@ int main(int argc, char** argv) {
 
 			vulkanDevice.waitIdle();
 
+			swapchain.depthImage.destroy();
+
 			swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 			continue;
 		} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
@@ -275,22 +272,10 @@ int main(int argc, char** argv) {
 		    &clearRenderPass,
 		    meshes};
 
-		/*const vkx::DrawInfo highlightDrawInfo{
-		    imageIndex,
-		    currentFrame,
-		    &swapchain,
-		    &highlightGraphicsPipeline,
-		    &loadRenderPass,
-		    highlightMeshes};*/
-
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 		const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
-		// const auto* highlightBegin = &drawCommands[currentFrame * drawCommandAmount + 1];
-
 		commandSubmitter.recordSecondaryDrawCommands(begin, 1, secondaryBegin, chunkDrawCommandAmount, chunkDrawInfo);
-
-		// commandSubmitter.recordPrimaryDrawCommands(highlightBegin, 1, highlightDrawInfo);
 
 		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
@@ -303,6 +288,8 @@ int main(int argc, char** argv) {
 
 			vulkanDevice.waitIdle();
 
+			swapchain.depthImage.destroy();
+
 			swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
 		} else if (result != vk::Result::eSuccess) {
 			throw std::runtime_error("Failed to present.");
@@ -312,6 +299,21 @@ int main(int argc, char** argv) {
 	}
 
 	vulkanDevice.waitIdle();
+
+	for (auto& mesh : meshes) {
+		mesh.vertexBuffer.destroy();
+		mesh.indexBuffer.destroy();
+	}
+
+	for (auto& vec : graphicsPipeline.uniforms) {
+		for (auto& uniform : vec) {
+			uniform.buffer.destroy();
+		}
+	}
+
+	texture.image.destroy();
+	swapchain.depthImage.destroy();
+	allocator.destroy();
 
 	return EXIT_SUCCESS;
 }

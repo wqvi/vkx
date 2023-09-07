@@ -7,6 +7,31 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+vkx::Buffer::Buffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, const VmaAllocationInfo& allocationInfo)
+    : allocator(allocator), buffer(buffer), allocation(allocation), allocationSize(allocationInfo.size), mappedData(allocationInfo.pMappedData) {}
+
+void vkx::Buffer::destroy() const {
+	vmaDestroyBuffer(allocator, buffer, allocation);
+}
+
+void vkx::Buffer::mapMemory(const void* data) const {
+	std::memcpy(mappedData, data, allocationSize);
+}
+
+void vkx::Buffer::mapMemory(const void *data, std::size_t memoryOffset) const {
+	const void* ptr = static_cast<const char*>(data) + memoryOffset;
+	auto size = allocationSize - memoryOffset;
+	std::memcpy(mappedData, ptr, size);
+}
+
+vkx::Buffer::operator vk::Buffer() const {
+	return static_cast<vk::Buffer>(buffer);
+}
+
+std::size_t vkx::Buffer::size() const {
+	return allocationSize;
+}
+
 vkx::VulkanBufferMemoryPool::VulkanBufferMemoryPool(std::size_t blockSize,
 						    std::size_t maxBlockCount,
 						    vk::BufferUsageFlags bufferFlags,
@@ -45,10 +70,10 @@ std::vector<vkx::Buffer> vkx::VulkanBufferMemoryPool::allocateBuffers() const {
 			throw std::runtime_error("Failed to allocate GPU buffer.");
 		}
 
-		buffers.emplace_back(vk::UniqueBuffer{cBuffer, logicalDevice},
-				     cAllocation,
-				     std::move(cAllocationInfo));
+		buffers.emplace_back(allocator, cBuffer, cAllocation, cAllocationInfo);
 	}
+
+	SDL_Log("I am used!");
 
 	return buffers;
 }
@@ -91,6 +116,10 @@ vkx::VulkanAllocator::operator VmaAllocator() const {
 	return allocator;
 }
 
+void vkx::VulkanAllocator::destroy() const {
+	vmaDestroyAllocator(allocator);
+}
+
 vkx::Buffer vkx::VulkanAllocator::allocateBuffer(std::size_t memorySize,
 						 vk::BufferUsageFlags bufferFlags,
 						 VmaAllocationCreateFlags allocationFlags,
@@ -114,9 +143,7 @@ vkx::Buffer vkx::VulkanAllocator::allocateBuffer(std::size_t memorySize,
 		throw std::runtime_error("Failed to allocate GPU buffer.");
 	}
 
-	return vkx::Buffer{vk::UniqueBuffer{cBuffer, logicalDevice},
-			   cAllocation,
-			   std::move(cAllocationInfo)};
+	return vkx::Buffer{allocator, cBuffer, cAllocation, cAllocationInfo};
 }
 
 vkx::Image vkx::VulkanAllocator::allocateImage(vk::Extent2D extent,
@@ -155,9 +182,7 @@ vkx::Image vkx::VulkanAllocator::allocateImage(vk::Extent2D extent,
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
-	return vkx::Image{logicalDevice,
-			  vk::UniqueImage{resourceImage, logicalDevice},
-			  resourceAllocation};
+	return vkx::Image{logicalDevice, allocator, resourceImage, resourceAllocation};
 }
 
 vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& commandSubmitter,
@@ -177,7 +202,8 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 
 	const auto imageSize = static_cast<vk::DeviceSize>(textureWidth) * textureHeight * STBI_rgb_alpha;
 
-	const auto stagingBuffer = allocateBuffer(pixels, imageSize, vk::BufferUsageFlagBits::eTransferSrc, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
+	const auto stagingBuffer = allocateBuffer(imageSize, vk::BufferUsageFlagBits::eTransferSrc, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
+	stagingBuffer.mapMemory(pixels);
 
 	const vk::Extent3D imageExtent{static_cast<std::uint32_t>(textureWidth), static_cast<std::uint32_t>(textureHeight), 1};
 
@@ -216,9 +242,8 @@ vkx::Image vkx::VulkanAllocator::allocateImage(const vkx::CommandSubmitter& comm
 	commandSubmitter.transitionImageLayout(resourceImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 
 	stbi_image_free(pixels);
-	return vkx::Image{logicalDevice,
-			  vk::UniqueImage(resourceImage, logicalDevice),
-			  resourceAllocation};
+	stagingBuffer.destroy();
+	return vkx::Image{logicalDevice, allocator, resourceImage, resourceAllocation};
 }
 
 vkx::UniformBuffer vkx::VulkanAllocator::allocateUniformBuffer(std::size_t memorySize) const {
@@ -240,6 +265,8 @@ vkx::VulkanBufferMemoryPool vkx::VulkanAllocator::allocateBufferPool(vk::BufferU
 								     VmaAllocationCreateFlags flags,
 								     VmaMemoryUsage memoryUsage) const {
 	const vk::BufferCreateInfo bufferCreateInfo{{}, 0x10000, bufferFlags, vk::SharingMode::eExclusive};
+
+	SDL_Log("Am I used??");
 
 	VmaAllocationCreateInfo allocationCreateInfo{
 	    flags,

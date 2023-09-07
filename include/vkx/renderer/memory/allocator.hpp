@@ -7,28 +7,24 @@ struct UniformBuffer;
 
 class Buffer {
 private:
-	vk::UniqueBuffer buffer;
-	VmaAllocation allocation{};
-	VmaAllocationInfo allocationInfo{};
+	VmaAllocator allocator;
+	VkBuffer buffer;
+	VmaAllocation allocation;
+	std::size_t allocationSize;
+	void* mappedData;
 
 public:
 	Buffer() = default;
 
-	explicit Buffer(vk::UniqueBuffer&& buffer, VmaAllocation allocation, VmaAllocationInfo&& allocationInfo);
+	explicit Buffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, const VmaAllocationInfo& allocationInfo);
 
 	explicit operator vk::Buffer() const;
 
-	template <class T>
-	void mapMemory(const T* data) const {
-		std::memcpy(allocationInfo.pMappedData, data, allocationInfo.size);
-	}
+	void destroy() const;
 
-	template <class T>
-	void mapMemory(const T* data, std::size_t memoryOffset) const {
-		T* ptr = reinterpret_cast<T*>(allocationInfo.pMappedData) + memoryOffset;
-		const auto size = allocationInfo.size - memoryOffset;
-		std::memcpy(ptr, data, size);
-	}
+	void mapMemory(const void* data) const;
+
+	void mapMemory(const void* data, std::size_t memoryOffset) const;
 
 	std::size_t size() const;
 };
@@ -69,37 +65,7 @@ public:
 
 	explicit operator VmaAllocator() const;
 
-	template <class T>
-	[[nodiscard]] vkx::Buffer allocateBuffer(const T* data,
-						 std::size_t memorySize,
-						 vk::BufferUsageFlags bufferFlags,
-						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const {
-		const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
-
-		const VmaAllocationCreateInfo allocationCreateInfo{
-		    allocationFlags,
-		    memoryUsage,
-		    0,
-		    0,
-		    0,
-		    nullptr,
-		    nullptr,
-		    {}};
-
-		VkBuffer cBuffer = nullptr;
-		VmaAllocation cAllocation = nullptr;
-		VmaAllocationInfo cAllocationInfo;
-		if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocate GPU buffer.");
-		}
-
-		vkx::Buffer buffer{vk::UniqueBuffer{cBuffer, logicalDevice},
-				   cAllocation,
-				   std::move(cAllocationInfo)};
-		buffer.mapMemory(data);
-		return buffer;
-	}
+	void destroy() const;
 
 	[[nodiscard]] vkx::Buffer allocateBuffer(std::size_t memorySize,
 						 vk::BufferUsageFlags bufferFlags,

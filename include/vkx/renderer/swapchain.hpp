@@ -9,7 +9,7 @@ namespace vkx {
 class Swapchain {
 	friend class CommandSubmitter;
 
-private:
+public:
 	vk::Device logicalDevice{};
 	vk::UniqueSwapchainKHR swapchain{};
 	vk::Extent2D imageExtent{};
@@ -18,7 +18,6 @@ private:
 	vk::UniqueImageView depthImageView{};
 	std::vector<vk::UniqueFramebuffer> framebuffers{};
 
-public:
 	Swapchain() = default;
 
 	explicit Swapchain(const vkx::VulkanDevice& device,

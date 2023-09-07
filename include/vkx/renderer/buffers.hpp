@@ -27,11 +27,10 @@ struct Material {
 };
 
 class UniformBuffer {
-private:
+public:
 	vk::DescriptorBufferInfo info{};
 	vkx::Buffer buffer{};
 
-public:
 	UniformBuffer() = default;
 
 	explicit UniformBuffer(vkx::Buffer&& buffer);

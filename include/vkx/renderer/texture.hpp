@@ -4,13 +4,12 @@
 
 namespace vkx {
 class Texture {
-private:
+public:
 	vkx::Image image{};
 	vk::UniqueImageView view{};
 	vk::UniqueSampler sampler{};
 	vk::DescriptorImageInfo descriptorImageInfo{};
 
-public:
 	Texture() = default;
 
 	explicit Texture(const std::string& file,
