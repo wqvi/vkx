@@ -4,8 +4,9 @@
 #include <vkx/renderer/memory/allocator.hpp>
 #include <vkx/renderer/renderer.hpp>
 
+// This is probably gentoo only
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <stb/stb_image.h>
 
 vkx::Buffer::Buffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, const VmaAllocationInfo& allocationInfo)
     : allocator(allocator), buffer(buffer), allocation(allocation), allocationSize(allocationInfo.size), mappedData(allocationInfo.pMappedData) {}

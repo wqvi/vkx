@@ -34,7 +34,6 @@ target_link_libraries(vkx
 target_include_directories(vkx 
     PRIVATE 
         "${CMAKE_CURRENT_SOURCE_DIR}/include" 
-        "${CMAKE_CURRENT_SOURCE_DIR}/lib/stb"
 )
 
 target_precompile_headers(vkx PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/vkx/pch.hpp")
