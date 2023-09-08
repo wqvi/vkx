@@ -162,18 +162,4 @@ public:
 private:
 	[[nodiscard]] std::uint32_t ratePhysicalDevice(vk::PhysicalDevice physicalDevice) const;
 };
-
-class render_server {
-	struct window_surface {
-		SDL_Window* window_handle;
-		vk::UniqueSurfaceKHR surface;
-	};
-
-	vk::UniqueInstance instance;
-	window_surface window;
-	vk::PhysicalDevice physical_device;
-
-public:
-	render_server();
-};
 } // namespace vkx

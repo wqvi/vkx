@@ -24,31 +24,7 @@ public:
 
 	void mapMemory(const void* data) const;
 
-	void mapMemory(const void* data, std::size_t memoryOffset) const;
-
 	std::size_t size() const;
-};
-
-class VulkanBufferMemoryPool {
-private:
-	std::size_t blockSize = 0;
-	std::size_t maxBlockCount = 0;
-	vk::BufferUsageFlags bufferFlags{};
-	VmaAllocator allocator{};
-	vk::Device logicalDevice{};
-	VmaPool pool{};
-
-public:
-	VulkanBufferMemoryPool() = default;
-
-	explicit VulkanBufferMemoryPool(std::size_t blockSize,
-					std::size_t maxBlockCount,
-					vk::BufferUsageFlags bufferFlags,
-					VmaAllocator allocator,
-					vk::Device logicalDevice,
-					VmaPool pool);
-
-	[[nodiscard]] std::vector<vkx::Buffer> allocateBuffers() const;
 };
 
 class VulkanAllocator {
@@ -79,22 +55,6 @@ public:
 					       VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
 					       VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
 
-	[[nodiscard]] vkx::Image allocateImage(const vkx::CommandSubmitter& commandSubmitter,
-					       const std::string& file,
-					       vk::Format format,
-					       vk::ImageTiling tiling,
-					       vk::ImageUsageFlags imageUsage,
-					       VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
-					       VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
-
-	[[nodiscard]] vkx::UniformBuffer allocateUniformBuffer(std::size_t memorySize) const;
-
 	[[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(std::size_t memorySize, std::size_t amount) const;
-
-	[[nodiscard]] vkx::VulkanBufferMemoryPool allocateBufferPool(vk::BufferUsageFlags bufferFlags,
-								     std::size_t blockSize,
-								     std::size_t maxBlockCount,
-								     VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
-								     VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
 };
 } // namespace vkx

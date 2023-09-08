@@ -3,6 +3,10 @@
 vkx::Image::Image(vk::Device logicalDevice, VmaAllocator allocator, VkImage image, VmaAllocation allocation)
     : logicalDevice(logicalDevice), allocator(allocator), resourceImage(image), resourceAllocation(allocation) {}
 
+vkx::Image::operator vk::Image() const {
+	return static_cast<vk::Image>(resourceImage);
+}
+
 void vkx::Image::destroy() const {
 	vmaDestroyImage(allocator, resourceImage, resourceAllocation);
 }

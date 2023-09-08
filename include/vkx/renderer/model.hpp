@@ -17,20 +17,4 @@ struct Mesh {
 
 	explicit Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanAllocator& allocator);
 };
-
-struct ArrayMesh {
-	vkx::VulkanBufferMemoryPool vertexPool{};
-	std::vector<vkx::Buffer> vertexBuffers{};
-	vkx::Buffer indexBuffer{};
-
-	ArrayMesh() = default;
-
-	explicit ArrayMesh(std::size_t vertexBlockSize,
-			   std::size_t vertexBlockCount,
-			   std::size_t indexBlockSize,
-			   std::size_t indexBlockCount,
-			   const vkx::VulkanAllocator& allocator);
-
-	void draw(const vkx::CommandSubmitter& commandSubmitter) const;
-};
 } // namespace vkx
