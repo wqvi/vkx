@@ -10,15 +10,13 @@ vkx::Swapchain::Swapchain(const vkx::VulkanInstance& instance,
       imageExtent(swapchainInfo.actualExtent) {
 	const auto images = logicalDevice.getSwapchainImagesKHR(*swapchain);
 
-	const auto depthFormat = instance.findDepthFormat();
-
 	imageViews.reserve(images.size());
 	for (const vk::Image image : images) {
 		imageViews.emplace_back(instance.createImageView(image, swapchainInfo.surfaceFormat, vk::ImageAspectFlagBits::eColor));
 	}
 
-	depthImage = allocator.allocateImage(imageExtent, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
-	depthImageView = depthImage.createView(depthFormat, vk::ImageAspectFlagBits::eDepth);
+	depthImage = allocator.allocateImage(imageExtent, instance.depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+	depthImageView = depthImage.createView(instance.depthFormat, vk::ImageAspectFlagBits::eDepth);
 	
 	framebuffers.reserve(imageViews.size());
 	for (const auto& imageView : imageViews) {
