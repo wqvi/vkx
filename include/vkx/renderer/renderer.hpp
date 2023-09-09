@@ -104,8 +104,6 @@ public:
 							     vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined,
 							     vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR) const;
 
-	[[nodiscard]] vkx::VulkanAllocator createAllocator() const;
-
 	[[nodiscard]] vk::Format findSupportedFormat(vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates) const;
 
 	[[nodiscard]] vk::UniqueImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;

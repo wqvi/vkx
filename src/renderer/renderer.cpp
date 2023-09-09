@@ -220,10 +220,6 @@ vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::Format colorForma
 	return logicalDevice->createRenderPassUnique(renderPassCreateInfo);
 }
 
-vkx::VulkanAllocator vkx::VulkanInstance::createAllocator() const {
-	return vkx::VulkanAllocator{*instance, physicalDevice, *logicalDevice};
-}
-
 vk::Format vkx::VulkanInstance::findSupportedFormat(vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates) const {
 	for (const auto format : candidates) {
 		const auto formatProps = physicalDevice.getFormatProperties(format);
