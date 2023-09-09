@@ -76,25 +76,6 @@ constexpr auto posMod(T a, T b) {
 	return value + 0.0f;
 }
 
-class VulkanRenderPass {
-	friend class VulkanInstance;
-	friend class CommandSubmitter;
-	friend class Swapchain;
-
-private:
-	vk::UniqueRenderPass renderPass;
-
-public:
-	VulkanRenderPass() = default;
-
-	explicit VulkanRenderPass(vk::Device logicalDevice,
-				  vk::Format depthFormat,
-				  vk::Format colorFormat,
-				  vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear,
-				  vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined,
-				  vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR);
-};
-
 class VulkanInstance {
 	friend class Swapchain;
 
@@ -105,6 +86,7 @@ private:
 	vk::PhysicalDevice physicalDevice{};
 	vk::UniqueDevice logicalDevice{};
 	float maxSamplerAnisotropy = 0;
+	vk::Format depthFormat;
 
 public:
 	VulkanInstance() = default;
@@ -115,7 +97,7 @@ public:
 
 	[[nodiscard]] vkx::SwapchainInfo getSwapchainInfo(const vkx::Window& window) const;
 
-	[[nodiscard]] vkx::VulkanRenderPass createRenderPass(vk::Format colorFormat,
+	[[nodiscard]] vk::UniqueRenderPass createRenderPass(vk::Format colorFormat,
 							     vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear,
 							     vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined,
 							     vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR) const;
@@ -130,11 +112,11 @@ public:
 
 	[[nodiscard]] vk::UniqueImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
-	[[nodiscard]] vkx::Swapchain createSwapchain(const vkx::VulkanAllocator& allocator, const vkx::VulkanRenderPass& renderPass, const vkx::Window& window) const;
+	[[nodiscard]] vkx::Swapchain createSwapchain(const vkx::VulkanAllocator& allocator, const vk::UniqueRenderPass& renderPass, const vkx::Window& window) const;
 
 	[[nodiscard]] vkx::CommandSubmitter createCommandSubmitter() const;
 
-	[[nodiscard]] vkx::pipeline::GraphicsPipeline createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::pipeline::GraphicsPipelineInformation& information) const;
+	[[nodiscard]] vkx::pipeline::GraphicsPipeline createGraphicsPipeline(const vk::UniqueRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::pipeline::GraphicsPipelineInformation& information) const;
 
 	[[nodiscard]] vkx::pipeline::ComputePipeline createComputePipeline(const vkx::pipeline::ComputePipelineInformation& information) const;
 

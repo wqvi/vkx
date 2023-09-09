@@ -14,71 +14,6 @@ static constexpr std::array<const char*, 1> layers{"VK_LAYER_KHRONOS_validation"
 static constexpr std::array<const char*, 0> layers{};
 #endif
 
-vkx::VulkanRenderPass::VulkanRenderPass(vk::Device logicalDevice, vk::Format depthFormat, vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
-	using Sample = vk::SampleCountFlagBits;
-	using Load = vk::AttachmentLoadOp;
-	using Store = vk::AttachmentStoreOp;
-	using Layout = vk::ImageLayout;
-	using Stage = vk::PipelineStageFlagBits;
-	using Access = vk::AccessFlagBits;
-
-	const vk::AttachmentDescription colorAttachment{
-	    {},
-	    colorFormat,
-	    Sample::e1,
-	    loadOp,
-	    Store::eStore,
-	    Load::eDontCare,
-	    Store::eDontCare,
-	    initialLayout,
-	    finalLayout};
-
-	const vk::AttachmentReference colorAttachmentRef{
-	    0,
-	    Layout::eColorAttachmentOptimal};
-
-	const vk::AttachmentDescription depthAttachment{
-	    {},
-	    depthFormat,
-	    Sample::e1,
-	    Load::eClear,
-	    Store::eDontCare,
-	    Load::eDontCare,
-	    Store::eDontCare,
-	    Layout::eUndefined,
-	    Layout::eDepthStencilAttachmentOptimal};
-
-	const vk::AttachmentReference depthAttachmentRef{
-	    1,
-	    Layout::eDepthStencilAttachmentOptimal};
-
-	const vk::SubpassDescription subpass{
-	    {},
-	    vk::PipelineBindPoint::eGraphics,
-	    {},
-	    colorAttachmentRef,
-	    {},
-	    &depthAttachmentRef};
-
-	const vk::SubpassDependency dependency{
-	    VK_SUBPASS_EXTERNAL,
-	    0,
-	    Stage::eColorAttachmentOutput | Stage::eEarlyFragmentTests,
-	    Stage::eColorAttachmentOutput | Stage::eEarlyFragmentTests,
-	    {},
-	    Access::eColorAttachmentWrite | Access::eDepthStencilAttachmentWrite};
-
-	const std::array renderPassAttachments = {colorAttachment, depthAttachment};
-
-	const vk::RenderPassCreateInfo renderPassCreateInfo{
-	    {},
-	    renderPassAttachments,
-	    subpass,
-	    dependency};
-
-	renderPass = logicalDevice.createRenderPassUnique(renderPassCreateInfo);
-}
-
 vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
     : window(static_cast<SDL_Window*>(window)) {
 	constexpr vk::ApplicationInfo applicationInfo{
@@ -179,6 +114,8 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	logicalDevice = physicalDevice.createDeviceUnique(deviceCreateInfo);
 
 	maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
+
+	depthFormat = findSupportedFormat(vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment, {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint});
 }
 
 vkx::QueueConfig vkx::VulkanInstance::getQueueConfig() const {
@@ -189,8 +126,69 @@ vkx::SwapchainInfo vkx::VulkanInstance::getSwapchainInfo(const vkx::Window& wind
 	return vkx::SwapchainInfo{physicalDevice, *surface, window};
 }
 
-vkx::VulkanRenderPass vkx::VulkanInstance::createRenderPass(vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) const {
-	return vkx::VulkanRenderPass{*logicalDevice, static_cast<vk::Format>(findDepthFormat()), colorFormat, loadOp, initialLayout, finalLayout};
+vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) const {
+	using Sample = vk::SampleCountFlagBits;
+	using Load = vk::AttachmentLoadOp;
+	using Store = vk::AttachmentStoreOp;
+	using Layout = vk::ImageLayout;
+	using Stage = vk::PipelineStageFlagBits;
+	using Access = vk::AccessFlagBits;
+
+	const vk::AttachmentDescription colorAttachment{
+	    {},
+	    colorFormat,
+	    Sample::e1,
+	    loadOp,
+	    Store::eStore,
+	    Load::eDontCare,
+	    Store::eDontCare,
+	    initialLayout,
+	    finalLayout};
+
+	const vk::AttachmentReference colorAttachmentRef{
+	    0,
+	    Layout::eColorAttachmentOptimal};
+
+	const vk::AttachmentDescription depthAttachment{
+	    {},
+	    depthFormat,
+	    Sample::e1,
+	    Load::eClear,
+	    Store::eDontCare,
+	    Load::eDontCare,
+	    Store::eDontCare,
+	    Layout::eUndefined,
+	    Layout::eDepthStencilAttachmentOptimal};
+
+	const vk::AttachmentReference depthAttachmentRef{
+	    1,
+	    Layout::eDepthStencilAttachmentOptimal};
+
+	const vk::SubpassDescription subpass{
+	    {},
+	    vk::PipelineBindPoint::eGraphics,
+	    {},
+	    colorAttachmentRef,
+	    {},
+	    &depthAttachmentRef};
+
+	const vk::SubpassDependency dependency{
+	    VK_SUBPASS_EXTERNAL,
+	    0,
+	    Stage::eColorAttachmentOutput | Stage::eEarlyFragmentTests,
+	    Stage::eColorAttachmentOutput | Stage::eEarlyFragmentTests,
+	    {},
+	    Access::eColorAttachmentWrite | Access::eDepthStencilAttachmentWrite};
+
+	const std::array renderPassAttachments = {colorAttachment, depthAttachment};
+
+	const vk::RenderPassCreateInfo renderPassCreateInfo{
+	    {},
+	    renderPassAttachments,
+	    subpass,
+	    dependency};
+
+	return logicalDevice->createRenderPassUnique(renderPassCreateInfo);
 }
 
 vkx::VulkanAllocator vkx::VulkanInstance::createAllocator() const {
@@ -212,7 +210,7 @@ vk::Format vkx::VulkanInstance::findSupportedFormat(vk::ImageTiling tiling, vk::
 	return vk::Format::eUndefined;
 }
 
-vkx::Swapchain vkx::VulkanInstance::createSwapchain(const vkx::VulkanAllocator& allocator, const vkx::VulkanRenderPass& renderPass, const vkx::Window& window) const {
+vkx::Swapchain vkx::VulkanInstance::createSwapchain(const vkx::VulkanAllocator& allocator, const vk::UniqueRenderPass& renderPass, const vkx::Window& window) const {
 	const auto info = getSwapchainInfo(window);
 	const auto config = getQueueConfig();
 
@@ -243,8 +241,8 @@ vkx::CommandSubmitter vkx::VulkanInstance::createCommandSubmitter() const {
 	return vkx::CommandSubmitter{physicalDevice, *logicalDevice, *surface};
 }
 
-vkx::pipeline::GraphicsPipeline vkx::VulkanInstance::createGraphicsPipeline(const vkx::VulkanRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::pipeline::GraphicsPipelineInformation& information) const {
-	return vkx::pipeline::GraphicsPipeline{*logicalDevice, *renderPass.renderPass, allocator, information};
+vkx::pipeline::GraphicsPipeline vkx::VulkanInstance::createGraphicsPipeline(const vk::UniqueRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::pipeline::GraphicsPipelineInformation& information) const {
+	return vkx::pipeline::GraphicsPipeline{*logicalDevice, *renderPass, allocator, information};
 }
 
 vkx::pipeline::ComputePipeline vkx::VulkanInstance::createComputePipeline(const vkx::pipeline::ComputePipelineInformation& information) const {

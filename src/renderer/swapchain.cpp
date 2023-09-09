@@ -1,7 +1,7 @@
 #include <vkx/renderer/swapchain.hpp>
 
 vkx::Swapchain::Swapchain(const vkx::VulkanInstance& instance,
-			  const vkx::VulkanRenderPass& renderPass,
+			  const vk::UniqueRenderPass& renderPass,
 			  const vkx::VulkanAllocator& allocator,
 			  const vkx::SwapchainInfo& swapchainInfo,
 			  vk::UniqueSwapchainKHR&& uniqueSwapchain)
@@ -26,7 +26,7 @@ vkx::Swapchain::Swapchain(const vkx::VulkanInstance& instance,
 
 		const vk::FramebufferCreateInfo framebufferCreateInfo{
 		    {},
-		    *renderPass.renderPass,
+		    *renderPass,
 		    framebufferAttachments,
 		    imageExtent.width,
 		    imageExtent.height,

@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
 		    currentFrame,
 		    &swapchain,
 		    &graphicsPipeline,
-		    &clearRenderPass,
+		    *clearRenderPass,
 		    meshes};
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];

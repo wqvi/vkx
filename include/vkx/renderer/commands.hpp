@@ -11,7 +11,7 @@ struct DrawInfo {
 	const std::uint32_t currentFrame = 0;
 	const vkx::Swapchain* swapchain{};
 	const vkx::pipeline::GraphicsPipeline* graphicsPipeline{};
-	const vkx::VulkanRenderPass* renderPass{};
+	const vk::RenderPass renderPass{};
 	const std::vector<vkx::Mesh>& meshes;
 };
 
@@ -75,7 +75,7 @@ public:
 		const std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
 		const vk::RenderPassBeginInfo renderPassBeginInfo{
-		    *drawInfo.renderPass->renderPass,
+		    drawInfo.renderPass,
 		    framebuffer,
 		    renderArea,
 		    clearValues};
@@ -126,7 +126,7 @@ public:
 		const vk::CommandBufferBeginInfo commandBufferBeginInfo{};
 
 		const vk::CommandBufferInheritanceInfo secondaryCommandBufferInheritanceInfo{
-		    *drawInfo.renderPass->renderPass,
+		    drawInfo.renderPass,
 		    0,
 		    framebuffer};
 
@@ -144,7 +144,7 @@ public:
 		const std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
 		const vk::RenderPassBeginInfo renderPassBeginInfo{
-		    *drawInfo.renderPass->renderPass,
+		    drawInfo.renderPass,
 		    framebuffer,
 		    renderArea,
 		    clearValues};
