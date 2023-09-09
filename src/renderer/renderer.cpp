@@ -116,6 +116,35 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
 
 	depthFormat = findSupportedFormat(vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment, {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint});
+
+	constexpr VmaVulkanFunctions vulkanFunctions{
+	    &vkGetInstanceProcAddr,
+	    &vkGetDeviceProcAddr};
+
+	const VmaAllocatorCreateInfo allocatorCreateInfo{
+	    0,
+	    static_cast<VkPhysicalDevice>(physicalDevice),
+	    static_cast<VkDevice>(*logicalDevice),
+	    0,
+	    nullptr,
+	    nullptr,
+	    nullptr,
+	    &vulkanFunctions,
+	    *instance,
+	    VK_API_VERSION_1_0,
+#ifdef VMA_EXTERNAL_MEMORY
+	    nullptr
+#endif
+	};
+
+	allocator = vkx::create<VmaAllocator>(
+	    vmaCreateAllocator,
+	    [](auto result) {
+		    if (result != VK_SUCCESS) {
+			    throw std::runtime_error("Failed to create vulkan memory allocator.");
+		    }
+	    },
+	    &allocatorCreateInfo);
 }
 
 vkx::QueueConfig vkx::VulkanInstance::getQueueConfig() const {
@@ -210,7 +239,7 @@ vk::Format vkx::VulkanInstance::findSupportedFormat(vk::ImageTiling tiling, vk::
 	return vk::Format::eUndefined;
 }
 
-vkx::Swapchain vkx::VulkanInstance::createSwapchain(const vkx::VulkanAllocator& allocator, const vk::UniqueRenderPass& renderPass, const vkx::Window& window) const {
+vkx::Swapchain vkx::VulkanInstance::createSwapchain(const vk::UniqueRenderPass& renderPass, const vkx::Window& window) const {
 	const auto info = getSwapchainInfo(window);
 	const auto config = getQueueConfig();
 
@@ -234,19 +263,15 @@ vkx::Swapchain vkx::VulkanInstance::createSwapchain(const vkx::VulkanAllocator& 
 	    info.presentMode,
 	    true};
 
-	return vkx::Swapchain{*this, renderPass, allocator, info, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo)};
+	return vkx::Swapchain{*this, renderPass, info, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo)};
 }
 
 vkx::CommandSubmitter vkx::VulkanInstance::createCommandSubmitter() const {
 	return vkx::CommandSubmitter{physicalDevice, *logicalDevice, *surface};
 }
 
-vkx::pipeline::GraphicsPipeline vkx::VulkanInstance::createGraphicsPipeline(const vk::UniqueRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::pipeline::GraphicsPipelineInformation& information) const {
-	return vkx::pipeline::GraphicsPipeline{*logicalDevice, *renderPass, allocator, information};
-}
-
-vkx::pipeline::ComputePipeline vkx::VulkanInstance::createComputePipeline(const vkx::pipeline::ComputePipelineInformation& information) const {
-	return vkx::pipeline::ComputePipeline{*logicalDevice, information};
+vkx::pipeline::GraphicsPipeline vkx::VulkanInstance::createGraphicsPipeline(const vk::UniqueRenderPass& renderPass, const vkx::pipeline::GraphicsPipelineInformation& information) const {
+	return vkx::pipeline::GraphicsPipeline{*this, *renderPass, information};
 }
 
 std::vector<vkx::SyncObjects> vkx::VulkanInstance::createSyncObjects() const {
@@ -303,6 +328,84 @@ vk::UniqueImageView vkx::VulkanInstance::createImageView(vk::Image image, vk::Fo
 	    subresourceRange};
 
 	return logicalDevice->createImageViewUnique(imageViewCreateInfo);
+}
+
+void vkx::VulkanInstance::destroy() const {
+	vmaDestroyAllocator(allocator);
+}
+
+vkx::Buffer vkx::VulkanInstance::allocateBuffer(std::size_t memorySize,
+						 vk::BufferUsageFlags bufferFlags,
+						 VmaAllocationCreateFlags allocationFlags,
+						 VmaMemoryUsage memoryUsage) const {
+	const vk::BufferCreateInfo bufferCreateInfo{{}, memorySize, bufferFlags, vk::SharingMode::eExclusive};
+
+	const VmaAllocationCreateInfo allocationCreateInfo{
+	    allocationFlags,
+	    memoryUsage,
+	    0,
+	    0,
+	    0,
+	    nullptr,
+	    nullptr,
+	    {}};
+
+	VkBuffer cBuffer = nullptr;
+	VmaAllocation cAllocation = nullptr;
+	VmaAllocationInfo cAllocationInfo;
+	if (vmaCreateBuffer(allocator, reinterpret_cast<const VkBufferCreateInfo*>(&bufferCreateInfo), &allocationCreateInfo, &cBuffer, &cAllocation, &cAllocationInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate GPU buffer.");
+	}
+
+	return vkx::Buffer{allocator, cBuffer, cAllocation, cAllocationInfo};
+}
+
+vkx::Image vkx::VulkanInstance::allocateImage(vk::Extent2D extent,
+					       vk::Format format,
+					       vk::ImageTiling tiling,
+					       vk::ImageUsageFlags imageUsage,
+					       VmaAllocationCreateFlags flags,
+					       VmaMemoryUsage memoryUsage) const {
+	const vk::Extent3D imageExtent{extent.width, extent.height, 1};
+
+	const vk::ImageCreateInfo imageCreateInfo{
+	    {},
+	    vk::ImageType::e2D,
+	    format,
+	    imageExtent,
+	    1,
+	    1,
+	    vk::SampleCountFlagBits::e1,
+	    tiling,
+	    imageUsage,
+	    vk::SharingMode::eExclusive};
+
+	VmaAllocationCreateInfo allocationCreateInfo{
+	    flags,
+	    memoryUsage,
+	    0,
+	    0,
+	    0,
+	    nullptr,
+	    nullptr,
+	    {}};
+
+	VkImage resourceImage = nullptr;
+	VmaAllocation resourceAllocation = nullptr;
+	if (vmaCreateImage(allocator, reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &resourceImage, &resourceAllocation, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate image memory resources.");
+	}
+
+	return vkx::Image{*logicalDevice, allocator, resourceImage, resourceAllocation};
+}
+
+std::vector<vkx::UniformBuffer> vkx::VulkanInstance::allocateUniformBuffers(std::size_t memorySize, std::size_t amount) const {
+	std::vector<vkx::UniformBuffer> uniformBuffers;
+	uniformBuffers.reserve(amount);
+	for (auto i = 0; i < amount; i++) {
+		uniformBuffers.emplace_back(allocateBuffer(memorySize, vk::BufferUsageFlagBits::eUniformBuffer));
+	}
+	return uniformBuffers;
 }
 
 std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(vk::PhysicalDevice physicalDevice) const {

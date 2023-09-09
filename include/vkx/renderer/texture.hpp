@@ -14,7 +14,6 @@ public:
 
 	explicit Texture(const std::string& file,
 			 const vkx::VulkanInstance& instance,
-			 const vkx::VulkanAllocator& allocator,
 			 const vkx::CommandSubmitter& commandSubmitter);
 
 	[[nodiscard]] const vk::DescriptorImageInfo* imageInfo() const noexcept;

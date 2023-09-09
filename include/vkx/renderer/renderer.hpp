@@ -78,15 +78,17 @@ constexpr auto posMod(T a, T b) {
 
 class VulkanInstance {
 	friend class Swapchain;
+	friend class pipeline::GraphicsPipeline;
 
 private:
 	SDL_Window* window = nullptr;
-	vk::UniqueInstance instance{};
-	vk::UniqueSurfaceKHR surface{};
-	vk::PhysicalDevice physicalDevice{};
-	vk::UniqueDevice logicalDevice{};
+	vk::UniqueInstance instance;
+	vk::UniqueSurfaceKHR surface;
+	vk::PhysicalDevice physicalDevice;
+	vk::UniqueDevice logicalDevice;
 	float maxSamplerAnisotropy = 0;
 	vk::Format depthFormat;
+	VmaAllocator allocator;
 
 public:
 	VulkanInstance() = default;
@@ -108,13 +110,11 @@ public:
 
 	[[nodiscard]] vk::UniqueImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
-	[[nodiscard]] vkx::Swapchain createSwapchain(const vkx::VulkanAllocator& allocator, const vk::UniqueRenderPass& renderPass, const vkx::Window& window) const;
+	[[nodiscard]] vkx::Swapchain createSwapchain(const vk::UniqueRenderPass& renderPass, const vkx::Window& window) const;
 
 	[[nodiscard]] vkx::CommandSubmitter createCommandSubmitter() const;
 
-	[[nodiscard]] vkx::pipeline::GraphicsPipeline createGraphicsPipeline(const vk::UniqueRenderPass& renderPass, const vkx::VulkanAllocator& allocator, const vkx::pipeline::GraphicsPipelineInformation& information) const;
-
-	[[nodiscard]] vkx::pipeline::ComputePipeline createComputePipeline(const vkx::pipeline::ComputePipelineInformation& information) const;
+	[[nodiscard]] vkx::pipeline::GraphicsPipeline createGraphicsPipeline(const vk::UniqueRenderPass& renderPass, const vkx::pipeline::GraphicsPipelineInformation& information) const;
 
 	[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects() const;
 
@@ -122,6 +122,21 @@ public:
 
 	void waitIdle() const;
 
+	void destroy() const;
+
+	[[nodiscard]] vkx::Buffer allocateBuffer(std::size_t memorySize,
+						 vk::BufferUsageFlags bufferFlags,
+						 VmaAllocationCreateFlags allocationFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+						 VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
+
+	[[nodiscard]] vkx::Image allocateImage(vk::Extent2D extent,
+					       vk::Format format,
+					       vk::ImageTiling tiling,
+					       vk::ImageUsageFlags imageUsage,
+					       VmaAllocationCreateFlags flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+					       VmaMemoryUsage memoryUsage = VMA_MEMORY_USAGE_AUTO) const;
+
+	[[nodiscard]] std::vector<vkx::UniformBuffer> allocateUniformBuffers(std::size_t memorySize, std::size_t amount) const;
 
 private:
 	[[nodiscard]] std::uint32_t ratePhysicalDevice(vk::PhysicalDevice physicalDevice) const;

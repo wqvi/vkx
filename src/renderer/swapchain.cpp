@@ -2,7 +2,6 @@
 
 vkx::Swapchain::Swapchain(const vkx::VulkanInstance& instance,
 			  const vk::UniqueRenderPass& renderPass,
-			  const vkx::VulkanAllocator& allocator,
 			  const vkx::SwapchainInfo& swapchainInfo,
 			  vk::UniqueSwapchainKHR&& uniqueSwapchain)
     : logicalDevice(*instance.logicalDevice),
@@ -15,7 +14,7 @@ vkx::Swapchain::Swapchain(const vkx::VulkanInstance& instance,
 		imageViews.emplace_back(instance.createImageView(image, swapchainInfo.surfaceFormat, vk::ImageAspectFlagBits::eColor));
 	}
 
-	depthImage = allocator.allocateImage(imageExtent, instance.depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+	depthImage = instance.allocateImage(imageExtent, instance.depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 	depthImageView = depthImage.createView(instance.depthFormat, vk::ImageAspectFlagBits::eDepth);
 	
 	framebuffers.reserve(imageViews.size());

@@ -13,8 +13,8 @@ struct Mesh {
 
 	Mesh() = default;
 
-	explicit Mesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, const vkx::VulkanAllocator& allocator);
+	explicit Mesh(std::vector<vkx::Vertex>&& vertices, std::vector<std::uint32_t>&& indices, std::size_t activeIndexCount, const vkx::VulkanInstance& instance);
 
-	explicit Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanAllocator& allocator);
+	explicit Mesh(std::size_t vertexCount, std::size_t indexCount, const vkx::VulkanInstance& instance);
 };
 } // namespace vkx

@@ -6,7 +6,6 @@
 
 vkx::Texture::Texture(const std::string& file,
 		      const vkx::VulkanInstance& instance,
-		      const vkx::VulkanAllocator& allocator,
 		      const vkx::CommandSubmitter& commandSubmitter)
 	: sampler(instance.createTextureSampler()) {
 	int width;
@@ -19,14 +18,14 @@ vkx::Texture::Texture(const std::string& file,
 
 	auto size = static_cast<vk::DeviceSize>(width) * height * STBI_rgb_alpha;
 
-	const auto staging = allocator.allocateBuffer(size, vk::BufferUsageFlagBits::eTransferSrc, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
+	const auto staging = instance.allocateBuffer(size, vk::BufferUsageFlagBits::eTransferSrc, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT, VMA_MEMORY_USAGE_AUTO_PREFER_HOST);
 
 	staging.mapMemory(pixels);
 
 	vk::Extent2D extent{static_cast<std::uint32_t>(width), 
 		static_cast<std::uint32_t>(height)};
 
-	image = allocator.allocateImage(extent, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled);
+	image = instance.allocateImage(extent, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled);
 
 	commandSubmitter.transitionImageLayout(static_cast<vk::Image>(image), vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
 

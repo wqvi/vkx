@@ -27,9 +27,8 @@ public:
 
 	GraphicsPipeline() = default;
 
-	explicit GraphicsPipeline(vk::Device logicalDevice,
+	explicit GraphicsPipeline(const vkx::VulkanInstance& instance,
 				  vk::RenderPass renderPass,
-				  const vkx::VulkanAllocator& allocator,
 				  const vkx::pipeline::GraphicsPipelineInformation& info);
 
 	const std::vector<UniformBuffer>& getUniformByIndex(std::size_t i) const;

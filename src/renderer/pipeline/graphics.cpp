@@ -1,11 +1,10 @@
 #include <vkx/renderer/pipeline/graphics.hpp>
 #include <vkx/renderer/texture.hpp>
 
-vkx::pipeline::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
+vkx::pipeline::GraphicsPipeline::GraphicsPipeline(const vkx::VulkanInstance& instance,
 					vk::RenderPass renderPass,
-					const vkx::VulkanAllocator& allocator,
 					const vkx::pipeline::GraphicsPipelineInformation& info)
-	: logicalDevice(logicalDevice) {
+	: logicalDevice(*instance.logicalDevice) {
 	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{{}, info.bindings};
 
 	descriptorLayout = logicalDevice.createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo);
@@ -136,7 +135,7 @@ vkx::pipeline::GraphicsPipeline::GraphicsPipeline(vk::Device logicalDevice,
 	descriptorSets = logicalDevice.allocateDescriptorSets(descriptorSetAllocateInfo);
 
 	for (std::size_t size : info.uniformSizes) {
-		uniforms.push_back(allocator.allocateUniformBuffers(size, vkx::MAX_FRAMES_IN_FLIGHT));
+		uniforms.push_back(instance.allocateUniformBuffers(size, vkx::MAX_FRAMES_IN_FLIGHT));
 	}
 
 	for (std::uint32_t i = 0; i < vkx::MAX_FRAMES_IN_FLIGHT; i++) {

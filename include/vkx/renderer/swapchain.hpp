@@ -22,7 +22,6 @@ public:
 
 	explicit Swapchain(const vkx::VulkanInstance& instance,
 			   const vk::UniqueRenderPass& renderPass,
-			   const vkx::VulkanAllocator& allocator,
 			   const vkx::SwapchainInfo& swapchainInfo,
 			   vk::UniqueSwapchainKHR&& uniqueSwapchain);
 

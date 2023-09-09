@@ -23,17 +23,15 @@ int main(int argc, char** argv) {
 
 	const vkx::VulkanInstance vulkanInstance{window};
 
-	const auto allocator = vulkanInstance.createAllocator();
-
 	const auto swapchainInfo = vulkanInstance.getSwapchainInfo(window);
 
 	const auto clearRenderPass = vulkanInstance.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
 
-	auto swapchain = vulkanInstance.createSwapchain(allocator, clearRenderPass, window);
+	auto swapchain = vulkanInstance.createSwapchain(clearRenderPass, window);
 
 	const auto commandSubmitter = vulkanInstance.createCommandSubmitter();
 
-	const vkx::Texture texture{"resources/a.jpg", vulkanInstance, allocator, commandSubmitter};
+	const vkx::Texture texture{"resources/a.jpg", vulkanInstance, commandSubmitter};
 
 	const vkx::pipeline::GraphicsPipelineInformation graphicsPipelineInformation{
 	    "build/shader2D.vert.spv",
@@ -43,7 +41,7 @@ int main(int argc, char** argv) {
 	    vkx::Vertex::getAttributeDescriptions(),
 	    {sizeof(vkx::MVP)},
 	    {&texture}};
-	const auto graphicsPipeline = vulkanInstance.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
+	const auto graphicsPipeline = vulkanInstance.createGraphicsPipeline(clearRenderPass, graphicsPipelineInformation);
 
 	constexpr std::uint32_t chunkDrawCommandAmount = static_cast<std::uint32_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS);
 
@@ -63,7 +61,7 @@ int main(int argc, char** argv) {
 		for (auto x = 0; x < vkx::CHUNK_RADIUS; x++) {
 			auto& currentChunk = chunks.emplace_back(glm::vec2{x, y});
 			currentChunk.generateTerrain();
-			auto& currentMesh = meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, allocator);
+			auto& currentMesh = meshes.emplace_back(vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 4, vkx::CHUNK_SIZE * vkx::CHUNK_SIZE * 6, vulkanInstance);
 			currentChunk.generateMesh(currentMesh);
 		}
 	}
@@ -231,7 +229,7 @@ int main(int argc, char** argv) {
 
 			swapchain.depthImage.destroy();
 
-			swapchain = vulkanInstance.createSwapchain(allocator, clearRenderPass, window);
+			swapchain = vulkanInstance.createSwapchain(clearRenderPass, window);
 			continue;
 		} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 			throw std::runtime_error("Failed to acquire next image.");
@@ -265,7 +263,7 @@ int main(int argc, char** argv) {
 
 			swapchain.depthImage.destroy();
 
-			swapchain = vulkanInstance.createSwapchain(allocator, clearRenderPass, window);
+			swapchain = vulkanInstance.createSwapchain(clearRenderPass, window);
 		} else if (result != vk::Result::eSuccess) {
 			throw std::runtime_error("Failed to present.");
 		}
@@ -288,7 +286,7 @@ int main(int argc, char** argv) {
 
 	texture.image.destroy();
 	swapchain.depthImage.destroy();
-	allocator.destroy();
+	vulkanInstance.destroy();
 
 	return EXIT_SUCCESS;
 }
