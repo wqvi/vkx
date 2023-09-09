@@ -20,7 +20,7 @@ public:
 
 	Swapchain() = default;
 
-	explicit Swapchain(const vkx::VulkanDevice& device,
+	explicit Swapchain(const vkx::VulkanInstance& instance,
 			   const vkx::VulkanRenderPass& renderPass,
 			   const vkx::VulkanAllocator& allocator,
 			   const vkx::SwapchainInfo& swapchainInfo,

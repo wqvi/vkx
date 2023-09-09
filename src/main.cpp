@@ -16,22 +16,6 @@ auto createShaderBindings() {
 	return std::vector{uboLayoutBinding, samplerLayoutBinding};
 }
 
-auto createComputeBindings() {
-	constexpr vk::DescriptorSetLayoutBinding voxelLayoutBinding{
-	    0,
-	    vk::DescriptorType::eStorageBuffer,
-	    1,
-	    vk::ShaderStageFlagBits::eCompute};
-
-	constexpr vk::DescriptorSetLayoutBinding meshLayoutBinding{
-	    1,
-	    vk::DescriptorType::eStorageBuffer,
-	    1,
-	    vk::ShaderStageFlagBits::eCompute};
-
-	return std::vector{voxelLayoutBinding, meshLayoutBinding};
-}
-
 int main(int argc, char** argv) {
 	vkx::Window window{"vkx", 640, 480};
 
@@ -39,19 +23,17 @@ int main(int argc, char** argv) {
 
 	const vkx::VulkanInstance vulkanInstance{window};
 
-	const auto vulkanDevice = vulkanInstance.createDevice();
+	const auto allocator = vulkanInstance.createAllocator();
 
-	const auto allocator = vulkanDevice.createAllocator();
+	const auto swapchainInfo = vulkanInstance.getSwapchainInfo(window);
 
-	const auto swapchainInfo = vulkanDevice.getSwapchainInfo(window);
+	const auto clearRenderPass = vulkanInstance.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
 
-	const auto clearRenderPass = vulkanDevice.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
+	auto swapchain = vulkanInstance.createSwapchain(allocator, clearRenderPass, window);
 
-	auto swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
+	const auto commandSubmitter = vulkanInstance.createCommandSubmitter();
 
-	const auto commandSubmitter = vulkanDevice.createCommandSubmitter();
-
-	const vkx::Texture texture{"resources/a.jpg", vulkanDevice, allocator, commandSubmitter};
+	const vkx::Texture texture{"resources/a.jpg", vulkanInstance, allocator, commandSubmitter};
 
 	const vkx::pipeline::GraphicsPipelineInformation graphicsPipelineInformation{
 	    "build/shader2D.vert.spv",
@@ -61,7 +43,7 @@ int main(int argc, char** argv) {
 	    vkx::Vertex::getAttributeDescriptions(),
 	    {sizeof(vkx::MVP)},
 	    {&texture}};
-	const auto graphicsPipeline = vulkanDevice.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
+	const auto graphicsPipeline = vulkanInstance.createGraphicsPipeline(clearRenderPass, allocator, graphicsPipelineInformation);
 
 	constexpr std::uint32_t chunkDrawCommandAmount = static_cast<std::uint32_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS);
 
@@ -70,7 +52,7 @@ int main(int argc, char** argv) {
 	const auto drawCommands = commandSubmitter.allocateDrawCommands(drawCommandAmount);
 	const auto secondaryDrawCommands = commandSubmitter.allocateDrawCommands(secondaryDrawCommandAmount, vk::CommandBufferLevel::eSecondary);
 
-	const auto syncObjects = vulkanDevice.createSyncObjects();
+	const auto syncObjects = vulkanInstance.createSyncObjects();
 
 	std::vector<vkx::VoxelChunk2D> chunks{};
 	std::vector<vkx::Mesh> meshes{};
@@ -245,11 +227,11 @@ int main(int argc, char** argv) {
 		if (result == vk::Result::eErrorOutOfDateKHR) {
 			window.waitForUpdate();
 
-			vulkanDevice.waitIdle();
+			vulkanInstance.waitIdle();
 
 			swapchain.depthImage.destroy();
 
-			swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
+			swapchain = vulkanInstance.createSwapchain(allocator, clearRenderPass, window);
 			continue;
 		} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 			throw std::runtime_error("Failed to acquire next image.");
@@ -279,11 +261,11 @@ int main(int argc, char** argv) {
 
 			window.waitForUpdate();
 
-			vulkanDevice.waitIdle();
+			vulkanInstance.waitIdle();
 
 			swapchain.depthImage.destroy();
 
-			swapchain = vulkanDevice.createSwapchain(allocator, clearRenderPass, window);
+			swapchain = vulkanInstance.createSwapchain(allocator, clearRenderPass, window);
 		} else if (result != vk::Result::eSuccess) {
 			throw std::runtime_error("Failed to present.");
 		}
@@ -291,7 +273,7 @@ int main(int argc, char** argv) {
 		currentFrame = (currentFrame + 1) % vkx::MAX_FRAMES_IN_FLIGHT;
 	}
 
-	vulkanDevice.waitIdle();
+	vulkanInstance.waitIdle();
 
 	for (auto& mesh : meshes) {
 		mesh.vertexBuffer.destroy();

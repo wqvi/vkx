@@ -5,10 +5,10 @@
 #include <stb/stb_image.h>
 
 vkx::Texture::Texture(const std::string& file,
-		      const vkx::VulkanDevice& device,
+		      const vkx::VulkanInstance& instance,
 		      const vkx::VulkanAllocator& allocator,
 		      const vkx::CommandSubmitter& commandSubmitter)
-	: sampler(device.createTextureSampler()) {
+	: sampler(instance.createTextureSampler()) {
 	int width;
 	int height;
 	int channels;

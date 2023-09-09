@@ -13,7 +13,7 @@ public:
 	Texture() = default;
 
 	explicit Texture(const std::string& file,
-			 const vkx::VulkanDevice& device,
+			 const vkx::VulkanInstance& instance,
 			 const vkx::VulkanAllocator& allocator,
 			 const vkx::CommandSubmitter& commandSubmitter);
 

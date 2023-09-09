@@ -77,7 +77,7 @@ constexpr auto posMod(T a, T b) {
 }
 
 class VulkanRenderPass {
-	friend class VulkanDevice;
+	friend class VulkanInstance;
 	friend class CommandSubmitter;
 	friend class Swapchain;
 
@@ -95,22 +95,21 @@ public:
 				  vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR);
 };
 
-class VulkanDevice {
+class VulkanInstance {
 	friend class Swapchain;
 
 private:
-	vk::Instance instance{};
-	vk::SurfaceKHR surface{};
+	SDL_Window* window = nullptr;
+	vk::UniqueInstance instance{};
+	vk::UniqueSurfaceKHR surface{};
 	vk::PhysicalDevice physicalDevice{};
 	vk::UniqueDevice logicalDevice{};
 	float maxSamplerAnisotropy = 0;
 
 public:
-	VulkanDevice() = default;
+	VulkanInstance() = default;
 
-	explicit VulkanDevice(vk::Instance instance,
-			      vk::SurfaceKHR surface,
-			      vk::PhysicalDevice physicalDevice);
+	explicit VulkanInstance(const vkx::Window& window);
 
 	[[nodiscard]] vkx::QueueConfig getQueueConfig() const;
 
@@ -144,20 +143,7 @@ public:
 	[[nodiscard]] vk::UniqueSampler createTextureSampler() const;
 
 	void waitIdle() const;
-};
 
-class VulkanInstance {
-private:
-	SDL_Window* window = nullptr;
-	vk::UniqueInstance instance{};
-	vk::UniqueSurfaceKHR surface{};
-
-public:
-	VulkanInstance() = default;
-
-	explicit VulkanInstance(const vkx::Window& window);
-
-	VulkanDevice createDevice() const;
 
 private:
 	[[nodiscard]] std::uint32_t ratePhysicalDevice(vk::PhysicalDevice physicalDevice) const;
