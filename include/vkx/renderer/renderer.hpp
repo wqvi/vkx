@@ -95,10 +95,6 @@ public:
 
 	explicit VulkanInstance(const vkx::Window& window);
 
-	[[nodiscard]] vkx::QueueConfig getQueueConfig() const;
-
-	[[nodiscard]] vkx::SwapchainInfo getSwapchainInfo() const;
-
 	[[nodiscard]] vk::UniqueRenderPass createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear, vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR) const;
 
 	[[nodiscard]] vk::Format findSupportedFormat(vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates) const;
