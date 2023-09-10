@@ -155,7 +155,7 @@ vkx::SwapchainInfo vkx::VulkanInstance::getSwapchainInfo() const {
 	return vkx::SwapchainInfo{physicalDevice, *surface, window};
 }
 
-vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::Format colorFormat, vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) const {
+vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) const {
 	using Sample = vk::SampleCountFlagBits;
 	using Load = vk::AttachmentLoadOp;
 	using Store = vk::AttachmentStoreOp;
@@ -163,9 +163,11 @@ vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::Format colorForma
 	using Stage = vk::PipelineStageFlagBits;
 	using Access = vk::AccessFlagBits;
 
+	const auto swapchainInfo = getSwapchainInfo();
+
 	const vk::AttachmentDescription colorAttachment{
 	    {},
-	    colorFormat,
+	    swapchainInfo.surfaceFormat,
 	    Sample::e1,
 	    loadOp,
 	    Store::eStore,

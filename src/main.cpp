@@ -23,9 +23,7 @@ int main(int argc, char** argv) {
 
 	const vkx::VulkanInstance vulkanInstance{window};
 
-	const auto swapchainInfo = vulkanInstance.getSwapchainInfo();
-
-	const auto clearRenderPass = vulkanInstance.createRenderPass(swapchainInfo.surfaceFormat, vk::AttachmentLoadOp::eClear, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
+	const auto clearRenderPass = vulkanInstance.createRenderPass();
 
 	auto swapchain = vulkanInstance.createSwapchain(clearRenderPass, window);
 
