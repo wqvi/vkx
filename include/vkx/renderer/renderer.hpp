@@ -105,7 +105,7 @@ public:
 
 	[[nodiscard]] vk::UniqueImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
-	[[nodiscard]] vkx::Swapchain createSwapchain(const vk::UniqueRenderPass& renderPass, const vkx::Window& window) const;
+	[[nodiscard]] vkx::Swapchain createSwapchain(const vk::UniqueRenderPass& renderPass) const;
 
 	[[nodiscard]] vkx::CommandSubmitter createCommandSubmitter() const;
 

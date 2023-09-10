@@ -147,14 +147,6 @@ vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
 	    &allocatorCreateInfo);
 }
 
-vkx::QueueConfig vkx::VulkanInstance::getQueueConfig() const {
-	return vkx::QueueConfig{physicalDevice, *surface};
-}
-
-vkx::SwapchainInfo vkx::VulkanInstance::getSwapchainInfo() const {
-	return vkx::SwapchainInfo{physicalDevice, *surface, window};
-}
-
 vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) const {
 	using Sample = vk::SampleCountFlagBits;
 	using Load = vk::AttachmentLoadOp;
@@ -163,7 +155,7 @@ vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::AttachmentLoadOp 
 	using Stage = vk::PipelineStageFlagBits;
 	using Access = vk::AccessFlagBits;
 
-	const auto swapchainInfo = getSwapchainInfo();
+	const vkx::SwapchainInfo swapchainInfo{physicalDevice, *surface, window};
 
 	const vk::AttachmentDescription colorAttachment{
 	    {},
@@ -237,11 +229,13 @@ vk::Format vkx::VulkanInstance::findSupportedFormat(vk::ImageTiling tiling, vk::
 	return vk::Format::eUndefined;
 }
 
-vkx::Swapchain vkx::VulkanInstance::createSwapchain(const vk::UniqueRenderPass& renderPass, const vkx::Window& window) const {
-	const auto info = getSwapchainInfo();
-	const auto config = getQueueConfig();
+vkx::Swapchain vkx::VulkanInstance::createSwapchain(const vk::UniqueRenderPass& renderPass) const {
+	const vkx::SwapchainInfo info{physicalDevice, *surface, window};
+	const vkx::QueueConfig config{physicalDevice, *surface};
 
-	const auto [width, height] = window.getDimensions();
+	int width;
+	int height;
+	SDL_GetWindowSizeInPixels(window, &width, &height);
 
 	const auto imageSharingMode = config.getImageSharingMode();
 

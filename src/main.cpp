@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 
 	const auto clearRenderPass = vulkanInstance.createRenderPass();
 
-	auto swapchain = vulkanInstance.createSwapchain(clearRenderPass, window);
+	auto swapchain = vulkanInstance.createSwapchain(clearRenderPass);
 
 	const auto commandSubmitter = vulkanInstance.createCommandSubmitter();
 
@@ -227,7 +227,7 @@ int main(int argc, char** argv) {
 
 			swapchain.depthImage.destroy();
 
-			swapchain = vulkanInstance.createSwapchain(clearRenderPass, window);
+			swapchain = vulkanInstance.createSwapchain(clearRenderPass);
 			continue;
 		} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 			throw std::runtime_error("Failed to acquire next image.");
@@ -261,7 +261,7 @@ int main(int argc, char** argv) {
 
 			swapchain.depthImage.destroy();
 
-			swapchain = vulkanInstance.createSwapchain(clearRenderPass, window);
+			swapchain = vulkanInstance.createSwapchain(clearRenderPass);
 		} else if (result != vk::Result::eSuccess) {
 			throw std::runtime_error("Failed to present.");
 		}
