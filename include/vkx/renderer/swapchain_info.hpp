@@ -13,6 +13,6 @@ struct SwapchainInfo {
 
 	explicit SwapchainInfo(vk::PhysicalDevice physicalDevice,
 			       vk::SurfaceKHR surface,
-			       const vkx::Window& window);
+			       SDL_Window* window);
 };
 } // namespace vkx

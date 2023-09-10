@@ -151,7 +151,7 @@ vkx::QueueConfig vkx::VulkanInstance::getQueueConfig() const {
 	return vkx::QueueConfig{physicalDevice, *surface};
 }
 
-vkx::SwapchainInfo vkx::VulkanInstance::getSwapchainInfo(const vkx::Window& window) const {
+vkx::SwapchainInfo vkx::VulkanInstance::getSwapchainInfo() const {
 	return vkx::SwapchainInfo{physicalDevice, *surface, window};
 }
 
@@ -236,7 +236,7 @@ vk::Format vkx::VulkanInstance::findSupportedFormat(vk::ImageTiling tiling, vk::
 }
 
 vkx::Swapchain vkx::VulkanInstance::createSwapchain(const vk::UniqueRenderPass& renderPass, const vkx::Window& window) const {
-	const auto info = getSwapchainInfo(window);
+	const auto info = getSwapchainInfo();
 	const auto config = getQueueConfig();
 
 	const auto [width, height] = window.getDimensions();

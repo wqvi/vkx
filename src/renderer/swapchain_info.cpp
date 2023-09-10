@@ -2,7 +2,7 @@
 
 vkx::SwapchainInfo::SwapchainInfo(vk::PhysicalDevice physicalDevice,
 				  vk::SurfaceKHR surface,
-				  const vkx::Window& window) {
+				  SDL_Window* window) {
 	const auto formats = physicalDevice.getSurfaceFormatsKHR(surface);
 
 	surfaceFormat = formats[0].format;
@@ -34,7 +34,9 @@ vkx::SwapchainInfo::SwapchainInfo(vk::PhysicalDevice physicalDevice,
 	if (capabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max()) {
 		actualExtent = capabilities.currentExtent;
 	} else {
-		const auto [width, height] = window.getDimensions();
+		int width;
+		int height;
+		SDL_GetWindowSizeInPixels(window, &width, &height);
 
 		actualExtent = vk::Extent2D{static_cast<std::uint32_t>(width),
 					    static_cast<std::uint32_t>(height)};

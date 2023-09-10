@@ -97,7 +97,7 @@ public:
 
 	[[nodiscard]] vkx::QueueConfig getQueueConfig() const;
 
-	[[nodiscard]] vkx::SwapchainInfo getSwapchainInfo(const vkx::Window& window) const;
+	[[nodiscard]] vkx::SwapchainInfo getSwapchainInfo() const;
 
 	[[nodiscard]] vk::UniqueRenderPass createRenderPass(vk::Format colorFormat,
 							     vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear,
