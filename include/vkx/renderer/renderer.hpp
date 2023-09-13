@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vkx/renderer/memory/allocator.hpp>
+#include <vkx/renderer/allocator.hpp>
 #include <vkx/renderer/types.hpp>
 #include <vkx/window.hpp>
 

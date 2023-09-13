@@ -1,4 +1,4 @@
-#include <vkx/renderer/pipeline/graphics.hpp>
+#include <vkx/renderer/pipeline.hpp>
 #include <vkx/renderer/texture.hpp>
 
 vkx::pipeline::GraphicsPipeline::GraphicsPipeline(const vkx::VulkanInstance& instance,

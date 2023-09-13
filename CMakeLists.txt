@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.25.0)
 project(vkx LANGUAGES CXX VERSION 0.0.0)
 
-add_executable(vkx src/main.cpp)
+add_executable(vkx
+	src/main.cpp
+	src/renderer/allocator.cpp
+	src/renderer/pipeline.cpp
+	)
 
 set_target_properties(vkx 
     PROPERTIES

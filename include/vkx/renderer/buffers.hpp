@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vkx/renderer/types.hpp>
-#include <vkx/renderer/memory/allocator.hpp>
+#include <vkx/renderer/allocator.hpp>
 
 namespace vkx {
 struct MVP {

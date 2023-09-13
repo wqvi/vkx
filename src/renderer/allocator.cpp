@@ -1,7 +1,7 @@
 #include <vkx/renderer/buffers.hpp>
 #include <vkx/renderer/commands.hpp>
 #include <vkx/renderer/image.hpp>
-#include <vkx/renderer/memory/allocator.hpp>
+#include <vkx/renderer/allocator.hpp>
 #include <vkx/renderer/renderer.hpp>
 
 vkx::Buffer::Buffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, const VmaAllocationInfo& allocationInfo)

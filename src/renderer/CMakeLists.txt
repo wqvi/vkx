@@ -12,6 +12,3 @@ target_sources(vkx
 		"${CMAKE_CURRENT_SOURCE_DIR}/texture.cpp"
 		"${CMAKE_CURRENT_SOURCE_DIR}/vertex.cpp"
 )
-
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/memory")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/pipeline")

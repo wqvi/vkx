@@ -1,8 +1,7 @@
 #pragma once
 
 #include <vkx/renderer/model.hpp>
-#include <vkx/renderer/pipeline/graphics.hpp>
-#include <vkx/renderer/pipeline/compute.hpp>
+#include <vkx/renderer/pipeline.hpp>
 #include <vkx/renderer/swapchain.hpp>
 
 namespace vkx {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vkx/renderer/buffers.hpp>
-#include <vkx/renderer/pipeline/pipeline.hpp>
 
 namespace vkx {
 namespace pipeline {
