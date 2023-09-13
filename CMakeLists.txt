@@ -2,9 +2,24 @@ cmake_minimum_required(VERSION 3.25.0)
 project(vkx LANGUAGES CXX VERSION 0.0.0)
 
 add_executable(vkx
+	src/camera.cpp
 	src/main.cpp
+	src/raycast.cpp
 	src/renderer/allocator.cpp
+	src/renderer/buffers.cpp
+	src/renderer/commands.cpp
+	src/renderer/image.cpp
+	src/renderer/model.cpp
 	src/renderer/pipeline.cpp
+	src/renderer/queue_config.cpp
+	src/renderer/renderer.cpp
+	src/renderer/swapchain.cpp
+	src/renderer/swapchain_info.cpp
+	src/renderer/sync_objects.cpp
+	src/renderer/texture.cpp
+	src/renderer/vertex.cpp
+	src/voxels/voxels.cpp
+	src/window.cpp
 	)
 
 set_target_properties(vkx 
@@ -13,8 +28,6 @@ set_target_properties(vkx
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON
 )
-
-add_subdirectory("src")
 
 set_target_properties(vkx PROPERTIES
         VERSION ${PROJECT_VERSION}
