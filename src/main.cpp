@@ -1,4 +1,5 @@
 #include <vkx/vkx.hpp>
+#include <vkx/application.hpp>
 
 auto createShaderBindings() {
 	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
@@ -17,11 +18,11 @@ auto createShaderBindings() {
 }
 
 int main(int argc, char** argv) {
-	vkx::Window window{"vkx", 640, 480};
+	vkx::application app{};
 
 	vkx::Camera2D camera{{0, 0}, {0, 0}, {0.5f, 0.5f}};
 
-	const vkx::VulkanInstance vulkanInstance{window};
+	const vkx::VulkanInstance vulkanInstance{app.window};
 
 	const auto clearRenderPass = vulkanInstance.createRenderPass();
 
@@ -81,13 +82,9 @@ int main(int argc, char** argv) {
 
 	glm::vec2 direction{0};
 
-	const auto sdlKeyPressedEvent = [&window, &isRunning, &direction](const SDL_KeyboardEvent& key) {
+	const auto sdlKeyPressedEvent = [&isRunning, &direction](const SDL_KeyboardEvent& key) {
 		if (key.keysym.sym == SDLK_ESCAPE) {
 			isRunning = false;
-		}
-
-		if (key.keysym.sym == SDLK_BACKSPACE) {
-			window.createPopup();
 		}
 
 		const auto left = key.keysym.sym == SDLK_a;
@@ -152,7 +149,7 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	window.show();
+	SDL_ShowWindow(app.window);
 	while (isRunning) {
 		// Poll events
 		while (SDL_PollEvent(&event)) {
@@ -208,7 +205,9 @@ int main(int argc, char** argv) {
 		}
 
 		// Render
-		const auto [windowWidth, windowHeight] = window.getDimensions();
+		int windowWidth;
+		int windowHeight;
+		SDL_GetWindowSizeInPixels(app.window, &windowWidth, &windowHeight);
 		const glm::vec2 windowCenter{windowWidth / 2, windowHeight / 2};
 
 		auto& mvpBuffer = mvpBuffers[currentFrame];
@@ -221,7 +220,11 @@ int main(int argc, char** argv) {
 		auto [result, imageIndex] = swapchain.acquireNextImage(syncObject);
 
 		if (result == vk::Result::eErrorOutOfDateKHR) {
-			window.waitForUpdate();
+			SDL_GetWindowSizeInPixels(app.window, &windowWidth, &windowHeight);
+			while (windowWidth == 0 || windowHeight == 0) {
+				SDL_GetWindowSizeInPixels(app.window, &windowWidth, &windowHeight);
+				SDL_WaitEvent(nullptr);
+			}
 
 			vulkanInstance.waitIdle();
 
@@ -255,7 +258,11 @@ int main(int argc, char** argv) {
 		if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || framebufferResized) {
 			framebufferResized = false;
 
-			window.waitForUpdate();
+			SDL_GetWindowSizeInPixels(app.window, &windowWidth, &windowHeight);
+			while (windowWidth == 0 || windowHeight == 0) {
+				SDL_GetWindowSizeInPixels(app.window, &windowWidth, &windowHeight);
+				SDL_WaitEvent(nullptr);
+			}
 
 			vulkanInstance.waitIdle();
 

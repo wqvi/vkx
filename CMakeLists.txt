@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.25.0)
 project(vkx LANGUAGES CXX VERSION 0.0.0)
 
 add_executable(vkx
+	src/application.cpp
 	src/camera.cpp
 	src/main.cpp
 	src/raycast.cpp

@@ -14,8 +14,8 @@ static constexpr std::array<const char*, 1> layers{"VK_LAYER_KHRONOS_validation"
 static constexpr std::array<const char*, 0> layers{};
 #endif
 
-vkx::VulkanInstance::VulkanInstance(const vkx::Window& window)
-    : window(static_cast<SDL_Window*>(window)) {
+vkx::VulkanInstance::VulkanInstance(SDL_Window* window)
+    : window(window) {
 	constexpr vk::ApplicationInfo applicationInfo{
 	    "VKX",
 	    vkx::VERSION,

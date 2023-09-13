@@ -93,7 +93,7 @@ private:
 public:
 	VulkanInstance() = default;
 
-	explicit VulkanInstance(const vkx::Window& window);
+	explicit VulkanInstance(SDL_Window* window);
 
 	[[nodiscard]] vk::UniqueRenderPass createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear, vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR) const;
 
