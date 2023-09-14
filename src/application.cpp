@@ -27,4 +27,41 @@ application::~application() {
 
 	SDL_Quit();
 }
+
+void application::run() {
+	isRunning = true;
+
+	std::uint32_t currentFrame = 0;
+	bool framebufferResized = false;
+
+	SDL_ShowWindow(window);
+	while (isRunning) {
+		poll();
+	}
+
+	// cleanup?
+}
+
+void application::poll() {
+	SDL_Event event;
+	while (SDL_PollEvent(&event)) {
+		const auto eventType = event.type;
+
+		switch (eventType) {
+		case SDL_QUIT:
+			isRunning = false;
+			break;
+		case SDL_WINDOWEVENT:
+			break;
+		case SDL_KEYDOWN:
+			break;
+		case SDL_KEYUP:
+			break;
+		case SDL_MOUSEMOTION:
+			break;
+		default:
+			break;
+		}
+	}
+}
 }
