@@ -15,6 +15,8 @@ application::application() {
 	if (window == nullptr) {
 		throw std::runtime_error(SDL_GetError());
 	}
+
+	instance = vkx::VulkanInstance{window};
 }
 
 application::~application() {

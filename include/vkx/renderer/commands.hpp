@@ -10,7 +10,6 @@ struct DrawInfo {
 	const std::uint32_t currentFrame = 0;
 	const vkx::Swapchain* swapchain{};
 	const vkx::pipeline::GraphicsPipeline* graphicsPipeline{};
-	const vk::RenderPass renderPass{};
 	const std::vector<vkx::Mesh>& meshes;
 };
 
@@ -58,7 +57,7 @@ public:
 	std::vector<vk::CommandBuffer> allocateDrawCommands(std::uint32_t amount, vk::CommandBufferLevel level = vk::CommandBufferLevel::ePrimary) const;
 
 	template <class T>
-	void recordPrimaryDrawCommands(T begin, std::uint32_t size, const vkx::DrawInfo& drawInfo) const {
+	void recordPrimaryDrawCommands(T begin, std::uint32_t size, const vkx::VulkanInstance& instance, const vkx::DrawInfo& drawInfo) const {
 		const auto extent = drawInfo.swapchain->imageExtent;
 		const auto framebuffer = *drawInfo.swapchain->framebuffers[drawInfo.imageIndex];
 
@@ -74,7 +73,7 @@ public:
 		const std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
 		const vk::RenderPassBeginInfo renderPassBeginInfo{
-		    drawInfo.renderPass,
+		    instance.clearRenderPass,
 		    framebuffer,
 		    renderArea,
 		    clearValues};
@@ -118,14 +117,14 @@ public:
 	}
 
 	template <class T>
-	void recordSecondaryDrawCommands(T begin, std::uint32_t size, T secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const {
+	void recordSecondaryDrawCommands(const vkx::VulkanInstance& instance, T begin, std::uint32_t size, T secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const {
 		const auto extent = drawInfo.swapchain->imageExtent;
 		const auto framebuffer = *drawInfo.swapchain->framebuffers[drawInfo.imageIndex];
 
 		const vk::CommandBufferBeginInfo commandBufferBeginInfo{};
 
 		const vk::CommandBufferInheritanceInfo secondaryCommandBufferInheritanceInfo{
-		    drawInfo.renderPass,
+		    *instance.clearRenderPass,
 		    0,
 		    framebuffer};
 
@@ -143,7 +142,7 @@ public:
 		const std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
 		const vk::RenderPassBeginInfo renderPassBeginInfo{
-		    drawInfo.renderPass,
+		    *instance.clearRenderPass,
 		    framebuffer,
 		    renderArea,
 		    clearValues};

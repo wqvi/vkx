@@ -145,6 +145,8 @@ vkx::VulkanInstance::VulkanInstance(SDL_Window* window)
 		    }
 	    },
 	    &allocatorCreateInfo);
+
+	clearRenderPass = createRenderPass();
 }
 
 vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) const {
@@ -229,7 +231,7 @@ vk::Format vkx::VulkanInstance::findSupportedFormat(vk::ImageTiling tiling, vk::
 	return vk::Format::eUndefined;
 }
 
-vkx::Swapchain vkx::VulkanInstance::createSwapchain(const vk::UniqueRenderPass& renderPass) const {
+vkx::Swapchain vkx::VulkanInstance::createSwapchain() const {
 	const vkx::SwapchainInfo info{physicalDevice, *surface, window};
 	const vkx::QueueConfig config{physicalDevice, *surface};
 
@@ -255,15 +257,15 @@ vkx::Swapchain vkx::VulkanInstance::createSwapchain(const vk::UniqueRenderPass& 
 	    info.presentMode,
 	    true};
 
-	return vkx::Swapchain{*this, renderPass, info, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo)};
+	return vkx::Swapchain{*this, clearRenderPass, info, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo)};
 }
 
 vkx::CommandSubmitter vkx::VulkanInstance::createCommandSubmitter() const {
 	return vkx::CommandSubmitter{physicalDevice, *logicalDevice, *surface};
 }
 
-vkx::pipeline::GraphicsPipeline vkx::VulkanInstance::createGraphicsPipeline(const vk::UniqueRenderPass& renderPass, const vkx::pipeline::GraphicsPipelineInformation& information) const {
-	return vkx::pipeline::GraphicsPipeline{*this, *renderPass, information};
+vkx::pipeline::GraphicsPipeline vkx::VulkanInstance::createGraphicsPipeline(const vkx::pipeline::GraphicsPipelineInformation& information) const {
+	return vkx::pipeline::GraphicsPipeline{*this, *clearRenderPass, information};
 }
 
 std::vector<vkx::SyncObjects> vkx::VulkanInstance::createSyncObjects() const {

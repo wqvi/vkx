@@ -24,9 +24,7 @@ int main(int argc, char** argv) {
 
 	const vkx::VulkanInstance vulkanInstance{app.window};
 
-	const auto clearRenderPass = vulkanInstance.createRenderPass();
-
-	auto swapchain = vulkanInstance.createSwapchain(clearRenderPass);
+	auto swapchain = vulkanInstance.createSwapchain();
 
 	const auto commandSubmitter = vulkanInstance.createCommandSubmitter();
 
@@ -40,7 +38,7 @@ int main(int argc, char** argv) {
 	    vkx::Vertex::getAttributeDescriptions(),
 	    {sizeof(vkx::MVP)},
 	    {&texture}};
-	const auto graphicsPipeline = vulkanInstance.createGraphicsPipeline(clearRenderPass, graphicsPipelineInformation);
+	const auto graphicsPipeline = vulkanInstance.createGraphicsPipeline(graphicsPipelineInformation);
 
 	constexpr std::uint32_t chunkDrawCommandAmount = static_cast<std::uint32_t>(vkx::CHUNK_RADIUS * vkx::CHUNK_RADIUS);
 
@@ -230,7 +228,7 @@ int main(int argc, char** argv) {
 
 			swapchain.depthImage.destroy();
 
-			swapchain = vulkanInstance.createSwapchain(clearRenderPass);
+			swapchain = vulkanInstance.createSwapchain();
 			continue;
 		} else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 			throw std::runtime_error("Failed to acquire next image.");
@@ -243,13 +241,12 @@ int main(int argc, char** argv) {
 		    currentFrame,
 		    &swapchain,
 		    &graphicsPipeline,
-		    *clearRenderPass,
 		    meshes};
 
 		const auto* begin = &drawCommands[currentFrame * drawCommandAmount];
 		const auto* secondaryBegin = &secondaryDrawCommands[currentFrame * secondaryDrawCommandAmount];
 
-		commandSubmitter.recordSecondaryDrawCommands(begin, 1, secondaryBegin, chunkDrawCommandAmount, chunkDrawInfo);
+		commandSubmitter.recordSecondaryDrawCommands(vulkanInstance, begin, 1, secondaryBegin, chunkDrawCommandAmount, chunkDrawInfo);
 
 		commandSubmitter.submitDrawCommands(begin, drawCommandAmount, syncObject);
 
@@ -268,7 +265,7 @@ int main(int argc, char** argv) {
 
 			swapchain.depthImage.destroy();
 
-			swapchain = vulkanInstance.createSwapchain(clearRenderPass);
+			swapchain = vulkanInstance.createSwapchain();
 		} else if (result != vk::Result::eSuccess) {
 			throw std::runtime_error("Failed to present.");
 		}

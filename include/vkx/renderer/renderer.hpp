@@ -79,6 +79,7 @@ constexpr auto posMod(T a, T b) {
 class VulkanInstance {
 	friend class Swapchain;
 	friend class pipeline::GraphicsPipeline;
+	friend class CommandSubmitter;
 
 private:
 	SDL_Window* window = nullptr;
@@ -89,6 +90,7 @@ private:
 	float maxSamplerAnisotropy = 0;
 	vk::Format depthFormat;
 	VmaAllocator allocator;
+	vk::UniqueRenderPass clearRenderPass;
 
 public:
 	VulkanInstance() = default;
@@ -101,11 +103,11 @@ public:
 
 	[[nodiscard]] vk::UniqueImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
-	[[nodiscard]] vkx::Swapchain createSwapchain(const vk::UniqueRenderPass& renderPass) const;
+	[[nodiscard]] vkx::Swapchain createSwapchain() const;
 
 	[[nodiscard]] vkx::CommandSubmitter createCommandSubmitter() const;
 
-	[[nodiscard]] vkx::pipeline::GraphicsPipeline createGraphicsPipeline(const vk::UniqueRenderPass& renderPass, const vkx::pipeline::GraphicsPipelineInformation& information) const;
+	[[nodiscard]] vkx::pipeline::GraphicsPipeline createGraphicsPipeline(const vkx::pipeline::GraphicsPipelineInformation& information) const;
 
 	[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects() const;
 
