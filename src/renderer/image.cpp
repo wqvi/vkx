@@ -11,7 +11,7 @@ void vkx::Image::destroy() const {
 	vmaDestroyImage(allocator, resourceImage, resourceAllocation);
 }
 
-vk::UniqueImageView vkx::Image::createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const {
+vk::ImageView vkx::Image::createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const {
 	const vk::ImageSubresourceRange subresourceRange{
 	    aspectFlags,
 	    0,
@@ -27,5 +27,5 @@ vk::UniqueImageView vkx::Image::createView(vk::Format format, vk::ImageAspectFla
 	    {},
 	    subresourceRange};
 
-	return logicalDevice.createImageViewUnique(imageViewCreateInfo);
+	return logicalDevice.createImageView(imageViewCreateInfo);
 }

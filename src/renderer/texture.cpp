@@ -7,7 +7,8 @@
 vkx::Texture::Texture(const std::string& file,
 		      const vkx::VulkanInstance& instance,
 		      const vkx::CommandSubmitter& commandSubmitter)
-	: sampler(instance.createTextureSampler()) {
+	: logicalDevice(instance.logicalDevice),
+	sampler(instance.createTextureSampler()) {
 	int width;
 	int height;
 	int channels;
@@ -38,7 +39,13 @@ vkx::Texture::Texture(const std::string& file,
 
 	view = image.createView(vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
 
-	descriptorImageInfo = {*sampler, *view, vk::ImageLayout::eShaderReadOnlyOptimal};
+	descriptorImageInfo = {sampler, view, vk::ImageLayout::eShaderReadOnlyOptimal};
+}
+
+void vkx::Texture::destroy() {
+	logicalDevice.destroyImageView(view);
+	logicalDevice.destroySampler(sampler);
+	image.destroy();
 }
 
 const vk::DescriptorImageInfo* vkx::Texture::imageInfo() const noexcept {

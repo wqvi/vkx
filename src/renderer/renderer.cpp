@@ -35,7 +35,8 @@ vkx::VulkanInstance::VulkanInstance(SDL_Window* window)
 	using Severity = vk::DebugUtilsMessageSeverityFlagBitsEXT;
 	using Type = vk::DebugUtilsMessageTypeFlagBitsEXT;
 
-	constexpr auto debugMessageSeverity = Severity::eInfo | Severity::eVerbose | Severity::eWarning | Severity::eError;
+	//constexpr auto debugMessageSeverity = Severity::eInfo | Severity::eVerbose | Severity::eWarning | Severity::eError;
+	constexpr auto debugMessageSeverity = Severity::eWarning | Severity::eError;
 	constexpr auto debugMessageType = Type::eGeneral | Type::eValidation | Type::ePerformance;
 
 	const auto debugCallback = [](auto, auto, const auto* pCallbackData, auto*) {
@@ -60,9 +61,9 @@ vkx::VulkanInstance::VulkanInstance(SDL_Window* window)
 
 #ifdef DEBUG
 	const vk::StructureChain structureChain{instanceCreateInfo, debugUtilsMessengerCreateInfo};
-	instance = vk::createInstanceUnique(structureChain.get<vk::InstanceCreateInfo>());
+	instance = vk::createInstance(structureChain.get<vk::InstanceCreateInfo>());
 #else
-	instance = vk::createInstanceUnique(instanceCreateInfo);
+	instance = vk::createInstance(instanceCreateInfo);
 #endif
 
 	const auto cSurface = vkx::create<VkSurfaceKHR>(
@@ -71,11 +72,11 @@ vkx::VulkanInstance::VulkanInstance(SDL_Window* window)
 			    throw std::runtime_error("Failed to create SDL Vulkan surface.");
 		    }
 	    },
-	    this->window, *instance);
+	    this->window, instance);
 
-	surface = vk::UniqueSurfaceKHR(cSurface, *instance);
+	surface = cSurface;
 
-	const auto physicalDevices = instance->enumeratePhysicalDevices();
+	const auto physicalDevices = instance.enumeratePhysicalDevices();
 
 	vk::PhysicalDevice bestPhysicalDevice = nullptr;
 	std::uint32_t bestRating = 0;
@@ -94,7 +95,7 @@ vkx::VulkanInstance::VulkanInstance(SDL_Window* window)
 
 	physicalDevice = bestPhysicalDevice;
 
-	const vkx::QueueConfig queueConfig{physicalDevice, *surface};
+	const vkx::QueueConfig queueConfig{physicalDevice, surface};
 
 	constexpr float queuePriority = 1.0f;
 	const auto queueCreateInfos = queueConfig.createQueueInfos(&queuePriority);
@@ -111,7 +112,7 @@ vkx::VulkanInstance::VulkanInstance(SDL_Window* window)
 	    deviceExtensions,
 	    &features};
 
-	logicalDevice = physicalDevice.createDeviceUnique(deviceCreateInfo);
+	logicalDevice = physicalDevice.createDevice(deviceCreateInfo);
 
 	maxSamplerAnisotropy = physicalDevice.getProperties().limits.maxSamplerAnisotropy;
 
@@ -123,14 +124,14 @@ vkx::VulkanInstance::VulkanInstance(SDL_Window* window)
 
 	const VmaAllocatorCreateInfo allocatorCreateInfo{
 	    0,
-	    static_cast<VkPhysicalDevice>(physicalDevice),
-	    static_cast<VkDevice>(*logicalDevice),
+	    physicalDevice,
+	    logicalDevice,
 	    0,
 	    nullptr,
 	    nullptr,
 	    nullptr,
 	    &vulkanFunctions,
-	    *instance,
+	    instance,
 	    VK_API_VERSION_1_0,
 #ifdef VMA_EXTERNAL_MEMORY
 	    nullptr
@@ -149,7 +150,7 @@ vkx::VulkanInstance::VulkanInstance(SDL_Window* window)
 	clearRenderPass = createRenderPass();
 }
 
-vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) const {
+vk::RenderPass vkx::VulkanInstance::createRenderPass(vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) const {
 	using Sample = vk::SampleCountFlagBits;
 	using Load = vk::AttachmentLoadOp;
 	using Store = vk::AttachmentStoreOp;
@@ -157,7 +158,7 @@ vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::AttachmentLoadOp 
 	using Stage = vk::PipelineStageFlagBits;
 	using Access = vk::AccessFlagBits;
 
-	const vkx::SwapchainInfo swapchainInfo{physicalDevice, *surface, window};
+	const vkx::SwapchainInfo swapchainInfo{physicalDevice, surface, window};
 
 	const vk::AttachmentDescription colorAttachment{
 	    {},
@@ -213,7 +214,7 @@ vk::UniqueRenderPass vkx::VulkanInstance::createRenderPass(vk::AttachmentLoadOp 
 	    subpass,
 	    dependency};
 
-	return logicalDevice->createRenderPassUnique(renderPassCreateInfo);
+	return logicalDevice.createRenderPass(renderPassCreateInfo);
 }
 
 vk::Format vkx::VulkanInstance::findSupportedFormat(vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates) const {
@@ -232,8 +233,8 @@ vk::Format vkx::VulkanInstance::findSupportedFormat(vk::ImageTiling tiling, vk::
 }
 
 vkx::Swapchain vkx::VulkanInstance::createSwapchain() const {
-	const vkx::SwapchainInfo info{physicalDevice, *surface, window};
-	const vkx::QueueConfig config{physicalDevice, *surface};
+	const vkx::SwapchainInfo info{physicalDevice, surface, window};
+	const vkx::QueueConfig config{physicalDevice, surface};
 
 	int width;
 	int height;
@@ -243,7 +244,7 @@ vkx::Swapchain vkx::VulkanInstance::createSwapchain() const {
 
 	const vk::SwapchainCreateInfoKHR swapchainCreateInfo{
 	    {},
-	    *surface,
+	    surface,
 	    info.imageCount,
 	    info.surfaceFormat,
 	    info.surfaceColorSpace,
@@ -257,26 +258,26 @@ vkx::Swapchain vkx::VulkanInstance::createSwapchain() const {
 	    info.presentMode,
 	    true};
 
-	return vkx::Swapchain{*this, clearRenderPass, info, logicalDevice->createSwapchainKHRUnique(swapchainCreateInfo)};
+	return vkx::Swapchain{*this, clearRenderPass, info, logicalDevice.createSwapchainKHR(swapchainCreateInfo)};
 }
 
 vkx::CommandSubmitter vkx::VulkanInstance::createCommandSubmitter() const {
-	return vkx::CommandSubmitter{physicalDevice, *logicalDevice, *surface};
+	return vkx::CommandSubmitter{physicalDevice, logicalDevice, surface};
 }
 
 vkx::pipeline::GraphicsPipeline vkx::VulkanInstance::createGraphicsPipeline(const vkx::pipeline::GraphicsPipelineInformation& information) const {
-	return vkx::pipeline::GraphicsPipeline{*this, *clearRenderPass, information};
+	return vkx::pipeline::GraphicsPipeline{*this, clearRenderPass, information};
 }
 
 std::vector<vkx::SyncObjects> vkx::VulkanInstance::createSyncObjects() const {
 	std::vector<vkx::SyncObjects> objs{vkx::MAX_FRAMES_IN_FLIGHT};
 
-	std::generate(objs.begin(), objs.end(), [&logicalDevice = *this->logicalDevice]() { return vkx::SyncObjects{logicalDevice}; });
+	std::generate(objs.begin(), objs.end(), [&logicalDevice = this->logicalDevice]() { return vkx::SyncObjects{logicalDevice}; });
 
 	return objs;
 }
 
-vk::UniqueSampler vkx::VulkanInstance::createTextureSampler() const {
+vk::Sampler vkx::VulkanInstance::createTextureSampler() const {
 	using Filter = vk::Filter;
 	using Address = vk::SamplerAddressMode;
 
@@ -298,14 +299,14 @@ vk::UniqueSampler vkx::VulkanInstance::createTextureSampler() const {
 	    vk::BorderColor::eIntOpaqueBlack,
 	    false};
 
-	return logicalDevice->createSamplerUnique(samplerCreateInfo);
+	return logicalDevice.createSampler(samplerCreateInfo);
 }
 
 void vkx::VulkanInstance::waitIdle() const {
-	logicalDevice->waitIdle();
+	logicalDevice.waitIdle();
 }
 
-vk::UniqueImageView vkx::VulkanInstance::createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const {
+vk::ImageView vkx::VulkanInstance::createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const {
 	const vk::ImageSubresourceRange subresourceRange{
 	    aspectFlags,
 	    0,
@@ -321,11 +322,15 @@ vk::UniqueImageView vkx::VulkanInstance::createImageView(vk::Image image, vk::Fo
 	    {},
 	    subresourceRange};
 
-	return logicalDevice->createImageViewUnique(imageViewCreateInfo);
+	return logicalDevice.createImageView(imageViewCreateInfo);
 }
 
 void vkx::VulkanInstance::destroy() const {
+	logicalDevice.destroyRenderPass(clearRenderPass);
 	vmaDestroyAllocator(allocator);
+	logicalDevice.destroy();
+	instance.destroySurfaceKHR(surface);
+	instance.destroy();
 }
 
 vkx::Buffer vkx::VulkanInstance::allocateBuffer(std::size_t memorySize,
@@ -390,7 +395,7 @@ vkx::Image vkx::VulkanInstance::allocateImage(vk::Extent2D extent,
 		throw std::runtime_error("Failed to allocate image memory resources.");
 	}
 
-	return vkx::Image{*logicalDevice, allocator, resourceImage, resourceAllocation};
+	return vkx::Image{logicalDevice, allocator, resourceImage, resourceAllocation};
 }
 
 std::vector<vkx::UniformBuffer> vkx::VulkanInstance::allocateUniformBuffers(std::size_t memorySize, std::size_t amount) const {
@@ -405,7 +410,7 @@ std::vector<vkx::UniformBuffer> vkx::VulkanInstance::allocateUniformBuffers(std:
 std::uint32_t vkx::VulkanInstance::ratePhysicalDevice(vk::PhysicalDevice physicalDevice) const {
 	std::uint32_t rating = 0;
 
-	const vkx::QueueConfig indices{physicalDevice, *surface};
+	const vkx::QueueConfig indices{physicalDevice, surface};
 	if (indices.isComplete()) {
 		rating++;
 	}

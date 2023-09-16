@@ -4,14 +4,14 @@
 vkx::pipeline::GraphicsPipeline::GraphicsPipeline(const vkx::VulkanInstance& instance,
 					vk::RenderPass renderPass,
 					const vkx::pipeline::GraphicsPipelineInformation& info)
-	: logicalDevice(*instance.logicalDevice) {
+	: logicalDevice(instance.logicalDevice) {
 	const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{{}, info.bindings};
 
-	descriptorLayout = logicalDevice.createDescriptorSetLayoutUnique(descriptorSetLayoutCreateInfo);
+	descriptorLayout = logicalDevice.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
 
-	const vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{{}, *descriptorLayout};
+	const vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{{}, descriptorLayout};
 
-	pipelineLayout = logicalDevice.createPipelineLayoutUnique(pipelineLayoutCreateInfo);
+	pipelineLayout = logicalDevice.createPipelineLayout(pipelineLayoutCreateInfo);
 
 	const auto vertShaderModule = createShaderModule(info.vertexFile);
 	const auto fragShaderModule = createShaderModule(info.fragmentFile);
@@ -111,12 +111,14 @@ vkx::pipeline::GraphicsPipeline::GraphicsPipeline(const vkx::VulkanInstance& ins
 	    &depthStencilStateCreateInfo,
 	    &colorBlendStateCreateInfo,
 	    &dynamicStateCreateInfo,
-	    *pipelineLayout,
+	    pipelineLayout,
 	    renderPass,
 	    0,
 	    nullptr};
 
-	pipeline = std::move(logicalDevice.createGraphicsPipelinesUnique({}, graphicsPipelineCreateInfo).value[0]);
+	if (vkCreateGraphicsPipelines(logicalDevice, nullptr, 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo*>(&graphicsPipelineCreateInfo), nullptr, reinterpret_cast<VkPipeline*>(&pipeline)) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create pipeline");
+	}
 
 	std::vector<vk::DescriptorPoolSize> poolSizes{};
 	poolSizes.reserve(info.bindings.size());
@@ -126,11 +128,11 @@ vkx::pipeline::GraphicsPipeline::GraphicsPipeline(const vkx::VulkanInstance& ins
 
 	const vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo{{}, vkx::MAX_FRAMES_IN_FLIGHT, poolSizes};
 
-	descriptorPool = logicalDevice.createDescriptorPoolUnique(descriptorPoolCreateInfo);
+	descriptorPool = logicalDevice.createDescriptorPool(descriptorPoolCreateInfo);
 
-	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, *descriptorLayout};
+	const std::vector layouts{vkx::MAX_FRAMES_IN_FLIGHT, descriptorLayout};
 
-	const vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{*descriptorPool, layouts};
+	const vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{descriptorPool, layouts};
 
 	descriptorSets = logicalDevice.allocateDescriptorSets(descriptorSetAllocateInfo);
 
@@ -168,6 +170,19 @@ vkx::pipeline::GraphicsPipeline::GraphicsPipeline(const vkx::VulkanInstance& ins
 
 		logicalDevice.updateDescriptorSets(writes, {});
 	}
+}
+
+void vkx::pipeline::GraphicsPipeline::destroy() {
+	for (auto& vec : uniforms) {
+		for (auto& uniform : vec) {
+			uniform.buffer.destroy();
+		}
+	}
+
+	logicalDevice.destroyDescriptorSetLayout(descriptorLayout);
+	logicalDevice.destroyPipelineLayout(pipelineLayout);
+	logicalDevice.destroyDescriptorPool(descriptorPool);
+	logicalDevice.destroyPipeline(pipeline);
 }
 
 const std::vector<vkx::UniformBuffer>& vkx::pipeline::GraphicsPipeline::getUniformByIndex(std::size_t i) const {

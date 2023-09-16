@@ -6,10 +6,14 @@ vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::D
 
 	const vk::CommandPoolCreateInfo commandPoolCreateInfo{vk::CommandPoolCreateFlagBits::eResetCommandBuffer, *queueConfig.graphicsIndex};
 
-	commandPool = logicalDevice.createCommandPoolUnique(commandPoolCreateInfo);
+	commandPool = logicalDevice.createCommandPool(commandPoolCreateInfo);
 
 	graphicsQueue = logicalDevice.getQueue(*queueConfig.graphicsIndex, 0);
 	presentQueue = logicalDevice.getQueue(*queueConfig.presentIndex, 0);
+}
+
+void vkx::CommandSubmitter::destroy() {
+	logicalDevice.destroyCommandPool(commandPool);
 }
 
 void vkx::CommandSubmitter::transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout) const {
@@ -89,7 +93,7 @@ void vkx::CommandSubmitter::copyBufferToImage(vk::Buffer buffer, vk::Image image
 
 std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::uint32_t amount, vk::CommandBufferLevel level) const {
 	const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
-	    *commandPool,
+	    commandPool,
 	    level,
 	    amount * vkx::MAX_FRAMES_IN_FLIGHT};
 
@@ -99,7 +103,7 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::
 vk::Result vkx::CommandSubmitter::presentToSwapchain(const vkx::Swapchain& swapchain, std::uint32_t imageIndex, const vkx::SyncObjects& syncObjects) const {
 	const vk::PresentInfoKHR presentInfo{
 	    *syncObjects.renderFinishedSemaphore,
-	    *swapchain.swapchain,
+	    swapchain.swapchain,
 	    imageIndex};
 
 	return presentQueue.presentKHR(presentInfo);

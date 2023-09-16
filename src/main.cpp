@@ -20,7 +20,7 @@ auto createShaderBindings() {
 int main(int argc, char** argv) {
 	vkx::application app{};
 
-	vkx::Camera2D camera{{0, 0}, {0, 0}, {0.5f, 0.5f}};
+	/*vkx::Camera2D camera{{0, 0}, {0, 0}, {0.5f, 0.5f}};
 
 	const vkx::VulkanInstance vulkanInstance{app.window};
 
@@ -288,7 +288,7 @@ int main(int argc, char** argv) {
 
 	texture.image.destroy();
 	swapchain.depthImage.destroy();
-	vulkanInstance.destroy();
+	vulkanInstance.destroy();*/
 
 	return EXIT_SUCCESS;
 }

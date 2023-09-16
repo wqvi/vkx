@@ -80,28 +80,29 @@ class VulkanInstance {
 	friend class Swapchain;
 	friend class pipeline::GraphicsPipeline;
 	friend class CommandSubmitter;
+	friend class Texture;
 
 private:
 	SDL_Window* window = nullptr;
-	vk::UniqueInstance instance;
-	vk::UniqueSurfaceKHR surface;
+	vk::Instance instance;
+	vk::SurfaceKHR surface;
 	vk::PhysicalDevice physicalDevice;
-	vk::UniqueDevice logicalDevice;
+	vk::Device logicalDevice;
 	float maxSamplerAnisotropy = 0;
 	vk::Format depthFormat;
 	VmaAllocator allocator;
-	vk::UniqueRenderPass clearRenderPass;
+	vk::RenderPass clearRenderPass;
 
 public:
 	VulkanInstance() = default;
 
 	explicit VulkanInstance(SDL_Window* window);
 
-	[[nodiscard]] vk::UniqueRenderPass createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear, vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR) const;
+	[[nodiscard]] vk::RenderPass createRenderPass(vk::AttachmentLoadOp loadOp = vk::AttachmentLoadOp::eClear, vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::ePresentSrcKHR) const;
 
 	[[nodiscard]] vk::Format findSupportedFormat(vk::ImageTiling tiling, vk::FormatFeatureFlags features, const std::vector<vk::Format>& candidates) const;
 
-	[[nodiscard]] vk::UniqueImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
+	[[nodiscard]] vk::ImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
 	[[nodiscard]] vkx::Swapchain createSwapchain() const;
 
@@ -111,7 +112,7 @@ public:
 
 	[[nodiscard]] std::vector<vkx::SyncObjects> createSyncObjects() const;
 
-	[[nodiscard]] vk::UniqueSampler createTextureSampler() const;
+	[[nodiscard]] vk::Sampler createTextureSampler() const;
 
 	void waitIdle() const;
 

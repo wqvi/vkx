@@ -11,19 +11,21 @@ class Swapchain {
 
 public:
 	vk::Device logicalDevice{};
-	vk::UniqueSwapchainKHR swapchain{};
+	vk::SwapchainKHR swapchain{};
 	vk::Extent2D imageExtent{};
-	std::vector<vk::UniqueImageView> imageViews{};
+	std::vector<vk::ImageView> imageViews{};
 	vkx::Image depthImage{};
-	vk::UniqueImageView depthImageView{};
-	std::vector<vk::UniqueFramebuffer> framebuffers{};
+	vk::ImageView depthImageView{};
+	std::vector<vk::Framebuffer> framebuffers{};
 
 	Swapchain() = default;
 
 	explicit Swapchain(const vkx::VulkanInstance& instance,
-			   const vk::UniqueRenderPass& renderPass,
+			   vk::RenderPass renderPass,
 			   const vkx::SwapchainInfo& swapchainInfo,
-			   vk::UniqueSwapchainKHR&& uniqueSwapchain);
+			   vk::SwapchainKHR swapchain);
+
+	void destroy();
 
 	vk::ResultValue<std::uint32_t> acquireNextImage(const vkx::SyncObjects& syncObjects) const;
 };

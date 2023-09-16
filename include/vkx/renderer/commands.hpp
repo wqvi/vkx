@@ -16,7 +16,7 @@ struct DrawInfo {
 class CommandSubmitter {
 private:
 	vk::Device logicalDevice{};
-	vk::UniqueCommandPool commandPool{};
+	vk::CommandPool commandPool{};
 	vk::Queue graphicsQueue{};
 	vk::Queue presentQueue{};
 
@@ -27,10 +27,12 @@ public:
 				  vk::Device logicalDevice,
 				  vk::SurfaceKHR surface);
 
+	void destroy();
+
 	template <class T>
 	void submitImmediately(T command) const {
 		const vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
-		    *commandPool,
+		    commandPool,
 		    vk::CommandBufferLevel::ePrimary,
 		    1};
 
@@ -59,7 +61,7 @@ public:
 	template <class T>
 	void recordPrimaryDrawCommands(T begin, std::uint32_t size, const vkx::VulkanInstance& instance, const vkx::DrawInfo& drawInfo) const {
 		const auto extent = drawInfo.swapchain->imageExtent;
-		const auto framebuffer = *drawInfo.swapchain->framebuffers[drawInfo.imageIndex];
+		const auto framebuffer = drawInfo.swapchain->framebuffers[drawInfo.imageIndex];
 
 		const vk::CommandBufferBeginInfo commandBufferBeginInfo{};
 
@@ -96,7 +98,7 @@ public:
 
 			commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
-			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipeline);
+			commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline->pipeline);
 
 			commandBuffer.setViewport(0, viewport);
 
@@ -106,7 +108,7 @@ public:
 
 			commandBuffer.bindIndexBuffer(static_cast<vk::Buffer>(mesh.indexBuffer), 0, vk::IndexType::eUint32);
 
-			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipelineLayout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
+			commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline->pipelineLayout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
 
 			commandBuffer.drawIndexed(static_cast<std::uint32_t>(mesh.activeIndexCount), 1, 0, 0, 0);
 
@@ -119,12 +121,12 @@ public:
 	template <class T>
 	void recordSecondaryDrawCommands(const vkx::VulkanInstance& instance, T begin, std::uint32_t size, T secondaryBegin, std::uint32_t secondarySize, const DrawInfo& drawInfo) const {
 		const auto extent = drawInfo.swapchain->imageExtent;
-		const auto framebuffer = *drawInfo.swapchain->framebuffers[drawInfo.imageIndex];
+		const auto framebuffer = drawInfo.swapchain->framebuffers[drawInfo.imageIndex];
 
 		const vk::CommandBufferBeginInfo commandBufferBeginInfo{};
 
 		const vk::CommandBufferInheritanceInfo secondaryCommandBufferInheritanceInfo{
-		    *instance.clearRenderPass,
+		    instance.clearRenderPass,
 		    0,
 		    framebuffer};
 
@@ -142,7 +144,7 @@ public:
 		const std::array clearValues{vk::ClearValue{clearColor}, vk::ClearValue{clearDepthStencil}};
 
 		const vk::RenderPassBeginInfo renderPassBeginInfo{
-		    *instance.clearRenderPass,
+		    instance.clearRenderPass,
 		    framebuffer,
 		    renderArea,
 		    clearValues};
@@ -170,7 +172,7 @@ public:
 
 				secondaryCommandBuffer.begin(secondaryCommandBufferBeginInfo);
 
-				secondaryCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipeline);
+				secondaryCommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline->pipeline);
 
 				secondaryCommandBuffer.setViewport(0, viewport);
 
@@ -180,7 +182,7 @@ public:
 
 				secondaryCommandBuffer.bindIndexBuffer(static_cast<vk::Buffer>(mesh.indexBuffer), 0, vk::IndexType::eUint32);
 
-				secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *drawInfo.graphicsPipeline->pipelineLayout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
+				secondaryCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, drawInfo.graphicsPipeline->pipelineLayout, 0, drawInfo.graphicsPipeline->descriptorSets[drawInfo.currentFrame], {});
 
 				secondaryCommandBuffer.drawIndexed(static_cast<std::uint32_t>(mesh.activeIndexCount), 1, 0, 0, 0);
 

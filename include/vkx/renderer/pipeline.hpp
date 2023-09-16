@@ -17,10 +17,10 @@ struct GraphicsPipelineInformation {
 class GraphicsPipeline {
 public:
 	vk::Device logicalDevice{};
-	vk::UniqueDescriptorSetLayout descriptorLayout{};
-	vk::UniquePipelineLayout pipelineLayout{};
-	vk::UniquePipeline pipeline{};
-	vk::UniqueDescriptorPool descriptorPool{};
+	vk::DescriptorSetLayout descriptorLayout{};
+	vk::PipelineLayout pipelineLayout{};
+	vk::Pipeline pipeline{};
+	vk::DescriptorPool descriptorPool{};
 	std::vector<vk::DescriptorSet> descriptorSets{};
 	std::vector<std::vector<UniformBuffer>> uniforms{};
 
@@ -29,6 +29,8 @@ public:
 	explicit GraphicsPipeline(const vkx::VulkanInstance& instance,
 				  vk::RenderPass renderPass,
 				  const vkx::pipeline::GraphicsPipelineInformation& info);
+
+	void destroy();
 
 	const std::vector<UniformBuffer>& getUniformByIndex(std::size_t i) const;
 

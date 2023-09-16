@@ -17,17 +17,56 @@ application::application() {
 	}
 
 	instance = vkx::VulkanInstance{window};
+
+	swapchain = instance.createSwapchain();
+
+	commandSubmitter = instance.createCommandSubmitter();
+
+	texture = vkx::Texture{"resources/a.jpg", instance, commandSubmitter};
+
+	constexpr vk::DescriptorSetLayoutBinding uboLayoutBinding{
+	    0,
+	    vk::DescriptorType::eUniformBuffer,
+	    1,
+	    vk::ShaderStageFlagBits::eVertex};
+
+	constexpr vk::DescriptorSetLayoutBinding samplerLayoutBinding{
+	    1,
+	    vk::DescriptorType::eCombinedImageSampler,
+	    1,
+	    vk::ShaderStageFlagBits::eFragment};
+
+	const vkx::pipeline::GraphicsPipelineInformation graphicsPipelineInformation{
+	    "build/shader2D.vert.spv",
+	    "build/shader2D.frag.spv",
+	    {uboLayoutBinding, samplerLayoutBinding},
+	    vkx::Vertex::getBindingDescription(),
+	    vkx::Vertex::getAttributeDescriptions(),
+	    {sizeof(vkx::MVP)},
+	    {&texture}};
+
+	pipeline = instance.createGraphicsPipeline(graphicsPipelineInformation);
+
 }
 
 application::~application() {
-#ifdef DEBUG
-	SDL_Log("Good bye!");
-#endif
+	instance.waitIdle();
+
+	texture.destroy();
+	pipeline.destroy();
+	swapchain.destroy();
+	commandSubmitter.destroy();
+	instance.destroy();
+
 	if (window) {
 		SDL_DestroyWindow(window);
 	}
 
 	SDL_Quit();
+
+#ifdef DEBUG
+	SDL_Log("Good bye!");
+#endif
 }
 
 void application::run() {

@@ -19,6 +19,6 @@ public:
 
 	void destroy() const;
 
-	vk::UniqueImageView createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const;
+	vk::ImageView createView(vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 };
 } // namespace vkx
