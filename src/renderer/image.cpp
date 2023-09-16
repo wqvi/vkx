@@ -3,6 +3,38 @@
 vkx::Image::Image(vk::Device logicalDevice, VmaAllocator allocator, VkImage image, VmaAllocation allocation)
     : logicalDevice(logicalDevice), allocator(allocator), resourceImage(image), resourceAllocation(allocation) {}
 
+vkx::Image::Image(vk::Device logicalDevice, VmaAllocator allocator, vk::Extent2D extent, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags imageUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage)
+	: logicalDevice(logicalDevice), 
+	allocator(allocator) {
+	const vk::Extent3D imageExtent{extent.width, extent.height, 1};
+
+	const vk::ImageCreateInfo imageCreateInfo{
+	    {},
+	    vk::ImageType::e2D,
+	    format,
+	    imageExtent,
+	    1,
+	    1,
+	    vk::SampleCountFlagBits::e1,
+	    tiling,
+	    imageUsage,
+	    vk::SharingMode::eExclusive};
+
+	VmaAllocationCreateInfo allocationCreateInfo{
+	    flags,
+	    memoryUsage,
+	    0,
+	    0,
+	    0,
+	    nullptr,
+	    nullptr,
+	    {}};
+
+	if (vmaCreateImage(allocator, reinterpret_cast<const VkImageCreateInfo*>(&imageCreateInfo), &allocationCreateInfo, &resourceImage, &resourceAllocation, nullptr) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate image memory resources.");
+	}
+}
+
 vkx::Image::operator vk::Image() const {
 	return static_cast<vk::Image>(resourceImage);
 }

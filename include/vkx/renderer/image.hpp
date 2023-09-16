@@ -15,6 +15,8 @@ public:
 
 	explicit Image(vk::Device logicalDevice, VmaAllocator allocator, VkImage image, VmaAllocation allocation);
 
+	explicit Image(vk::Device logicalDevice, VmaAllocator allocator, vk::Extent2D extent, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags imageUsage, VmaAllocationCreateFlags flags, VmaMemoryUsage memoryUsage);
+
 	explicit operator vk::Image() const;
 
 	void destroy() const;
