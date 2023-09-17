@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vkx/renderer/image.hpp>
+#include <vkx/renderer/renderer.hpp>
 
 namespace vkx {
 class Texture {

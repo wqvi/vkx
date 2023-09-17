@@ -11,7 +11,6 @@ class application {
 private:
 	bool isRunning;
 	vkx::VulkanInstance instance;
-	vkx::Swapchain swapchain;
 	vkx::CommandSubmitter commandSubmitter;
 	vkx::Texture texture;
 	// yea there needs to be more obviously but for now

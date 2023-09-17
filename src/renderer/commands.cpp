@@ -1,4 +1,5 @@
 #include <vkx/renderer/commands.hpp>
+#include <vkx/renderer/queue_config.hpp>
 
 vkx::CommandSubmitter::CommandSubmitter(vk::PhysicalDevice physicalDevice, vk::Device logicalDevice, vk::SurfaceKHR surface)
     : logicalDevice(logicalDevice) {
@@ -100,7 +101,7 @@ std::vector<vk::CommandBuffer> vkx::CommandSubmitter::allocateDrawCommands(std::
 	return logicalDevice.allocateCommandBuffers(commandBufferAllocateInfo);
 }
 
-vk::Result vkx::CommandSubmitter::presentToSwapchain(const vkx::Swapchain& swapchain, std::uint32_t imageIndex, const vkx::SyncObjects& syncObjects) const {
+vk::Result vkx::CommandSubmitter::presentToSwapchain(const vkx::VulkanInstance::Swapchain& swapchain, std::uint32_t imageIndex, const vkx::SyncObjects& syncObjects) const {
 	const vk::PresentInfoKHR presentInfo{
 	    *syncObjects.renderFinishedSemaphore,
 	    swapchain.swapchain,

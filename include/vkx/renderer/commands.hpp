@@ -2,13 +2,14 @@
 
 #include <vkx/renderer/model.hpp>
 #include <vkx/renderer/pipeline.hpp>
-#include <vkx/renderer/swapchain.hpp>
+#include <vkx/renderer/renderer.hpp>
+#include <vkx/renderer/sync_objects.hpp>
 
 namespace vkx {
 struct DrawInfo {
 	const std::uint32_t imageIndex = 0;
 	const std::uint32_t currentFrame = 0;
-	const vkx::Swapchain* swapchain{};
+	const vkx::VulkanInstance::Swapchain* swapchain{};
 	const vkx::pipeline::GraphicsPipeline* graphicsPipeline{};
 	const std::vector<vkx::Mesh>& meshes;
 };
@@ -213,6 +214,6 @@ public:
 		graphicsQueue.submit(submitInfo, *syncObjects.inFlightFence);
 	}
 
-	vk::Result presentToSwapchain(const vkx::Swapchain& swapchain, std::uint32_t imageIndex, const vkx::SyncObjects& syncObjects) const;
+	vk::Result presentToSwapchain(const vkx::VulkanInstance::Swapchain& swapchain, std::uint32_t imageIndex, const vkx::SyncObjects& syncObjects) const;
 };
 } // namespace vkx

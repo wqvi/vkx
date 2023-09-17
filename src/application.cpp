@@ -18,8 +18,6 @@ application::application() {
 
 	instance = vkx::VulkanInstance{window};
 
-	swapchain = instance.createSwapchain();
-
 	commandSubmitter = instance.createCommandSubmitter();
 
 	texture = vkx::Texture{"resources/a.jpg", instance, commandSubmitter};
@@ -54,7 +52,6 @@ application::~application() {
 
 	texture.destroy();
 	pipeline.destroy();
-	swapchain.destroy();
 	commandSubmitter.destroy();
 	instance.destroy();
 

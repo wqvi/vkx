@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vkx/renderer/renderer.hpp>
-
 namespace vkx {
 class Image {
 private:

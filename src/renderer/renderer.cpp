@@ -148,6 +148,16 @@ vkx::VulkanInstance::VulkanInstance(SDL_Window* window)
 	    &allocatorCreateInfo);
 
 	clearRenderPass = createRenderPass();
+
+	swapchain.window = window;
+	swapchain.surface = surface;
+	swapchain.physicalDevice = physicalDevice;
+	swapchain.logicalDevice = logicalDevice;
+	swapchain.allocator = allocator;
+	swapchain.renderPass = clearRenderPass;
+	swapchain.depthFormat = depthFormat;
+
+	swapchain.recreate();
 }
 
 vk::RenderPass vkx::VulkanInstance::createRenderPass(vk::AttachmentLoadOp loadOp, vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) const {
@@ -232,35 +242,6 @@ vk::Format vkx::VulkanInstance::findSupportedFormat(vk::ImageTiling tiling, vk::
 	return vk::Format::eUndefined;
 }
 
-vkx::Swapchain vkx::VulkanInstance::createSwapchain() const {
-	const vkx::SwapchainInfo info{physicalDevice, surface, window};
-	const vkx::QueueConfig config{physicalDevice, surface};
-
-	int width;
-	int height;
-	SDL_GetWindowSizeInPixels(window, &width, &height);
-
-	const auto imageSharingMode = config.getImageSharingMode();
-
-	const vk::SwapchainCreateInfoKHR swapchainCreateInfo{
-	    {},
-	    surface,
-	    info.imageCount,
-	    info.surfaceFormat,
-	    info.surfaceColorSpace,
-	    info.actualExtent,
-	    1,
-	    vk::ImageUsageFlagBits::eColorAttachment,
-	    imageSharingMode,
-	    config.indices,
-	    info.currentTransform,
-	    vk::CompositeAlphaFlagBitsKHR::eOpaque,
-	    info.presentMode,
-	    true};
-
-	return vkx::Swapchain{*this, clearRenderPass, info, logicalDevice.createSwapchainKHR(swapchainCreateInfo)};
-}
-
 vkx::CommandSubmitter vkx::VulkanInstance::createCommandSubmitter() const {
 	return vkx::CommandSubmitter{physicalDevice, logicalDevice, surface};
 }
@@ -325,7 +306,8 @@ vk::ImageView vkx::VulkanInstance::createImageView(vk::Image image, vk::Format f
 	return logicalDevice.createImageView(imageViewCreateInfo);
 }
 
-void vkx::VulkanInstance::destroy() const {
+void vkx::VulkanInstance::destroy() {
+	swapchain.destroy();
 	logicalDevice.destroyRenderPass(clearRenderPass);
 	vmaDestroyAllocator(allocator);
 	logicalDevice.destroy();

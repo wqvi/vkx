@@ -19,6 +19,7 @@ auto createShaderBindings() {
 
 int main(int argc, char** argv) {
 	vkx::application app{};
+	app.run();
 
 	/*vkx::Camera2D camera{{0, 0}, {0, 0}, {0.5f, 0.5f}};
 

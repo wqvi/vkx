@@ -1,7 +1,9 @@
 #pragma once
 
 #include <vkx/renderer/allocator.hpp>
+#include <vkx/renderer/image.hpp>
 #include <vkx/renderer/types.hpp>
+#include <vkx/renderer/sync_objects.hpp>
 #include <vkx/window.hpp>
 
 namespace vkx {
@@ -77,10 +79,10 @@ constexpr auto posMod(T a, T b) {
 }
 
 class VulkanInstance {
-	friend class Swapchain;
 	friend class pipeline::GraphicsPipeline;
 	friend class CommandSubmitter;
 	friend class Texture;
+	friend struct DrawInfo; // fix this!
 
 private:
 	SDL_Window* window = nullptr;
@@ -93,6 +95,28 @@ private:
 	VmaAllocator allocator;
 	vk::RenderPass clearRenderPass;
 
+	struct Swapchain {
+		SDL_Window* window;
+		vk::SurfaceKHR surface;
+		vk::PhysicalDevice physicalDevice;
+		vk::Device logicalDevice;
+		VmaAllocator allocator;
+		vk::RenderPass renderPass;
+		vk::SwapchainKHR swapchain;
+		vk::Extent2D imageExtent;
+		std::vector<vk::ImageView> imageViews;
+		vk::Format depthFormat;
+		vkx::Image depthImage;
+		vk::ImageView depthImageView;
+		std::vector<vk::Framebuffer> framebuffers;
+
+		void recreate();
+
+		void destroy();
+
+		vk::ResultValue<std::uint32_t> acquireNextImage(const vkx::SyncObjects& syncObjects) const;
+	} swapchain;
+
 public:
 	VulkanInstance() = default;
 
@@ -104,8 +128,6 @@ public:
 
 	[[nodiscard]] vk::ImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags) const;
 
-	[[nodiscard]] vkx::Swapchain createSwapchain() const;
-
 	[[nodiscard]] vkx::CommandSubmitter createCommandSubmitter() const;
 
 	[[nodiscard]] vkx::pipeline::GraphicsPipeline createGraphicsPipeline(const vkx::pipeline::GraphicsPipelineInformation& information) const;
@@ -116,7 +138,7 @@ public:
 
 	void waitIdle() const;
 
-	void destroy() const;
+	void destroy();
 
 	[[nodiscard]] vkx::Buffer allocateBuffer(std::size_t memorySize,
 						 vk::BufferUsageFlags bufferFlags,
